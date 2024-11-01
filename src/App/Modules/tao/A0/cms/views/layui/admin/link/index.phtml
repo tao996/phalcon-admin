@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+
+<fieldset class="table-search-fieldset" id="table-search">
+    <legend>条件搜索</legend>
+    <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="status">
+                    <option value="">全部</option>
+                    <option value="1">启用</option>
+                    <option value="2">禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <a class="layui-btn layui-btn-normal"
+               lay-submit>搜索</a>
+            <button type="reset" class="layui-btn layui-btn-primary">
+                重置
+            </button>
+        </div>
+    </form>
+</fieldset>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm" lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-on="create">
+            <i class="fa fa-plus"></i>添加
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger"
+                lay-on="batchDelete">
+            <i class="fa fa-trash-o"></i>删除
+        </button>
+
+    </div>
+</script>
+<script type="text/html" id="row-action">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="remove">删除</a>
+    </div>
+</script>
+
+<table id="table" class="layui-hide"></table>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer(); ?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao.cms/admin.link", false) ?>';
+    admin.table.with({url: prefix})
+        .render({
+            toolbar: '#toolbar',
+            cols: [[
+                {type: 'checkbox'},
+                {field: 'id', title: 'ID', width: 50},
+                {field: 'created_at', title: '创建时间', width: 180, templet: admin.table.humanTime},
+                {field: 'sort', title: '排序', width: 80, edit: 'text'},
+                {field: 'tag', title: 'TAG', width: 80, edit: 'text'},
+                {
+                    field: 'title', title: '标题', width: 150, templet: function (d) {
+                        return `<a href="${d.href}" target="_blank">${d.title}</a>`;
+                    }
+                },
+                {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
+                {
+                    title: '操作', toolbar: '#row-action'
+                }
+            ]],
+        })
+        .addPostSwitch()
+        .addPostEditText()
+        .addLayOnActions()
+        .addLayEventActions();
+
+</script>

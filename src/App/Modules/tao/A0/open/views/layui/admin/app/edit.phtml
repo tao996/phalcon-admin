@@ -1,0 +1,142 @@
+<?php
+
+use App\Modules\tao\A0\open\Data\Config;
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label required">应用名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" class="layui-input"
+                   placeholder="请输入应用名称"
+                   lay-verify="required" lay-reqtext="请输入应用名称"
+                   value="<?php
+                   echo $vv->pick('title') ?>">
+        </div>
+        <?php
+        $platform = $vv->pick('platform', 0) ?>
+        <label class="layui-form-label required">平台</label>
+        <div class="layui-input-inline">
+            <select class="layui-select" name="platform">
+                <?php
+                foreach (Config::MapPlatform as $v => $t) { ?>
+                    <option value="<?php
+                    echo $v ?>" <?php
+                    echo $platform == $v ? 'selected' : '' ?>><?php
+                        echo $t ?></option>
+                    <?php
+                } ?>
+            </select>
+        </div>
+
+        <?php
+        $kind = $vv->pick('kind', 'mini'); ?>
+        <label class="layui-form-label required">应用类型</label>
+        <div class="layui-input-inline">
+            <select class="layui-select" name="kind">
+                <?php
+                foreach (Config::MapKinds as $v => $t) { ?>
+                    <option value="<?php
+                    echo $v ?>" <?php
+                    echo $kind == $v ? 'selected' : '' ?>><?php
+                        echo $t ?></option>
+                    <?php
+                } ?>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">Appid</label>
+        <div class="layui-input-inline">
+            <input type="text" name="appid" class="layui-input"
+                   placeholder="请输入 Appid"
+                   lay-verify="required"
+                   value="<?php
+                   echo $vv->pick('appid') ?>">
+        </div>
+
+        <label class="layui-form-label required">Secret</label>
+        <div class="layui-input-inline">
+            <input type="text" name="secret" class="layui-input"
+                   placeholder="请输入 Secret"
+                   lay-verify="required"
+                   value="<?php
+                   echo $vv->pick('secret') ?>">
+        </div>
+
+    </div>
+    <!-- 微信 -->
+    <div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">CropId</label>
+            <div class="layui-input-inline">
+                <input type="text" name="crop_id" class="layui-input" placeholder="企业微信 cropId"
+                       value="<?php
+                       echo $vv->pick('crop_id') ?>">
+            </div>
+            <label class="layui-form-label">Token</label>
+            <div class="layui-input-inline">
+                <input type="text" name="token" class="layui-input" placeholder="token"
+                       value="<?php
+                       echo $vv->pick('token') ?>">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">EncMethod</label>
+            <div class="layui-input-inline">
+                <input type="text" name="enc_method" class="layui-input" placeholder="加密方式"
+                       value="<?php
+                       echo $vv->pick('enc_method') ?>">
+            </div>
+            <label class="layui-form-label">AesKey</label>
+            <div class="layui-input-inline">
+                <input type="text" name="aes_key" class="layui-input" placeholder="消息加密密钥"
+                       value="<?php
+                       echo $vv->pick('aes_key') ?>">
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">沙盒</label>
+        <div class="layui-input-inline">
+            <input type="checkbox" name="sandbox" title="是" <?php
+            echo $vv->pickCompare('sandbox', 'checked') ?>>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <input type="text" name="remark" class="layui-input" placeholder=""
+                   value="<?php
+                   echo $vv->pick('remark') ?>">
+        </div>
+    </div>
+
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+$vv->layui()->addWindowConfig()->footer(); ?>
+
+<script>
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    }, function (data) {
+        return Object.assign(data, {})
+    })
+</script>

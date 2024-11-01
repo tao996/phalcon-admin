@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+$captchaURL = $vv->urlModule('tao/captcha');
+\App\Modules\tao\sdk\phaxui\HtmlAssets::addHeaderFile(__DIR__ . '/auth.css');
+?>
+
+<form class="layui-form" id="form">
+    <div class="auth-container">
+        <h2>忘记密码</h2>
+        <div class="layui-form-item">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-email"></i>
+                </div>
+                <input type="text" name="account" value=""
+                       lay-verify="required" lay-reqtext="请填写电子邮箱"
+                       placeholder="电子邮箱地址"
+                       autocomplete="off"
+                       lay-affix="clear"
+                       class="layui-input" id="pwd-account">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-fluid"
+                    id="submit"
+                    lay-submit
+                    lay-filter="submit-forgot"
+                    id="submit-forgot">发送邮件
+            </button>
+        </div>
+        <div class="link">
+            <span style="margin-right: 10px;">已有账号？</span>
+            <a href="javascript:;" lay-on="index">前往登录</a>
+        </div>
+        <div style="margin-top: 10px;" class="link">
+            <span style="margin-right: 10px;">没有账号？</span>
+            <a href="javascript:;" lay-on="signup">前往注册</a>
+        </div>
+        <?php
+        include_once __DIR__ . '/quickLogin.phtml' ?>
+    </div>
+</form>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer(); ?>
+<script>
+    <?php include_once __DIR__ . '/auth.js' ?>
+</script>
+<script>
+    // 提交事件
+    form.on('submit(submit-forgot)', function (data) {
+
+        admin.form.captcha(captcha => {
+            const postData = Object.assign(data.field, {captcha});
+            admin.ajax.post({
+                url: '<?php echo $vv->urlModule('tao/auth/forgot') ?>', data: postData,
+            }, function () {
+                admin.layer.success('邮件已发送，请查收');
+                setTimeout(function () {
+                    location.href = '<?php echo $vv->urlModule('tao/auth') ?>';
+                }, 1500)
+
+            })
+        })
+
+        return false;
+    });
+
+    auth.bindButtons({
+        prefix: "<?php echo $vv->urlModule('/tao/auth/') ?>"
+    });
+
+</script>

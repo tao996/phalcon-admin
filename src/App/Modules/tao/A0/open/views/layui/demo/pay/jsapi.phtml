@@ -1,0 +1,91 @@
+<?php
+
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+\App\Modules\tao\sdk\phaxui\HtmlAssets::initWithCdn('cn');
+
+?>
+<style>
+    <?php include_once __DIR__.'/pay.css' ?>
+</style>
+<div style="margin: 20px;">
+    <h3>微信支付</h3>
+    <div style="color: orangered;margin-bottom: 15px;">只供内部使用，请不要随意充值，不退还</div>
+
+    <form class="layui-form">
+
+        <div class="layui-form-item">
+            <div class="layui-input-group">
+                <input type="number" name="money" id="money"
+                       lay-verify="required" value="0.1"
+                       min="0" placeholder="请填写充值金額" class="layui-input">
+                <div class="layui-input-split layui-input-suffix">
+                    元
+                </div>
+            </div>
+        </div>
+
+
+        <div class="layui-btn-container my20 price-buttons">
+            <button type="button" class="layui-btn layui-btn-normal" onclick="quickMoney(0.1)">0.1 元</button>
+            <button type="button" class="layui-btn layui-btn-normal" onclick="quickMoney(0.5)">0.5 元</button>
+        </div>
+
+        <div style="text-align: center">
+            <button type="submit" class="layui-btn layui-btn-lg" lay-submit>立即充值
+            </button>
+        </div>
+    </form>
+
+    <div id="debug" class="my20"></div>
+</div>
+
+<?php $vv->layui()->footer(); ?>
+<script>
+
+    const moneyEle = $('#money'), debugDiv = $('#debug');
+
+    function quickMoney(price) {
+        moneyEle.val(price);
+    }
+
+    admin.form.submitFirst(function (res) {
+        debugDiv.append('<div><h2>API Response</h2>' + JSON.stringify(res) + '</div>');
+        // https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=7_7&index=6
+        WeixinJSBridge.invoke(
+            'getBrandWCPayRequest', res.data,
+            function (wxRes) {
+                // 订单查询功能
+                debugDiv.innerHTML = ('<h3>WX Response</h3><div>' + JSON.stringify(wxRes) + '</div>') + debugDiv.innerHTML;
+
+                // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+                switch (wxRes.err_msg) {
+                    case "get_brand_wcpay_request:ok":
+                        debugDiv.innerHTML = '<div>充值成功</div>' + debugDiv.innerHTML
+                        layer.alert('充值成功', {icon: 6}, function (index) {
+                            // 跳转到订单详情页（查询页面）
+                            layer.close(index);
+                        });
+                        break;
+                    case "get_brand_wcpay_request:cancel":
+                        debugDiv.innerHTML = '<div>取消支付</div>' + debugDiv.innerHTML
+                        break;
+                    case "get_brand_wcpay_request:fail":
+                        debugDiv.innerHTML = '<div>支付失败，請稍后再試</div>' + debugDiv.innerHTML
+                        // 1 正确, 2 错误(X), 3 询问，4 锁定, 5 不开心, 6 开心(笑脸) 7 感叹号
+                        layer.alert('支付失败，請稍后再試', {icon: 2}, function (index) {
+                            layer.close(index);
+                        });
+                        break;
+                    default:
+                        debugDiv.innerHTML = '<div>未知結果</div>' + debugDiv.innerHTML
+                        break;
+                }
+            });
+    })
+
+
+</script>

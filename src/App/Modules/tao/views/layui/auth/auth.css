@@ -1,0 +1,13 @@
+.auth-container {
+    margin: 21px auto 0;
+}
+
+@media (min-width: 768px) {
+    .auth-container {
+        width: 320px;
+    }
+}
+
+.auth-container h2 {
+    margin-bottom: 20px;
+}

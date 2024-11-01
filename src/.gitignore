@@ -1,0 +1,12 @@
+.env
+.phpunit.result.cache
+vendor
+phpunit.xml
+public/favicon.ico
+
+# move to tao996/phar
+phalcon-migrations/
+
+app/Swoole
+app/Projects/*
+!app/Projects/demo

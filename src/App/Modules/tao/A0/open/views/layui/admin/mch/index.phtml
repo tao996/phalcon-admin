@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+
+<fieldset class="table-search-fieldset" id="table-search">
+    <legend>条件搜索</legend>
+    <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="status">
+                    <option value="">全部</option>
+                    <option value="1">启用</option>
+                    <option value="2">禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <a class="layui-btn layui-btn-normal"
+               lay-submit>搜索</a>
+            <button type="reset" class="layui-btn layui-btn-primary">
+                重置
+            </button>
+        </div>
+    </form>
+</fieldset>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm" lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-on="create">
+            <i class="fa fa-plus"></i>添加
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger"
+                lay-on="batchDelete">
+            <i class="fa fa-trash-o"></i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="row-action">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="remove">删除</a>
+    </div>
+</script>
+
+<table id="table" class="layui-hide"></table>
+<div class="hint text-danger">
+    <p>提示：商户 API 私钥通常文件名为 apiclient_key.pem<a
+                href="https://pay.weixin.qq.com/docs/merchant/development/interface-rules/privatekey-and-certificate.html"
+                target="_blank">【点击查看文档】</a></p>
+    <p>商户 API 证书 通常文件名为 apiclient_cert.pem</p>
+    <p>平台证书 <a
+                href="https://pay.weixin.qq.com/docs/merchant/apis/platform-certificate/api-v3-get-certificates/get.html"
+                target="_blank">【点击查看文档】</a></p>
+</div>
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao.open/admin.mch") ?>';
+    const certURL = '<?php echo $vv->urlModule("tao.open/admin.mch/cert", true) ?>';
+
+    admin.table.with({url: prefix})
+        .render({
+            toolbar: '#toolbar',
+            cols: [[
+                {type: 'checkbox'},
+                {field: 'id', title: 'ID', width: 50},
+                // {field: 'created_at', title: '创建时间', width: 120, templet: admin.table.humanTime},
+                {field: 'mchid', title: '商户号', width: 120,},
+                {
+                    field: 'done', title: '资料完整', align: 'center', width: 100, templet: function (d) {
+                        return d.done ? '是' : '否'
+                    }
+                },
+                {
+                    title: '商户 API 私钥', width: 150, templet: function (d) {
+                        const has = d.private_key;
+                        return `<div>${has ? '已上传' : '未上传'}</div>
+<div class="group-radio"><button type="button" class="layui-btn upload_btn layui-btn-xs"
+    lay-options="{accept: 'file',data:{id:${d.id},name:'private_key'}}">
+上传
+</button>` + (has ? `<button type="button" class="layui-btn layui-btn-xs layui-btn-warm"
+lay-event="discardPrivateKey">取消</button>` : '') + `</div>`;
+                    }
+                }, {
+                    title: 'API 证书', width: 150, templet: function (d) {
+                        const has = d.certificate;
+                        return `<div>${has ? '已上传' : '未上传'}</div>
+<div class="group-radio"><button type="button" class="layui-btn upload_btn layui-btn-xs"
+    lay-options="{accept: 'file',data:{id:${d.id},name:'certificate'}}">
+上传
+</button>` + (has ? `<button type="button" class="layui-btn layui-btn-xs layui-btn-warm"
+lay-event="discardCertificate">取消</button>` : '') + `</div>`;
+                    }
+                }, {
+                    title: '平台证书', width: 150, templet: function (d) {
+                        const has = d.platform_cert;
+                        return `<div>${has ? '已上传' : '未上传'}</div>
+<div class="group-radio"><button type="button" class="layui-btn upload_btn layui-btn-xs"
+    lay-options="{accept: 'file',data:{id:${d.id},name:'platform_cert'}}">
+上传
+</button>` + (has ? `<button type="button" class="layui-btn layui-btn-xs layui-btn-warm"
+lay-event="discardPlatformCert">取消</button>` : '') + `</div>`;
+                    }
+                },
+                {field: 'remark', title: '备注', edit: 'text'},
+                {
+                    title: '操作', toolbar: '#row-action', width: 130
+                }
+            ]],
+            lineStyle: '60px',
+            done: function (res, curr, count) { // 表格加载后，对上传按钮进行渲染
+                const tableId = this.id;
+                const tableElem = this.elem;
+                const tableViewElem = tableElem.next();
+
+                layui.upload.render({
+                    elem: tableViewElem.find('.upload_btn'),
+                    url: certURL,
+                    accept: 'file',
+                    done: function (res) {
+                        layer.closeAll('loading'); //关闭loading
+                        layer.msg('上传成功');
+                        admin.table.reloadData();
+                    },
+                    error: function (index, upload) {
+                        layer.closeAll('loading'); //关闭loading
+                        layer.msg('上传失败，请重试');
+                    }
+                });
+            },
+        })
+        .addPostSwitch()
+        .addPostEditText()
+        .addLayOnActions()
+        .addLayEventActions({
+            events: function (obj) {
+                switch (obj.event) {
+                    case 'discardPrivateKey':
+                        discardCert(obj.data.id, 'private_key', '商户 API 私钥');
+                        break;
+                    case 'discardCertificate':
+                        discardCert(obj.data.id, 'certificate', '商户 API 证书');
+                        break;
+                    case 'discardPlatformCert':
+                        discardCert(obj.data.id, 'platform_cert', '平台证书');
+                        break;
+                }
+            }
+        });
+
+    function discardCert(id, name, title) {
+        admin.layer.confirm('确定要取消当前' + title + '吗？', function () {
+            admin.ajax.post({url: certURL, data: {id, name}}, function () {
+                // admin.layer.success('取消成功');
+                admin.table.reloadData();
+            })
+        })
+    }
+</script>

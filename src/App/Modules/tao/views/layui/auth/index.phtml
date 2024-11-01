@@ -1,0 +1,139 @@
+<?php
+
+use App\Modules\tao\sdk\phaxui\HtmlAssets;
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv ;
+ */
+
+HtmlAssets::addHeaderFile(__DIR__ . '/auth.css');
+?>
+<style>
+    .demo-login-container {
+        width: 320px;
+        margin: 21px auto 0;
+    }
+
+    .demo-title {
+        height: 117px;
+        background-color: #148be4;
+        font-size: 30px;
+        font-weight: 400;
+        color: #fff;
+        line-height: 117px;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .demo-info {
+        margin-bottom: 10px;
+    }
+
+    .demo-account {
+        text-align: center;
+        color: white !important;
+        font-size: 14px;
+        background: red;
+        border-radius: 10px;
+        font-weight: bold;
+        padding: 10px;
+    }
+</style>
+
+
+<form class="layui-form" id="form">
+    <div class="demo-login-container">
+
+        <div class="demo-title">
+            <span><?php
+                echo $vv->configService()->getWith('site.site_name') ?></span>
+        </div>
+        <div class="demo-info">
+            <?php
+            if ($vv->isDemo()) { ?>
+                <div class="demo-account">演示系统用户名:admin 密码:123456</div>
+                <?php
+            } ?>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <?php
+                $accountPlaceholder = $vv->registerHelper()->accountPlaceholder(); ?>
+                <input type="text" name="account" value=""
+                       autocomplete="off" class="layui-input"
+                       placeholder="<?php
+                       echo $accountPlaceholder ?>"
+                       lay-verify="required"
+                       lay-reqtext="<?php
+                       echo $accountPlaceholder ?>"
+                       lay-affix="clear"
+                >
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                </div>
+                <input type="password" name="password" value=""
+                       lay-verify="required" placeholder="密   码"
+                       lay-reqtext="请填写密码" autocomplete="off" class="layui-input" lay-affix="eye">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="submit-login" id="submit-login">登录
+            </button>
+        </div>
+
+        <div class="layui-row link">
+            <div class="layui-col-xs4">
+                <a href="javascript:;" lay-on="signup">注册帐号</a>
+            </div>
+            <div class="layui-col-xs4" style="text-align: center">
+                <a href="javascript:;" lay-on="forgot">忘记密码？</a>
+            </div>
+            <div class="layui-col-xs4" style="text-align: right">
+                <a href="javascript:;" lay-on="signin">验证码登录</a>
+            </div>
+        </div>
+        <?php
+        include_once __DIR__ . '/quickLogin.phtml' ?>
+    </div>
+</form>
+
+<?php
+$vv->layui()->addWindowConfig()->footer(); ?>
+<script>
+    <?php include_once __DIR__ . '/auth.js' ?>
+</script>
+<script>
+    // 提交事件
+    form.on('submit(submit-login)', function (data) {
+        admin.form.captcha(captcha => {
+            const postData = Object.assign(data.field, {captcha});
+            admin.ajax.post({
+                url: '<?php echo $vv->urlModule('tao/auth/index') ?>', data: postData,
+            }, function () {
+                const search = layui.url().search;
+                if (!admin.util.isEmpty(search['redirect'])) {
+                    setTimeout(function () {
+                        location.href = search.redirect;
+                    }, 1500)
+                } else {
+                    auth.afterLogin();
+                }
+            })
+        })
+
+        return false; // 阻止默认 form 跳转
+    });
+
+    auth.bindButtons({
+        prefix: '<?php echo $vv->urlModule('tao/auth/') ?>'
+    })
+</script>

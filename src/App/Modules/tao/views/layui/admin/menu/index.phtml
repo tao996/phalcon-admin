@@ -1,0 +1,163 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+
+
+<fieldset class="table-search-fieldset layui-hide" id="table-search">
+    <legend>条件搜索</legend>
+    <div class="layui-form-item layui-inline">
+        <a class="layui-btn layui-btn-normal layui-btn-sm"
+           lay-submit>搜索</a>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+            重置
+        </button>
+    </div>
+</fieldset>
+<!--<div><button class="layui-btn layui-btn-sm" onclick="triggerUpdateMenu()">菜单更新</button></div>-->
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm"
+                lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-on="create">
+            <i class="fa fa-plus"></i>添加
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger"
+                lay-on="batchDelete">
+            <i class="fa fa-trash-o"></i>删除
+        </button>
+    </div>
+</script>
+<script type="text/html" id="row-action">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="child">添加下级</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="remove">删除</a>
+    </div>
+</script>
+<table id="table" class="layui-hide"></table>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao/admin.menu",false) ?>';
+
+    const inst = admin.treeTable.render({
+        tree: {
+            customName: { // 自定义属性名
+                name: 'title',
+                // pid: 'pid',
+                icon: '',
+            },
+            view: {
+                expandAllDefault: true, // 是否展开默认节点
+                iconLeaf: '<span style="padding-right: 5px;">|--</span>',
+            }
+        },
+
+        cols: [[
+            // {type: 'checkbox', fixed: 'left'},
+            {field: 'sort', width: 50, title: '排序', edit: 'text'},
+            {
+                field: 'icon', width: 60, title: '图标', align: 'left',
+                templet: admin.table.icon,
+            },
+            {field: 'title', width: 200, title: '菜单名称', align: 'left'},
+            {field: 'href', width: 250, title: '菜单链接', align: 'left'},
+            {
+                field: 'is_home',
+                width: 120,
+                title: '类型',
+                templet: function (d) {
+                    if (d.pid == 0) {
+                        return '<span class="layui-badge">一级菜单</span>';
+                    }
+                    if (d.pid === 99999999) {
+                        return '<span class="layui-badge layui-bg-blue">首页</span>';
+                    }
+                    let color = '';
+                    if (d.type === <?php echo \App\Modules\tao\Models\SystemNode::KIND_MODULE ?>) {
+                        color = 'layui-bg-green'
+                    } else if (d.type === <?php echo \App\Modules\tao\Models\SystemNode::KIND_PROJECT ?>) {
+                        color = 'layui-bg-blue';
+                    } else {
+                    }
+                    return '<span class="layui-badge-rim ' + color + '">菜单</span>';
+
+
+                }
+            },
+
+            {field: 'roles', title: '角色', edit: 'text', width: 150},
+            {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
+            {field: 'remark', title: '备注说明', align: 'left', edit: 'text'},
+            {
+                width: 200, title: '操作', toolbar: '#row-action'
+            }
+        ]],
+    })
+    admin.table.with({
+        url: prefix, rowAction: function (name, data) {
+            // console.log(name,data);
+            triggerUpdateMenu();
+        }
+    })
+        .addPostSwitch()
+        .addPostEditText()
+        .addLayOnActions()
+
+    layui.util.on('lay-on', {
+        refresh: function () {
+            inst.reloadData();
+        }
+    })
+
+    layui.treeTable.on('tool(' + inst.config.id + ')', function (obj) {
+        const id = obj.data.id;
+        switch (obj.event) {
+            case 'child':
+                admin.iframe.open(prefix + '/add?pid=' + id, {
+                    title: '添加下级菜单',
+                    end: function () {
+                        admin.iframe.hasRefresh(() => {
+                            inst.reloadData();
+                            triggerUpdateMenu();
+                        })
+                    }
+                })
+                break;
+            case 'edit':
+                admin.iframe.open(prefix + '/edit?id=' + id, {
+                    title: '编辑菜单',
+                    end: function () {
+                        admin.iframe.hasRefresh(() => {
+                            inst.reloadData();
+                            triggerUpdateMenu();
+                        })
+                    }
+                })
+                break;
+            case 'remove':
+                admin.layer.confirm('确定要移除当前菜单吗?', function () {
+                    admin.ajax.post({
+                        url: '/api' + prefix + '/delete',
+                        data: {id}
+                    }, function () {
+                        obj.del();
+                        triggerUpdateMenu();
+                    })
+                })
+                break;
+        }
+    })
+
+    function triggerUpdateMenu() {
+        admin.iframe.updateParentMenu();
+    }
+</script>

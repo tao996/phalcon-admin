@@ -1,0 +1,140 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+use App\Modules\tao\A0\cms\Models\CmsCategory;
+
+?>
+<style>
+    tbody .layui-table-cell {
+        height: 70px;
+    }
+
+    tbody tr td:not(:nth-child(2)) .layui-table-cell, .middle {
+        line-height: 60px;
+    }
+
+</style>
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm"
+                lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-on="create">
+            <i class="fa fa-plus"></i>添加
+        </button>
+    </div>
+</script>
+<script type="text/html" id="row-action">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="child">添加下级</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="remove">删除</a>
+    </div>
+</script>
+<table id="table" class="layui-hide"></table>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer(); ?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao.cms/admin.category", false) ?>';
+    const mapKind = <?php echo json_encode(CmsCategory::mapKind()) ?>;
+
+    // https://layui.dev/docs/2/treeTable
+    const inst = admin.treeTable.render({
+        tree: {
+            customName: { // 自定义属性名
+                name: 'title',
+                pid: 'pid',
+            },
+            view: {
+                showIcon: false,
+                expandAllDefault: true, // 是否展开默认节点
+            }
+        },
+        cols: [[
+            {
+                field: 'kind', width: 100, title: '类型', align: 'left', templet: function (d) {
+                    return mapKind[d.kind];
+                }
+            },
+            { // 只能放在第一个，否则 CSS 错误
+                field: 'title', title: '基本信息/英文名称', align: 'left', templet: function (d) {
+                    // 文章列表 ;+ (d.image_ids ? '[相册]' : '') + (d.content_id ? '[内容]' : '')
+                    const level = d.pids ? d.pids.split(',').length : 0;
+                    return `<div style="display: inline-flex;${level > 0 ? 'padding-left: ' + (level * 40) + 'px;' : ''}">
+    <div style="width: 60px;"><img src="${d.cover}" alt="栏目封面图片" style="width: 100%;"></div>
+        <div style="flex: 1;padding-left: 5px;">
+        <div style="font-weight: bold;">${d.title + (d.name ? '[' + d.name + ']' : '')}</div>
+        <div>${d.summary}</div>
+    </div>
+</div>`
+                }
+            },
+            {field: 'sort', width: 80, title: '排序', edit: 'text'},
+            {field: 'tag', width: 100, title: '标签', edit: 'text'},
+            {field: 'navbar', title: '导航栏目', width: 100, templet: admin.table.switch},
+            {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
+            {
+                width: 200, title: '操作', toolbar: '#row-action'
+            }
+        ]],
+    })
+    admin.table.with({
+        url: prefix
+    })
+        .addPostSwitch(['status', 'navbar'])
+        .addPostEditText()
+        .addLayOnActions()
+
+    layui.util.on('lay-on', {
+        refresh: function () {
+            inst.reloadData();
+        }
+    })
+
+    layui.treeTable.on('tool(' + inst.config.id + ')', function (obj) {
+        const id = obj.data.id;
+        switch (obj.event) {
+            case 'child':
+                if (100 === parseInt(obj.data.kind)) {
+                    admin.layer.msg('链接类型无法添加下级');
+                    return;
+                }
+                admin.iframe.open(prefix + '/add?pid=' + id, {
+                    title: '添加下级栏目',
+                    end: function () {
+                        admin.iframe.hasRefresh(() => {
+                            inst.reloadData();
+                        })
+                    }
+                })
+                break;
+            case 'edit':
+                admin.iframe.open(prefix + '/edit?id=' + id, {
+                    title: '编辑栏目',
+                    full: true,
+                    end: function () {
+                        admin.iframe.hasRefresh(() => {
+                            inst.reloadData();
+                        })
+                    }
+                })
+                break;
+            case 'remove':
+                admin.layer.confirm('确定要移除当前栏目吗?', function () {
+                    admin.ajax.post({
+                        url: '/api' + prefix + '/delete',
+                        data: {id}
+                    }, function () {
+                        obj.del();
+                    })
+                })
+                break;
+        }
+    })
+</script>

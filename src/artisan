@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+
+<?php
+// use `dos2unit artisan` to remove the ^M
+// converting file artisan to Unix format..
+
+// define('PATH_ROOT', '/var/www/'); // if you can copy this file to /usr/bin/artisan
+
+const PATH_ROOT = __DIR__ . '/';
+/**
+ * @var $app \Phax\Foundation\Application
+ */
+$app = require_once PATH_ROOT . 'bootstrap/app.php';
+$app->runCLI();
+

@@ -1,0 +1,43 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<form class="layui-form">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">页头 Header</label>
+        <div class="layui-input-block">
+            <textarea name="header" class="layui-textarea"
+                      placeholder=""><?php
+                echo $vv->configService()->getWith('html.header') ?></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">页脚 Footer</label>
+        <div class="layui-input-block">
+            <textarea name="footer" class="layui-textarea"
+                      placeholder=""><?php
+                echo $vv->configService()->getWith('html.footer') ?></textarea>
+        </div>
+        <div class="hint">页脚通常填写统计代码</div>
+    </div>
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-filter="submit_html"
+                lay-submit>确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<script>
+    admin.form.onSubmit('submit_html', function (data) {
+        admin.ajax.post({
+            url: prefix + '/save/html', data
+        })
+    })
+</script>

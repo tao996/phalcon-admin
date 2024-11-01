@@ -1,0 +1,163 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+$captchaURL = $vv->urlModule('tao/captcha');
+\App\Modules\tao\sdk\phaxui\HtmlAssets::addHeaderFile(__DIR__ . '/auth.css');
+?>
+
+<form class="layui-form">
+    <div class="auth-container">
+        <h2>验证码登录</h2>
+        <div class="layui-form-item">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-email"></i>
+                </div>
+                <input type="text" name="account" value=""
+                       lay-verify="required" lay-reqtext="请填写电子邮箱/手机号"
+                       placeholder="电子邮箱/手机号"
+                       autocomplete="off"
+                       lay-affix="clear"
+                       class="layui-input" id="reg-account">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-row">
+                <div class="layui-col-xs7">
+                    <div class="layui-input-wrap">
+                        <div class="layui-input-prefix">
+                            <i class="layui-icon layui-icon-vercode"></i>
+                        </div>
+                        <input type="text" name="vercode" value="" lay-verify="required"
+                               placeholder="邮箱/手机验证码"
+                               lay-reqtext="请填写验证码" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-col-xs5">
+                    <div style="margin-left: 11px;">
+                        <button type="button" class="layui-btn layui-btn-fluid layui-btn-primary"
+                                id="reg-get-vercode"
+                                lay-on="reg-get-vercode">发送验证码
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo-reg">登录</button>
+        </div>
+        <div class="link">
+            <div>
+                <span style="margin-right: 10px;">已有账号？</span>
+                <a href="javascript:;" lay-on="index">前往登录</a>
+                <a style="margin-left: 15px;" href="javascript:;" lay-on="forgot">忘记密码</a>
+            </div>
+            <div style="margin-top: 10px;">
+                <span style="margin-right: 10px;">没有账号？</span>
+                <a href="javascript:;" lay-on="signup">前往注册</a>
+            </div>
+        </div>
+        <?php include_once __DIR__ . '/quickLogin.phtml' ?>
+    </div>
+</form>
+
+
+<?php $vv->layui()->addWindowConfig()->footer(); ?>
+<script>
+    <?php include_once __DIR__ . '/auth.js' ?>
+</script>
+<script>
+    let seconds = 0; // 倒计时
+    const verCodeBtn = $('#reg-get-vercode');
+
+    // 提交事件
+    form.on('submit(demo-reg)', function (data) {
+        const field = data.field; // 获取表单字段值
+
+        const postData = {
+            account: field.account, vercode: field.vercode,
+        }
+        admin.ajax.post({
+            url: '<?php echo $vv->urlModule("tao/auth/signin", true) ?>',
+            data: postData
+        }, function () {
+            auth.afterLogin();
+        })
+
+        return false; // 阻止默认 form 跳转
+    });
+
+    // 普通事件
+    layui.util.on('lay-on', {
+        // 获取验证码
+        'reg-get-vercode': function (othis) {
+            if (form.validate('#reg-account')) {
+                if (seconds > 0) {
+                    return;
+                }
+                const index = layer.open({
+                    type: 1, area: '300px', resize: false, shadeClose: true,
+                    title: '图片验证码',
+                    content: `<div class="layui-form" style="margin: 10px;">
+    <div class="layui-form-item">
+        <img style="width: 100%;height:95px;"
+            src="<?php echo $captchaURL ?>" title="点击刷新图片验证码"
+            onclick="this.src='<?php echo $captchaURL ?>?t='+ new Date().getTime();">
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-vercode"></i>
+            </div>
+            <input type="text" name="captcha" value="" placeholder="图片验证码(不区分大小写)"
+                style="text-align:center;"
+                lay-reqtext="请填写图片验证码"  lay-verify="required"
+                autocomplete="off" class="layui-input" lay-affix="clear">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <button class="layui-btn layui-btn-fluid layui-btn-normal" lay-submit lay-filter="demo-captcha">完成</button>
+    </div>
+</div>`,
+                    success: function () {
+                        admin.form.onSubmit('demo-captcha', function (data) {
+
+                            const postData = Object.assign(data, {
+                                account: $('#reg-account').val(),
+                            });
+
+                            admin.ajax.post({
+                                url: '<?php echo $vv->urlModule("tao/auth/signin-code", true) ?>',
+                                data: postData,
+                            }, function (res) {
+
+                                admin.layer.close(index);
+                                // 开始倒计时
+                                seconds = 60;
+                                let myTime = setInterval(function () {
+                                    if (seconds < 1) {
+                                        clearInterval(myTime);
+                                        myTime = null;
+                                        verCodeBtn.text('发送验证码');
+                                        verCodeBtn.removeClass('layui-btn-disabled')
+                                    } else {
+                                        verCodeBtn.text(seconds + '秒后重发');
+                                        seconds -= 1;
+                                    }
+                                }, 1000)
+                            })
+                        })
+                    },
+                })
+            }
+        }
+    });
+
+    auth.bindButtons({
+        prefix: "<?php echo $vv->urlModule('/tao/auth/') ?>"
+    });
+
+</script>

@@ -1,0 +1,154 @@
+<?php
+
+use App\Modules\tao\Config\Data;
+use App\Modules\tao\Models\SystemMenu;
+use App\Modules\tao\sdk\phaxui\Layui\Layui;
+use App\Modules\tao\Models\SystemNode;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+//$vv->print();
+$list = SystemMenu::queryBuilder()
+    ->int('status', 1)
+    ->notEqual('pid', Data::HOME_PID)
+    ->columns('id,pid,title')
+    ->find();
+$optionList = LayuiData::selectOptions(0, $list);
+$menuList = array_merge([
+    [
+        'id' => 0,
+        'pid' => 0,
+        'title' => '顶级菜单'
+    ]
+], $optionList);
+$pid = $vv->pick('pid', $vv->request()->getQuery('pid', 0));
+$id = $vv->pick('id', 0);
+
+?>
+
+<form class="layui-form">
+
+    <div class="layui-form-item  layui-row layui-col-xs12">
+        <label class="layui-form-label required">上级菜单</label>
+        <div class="layui-input-inline">
+            <select name="pid">
+                <?php
+                foreach ($menuList as $vo) { ?>
+                    <option value="<?php
+                    echo $vo['id'] ?>"
+                        <?php
+                        echo $pid == $vo['id'] ? 'selected' : '' ?>
+                    ><?php
+                        echo $vo['title'] ?></option>
+                    <?php
+                } ?>
+            </select>
+        </div>
+
+        <label class="layui-form-label required">菜单名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" class="layui-input"
+                   lay-verify="required" lay-reqtext="请输入菜单名称"
+                   lay-affix="clear"
+                   placeholder="请输入菜单名称" value="<?php
+            echo $vv->pick('title') ?>">
+        </div>
+
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">访问角色</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="inputRoles" name="roles"
+                   value="<?php
+                   echo $vv->pick('roles') ?>"
+                   placeholder="不填则表示手动授权"
+            >
+        </div>
+
+        <div class="layui-input-inline" style="width: 300px;padding-top: 4px;">
+            <a class="layui-btn layui-btn-sm layui-btn-warm" onclick="inputRoles('')">清空</a>
+            <?php
+            foreach (array_keys(Data::MapAccess) as $role) { ?>
+                <a class="layui-btn layui-btn-sm"
+                   onclick="inputRoles('<?php
+                   echo $role ?>')"><?php
+                    echo $role ?></a>
+                <?php
+            } ?>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">链接地址</label>
+        <div class="layui-input-inline">
+            <input type="text" name="href" id="href" class="layui-input"
+                   lay-affix="clear"
+                   placeholder="请输入菜单链接"
+                   value="<?php
+                   echo $vv->pick('href') ?>">
+        </div>
+
+        <label class="layui-form-label">地址前缀</label>
+        <div class="layui-input-inline" style="width: 300px;">
+            <?php
+            foreach (
+                [
+                    0 => '无',
+                    SystemNode::KIND_MODULE => 'Module',
+                    SystemNode::KIND_PROJECT => 'Project'
+                ] as $v => $t
+            ) { ?>
+                <input type="radio" name="type" value="<?php
+                echo $v ?>"
+                       title="<?php
+                       echo $t ?>" <?php
+                echo $vv->pickCompare('type', 'checked', $v) ?>>
+                <?php
+            } ?>
+
+            <div class="layui-form-mid layui-text-em">选择 Module 自动为链接补充前缀 /m/，选择 Project 则补充前缀 /p/
+            </div>
+        </div>
+    </div>
+
+    <?php
+    $vv->layuiHtml()->icon(['value' => $vv->pick('icon')]); ?>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">菜单排序</label>
+        <div class="layui-input-inline">
+            <input type="number" name="sort"
+                   lay-reqtext="菜单排序不能为空" placeholder="请输入菜单排序"
+                   value="<?php
+                   echo $vv->pick('sort', 0) ?>" class="layui-input">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+
+$vv->layuiHtml()->iconJs();
+?>
+<script>
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    })
+    const inputEle = $('#inputRoles');
+
+
+    function inputRoles(v) {
+        inputEle.val(v);
+    }
+</script>

@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<style type="text/css">
+    .layui-form-checkbox i {
+        border-left: 1px solid #d2d2d2;
+    }
+</style>
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script>
+    const prefix = '<?php echo $vv->urlModule('tao/admin.config', false) ?>';
+</script>
+<div id="app">
+    <div>
+        <a class="layui-btn layui-btn-success layui-btn-sm" lay-on="systemReload">
+            <i class="layui-icon layui-icon-refresh"></i>更新配置缓存</a>
+    </div>
+    <div class="layui-tab layui-tab-brief" lay-filter="menus">
+        <ul class="layui-tab-title">
+            <li class="layui-this">网站设置</li>
+            <li>页面代码</li>
+            <li>联系信息</li>
+            <li>上传配置</li>
+            <li>地图配置</li>
+            <li>短信/邮件配置</li>
+            <li>翻译配置</li>
+            <li>注册登录</li>
+        </ul>
+        <div class="layui-tab-content">
+            <div class="layui-tab-item">
+                <?php
+                include_once __DIR__ . '/site.phtml' ?>
+            </div>
+
+            <div class="layui-tab-item">
+                <?php
+                include_once __DIR__ . '/html.phtml' ?>
+            </div>
+
+            <div class="layui-tab-item">
+                <?php
+                include_once __DIR__ . '/contact.phtml' ?>
+            </div>
+
+            <div class="layui-tab-item layui-show">
+                <?php
+                include_once __DIR__ . '/upload.phtml' ?>
+            </div>
+
+            <div class="layui-tab-item">
+                <?php
+                include_once __DIR__ . '/map.phtml' ?>
+            </div>
+
+            <div class="layui-tab-item">
+                <?php
+                include_once __DIR__ . '/sms.phtml' ?>
+            </div>
+
+            <div class="layui-tab-item">
+                <?php
+                include_once __DIR__ . '/translate.phtml' ?>
+            </div>
+
+            <div class="layui-tab-item">
+                <?php
+                include_once __DIR__ . '/oauth.phtml' ?>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    admin.util.layOn({
+        systemReload: function () {
+            admin.ajax.get({
+                url: prefix + '/reload'
+            })
+        }
+    })
+    // tab 切换事件
+    // https://layui.dev/docs/2/tab/#on-tab
+    layui.element.on('tab(menus)', function (data) {
+        // console.log(data.index); // 得到当前 tab 项的所在下标
+        // console.log(this); // 当前 tab 标题所在的原始 DOM 元素
+        // console.log(data.elem); // 得到当前的 tab 容器
+    });
+    admin.upload.run();
+</script>

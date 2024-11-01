@@ -1,0 +1,40 @@
+.tao-container {
+    padding: 10px;
+    margin: 5px;
+    background: white;
+}
+
+.tao-hr {
+    color: #fff;
+    height: 1px;
+    margin: 30px 0;
+    background-color: #fff;
+    border-top: 1px dashed #e7eaec;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-danger {
+    color: #ff5722;
+}
+
+.bg-red {
+    background-color: #e74c3c !important;
+}
+
+.mb10 {
+    margin-bottom: 10px;
+}
+
+.mr10 {
+    margin-right: 10px;
+}
+.link a, a.link {
+    text-decoration: underline;
+}

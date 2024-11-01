@@ -1,0 +1,152 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+$user = $vv->user();
+?>
+
+<form class="layui-form">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">账号状态</label>
+            <div class="layui-form-mid layui-text-em">
+                <?php echo $user->status == 1 ? '正常' : '异常' ?>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">注册时间</label>
+            <div class="layui-form-mid layui-text-em"><?php echo date('Y-m-d', $user->created_at) ?></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">账号角色</label>
+            <div class="layui-form-mid layui-text-em">
+                <?php
+                if ($roles = $vv->pick('roles', [])) {
+                    foreach ($roles as $id => $role) {
+                        echo '<span style="margin-right: 15px;">', $role, '</span>';
+                    }
+                } else {
+                    echo '------';
+                }
+                ?>
+            </div>
+        </div>
+    </div>
+
+    <?php $vv->layuiHtml()->upload('用户头像', 'head_img',
+        ['value' => $user->head_img, 'class' => 'mb10']) ?>
+
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label required">昵称</label>
+            <div class="layui-input-inline layui-input-wrap">
+                <input type="text" name="nickname"
+                       class="layui-input" value="<?php echo $user->nickname ?>">
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">签名</label>
+        <div class="layui-input-block">
+            <input name="signature" class="layui-input" type="text"
+                   value="<?php echo $user->signature ?>"
+                   placeholder="请输入您的个性签名">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">手机号码</label>
+            <div class="layui-input-inline layui-input-wrap">
+                <input type="text" id="phone" class="layui-input" readonly
+                       value="<?php echo $user->phone ?>">
+            </div>
+            <?php
+
+            $changePhone = $vv->userService()->enableChangePhoneAt($user->phone_at);
+            if ($changePhone) {
+                ?>
+                <div class="layui-form-mid" style="padding: 0!important;">
+                    <button type="button" class="layui-btn layui-btn-primary"
+                            id="bindChangePhone">修改手机号
+                    </button>
+                </div>
+
+            <?php } else { ?>
+                <div class="layui-form-mid layui-text-em hint">
+                    <span>最近修改 <?php echo date('Y-m-d H:i:s', $user->phone_at) ?></span>
+                </div>
+            <?php } ?>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">邮箱地址</label>
+            <div class="layui-input-inline layui-input-wrap">
+                <input type="text" id="email" class="layui-input" readonly
+                       value="<?php echo $user->email ?>">
+            </div>
+            <?php
+            $changeEmail = $vv->userService()->enableChangeEmailAt($user->email_at);
+            if ($changeEmail) { ?>
+                <div class="layui-form-mid" style="padding: 0!important;">
+                    <button type="button" class="layui-btn layui-btn-primary"
+                            id="bindChangeEmail">修 改 邮 箱
+                    </button>
+                </div>
+            <?php } else { ?>
+                <div class="layui-form-mid layui-text-em hint">
+                    <span>最近修改 <?php echo date('Y-m-d H:i:s', $user->email_at) ?></span>
+                </div>
+            <?php } ?>
+
+        </div>
+    </div>
+
+
+    <div class="tao-hr"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+
+<?php $vv->layui()->addWindowConfig()->footer(); ?>
+<script>
+    $('#bindChangePhone').bind('click', function () {
+        layer.open({
+            type: 2,
+            title: '修改手机号码',
+            shadeClose: false, // 不关闭弹层
+            maxmin: true, //开启最大化最小化按钮
+            area: ['440px', '270px'],
+            offset: '20px',
+            content: ['<?php echo $vv->urlModule('tao/user.index/change-phone') ?>', 'no']
+        });
+    })
+    $('#bindChangeEmail').bind('click', function () {
+        layer.open({
+            type: 2,
+            title: '修改登录邮箱',
+            shadeClose: false,
+            maxmin: true, //开启最大化最小化按钮
+            area: ['440px', '270px'],
+            offset: '20px',
+            content: ['<?php echo $vv->urlModule('tao/user.index/change-email') ?>', 'no']
+        });
+    });
+
+    admin.form.submitFirst(function (data) {
+        admin.iframe.closeFromParent(true);
+    })
+
+    admin.upload.run();
+</script>

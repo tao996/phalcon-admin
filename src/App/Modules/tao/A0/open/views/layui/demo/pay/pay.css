@@ -1,0 +1,23 @@
+.small {
+    font-size: 0.8em;
+}
+
+.my20 {
+    margin: 20px 0;
+}
+
+.d-title {
+    display: inline-block;
+    width: 65px;
+}
+
+ol.my-list li {
+    line-height: 1.5em;
+    margin-left: 15px;
+    list-style: auto;
+}
+
+.price-buttons button {
+    width: 114px;
+    text-align: center;
+}

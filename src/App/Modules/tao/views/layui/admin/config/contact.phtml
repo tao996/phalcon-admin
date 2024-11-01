@@ -1,0 +1,112 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<form class="layui-form">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">公司地址</label>
+        <div class="layui-input-block">
+            <input type="text" name="contact_address" class="layui-input"
+                   placeholder="请输入公司的联系地址"
+                   value="<?php echo $vv->configService()->getWith('contact.contact_address') ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">电子邮箱</label>
+        <div class="layui-input-block">
+            <input type="text" name="contact_email" class="layui-input"
+                   placeholder="请输入公司的电子邮箱"
+                   value="<?php echo $vv->configService()->getWith('contact.contact_email') ?>">
+            <div class="hint">公司电子邮箱，多个邮箱填写示例。<br>
+                技术支持|a@exam.com, 客服支持|b@exam.com
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">联系电话</label>
+        <div class="layui-input-block">
+            <input type="text" name="contact_tel" class="layui-input"
+                   placeholder="请输入公司的联系电话号码"
+                   value="<?php echo $vv->configService()->getWith('contact.contact_tel') ?>">
+            <div class="hint">公司联系电话号码，多个电话号码填写示例。<br>
+                技术支持|0768-12345678, 客服支持|0768-87654321
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">传真号码</label>
+        <div class="layui-input-block">
+            <input type="text" name="contact_fax" class="layui-input"
+                   placeholder="请输入公司的传真号码"
+                   value="<?php echo $vv->configService()->getWith('contact.contact_fax') ?>">
+        </div>
+    </div>
+
+    <h3 class="mb10">社交账号</h3>
+    <div class="layui-form-item">
+        <label class="layui-form-label">微信公众号</label>
+        <div class="layui-input-block">
+            <input type="text" name="wechat_name" class="layui-input"
+                   placeholder="微信公众号账号名称"
+                   value="<?php echo $vv->configService()->getWith('contact.wechat_name') ?>">
+        </div>
+    </div>
+
+    <?php $vv->layuiHtml()->upload('二维码', 'wechat_qrcode', [
+        'value' => $vv->configService()->getWith('contact.wechat_qrcode', ''),
+        'class' => 'mb10',
+    ]); ?>
+    <div class="layui-form-item">
+        <label class="layui-form-label">企业号客服</label>
+        <div class="layui-input-block">
+            <input type="text" name="wework_link" class="layui-input"
+                   placeholder="请输入您的微信企业号客户链接地址"
+                   value="<?php echo $vv->configService()->getWith('contact.wework_link') ?>">
+        </div>
+    </div>
+    <?php $vv->layuiHtml()->upload('二维码', 'wework_qrcode', [
+        'value' => $vv->configService()->getWith('contact.wework_qrcode', ''),
+        'class' => 'mb10'
+    ]); ?>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">Whatsapp</label>
+        <div class="layui-input-block">
+            <input type="text" name="whatsapp" class="layui-input"
+                   placeholder="whatsapp 账号"
+                   value="<?php echo $vv->configService()->getWith('contact.whatsapp') ?>">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">Facebook</label>
+        <div class="layui-input-block">
+            <input type="text" name="facebook" class="layui-input"
+                   placeholder="facebook 账号"
+                   value="<?php echo $vv->configService()->getWith('contact.facebook') ?>">
+        </div>
+    </div>
+
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-filter="submit_contact"
+                lay-submit>确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<script>
+    admin.form.onSubmit('submit_contact', function (data) {
+        admin.ajax.post({
+            url: prefix + '/save/contact', data
+        })
+    })
+</script>

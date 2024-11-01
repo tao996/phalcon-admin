@@ -1,0 +1,110 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>文件选择</title>
+    <?php
+    $vv->layui()->header();
+    $vv->layui()->selectHeader(); ?>
+</head>
+<body>
+<div id="table-search" style="margin-top: 8px;">
+    <form class="layui-form" style="display:inline-block;" lay-filter="form-search">
+        <div class="layui-form-item" style="margin-bottom: 0">
+
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="status">
+                    <option value="">全部</option>
+                    <option value="1">启用</option>
+                    <option value="2">禁用</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" id="keyword"
+                       name="keyword" placeholder="请输入关键词" autocomplete="off"
+                       lay-affix="clear"
+                       class="layui-input input-keyword"
+                >
+            </div>
+            <div class="layui-form-item layui-inline">
+                <a class="layui-btn layui-btn-normal"
+                   lay-submit>搜索</a>
+                <button type="reset" class="layui-btn layui-btn-primary">
+                    重置
+                </button>
+                <a class="layui-btn" lay-on="picker">选择</a>
+            </div>
+        </div>
+    </form>
+</div>
+<div>
+    <table id="table" class="layui-hide"></table>
+</div>
+</body>
+<?php
+$vv->layui()->footer(); ?>
+<script>
+    const index = parent.layer.getFrameIndex(window.name);
+    const all = <?php echo $vv->htmlBoolText(isset($_GET['key'])) ?>;
+
+    admin.util.layOn({
+        picker: function () {
+            const rows = layui.table.cache['table'];
+            const items = rows.filter(d => d['LAY_CHECKED'] === true);
+            if (items.length > 0) {
+                if (all) {
+                    const rows = items.map(d => admin.util.pick(d, 'id', 'url', 'summary'));
+                    admin.storage.save('images', rows);
+                } else {
+                    const rows = items.map(d => d.url)
+                    admin.storage.save('images', rows)
+                }
+                parent.layer.close(index)
+            } else {
+                admin.layer.error('没有选中任何记录')
+            }
+        }
+    })
+
+
+    const apiUrl = '<?php echo $vv->urlModule("tao/user.file",false) ?>';
+    const tt = admin.table.with({url: apiUrl})
+        .render({
+            defaultToolbar: '-',
+            cols: [[
+                {type: "<?php echo $vv->request()->getQuery('type') === 'checkbox' ? 'checkbox' : 'radio' ?>"},
+                {
+                    field: 'created_at',
+                    width: 120,
+                    title: '上传时间',
+                    align: "center",
+                    templet: admin.table.humanDate,
+                },
+                {
+                    field: 'url',
+                    width: 80,
+                    search: false,
+                    title: '预览',
+                    imageHeight: 40,
+                    align: "center",
+                    templet: admin.table.image,
+                },
+                {field: 'width', title: '宽度px', width: 80},
+                {field: 'height', title: '高度px', width: 80},
+                {field: 'summary', title: '文件名/标记/备注[点击修改]', align: "center", edit: 'text'},
+
+            ]],
+            lineStyle: 'height: 60px;'
+        }, {search: false}).addPostEditText()
+</script>
+</html>

@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+use App\Modules\tao\A0\cms\Helper\CmsHtmlHelper;
+
+CmsHtmlHelper::header();
+
+?>
+
+<form class="layui-form">
+
+    <div style="display: flex;flex-direction: row;">
+        <div class="layui-form-item" style="width: 300px;margin-right: 10px;">
+
+            <?php $vv->layuiHtml()->upload('封面', 'cover', [
+                'value' => $vv->pick('cover'), 'tip' => '建议尺寸 620 * 300'
+            ]); ?>
+        </div>
+        <div style="flex: 1;">
+            <div class="layui-form-item">
+                <label class="layui-form-label required">标题</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" name="title"
+                           value="<?php echo $vv->pick('title') ?>"
+                           lay-verify="required" lay-reqtext="请填写图集名称"
+                           placeholder="请填写图集名称"
+                    >
+                </div>
+
+                <label class="layui-form-label">标签</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" name="tag"
+                           value="<?php echo $vv->pick('tag') ?>"
+                           placeholder="通常用于分组使用"
+                    >
+                </div>
+                <div class="layui-form-mid layui-text-em">多个标签使用空格分割</div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">简介</label>
+                <div class="layui-input-block">
+                    <input type="text" name="summary" class="layui-input" placeholder="请填写简介"
+                           value="<?php echo $vv->pick('summary') ?>">
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <?php CmsHtmlHelper::ImageHtml(); ?>
+
+
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+
+$vv->layui()->addWindowConfig([])->footer();
+
+$items = $vv->pick('images',[]);
+CmsHtmlHelper::ImageJs($items);
+?>
+
+<script>
+    // 提交事件
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    }, data => {
+        data['image_ids'] = vmImage.data.items.map(d => d.id).join(',');
+        return data;
+    })
+    admin.upload.run();
+</script>
+
+

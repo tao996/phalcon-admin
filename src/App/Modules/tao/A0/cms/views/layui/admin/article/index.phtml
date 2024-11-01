@@ -1,0 +1,205 @@
+<?php
+
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+use App\Modules\tao\A0\cms\Models\CmsArticle;
+
+?>
+<style>
+    .base-info {
+        font-size: 0.9em;
+        color: grey;
+    }
+</style>
+<fieldset class="table-search-fieldset" id="table-search">
+    <legend>条件搜索</legend>
+    <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">审核状态</label>
+            <div class="layui-input-inline">
+                <select name="cstatus">
+                    <option value="">全部</option>
+                    <?php
+                    foreach (CmsArticle::mapCheckStatus() as $v => $t) { ?>
+                        <option value="<?php
+                        echo $v ?>"><?php
+                            echo $t ?></option>
+                        <?php
+                    } ?>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="status">
+                    <option value="">全部</option>
+                    <option value="1">启用</option>
+                    <option value="2">禁用</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">栏目</label>
+            <div class="layui-input-inline">
+                <select name="cate_id">
+                    <option value="">全部</option>
+                    <?php
+                    foreach ($vv->get('options', []) as $item) { ?>
+                        <option value="<?php
+                        echo $item['id'] ?>"><?php
+                            echo $item['title'] ?></option>
+                        <?php
+                    } ?>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <a class="layui-btn layui-btn-normal"
+               lay-submit>搜索</a>
+            <button type="reset" class="layui-btn layui-btn-primary">
+                重置
+            </button>
+        </div>
+    </form>
+</fieldset>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm" lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-on="create">
+            <i class="fa fa-plus"></i>添加
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger"
+                lay-on="batchDelete">
+            <i class="fa fa-trash-o"></i>删除
+        </button>
+
+    </div>
+</script>
+<script type="text/html" id="row-action">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="preview">预览</a>
+        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="checkStatus">审核</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="remove">删除</a>
+    </div>
+</script>
+
+<table id="table" class="layui-hide"></table>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer(); ?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao.cms/admin.article", false) ?>';
+    const mapCStatus = <?php echo json_encode(CmsArticle::mapCheckStatus()) ?>;
+    admin.table.with({url: prefix})
+        .render({
+            toolbar: '#toolbar',
+            cols: [[
+                // {type: 'checkbox'},
+                // {field: 'id', title: 'ID', width: 50},
+                {field: 'created_at', title: '发布时间', width: 120, templet: admin.table.humanTime},
+                {
+                    title: '文章', templet: function (d) {
+                        return `<div>${d.title}</div>
+<div class="base-info"><span>栏目: ${d.cate_title}</span>
+<span style="padding-left: 10px;">作者: ${d.author}</span>
+</div>`;
+                    }
+                },
+                {
+                    title: '审核状态', width: 100, templet: function (d) {
+                        return `<div>${mapCStatus[d.cstatus]}</div>`;
+                    }, align: 'center',
+                },
+                {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
+                {field: 'hot', title: '热门', width: 85, templet: admin.table.switch},
+                {field: 'top', title: '置顶', width: 85, templet: admin.table.switch},
+                {field: 'hits', title: '点击次数', width: 100, align: 'center', edit: 'text'},
+                {field: 'sort', title: '排序', width: 100, align: 'center', edit: 'text'},
+                {
+                    title: '操作', toolbar: '#row-action', width: 130,
+                }
+            ]],
+            lineStyle: '60px'
+        })
+        .addPostSwitch(['status', 'hot', 'top'])
+        .addPostEditText()
+        .addLayOnActions()
+        .addLayEventActions({
+            events: (obj) => {
+                const article = obj.data;
+                switch (obj.event) {
+                    case 'checkStatus':
+                        layer.open({
+                            type: 1,
+                            area: ['400px', '340px'],
+                            resize: false,
+                            shadeClose: true,
+                            title: '文章审核',
+                            content: `<div class="layui-form" style="margin: 8px;" lay-filter="formArticleCheck">
+<div class="layui-form-item">
+    <div style="margin: 5px 0;">状态</div>
+<?php foreach (CmsArticle::mapCheckStatus() as $v => $t){?>
+    <input type="radio" lay-filter="formArticleCStatus" name="cstatus" value="<?php echo $v ?>" title="<?php echo $t ?>">
+<?php } ?>
+</div>
+<div class="layui-form-item">
+    <div style="margin: 5px 0;">原因</div>
+    <div><textarea name="cmessage" placeholder="请输入审核不通过的原因" maxlength="255" class="layui-textarea">
+</textarea></div>
+</div>
+<div class="layui-form-item">
+<button class="layui-btn layui-btn-fluid" lay-submit lay-filter="article-check">确定</button>
+</div>
+</div>`,
+                            success: (layero, index, that) => {
+                                form.render();
+                                form.val('formArticleCheck', {
+                                    cstatus: article.cstatus, cmessage: article.cmessage
+                                })
+                                form.on('radio(formArticleCStatus)', function (data) {
+                                    const v = data.elem.value; // 审核状态变化
+                                })
+                                form.on('submit(article-check)', data => {
+                                    const field = data.field;
+                                    admin.ajax.post({
+                                        url: "<?php echo $vv->urlModule('tao.cms/admin.article/cstatus', true) ?>",
+                                        data: Object.assign({id: article.id}, field)
+                                    }, function () {
+                                        admin.layer.close(index)
+                                        admin.table.reloadData();
+                                    })
+                                    return false;
+                                })
+                            }
+                        })
+                        break;
+                    case 'preview':
+                        layer.open({
+                            type: 2,
+                            title: '预览',
+                            shadeClose: true,
+                            maxmin: true, //开启最大化最小化按钮
+                            area: ['900px', '600px'],
+                            content: "<?php echo $vv->urlModule(
+                                'tao.cms/admin.article/preview',
+                                false
+                            ) ?>?id=" + article.id,
+                        });
+                        break;
+                    default:
+                        console.log('obj..', obj.event, obj.data);
+                }
+            }
+        });
+
+</script>

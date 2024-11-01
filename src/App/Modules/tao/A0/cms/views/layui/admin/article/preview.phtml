@@ -1,0 +1,98 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+    <style>
+        .article .article-title {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .article .article-info {
+            color: grey;
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        .article .article-summary {
+            background: #eeeeee;
+            border-radius: 3px;
+            padding: 10px;
+        }
+
+        .article .article-main {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .article .article-content {
+            padding: 10px;
+            font-size: 1.5em;
+            flex: 1;
+        }
+
+        .article .article-albums {
+
+            width: 150px;
+            border-left: 1px solid #eee;
+            margin-left: 10px;
+        }
+
+        .article .article-albums img {
+            width: 100%;
+        }
+
+        .article .article-albums-desc {
+            margin: 10px 0;
+        }
+
+    </style>
+    <div class="article">
+        <div class="article-title"><?php
+            echo $vv->pick('title') ?></div>
+        <div class="article-info">
+            <div style="display: inline-block;margin-right: 10px;">
+                <span>发布时间:</span>
+                <span><?php
+                    echo date('Y-m-d', $vv->pick('created_at')) ?></span>
+            </div>
+            <div style="display: inline-block;">
+                <span>作者:</span><span><?php
+                    echo $vv->pick('author', '匿名') ?></span>
+            </div>
+        </div>
+        <div class="article-summary">简介: <?php
+            echo $vv->pick('summary') ?></div>
+
+        <div class="article-main">
+            <div class="article-content">
+                <?php
+                echo $vv->pick('content') ?>
+            </div>
+            <div class="article-albums">
+                <?php
+                if ($cover = $vv->pick('cover')) { ?>
+                    <img src="<?php
+                    echo $cover ?>" alt="封面图片">
+                <?php
+                } ?>
+
+                <h5 style="margin: 5px;text-align: center;">图集</h5>
+                <?php
+                foreach ($vv->pick('images', []) as $item) { ?>
+                    <img src="<?php
+                    echo $item['url'] ?>" alt="">
+                    <div class="article-albums-desc"><?php
+                        echo $item['summary'] ?></div>
+                <?php
+                } ?>
+            </div>
+        </div>
+
+    </div>
+<?php
+$vv->layui()->addWindowConfig()->footer();
+?>

@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+\App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::header();
+$cateId = $vv->pick('row.cate_id', 0);
+
+?>
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label required">栏目</label>
+            <div class="layui-input-inline">
+                <select name="cate_id" lay-filter="category"
+                        lay-verify="required" lay-reqtext="请选择栏目">
+                    <option value="">请选择</option>
+                    <?php foreach ($vv->pick('options',[]) as $item) { ?>
+                        <option value="<?php echo $item['id'] ?>" <?php echo $cateId == $item['id'] ? 'selected' : '' ?>><?php echo $item['title'] ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex;flex-direction: row;">
+
+            <div class="layui-form-item" style="width: 300px;margin-right: 10px;">
+
+                <?php $vv->layuiHtml()->upload('封面', 'cover',[
+                    'value'=>$vv->pick('row.cover')
+                ]); ?>
+
+            </div>
+
+            <div style="flex: 1;">
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">标　题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" class="layui-input" placeholder="请输入文章标题"
+                               lay-verify="required" lay-reqtext="请输入文章标题" maxlength="255"
+                               value="<?php echo $vv->pick('row.title') ?>">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">关键词</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="keywords" class="layui-input"
+                               placeholder="请输入文章关键词，使用空格分割多个关键词"
+                               lay-affix="clear" maxlength="60"
+                               value="<?php echo $vv->pick('row.keywords') ?>">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">简　介</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="summary" class="layui-input" placeholder="请输入文章简介"
+                               lay-affix="clear" maxlength="255"
+                               value="<?php echo $vv->pick('row.summary') ?>">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">作者</label>
+            <div class="layui-input-inline">
+                <input name="author" placeholder="请输入作者名称" class="layui-input"
+                       value="<?php echo $vv->pick('row.author') ?>">
+            </div>
+            <label class="layui-form-label">点击次数</label>
+            <div class="layui-input-inline">
+                <input name="hits" type="number" placeholder="请输入点击次数" class="layui-input"
+                       value="<?php echo $vv->pick('row.hits') ?>">
+            </div>
+        </div>
+        <?php \App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::ImageHtml(); ?>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">内容</label>
+            <div class="layui-input-block">
+                <textarea name="content" class="layui-textarea" placeholder="请输入单页内容"
+                          id="content"><?php echo $vv->pick('row.content') ?></textarea>
+            </div>
+        </div>
+
+        <div class="hr-line"></div>
+        <div class="layui-form-item text-center">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+        </div>
+
+    </form>
+<?php
+$vv->layui()->addWindowConfig()->footer();
+
+$items = $vv->pick('row.images',[]);
+\App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::ImageJs($items);
+?>
+    <script>
+        admin.form.submitFirst(() => {
+            admin.iframe.closeFromParent(true);
+        }, function (data) {
+            data['image_ids'] = vmImage.data.items.map(d => d.id).join(',')
+            return Object.assign(data, {content: tinymce.activeEditor.getContent()})
+        })
+        admin.upload.run()
+    </script>
+<?php
+\App\Modules\tao\sdk\phaxui\TinyMce::init();
+?>

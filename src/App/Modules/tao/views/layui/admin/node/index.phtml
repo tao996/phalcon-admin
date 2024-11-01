@@ -1,0 +1,116 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<fieldset class="table-search-fieldset layui-hide" id="table-search">
+    <legend>条件搜索</legend>
+</fieldset>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm"
+                lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+        <button class="layui-btn layui-btn-sm layui-btn-normal"
+                lay-on="show">
+            <i class="fa fa-hourglass"></i> 预览分析节点
+        </button>
+
+        <button class="layui-btn layui-btn-sm layui-btn-danger"
+                lay-on="reload">
+            <i class="fa fa-trash-o"></i> 保存分析节点
+        </button>
+    </div>
+</script>
+<div style="font-size: small;color: grey;">变化是指与上一次的保存的节点相比较</div>
+<table id="table" class="layui-hide"></table>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao/admin.node",false) ?>';
+    const inst = admin.treeTable.render({
+        tree: {
+            customName: {
+                name: 'node', pid: 'pid', icon: ''
+            },
+            view: {
+                expandAllDefault: true,
+                iconLeaf: '<span style="padding-right: 5px;">|__ </span>',
+            }
+        },
+        cols: [[
+            {
+                field: 'node', width: 400, align: 'left', title: '节点'
+            },
+            {
+                field: 'title',
+                width: 200,
+                title: '节点名称 <i class="table-edit-tips" style="color: red">*</i>',
+                edit: 'text', align: 'left'
+            },
+            {
+                field: 'ac', width: 100, title: '变化',
+                templet: function (d) {
+                    if (d.ac === 1) {
+                        return '新增';
+                    } else if (d.ac === 2) {
+                        return '更新';
+                    }
+                    return '';
+                }
+            },
+            {
+                field: 'is_auth',
+                title: '授权检查',
+                minWidth: 85,
+                align: 'left',
+                templet: function (d) {
+                    return d.is_auth === 1 ? '是' : '---';
+                }
+                // templet: admin.table.switch
+            },
+        ]]
+    })
+    admin.table.with({url: prefix})
+        .addPostSwitch(['is_auth'])
+        .addPostEditText()
+
+
+    layui.util.on('lay-on', {
+        refresh: function () {
+            inst.reloadData({
+                url: admin.ajax.apiURL(),
+            })
+        },
+        reload: function () {
+            admin.layer.confirm(`更新节点将重新分析站点全部节点，此操作不可撤销！<br>
+1. 检查发现新的节点 <br>
+2. 清除失效的节点（提示：角色所绑定的失效节点也将被清除）
+`, function () {
+                admin.ajax.get({
+                    url: '/api' + prefix + '/reload/true'
+                }, function () {
+                    inst.reloadData();
+                })
+            })
+        },
+        show: function () {
+            inst.reloadData({
+                url: '/api' + prefix + '/reload',
+            })
+        },
+        clear: function () {
+            admin.ajax.get({
+                url: '/api' + prefix + '/clear'
+            }, function () {
+                inst.reloadData();
+            })
+        }
+    })
+
+</script>

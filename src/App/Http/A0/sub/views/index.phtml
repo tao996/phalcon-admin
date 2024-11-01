@@ -1,0 +1,23 @@
+<?php
+/**
+ * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
+ */
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>单应用子模块</title>
+</head>
+<body>
+<h1>单应用子模块：views/sub/index.phtml 布局文件 - 导航</h1>
+<div>模板位置：<?php echo __FILE__ ?></div>
+<ul>
+    <li><a href="/">返回主页</a></li>
+</ul>
+<?php echo $this->getContent() ?>
+</body>
+</html>

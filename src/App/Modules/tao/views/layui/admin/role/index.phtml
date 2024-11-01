@@ -1,0 +1,95 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+
+<fieldset class="table-search-fieldset layui-hide" id="table-search">
+    <legend>条件搜索</legend>
+    <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="status">
+                    <option value="">全部</option>
+                    <option value="1">启用</option>
+                    <option value="2">禁用</option>
+                </select>
+            </div>
+            <div class="layui-form-item layui-inline">
+                <a class="layui-btn layui-btn-normal layui-btn-sm"
+                   lay-submit>搜索</a>
+                <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                    重置
+                </button>
+            </div>
+    </form>
+</fieldset>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm" lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-on="create">
+            <i class="fa fa-plus"></i>添加
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger"
+                lay-on="batchDelete">
+            <i class="fa fa-trash-o"></i>删除
+        </button>
+
+    </div>
+</script>
+
+<script type="text/html" id="row-action">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="authorize">授权</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="remove">删除</a>
+    </div>
+</script>
+
+<table id="table" class="layui-hide"></table>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao/admin.role", false) ?>';
+    admin.table.with({url: prefix})
+        .render({
+            toolbar: '#toolbar',
+            cols: [[
+                {type: 'checkbox'},
+                {field: 'id', title: 'ID', width: 50},
+                {field: 'sort', title: '排序', width: 80, edit: 'text'},
+                {field: 'title', title: '名称', width: 150},
+                {field: 'name', title: '英文名称', width: 150},
+                {field: 'remark', title: '备注说明'},
+                {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
+                {field: 'created_at', width: 150, title: '创建时间', search: 'range'},
+                {
+                    title: '操作', width: 200, toolbar: '#row-action'
+                }
+            ]],
+        })
+        .addPostSwitch()
+        .addPostEditText()
+        .addLayOnActions()
+        .addLayEventActions({
+            events: function (obj) {
+                switch (obj.event) {
+                    case 'authorize':
+                        const id = obj.data.id;
+                        admin.iframe.open(prefix + '/authorize?id=' + id, {title: '授权设置'})
+                        break;
+                }
+
+            }
+        });
+
+</script>

@@ -1,0 +1,131 @@
+<?php
+
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+use App\Modules\tao\A0\cms\Helper\CmsHtmlHelper;
+use App\Modules\tao\A0\cms\Models\CmsCategory;
+
+CmsHtmlHelper::header();
+$categoryList = $vv->pick('categoryList', []);
+
+?>
+
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">上级栏目</label>
+        <div class="layui-input-inline">
+            <select name="pid">
+                <?php
+                $pid = $vv->pick('row.pid', 0);
+                foreach ($categoryList as $vo) { ?>
+                    <option value="<?php echo $vo['id'] ?>"
+                        <?php echo $vo['id'] == $pid ? 'selected' : '' ?>
+                    ><?php echo $vo['title'] ?></option>
+                <?php } ?>
+            </select>
+        </div>
+
+        <label class="layui-form-label required">类型</label>
+        <div class="layui-input-inline">
+            <select name="kind" lay-filter="kindChange">
+                <?php
+                $kind = $vv->pick('row.kind', CmsCategory::KindList);
+                foreach (CmsCategory::mapKind() as $id => $text) { ?>
+                    <option value="<?php echo $id ?>" <?php echo $id == $kind ? 'selected' : '' ?>><?php echo $text ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="layui-form-mid layui-text-em">列表：通常用于发表文章；外链：通常用于跳转到指定链接；</div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">栏目标题</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="title"
+                   value="<?php echo $vv->pick('row.title') ?>"
+                   lay-verify="required" lay-reqtext="请填写栏目标题"
+                   placeholder="栏目标题（中文）"
+            >
+        </div>
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="name"
+                   value="<?php echo $vv->pick('row.name') ?>"
+                   placeholder="栏目名称（英文）"
+            >
+        </div>
+    </div>
+
+    <div id="list-body">
+        <div class="layui-form-item">
+            <label class="layui-form-label">标签</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" name="tag"
+                       value="<?php echo $vv->pick('row.tag') ?>"
+                       placeholder="通常用于分组使用"
+                >
+            </div>
+            <div class="layui-form-mid layui-text-em">多个标签使用空格分割</div>
+        </div>
+
+        <?php $vv->layuiHtml()->upload('封面', 'cover', [
+            'type' => 'input', 'value' => $vv->pick('row.cover')
+        ]); ?>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">简介</label>
+            <div class="layui-input-block">
+                <input type="text" name="summary" class="layui-input" placeholder="请填写栏目的简介"
+                       value="<?php echo $vv->pick('row.summary') ?>">
+            </div>
+        </div>
+
+        <?php CmsHtmlHelper::ImageHtml(); ?>
+
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">内容</label>
+            <div class="layui-input-block">
+                <textarea name="content" class="layui-textarea" placeholder="请输入栏目内容"
+                          id="content"><?php echo $vv->pick('row.content') ?></textarea>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+
+$vv->layui()->addWindowConfig([])->footer();
+
+$items = $vv->pick('row.images',[]);
+CmsHtmlHelper::ImageJs($items);
+?>
+
+<script>
+    // 提交事件
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    }, data => {
+        data['image_ids'] = vmImage.data.items.map(d => d.id).join(','); // 保存图片 id
+        data['content'] = tinymce.activeEditor.getContent();
+        return data;
+    })
+    admin.upload.run().after = function (url) {
+
+    }
+
+    // 栏目类型切换事件
+    admin.form.on('kindChange', function (data) {
+        console.log(data.value)
+    }, 'select')
+</script>
+<?php \App\Modules\tao\sdk\phaxui\TinyMce::init(); ?>
+

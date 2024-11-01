@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+
+<form class="layui-form">
+
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">菜单名称</label>
+        <div class="layui-input-inline">
+            <input type="text" id="title" name="title" class="layui-input"
+                   lay-verify="required"
+                   lay-reqtext="请输入菜单名称" placeholder="请输入菜单名称"
+                   value="<?php
+                   echo $vv->pick('title') ?>">
+        </div>
+    </div>
+
+    <?php
+    $vv->layuiHtml()->icon(['value' => $vv->pick('icon')]); ?>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">链接地址</label>
+        <div class="layui-input-block">
+            <input type="text" id="href" name="href" class="layui-input"
+                   lay-verify="required"
+                   placeholder="请输入链接地址"
+                   value="<?php
+                   echo $vv->pick('href') ?>">
+        </div>
+
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">菜单排序</label>
+        <div class="layui-input-inline">
+            <input type="number" name="sort" lay-reqtext="菜单排序不能为空" placeholder="请输入菜单排序"
+                   value="<?php
+                   echo $vv->pick('sort') ?>" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注信息</label>
+        <div class="layui-input-block">
+                <textarea name="remark" class="layui-textarea"
+                          placeholder="请输入备注信息"><?php
+                    echo $vv->pick('remark') ?></textarea>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+</form>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer();;
+$vv->layuiHtml()->iconJs();
+?>
+<script>
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    })
+</script>

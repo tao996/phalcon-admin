@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+$isEdit = $vv->pick('id', 0) > 0;
+?>
+<form class="layui-form">
+
+    <?php
+    $vv->layuiHtml()->upload(
+        '用户头像', 'head_img',
+        ['value' => $vv->pick('head_img')]
+    ) ?>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户昵称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="nickname" class="layui-input"
+                   value="<?php
+                   echo $vv->pick('nickname') ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">个性签名</label>
+        <div class="layui-input-block">
+            <input type="text" name="signature" class="layui-input"
+                   placeholder="请输入个性签名" value="<?php
+            echo $vv->pick('signature') ?>">
+        </div>
+    </div>
+
+    <?php
+    if (!$isEdit) { ?>
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label required">登录密码</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="password" class="layui-input"
+                           lay-verify="required"
+                           lay-reqtext="请输入登录密码"
+                           placeholder="请输入登录密码" value="">
+                </div>
+            </div>
+        </div>
+    <?php
+    } ?>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">用户手机</label>
+            <div class="layui-input-inline">
+                <input type="text" name="phone" class="layui-input"
+                       lay-reqtext="请输入用户手机"
+                       lay-affix="clear"
+                       placeholder="请输入用户手机"
+                       value="<?php
+                       echo $vv->pick('phone') ?>"
+                >
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">是否验证</label>
+            <div class="layui-input-inline">
+                <input type="checkbox" name="phone_valid"
+                       lay-skin="switch" lay-filter="switchTest"
+                       title="是|否"
+                    <?php
+                    echo $vv->pickCompare('phone_valid', 'checked') ?>
+                >
+            </div>
+
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">电子邮箱</label>
+            <div class="layui-input-inline">
+                <input type="email" name="email" class="layui-input"
+                       lay-reqtext="请输入用户邮箱" lay-affix="clear"
+                       placeholder="请输入用户邮箱"
+                       value="<?php
+                       echo $vv->pick('email') ?>">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">是否验证</label>
+            <div class="layui-input-inline">
+                <input type="checkbox" name="email_valid" lay-skin="switch" lay-filter="switchTest"
+                       title="是|否" <?php
+                echo $vv->pickCompare('email_valid', 'checked') ?>>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">角色权限</label>
+        <div class="layui-input-block">
+            <?php
+            $roleIds = $vv->pick('role_ids', []);
+
+            foreach ($vv->pick('auth_list', []) as $id => $item) { ?>
+                <input type="checkbox" name="role_ids[<?php
+                echo $id ?>]"
+                       lay-skin="primary" title="<?php
+                echo $item['title'] ?>"
+                    <?php
+                    echo in_array($id, $roleIds) ? 'checked' : '' ?>
+                >
+                <?php
+            } ?>
+        </div>
+    </div>
+
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+</form>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script>
+    admin.upload.run()
+    admin.form.submitFirst(function () {
+        admin.iframe.closeFromParent(true)
+    })
+</script>

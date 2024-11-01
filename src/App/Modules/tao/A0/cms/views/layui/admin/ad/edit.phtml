@@ -1,0 +1,144 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<form class="layui-form" id="form">
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">开始时间</label>
+            <div class="layui-input-inline">
+                <input type="text" name="begin_at"
+                       class="layui-input" id="begin_at" placeholder="yyyy-MM-dd HH:mm:ss">
+            </div>
+            <div class="layui-form-mid layui-text-em">不填写则表示立即生效</div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">结束时间</label>
+            <div class="layui-input-inline">
+                <input type="text" name="end_at"
+                       class="layui-input" id="end_at" placeholder="yyyy-MM-dd HH:mm:ss">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">分组名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="gname" placeholder="分组名称" class="layui-input"
+                   value="<?php echo $vv->pick('gname') ?>">
+        </div>
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-inline">
+            <input type="number" name="sort"
+                   class="layui-input" value="<?php echo $vv->pick('sort', 0) ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <?php $vv->layuiHtml()->upload('图片', 'cover', [
+            'value' => $vv->pick('cover'),
+            'tip' => '广告图片建议尺寸 640 * 60'
+        ]); ?>
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" class="layui-input" placeholder="请输入广告标题"
+                   lay-affix="clear" maxlength="255"
+                   value="<?php echo $vv->pick('title') ?>">
+        </div>
+
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">展示位置</label>
+        <div class="layui-input-block" style="width: 440px;display: inline-block;float: left;margin-left: 0;">
+            <?php foreach (['at_banner' => '横幅', 'at_index' => '首页', 'at_list' => '列表页', 'at_page' => '详情页'] as $name => $title) { ?>
+                <input type="checkbox" name="<?php echo $name ?>" title="<?php echo $title ?>"
+                       lay-skin="tag" <?php echo $vv->pickCompare( $name, 'checked') ?>>
+            <?php } ?>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">TAG 标签</label>
+
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="tag" id="tag"
+                   placeholder="自定义标签" value="<?php echo $vv->pick('tag') ?>"
+                   lay-affix="clear"
+            >
+        </div>
+        <div class="layui-form-mid layui-text-em">通常在图片右下角打上标记；快捷填写：
+            <a href="javascript:;" style="margin: 0 10px;" lay-on="bindTag">直播</a>
+            <a href="javascript:;" lay-on="bindTag">广告</a>
+        </div>
+
+
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">跳转</label>
+        <div class="layui-input-inline">
+            <input type="text" name="link" class="layui-input" placeholder="请输入链接地址或内部路径"
+                   lay-affix="clear" maxlength="255"
+                   value="<?php echo $vv->pick('link') ?>">
+        </div>
+
+        <label class="layui-form-label required">跳转类型</label>
+        <div class="layui-input-inline" style="width: max-content;">
+            <?php foreach (\App\Modules\tao\A0\cms\Models\CmsAd::MapKind as $v => $t){?>
+            <input type="radio" name="kind" value="<?php echo $v ?>"
+            <?php $vv->pickCompare('kind','selected',$v) ?>
+            title="<?php echo $t ?>">
+            <?php } ?>
+        </div>
+
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <input type="text" name="remark" class="layui-input" placeholder="备注内容仅内部可见"
+                   lay-affix="clear" maxlength="255"
+                   value="<?php echo $vv->pick('remark') ?>">
+        </div>
+    </div>
+
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+$vv->layui()->addWindowConfig()->footer();
+?>
+<script>
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    })
+    admin.upload.run()
+
+    laydate.render({
+        elem: '#begin_at',
+        type: 'datetime',
+        value: '<?php echo $vv->pick("begin_at") ?>'
+    });
+    laydate.render({
+        elem: '#end_at',
+        type: 'datetime',
+        value: '<?php echo $vv->pick("end_at") ?>'
+    });
+    const tag = document.getElementById('tag');
+    admin.util.layOn({
+        bindTag: function (othis) {
+            tag.value = othis.html()
+        }
+    })
+</script>

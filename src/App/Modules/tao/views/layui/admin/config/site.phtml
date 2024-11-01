@@ -1,0 +1,133 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<form class="layui-form">
+
+    <h3 style="margin-bottom: 10px;">站点维护</h3>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">维护公告</label>
+        <div class="layui-input-block">
+            <input type="text" name="site_maintain" class="layui-input"
+                   placeholder="维护时显示的提示信息"
+                   lay-affix="clear"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.site_maintain') ?>"
+            >
+            <div class="hint">站点维护显示公告信息</div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">维护时间</label>
+        <div class="layui-input-inline">
+            <input type="text" name="site_maintain_time"
+                   class="layui-input" id="site_maintain_time"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.site_maintain_time') ?>"
+                   placeholder="请输入站点维护时间">
+        </div>
+        <div class="hint">在站点维护时间内，除了超级管理员之外，其他人无权访问</div>
+    </div>
+
+    <div class="tao-hr"></div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">站点名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="site_name" class="layui-input" lay-verify="required" placeholder="请输入站点名称"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.site_name') ?>">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">SEO 关键词</label>
+        <div class="layui-input-block">
+            <input type="text" name="seo_keywords" class="layui-input"
+                   placeholder="请输入站点关键词"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.seo_keywords') ?>">
+            <div class="hint">填写站点关键词 keywords</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">SEO 描述</label>
+        <div class="layui-input-block">
+            <input type="text" name="seo_description" class="layui-input"
+                   placeholder="请输入站点描述"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.seo_description') ?>">
+            <div class="hint">填写站点描述信息 description</div>
+        </div>
+    </div>
+
+    <?php
+    $vv->layuiHtml()->upload('站点 Logo', 'site_logo', [
+        'value' => $vv->configService()->getWith('site.site_logo'),
+        'placeholder' => '请上传站点 Logo 图片',
+        'type' => 'text',
+    ]) ?>
+
+    <?php
+    $vv->layuiHtml()->upload('浏览器图标 (ICO)', 'site_ico', [
+        'value' => $vv->configService()->getWith('site.site_ico'),
+        'placeholder' => '请上传浏览器图标,ico 类型',
+        'type' => 'text',
+        'ext' => 'ico'
+    ]) ?>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">版本信息</label>
+        <div class="layui-input-block">
+            <input type="text" name="site_version" class="layui-input"
+                   placeholder="请输入版本信息"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.site_version') ?>">
+            <div class="hint">填写版本信息。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备案信息</label>
+        <div class="layui-input-block">
+            <input type="text" name="site_beian" class="layui-input" placeholder="请输入备案信息"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.site_beian') ?>">
+            <div class="hint">填写备案信息。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">版权信息</label>
+        <div class="layui-input-block">
+            <input type="text" name="site_copyright" class="layui-input"
+                   placeholder="请输入版权信息"
+                   value="<?php
+                   echo $vv->configService()->getWith('site.site_copyright') ?>">
+            <div class="hint">填写版权信息 Copyright ©</div>
+        </div>
+    </div>
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-filter="submit_site"
+                lay-submit>确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+</form>
+<script>
+    admin.date.renderDatetime('site_maintain_time');
+
+    admin.form.onSubmit('submit_site', function (data) {
+        // console.log('submit_site', data)
+        admin.ajax.post({
+            url: prefix + '/save/site',
+            data,
+        })
+    })
+</script>

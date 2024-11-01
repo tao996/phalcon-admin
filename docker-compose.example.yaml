@@ -1,0 +1,186 @@
+version: '3.5'
+
+# 网络配置
+networks:
+  backend:
+    driver: ${NETWORKS_DRIVER}
+
+# 建议使用外部的数据库 mysql/pgsql/redis
+services:
+  php:
+    container_name: php
+    image: authus/phalcon:5.8.0
+    #image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www:delegated
+      - ./log/php:/var/log/php/:rw
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+    networks:
+      - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # serverName is very important when use xdebug
+      PHP_IDE_CONFIG: "serverName=docker-php"
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    ports:
+      - '${OPEN_PORT}:80'
+    restart: on-failure
+    volumes:
+      - ./src:/var/www
+      - ./nginx/phalconx.conf:/etc/nginx/phalconx.conf
+      - ./nginx/sites:/etc/nginx/conf.d
+      - ./log/nginx:/var/log/nginx/:rw
+    networks:
+      - backend
+    links:
+      - php
+
+#  phpCli:
+#    container_name: phpCli
+#    image: authus/phalcon:5.8.0-cli
+#    image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0-cli
+#    volumes:
+#      - ./src:/var/www:delegated
+#      - ./log/php:/var/log/php/:rw
+#      - ./php/php.ini:/usr/local/etc/php/php.ini
+#      - ./php/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+#    networks:
+#      - backend
+#    extra_hosts:
+#      - host.docker.internal:host-gateway
+#    environment:
+#      PHP_IDE_CONFIG: "serverName=docker-php"
+#    ports:
+#      - "${WS_PORT}:8282"
+#    env_file:
+#      - .env
+
+#  mysql:
+#    container_name: mysql
+#    image: mysql:8.1.0
+#    ports:
+#      - "${MYSQL_PORT}:3306"
+#    command: [
+#      '--default-authentication-plugin=mysql_native_password',
+#      '--character-set-server=utf8mb4',
+#      '--collation-server=utf8mb4_0900_ai_ci'
+#    ]
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#      - MYSQL_USER=${MYSQL_USER}
+#      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+#      - MYSQL_DATABASE=${MYSQL_DATABASE}
+#      - TZ=Asia/Shanghai
+#      - LANG=C.UTF-8
+#    volumes:
+#      - ${DATA_PATH_HOST}/mysql:/var/lib/mysql
+#      - ./init/mysql:/docker-entrypoint-initdb.d
+#      - ./log/mysql:/var/log/mysql/:rw
+#    restart: always
+#    networks:
+#      - backend
+
+  # https://hub.docker.com/r/databack/mysql-backup
+
+  #  mysqlBackup:
+  #    image: databack/mysql-backup
+  #    restart: always
+  #    volumes:
+  #      - ${DATA_PATH_HOST}/backup:/db
+  #      - ./init/backup/post-scripts:/scripts.d/post-backup
+  #    environment:
+  #      - DB_DUMP_TARGET=/db
+  #      - DB_USER=${MYSQL_USER}
+  #      - DB_PORT=3306
+  #      - DB_PASS=${MYSQL_PASSWORD}
+  #      - DB_DUMP_FREQ=60
+  #      - DB_DUMP_BEGIN=2330
+  #      - DB_SERVER=mysql
+  #    networks:
+  #      - backend
+
+#  phpmyadmin:
+#    image: phpmyadmin/phpmyadmin:latest
+#    container_name: phpmyadmin
+#    restart: always
+#    ports:
+#      - "${PHPMYADMIN_PORT}:80"
+#    environment:
+#      - PMA_HOST=mysql
+#      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#      - MYSQL_USER=${MYSQL_USER}
+#      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+#    networks:
+#      - backend
+
+  #  postgres:
+  #    build:
+  #      context: ./postgres
+  #    container_name: postgres
+  #    privileged: true
+  #    environment:
+  #      - TZ=${TZ}
+  #      - POSTGRES_USER=${POSTGRES_USER}
+  #      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #      - POSTGRES_DB=${POSTGRES_DB}
+  #    ports:
+  #      - "${POSTGRES_PORT}:5432"
+  #    volumes:
+  #      - ${DATA_PATH_HOST}/pgsql:/var/lib/postgresql/data
+  #      - './postgres/restore:/var/lib/postgresql/restore'
+  #    networks:
+  #      - backend
+  #    restart: always
+  #
+  #  pgbackups:
+  #    image: prodrigestivill/postgres-backup-local
+  #    volumes:
+  #      - ${DATA_PATH_HOST}/backup:/backups
+  #    links:
+  #      - postgres
+  #    depends_on:
+  #      - postgres
+  #    environment:
+  #      - POSTGRES_HOST=postgres
+  #      - POSTGRES_DB=${POSTGRES_DB}
+  #      - POSTGRES_USER=${POSTGRES_USER}
+  #      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #      - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
+  #      - SCHEDULE=@daily
+  #      - BACKUP_KEEP_DAYS=7
+  #      - BACKUP_KEEP_WEEKS=4
+  #      - BACKUP_KEEP_MONTHS=6
+  #      - HEALTHCHECK_PORT=8080
+  #    networks:
+  #      - backend
+  #    restart: always
+
+#  redis:
+#    container_name: redis
+#    image: redis:7.2-alpine
+#    environment:
+#      - TZ=${TZ}
+#    volumes:
+#      - ${DATA_PATH_HOST}/redis:/data
+#    command: "redis-server --requirepass ${REDIS_PASSWORD}  --appendonly yes" # 如果不需要日志，可将 yes 改为 no
+#    privileged: true
+#    ports:
+#      - "${REDIS_PORT}:6379"
+#    restart: always
+#    networks:
+#      - backend
+
+  #  memcached:
+  #    container_name: memcached
+  #    image: memcached:1.5-alpine
+  #    networks:
+  #      - backend
+  #    ports:
+  #      - "${MEMCACHED_PORT}:11211"
