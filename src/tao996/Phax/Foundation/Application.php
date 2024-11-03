@@ -3,6 +3,7 @@
 namespace Phax\Foundation;
 
 use Phalcon\Di\Di;
+use Phalcon\Http\ResponseInterface;
 use Phax\Support\Config;
 use Phax\Support\Env;
 use Phax\Support\Exception\BlankException;
@@ -128,7 +129,11 @@ class Application
         $di->setShared('security', function () {
             return new \Phalcon\Encryption\Security();
         });
-        foreach ($cc->path('app.includes', []) as $f) {
+        if ($namespaces = $cc->path('loader.namespaces',[])->toArray()){
+            loader()->setNamespaces($namespaces, true)
+                ->register();
+        }
+        foreach ($cc->path('loader.includes', [])->toArray() as $f) {
             include_once $f;
         }
     }
@@ -137,7 +142,7 @@ class Application
      * @param string $requestURL 请求的 URL，通常为 $_SERVER['REQUEST_URI']
      * @throws \Exception
      */
-    public function runWeb(string $requestURL = '')
+    public function runWeb(string $requestURL = ''): ?\Phalcon\Http\ResponseInterface
     {
         $di = self::di();
 //        ddd($di->getServices(),__FILE__);
@@ -199,6 +204,7 @@ class Application
      * route 服务
      * @param string $requestURL
      * @param Di $di
+     * @return ResponseInterface
      * @throws \Exception
      */
     public function routeWith(string $requestURL, Di $di): \Phalcon\Http\ResponseInterface
@@ -223,23 +229,19 @@ class Application
         $router = $di->getShared('router');
         $router->setDefaultNamespace($route->routerOptions['namespace']);
         // 添加到路由
+        // 注意：pattern, route 要和 application->handle($uri) 保持一致
         $router->add($route->routerOptions['route'], $route->routerOptions['paths']);
-
-        if (IS_WORKER_WEB) {
-        }
-
-        $uri = Router::filterIfLanguage($requestURL);
+//        ddd($requestURL, $route->routerOptions);
         /**
          * @var \Phalcon\Mvc\Application $application
          */
         $application = $di->get('application');
         $application->setDI($di);
         $route = $di->get('route');
-//        ddd($di->getServices());
         if (isset($route->routerOptions['registerModules'])) {
             $application->registerModules($route->routerOptions['registerModules']);
         }
-        return $application->handle($uri);
+        return $application->handle($requestURL);
     }
 
 

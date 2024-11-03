@@ -1,6 +1,8 @@
 <?php
 /**
- * how to use this file, here is a example
+ * if you don't need this file, the migration will read db setting from config.php file
+ *
+ * how to use this file, here is an example
  * 1. copy this file to `migration.php` in the same direction, and modify the database setting
  * 2. export tables and it's data
  *    `php artisan g --table=demo_ --datas`

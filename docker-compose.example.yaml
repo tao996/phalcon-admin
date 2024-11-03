@@ -8,8 +8,8 @@ networks:
 # 建议使用外部的数据库 mysql/pgsql/redis
 services:
   php:
-    container_name: php
-    image: authus/phalcon:5.8.0
+    container_name: ${APP_NAME}-php
+    image: authus/phalcon:5.8.0-s4
     #image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0
     working_dir: /var/www
     volumes:
@@ -28,14 +28,14 @@ services:
 
   nginx:
     image: nginx:stable-alpine
-    container_name: nginx
+    container_name: ${APP_NAME}-nginx
     ports:
       - '${OPEN_PORT}:80'
     restart: on-failure
     volumes:
       - ./src:/var/www
-      - ./nginx/phalconx.conf:/etc/nginx/phalconx.conf
-      - ./nginx/sites:/etc/nginx/conf.d
+      - ./nginx/assets.example.conf:/etc/nginx/assets.example.conf
+      - ./nginx/sites/default.conf:/etc/nginx/conf.d/default.conf
       - ./log/nginx:/var/log/nginx/:rw
     networks:
       - backend
@@ -43,7 +43,7 @@ services:
       - php
 
 #  phpCli:
-#    container_name: phpCli
+#    container_name: ${APP_NAME}-cli
 #    image: authus/phalcon:5.8.0-cli
 #    image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0-cli
 #    volumes:
@@ -63,7 +63,7 @@ services:
 #      - .env
 
 #  mysql:
-#    container_name: mysql
+#    container_name: ${APP_NAME}-mysql
 #    image: mysql:8.1.0
 #    ports:
 #      - "${MYSQL_PORT}:3306"
@@ -91,6 +91,7 @@ services:
 
   #  mysqlBackup:
   #    image: databack/mysql-backup
+  #    container_name: ${APP_NAME}-mysql-backup
   #    restart: always
   #    volumes:
   #      - ${DATA_PATH_HOST}/backup:/db
@@ -108,7 +109,7 @@ services:
 
 #  phpmyadmin:
 #    image: phpmyadmin/phpmyadmin:latest
-#    container_name: phpmyadmin
+#    container_name: ${APP_NAME}-phpmyadmin
 #    restart: always
 #    ports:
 #      - "${PHPMYADMIN_PORT}:80"
@@ -123,7 +124,7 @@ services:
   #  postgres:
   #    build:
   #      context: ./postgres
-  #    container_name: postgres
+  #    container_name: ${APP_NAME}-postgres
   #    privileged: true
   #    environment:
   #      - TZ=${TZ}
@@ -141,6 +142,7 @@ services:
   #
   #  pgbackups:
   #    image: prodrigestivill/postgres-backup-local
+  #    container_name: ${APP_NAME}-pgbackups
   #    volumes:
   #      - ${DATA_PATH_HOST}/backup:/backups
   #    links:
@@ -163,7 +165,7 @@ services:
   #    restart: always
 
 #  redis:
-#    container_name: redis
+#    container_name: ${APP_NAME}-redis
 #    image: redis:7.2-alpine
 #    environment:
 #      - TZ=${TZ}
@@ -178,7 +180,7 @@ services:
 #      - backend
 
   #  memcached:
-  #    container_name: memcached
+  #    container_name: ${APP_NAME}-memcached
   #    image: memcached:1.5-alpine
   #    networks:
   #      - backend

@@ -1,0 +1,395 @@
+#!/usr/bin/env php
+<?php
+$testPrefix = 'local-test-'; // 用于测试
+
+// 判断操作系统
+const IS_WIN = PHP_OS_FAMILY === 'Windows';
+const PATH_SRC = __DIR__ . '/src/';
+const PATH_MAINTAIN_tmp = __DIR__ . '/maintain.tmp.txt';
+
+$projectName = pathinfo(__DIR__, PATHINFO_BASENAME);
+$args = $argv;
+array_shift($args); // 移除脚本名称
+
+$action = $args[0] ?? 'help';
+
+include_once __DIR__ . '/src/tao996/phar/dotenv.phar';
+spl_autoload_register(function ($class) {
+    if (str_starts_with($class, 'Phax\\')) {
+        include_once PATH_SRC . 'tao996/' . str_replace('\\', '/', $class) . '.php';
+    }
+});
+/**
+ * 获取 .env 配置信息
+ * @return void
+ */
+function loadEnv(): void
+{
+    global $testPrefix;
+    $dotenv = new \Symfony\Component\Dotenv\Dotenv();
+    if (!file_exists(__DIR__ . '/' . $testPrefix . '.env')) {
+        die('.env 配置文件不存在' . PHP_EOL);
+    }
+    $dotenv->overload(__DIR__ . '/' . $testPrefix . '.env');
+}
+
+/**
+ * 获取命令行中的 --key=value 或者 -key=value 或者 -key 参数
+ * @return array
+ */
+function loadKvArgs(): array
+{
+    global $args;
+    $options = [];
+    foreach ($args as $item) {
+        if (preg_match('/^(--?)([\w-]+)=(.*)$/', $item, $matches)) {
+            $value = $matches[3];
+            $key = ltrim($matches[2], "-");
+            $options[$key] = $value;
+        } elseif (preg_match('/^(--?)([\w-]+)$/', $item, $matches)) {
+            $key = ltrim($matches[2], "-");
+            $options[$key] = null;
+        }
+    }
+    return $options;
+}
+
+/**
+ * 获取当前命令所保存的配置信息，用于在无指定参数时使用
+ * @return array
+ */
+function getMaintainTmp(): array
+{
+    if (file_exists(PATH_MAINTAIN_tmp)) {
+        return json_decode(file_get_contents(PATH_MAINTAIN_tmp), true);
+    }
+    return [];
+}
+
+$maintainData = getMaintainTmp();
+/**
+ * 保存命令行所指定的数据
+ * @return void
+ */
+function saveMaintainTmp(): void
+{
+    global $maintainData;
+    file_put_contents(PATH_MAINTAIN_tmp, json_encode($maintainData));
+}
+
+$argsOptions = loadKvArgs(); // 全部参数
+/**
+ * 命令行中是否存在参数
+ * @param string $key
+ * @return bool
+ */
+function hasArgsWithKey($key): bool
+{
+    global $argsOptions;
+    return array_key_exists($key, $argsOptions);
+}
+
+/**
+ * 获取参数中的值
+ * @param string $key
+ * @param mixed $default
+ * @param bool $int 是否转为整型
+ * @return int|mixed|string
+ */
+function getArgsWithKey($key, $default = '', $int = false)
+{
+    global $argsOptions, $maintainData;
+    $data = $argsOptions[$key] ?? $maintainData[$key] ?? $default;
+    return $int ? intval($data) : $data;
+}
+
+
+switch ($action) {
+    case 'init':
+        $port = getArgsWithKey('port', 0, true);
+        if ($port < 1) {
+            die('必须指定端口号 -port=9988' . PHP_EOL);
+        }
+        $maintainData['port'] = $port;
+        // 生成 .env 文件
+        $envContent = file_get_contents(__DIR__ . '/.env.example');
+        $envContent = str_replace('OPEN_PORT=8071', 'OPEN_PORT=' . $maintainData['port'], $envContent);
+        $envContent = str_replace('APP_NAME=phax', 'APP_NAME=' . $projectName, $envContent);
+        $newEnvFilePath = __DIR__ . '/' . $testPrefix . '.env';
+        file_put_contents($newEnvFilePath, $envContent);
+
+        $overwrite = hasArgsWithKey('y');
+
+        function copyExample($example): string
+        {
+            global $testPrefix, $overwrite;
+            if (!file_exists($example)) {
+                die('找不到文件:' . $example . PHP_EOL);
+            }
+
+            $info = pathinfo($example);
+            $toName = $info['dirname'] . '/' . $testPrefix . str_replace('.example', '', $info['basename']);
+            $title = str_replace(__DIR__ . '/', '', $toName);
+
+            if (file_exists($toName) && !$overwrite) {
+                echo '跳过文件 {' . $toName . '}', PHP_EOL;
+                return $toName;
+            }
+
+
+            if (copy($example, $toName)) {
+                echo '复制成功 {', $title . '}', PHP_EOL;
+            }
+            return $toName;
+        }
+
+        $dcYaml = copyExample(__DIR__ . '/docker-compose.example.yaml');
+
+        if (hasArgsWithKey('cn') || (isset($maintainData['cn']) && $maintainData['cn'])) {
+            $dcYamlContent = file_get_contents($dcYaml);
+            $dcYamlContent = str_replace(
+                'image: authus/phalcon:',
+                'image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:',
+                $dcYamlContent
+            );
+            file_put_contents($dcYaml, $dcYamlContent);
+            $maintainData['cn'] = true;
+        }
+
+        copyExample(PATH_SRC . '.env.example');
+        copyExample(__DIR__ . '/php/php.example.ini');
+        copyExample(PATH_SRC . 'phpunit.example.xml');
+        copyExample(PATH_SRC . 'config/config.example.php');
+        copyExample(PATH_SRC . 'config/project.example.php');
+        echo 'SUCCESS.', PHP_EOL;
+        break;
+    case 'clear':
+        echo '准备清除生成的文件', PHP_EOL;
+        function reverseCopyExample($example): string
+        {
+            global $testPrefix;
+            $info = pathinfo($example);
+            return $info['dirname'] . '/' . $testPrefix . str_replace('.example', '', $info['basename']);
+        }
+
+        $files = [
+            reverseCopyExample(__DIR__ . '/.env.example'),
+            reverseCopyExample(__DIR__ . '/docker-compose.example.yaml'),
+            reverseCopyExample(__DIR__ . '/php/php.example.ini'),
+
+            reverseCopyExample(PATH_SRC . 'phpunit.example.xml'),
+            reverseCopyExample(PATH_SRC . '.env.example'),
+            reverseCopyExample(PATH_SRC . 'config/config.example.php'),
+            reverseCopyExample(PATH_SRC . 'config/project.example.php'),
+        ];
+        $configName = getArgsWithKey('c', $projectName);
+        $defaultConfFile = __DIR__ . '/nginx/' . $testPrefix . $configName . '.conf';
+        if (file_exists($defaultConfFile)) {
+            $files[] = $defaultConfFile;
+        }
+        if (hasArgsWithKey('y')) {
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    if (unlink($file)) {
+                        echo '删除成功 {', $file, '}', PHP_EOL;
+                    } else {
+                        echo '删除失败 {', $file, '}', PHP_EOL;
+                    }
+                } else {
+                    echo '文件不存在 {', $file, '}', PHP_EOL;
+                }
+            }
+        } else {
+            print_r($files);
+            echo '检查上面的文件，如果没有问题，则可使用 -y 进行删除', PHP_EOL;
+        }
+        break;
+    case 'nginx':
+        $configName = getArgsWithKey('c', $projectName);
+        $maintainData['c'] = $configName;
+
+        $defaultConfFile = __DIR__ . '/nginx/' . $testPrefix . $configName . '.conf';
+        loadEnv();
+        define("PATH_NGINX_SSL", __DIR__ . '/nginx/ssl/');
+        /**
+         * @param string $domain
+         * @return array{key:string,pem:string} 证书；如果 pem 证书的广告名可能为 crt
+         */
+        function getCerts($domain = ''): array
+        {
+            // 替换证书
+            $files = \Phax\Utils\MyFileSystem::findInDirs(PATH_NGINX_SSL, 'file');
+            $data = [];
+            foreach ($files as $file) {
+                $ext = pathinfo($file)['extension'];
+                if (!empty($domain)) {
+                    if (!str_starts_with($file, $domain)) {
+                        break;
+                    }
+                }
+                if (in_array($ext, ['crt', 'pem', 'key'])) {
+                    $data[$ext == 'key' ? 'key' : 'pem'] = $file;
+                }
+            }
+
+            return $data;
+        }
+
+        function getDomains(): array
+        {
+            global $argsOptions;
+            $domains = $argsOptions['domain'] ?? '';
+            if (empty($domains)) {
+                return [];
+            }
+            $domains = explode(',', $domains); // 域名列表
+            $wwwDomains = []; // 生成的域名列表
+            foreach ($domains as $domain) {
+                if (!str_starts_with($domain, 'www.')) {
+                    $wwwDomain = 'www.' . $domain;
+                    if (!in_array($wwwDomain, $domains) && !in_array($wwwDomain, $wwwDomains)) {
+                        $wwwDomains[] = $wwwDomain;
+                    }
+                }
+            }
+            return array_merge($domains, $wwwDomains);
+        }
+
+        // 生成配置文件
+        if (hasArgsWithKey('c')) {
+            if (!file_exists($defaultConfFile) || hasArgsWithKey('y')) {
+                echo '准备创建站点配置文件', PHP_EOL;
+                $wwwDomains = getDomains();
+                if (empty($wwwDomains)) {
+                    die('请配置域名，示例 -domain=xx.com' . PHP_EOL);
+                }
+                $maintainData['domains'] = $wwwDomains;
+
+                $port = $_ENV['OPEN_PORT']; // 端口
+
+                // 替换端口
+                if (file_exists(__DIR__ . '/nginx/host.location.conf')) {
+                    $locationContext = file_get_contents(__DIR__ . '/nginx/host.location.conf');
+                } else {
+                    $locationContext = file_get_contents(__DIR__ . '/nginx/host.location.example.conf');
+                }
+                $newLocationContent = str_replace(':8071', ':' . $port, $locationContext);
+
+                // 替换域名
+                $hostContent = file_get_contents(__DIR__ . '/nginx/host.example.conf');
+                $newHostContent = str_replace('xxx.test', join(' ', $wwwDomains), $hostContent);
+                // 替换证书
+                $certs = getCerts();
+
+                if (isset($certs['key'])) {
+                    $newHostContent = str_replace(
+                        'conf.d/xxx.key',
+                        'conf.d/' . $maintainData['c'] . '.key',
+                        $newHostContent
+                    );
+                }
+                if (isset($certs['pem'])) {
+                    $newHostContent = str_replace(
+                        'conf.d/xxx.pem',
+                        'conf.d/' . $maintainData['c'] . '.' . pathinfo($certs['pem'])['extension'],
+                        $newHostContent
+                    );
+                }
+
+                $newHostContent = str_replace(
+                    'include host.location.example.conf;',
+                    $newLocationContent,
+                    $newHostContent
+                );
+                file_put_contents($defaultConfFile, $newHostContent);
+                echo "创建成功站点配置文件成功", PHP_EOL;
+            } else {
+                echo "配置文件已存在，跳过", PHP_EOL;
+            }
+        }
+        if (hasArgsWithKey('host') || hasArgsWithKey('hosts')) {
+            $pathHosts = '/etc/hosts';
+            // 修改 /etc/hosts 文件
+            $hostsContent = file_get_contents($pathHosts);
+            print_r($hostsContent);
+            if (!empty($maintainData['domains'])) {
+                foreach ($maintainData['domains'] as $domain) {
+                    if (str_contains($hostsContent, $domain)) {
+                        echo '域名已存在 {', $domain, '}', PHP_EOL;
+                    } else {
+                        $hostsContent .= (PHP_EOL . '127.0.0.1 ' . $domain);
+                    }
+                }
+                file_put_contents($pathHosts, $hostsContent);
+            }
+            echo '已更新 {', $pathHosts, '}', PHP_EOL;
+        }
+        // 将配置文件移动到 nginx
+        if (hasArgsWithKey('m')) {
+            if (!file_exists($defaultConfFile)) {
+                die('站点配置文件不存在，使用 -c 生成此文件' . PHP_EOL);
+            }
+            define("NginxConfD", '/etc/nginx/conf.d/');
+
+            $copyFiles = [];
+            $copyFiles[] = [
+                $defaultConfFile,
+                NginxConfD . basename($defaultConfFile),
+            ];
+            $certs = getCerts();
+            if (isset($certs['key'])) {
+                $copyFiles[] = [
+                    PATH_NGINX_SSL . $certs['key'],
+                    NginxConfD . $maintainData['c'] . '.key',
+                ];
+            }
+            if (isset($certs['pem'])) {
+                $copyFiles[] = [
+                    PATH_NGINX_SSL . $certs['pem'],
+                    NginxConfD . $maintainData['c'] . '.' . pathinfo($certs['pem'])['extension'],
+                ];
+            }
+//            print_r($copyFiles);
+            if (!is_dir('/etc/nginx/conf.d')) {
+                die('无法移动到 nginx 目录，请检查 /etc/nginx/conf.d 目录是否存在' . PHP_EOL);
+            } else {
+                foreach ($copyFiles as $files) {
+                    if (copy($files[0], $files[1])) {
+                        echo '复制成功 {' . basename($files[1]) . '}', PHP_EOL;
+                    } else {
+                        echo '复制失败 {' . basename($files[1]) . '}', PHP_EOL;
+                    }
+                }
+            }
+        }
+        break;
+    case "backup":
+        echo "TODO 备份外部数据库", PHP_EOL;
+        break;
+    case 'help':
+        echo "~~~~~~~~~~ HOW TO USE ~~~~~~~~~~", PHP_EOL;
+        echo <<<HELP
+-y : 默认情况下如果 nginx 目录下存在着站点的配置文件，则不会自动生成
+
+php maintain init       # 根据当前目录初始化环境
+    -port=Num   : nginx 反代的端口号；示例 -port=8090
+    -cn         : 使用 aliyun image 镜像，适用于 CN
+    -y          : 覆盖已存在的文件
+php maintain clear      # 删除由 maintain 生成的文件
+    -y          : 确定删除，如果不提供则参数，则会打印待删除的文件
+php maintain nginx      # 生成 nginx 配置文件，并复制到 nginx 目录
+    -c[=Str]     : 创建配置文件；可以指定生成的配置文件名
+    -y           : 强制覆盖已经存在的配置文件
+    -domain=Str  : 为指定域名生成一份配置文件，不需要添加 www；示例: -domain=a1.com,b1.com
+    -domains=Str : 【TODO】为指定域名生成多份配置文件，不需要添加 www；示例: -domains=a1.com,b1.com
+    -m           : 将配置文件及证书移动到 nginx/conf.d 目录
+    -host        : 将 -domain 写入到系统的 /etc/hosts 文件中
+HELP;
+        echo PHP_EOL;
+        break;
+    default:
+        die('unknown action!!' . PHP_EOL);
+}
+
+saveMaintainTmp();
+

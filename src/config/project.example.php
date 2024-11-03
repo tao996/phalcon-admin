@@ -1,8 +1,13 @@
 <?php
 
+/**
+ * only set demo=>true, test.open=>true on local develop and unit test
+ *
+ */
 return [
     // 当前是否为演示系统，管理员账号为 admin 密码 123456
     // 如果为 true，则配置文件优先级 config.demo.php > config.php
+    //
     'demo' => false,
     // 是否开启测试环境，会跳过图片验证码；相关方法查看下面的文件
     /**
@@ -14,7 +19,7 @@ return [
     'superAdmin' => [1, 999, 1000], // 超级管理员账号 ID, 999,1000 for phpunit test
 
     'test' => [
-        'open' => false, // true 开启测试环境，并让上面的 999, 1000 生效
+        'open' => false, // true 开启测试环境，并让上面 superAdmin 的 999, 1000 生效
         // src/app/Modules/tao/tests/Helper/MyTestTaoHttpHelper.php
         // src/tests/Helper/MyTestHttpHelper.php.pathTest($path) —— 在测试 url 后添加 '?test=on'
         // src/app/Modules/tao/Helper/Auth/LoginTestAuthAdapter.php —— 测试登录
@@ -24,7 +29,8 @@ return [
         ],
     ],
     // '项目'=>'域名不需要添加 www.' 如 ['abc' => ['abc.test','abc.com']]
-    // src/tao996/phax/Support/Config.php
+    // abc 是项目名，位于 src/App/Projects/abc
+    // 可查看 src/tao996/phax/Support/Config.php
     'sites' => [
         'demo' => ['demo1.test', 'demo2.test'],
         'aabb' => ['a1.com', 'b1.org']

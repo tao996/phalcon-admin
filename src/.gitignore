@@ -7,6 +7,6 @@ public/favicon.ico
 # move to tao996/phar
 phalcon-migrations/
 
-app/Swoole
+app/Swoole/*
 app/Projects/*
 !app/Projects/demo
