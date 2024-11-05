@@ -41,11 +41,11 @@ services:
       - backend
     links:
       - php
-
-#  phpCli:
+#
+#  cli:
 #    container_name: ${APP_NAME}-cli
 #    image: authus/phalcon:5.8.0-cli
-#    image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0-cli
+##    image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0-cli
 #    volumes:
 #      - ./src:/var/www:delegated
 #      - ./log/php:/var/log/php/:rw
@@ -61,7 +61,7 @@ services:
 #      - "${WS_PORT}:8282"
 #    env_file:
 #      - .env
-
+#
 #  mysql:
 #    container_name: ${APP_NAME}-mysql
 #    image: mysql:8.1.0
@@ -86,27 +86,27 @@ services:
 #    restart: always
 #    networks:
 #      - backend
-
-  # https://hub.docker.com/r/databack/mysql-backup
-
-  #  mysqlBackup:
-  #    image: databack/mysql-backup
-  #    container_name: ${APP_NAME}-mysql-backup
-  #    restart: always
-  #    volumes:
-  #      - ${DATA_PATH_HOST}/backup:/db
-  #      - ./init/backup/post-scripts:/scripts.d/post-backup
-  #    environment:
-  #      - DB_DUMP_TARGET=/db
-  #      - DB_USER=${MYSQL_USER}
-  #      - DB_PORT=3306
-  #      - DB_PASS=${MYSQL_PASSWORD}
-  #      - DB_DUMP_FREQ=60
-  #      - DB_DUMP_BEGIN=2330
-  #      - DB_SERVER=mysql
-  #    networks:
-  #      - backend
-
+#
+#  # https://hub.docker.com/r/databack/mysql-backup
+#
+#  mysqlBackup:
+#    image: databack/mysql-backup
+#    container_name: ${APP_NAME}-mysql-backup
+#    restart: always
+#    volumes:
+#      - ${DATA_PATH_HOST}/backup:/db
+#      - ./init/backup/post-scripts:/scripts.d/post-backup
+#    environment:
+#      - DB_DUMP_TARGET=/db
+#      - DB_USER=${MYSQL_USER}
+#      - DB_PORT=3306
+#      - DB_PASS=${MYSQL_PASSWORD}
+#      - DB_DUMP_FREQ=60
+#      - DB_DUMP_BEGIN=2330
+#      - DB_SERVER=mysql
+#    networks:
+#      - backend
+#
 #  phpmyadmin:
 #    image: phpmyadmin/phpmyadmin:latest
 #    container_name: ${APP_NAME}-phpmyadmin
@@ -120,50 +120,50 @@ services:
 #      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
 #    networks:
 #      - backend
-
-  #  postgres:
-  #    build:
-  #      context: ./postgres
-  #    container_name: ${APP_NAME}-postgres
-  #    privileged: true
-  #    environment:
-  #      - TZ=${TZ}
-  #      - POSTGRES_USER=${POSTGRES_USER}
-  #      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #      - POSTGRES_DB=${POSTGRES_DB}
-  #    ports:
-  #      - "${POSTGRES_PORT}:5432"
-  #    volumes:
-  #      - ${DATA_PATH_HOST}/pgsql:/var/lib/postgresql/data
-  #      - './postgres/restore:/var/lib/postgresql/restore'
-  #    networks:
-  #      - backend
-  #    restart: always
-  #
-  #  pgbackups:
-  #    image: prodrigestivill/postgres-backup-local
-  #    container_name: ${APP_NAME}-pgbackups
-  #    volumes:
-  #      - ${DATA_PATH_HOST}/backup:/backups
-  #    links:
-  #      - postgres
-  #    depends_on:
-  #      - postgres
-  #    environment:
-  #      - POSTGRES_HOST=postgres
-  #      - POSTGRES_DB=${POSTGRES_DB}
-  #      - POSTGRES_USER=${POSTGRES_USER}
-  #      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #      - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
-  #      - SCHEDULE=@daily
-  #      - BACKUP_KEEP_DAYS=7
-  #      - BACKUP_KEEP_WEEKS=4
-  #      - BACKUP_KEEP_MONTHS=6
-  #      - HEALTHCHECK_PORT=8080
-  #    networks:
-  #      - backend
-  #    restart: always
-
+#
+#  postgres:
+#    build:
+#      context: ./postgres
+#    container_name: ${APP_NAME}-postgres
+#    privileged: true
+#    environment:
+#      - TZ=${TZ}
+#      - POSTGRES_USER=${POSTGRES_USER}
+#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+#      - POSTGRES_DB=${POSTGRES_DB}
+#    ports:
+#      - "${POSTGRES_PORT}:5432"
+#    volumes:
+#      - ${DATA_PATH_HOST}/pgsql:/var/lib/postgresql/data
+#      - './postgres/restore:/var/lib/postgresql/restore'
+#    networks:
+#      - backend
+#    restart: always
+#
+#  pgbackups:
+#    image: prodrigestivill/postgres-backup-local
+#    container_name: ${APP_NAME}-pgbackups
+#    volumes:
+#      - ${DATA_PATH_HOST}/backup:/backups
+#    links:
+#      - postgres
+#    depends_on:
+#      - postgres
+#    environment:
+#      - POSTGRES_HOST=postgres
+#      - POSTGRES_DB=${POSTGRES_DB}
+#      - POSTGRES_USER=${POSTGRES_USER}
+#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+#      - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
+#      - SCHEDULE=@daily
+#      - BACKUP_KEEP_DAYS=7
+#      - BACKUP_KEEP_WEEKS=4
+#      - BACKUP_KEEP_MONTHS=6
+#      - HEALTHCHECK_PORT=8080
+#    networks:
+#      - backend
+#    restart: always
+#
 #  redis:
 #    container_name: ${APP_NAME}-redis
 #    image: redis:7.2-alpine
@@ -178,11 +178,11 @@ services:
 #    restart: always
 #    networks:
 #      - backend
-
-  #  memcached:
-  #    container_name: ${APP_NAME}-memcached
-  #    image: memcached:1.5-alpine
-  #    networks:
-  #      - backend
-  #    ports:
-  #      - "${MEMCACHED_PORT}:11211"
+#
+#  memcached:
+#    container_name: ${APP_NAME}-memcached
+#    image: memcached:1.5-alpine
+#    networks:
+#      - backend
+#    ports:
+#      - "${MEMCACHED_PORT}:11211"

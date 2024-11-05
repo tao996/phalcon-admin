@@ -20,7 +20,7 @@ class Config
 
     public function __construct(public Di $di)
     {
-        static::$projectConfig = include_once PATH_ROOT . 'config/project.php';
+        static::$projectConfig = include_once PATH_CONFIG . 'project.php';
     }
 
     /**
@@ -117,13 +117,13 @@ class Config
         }
         // 默认配置文件
         if ($isDemo) {
-            $path = PATH_ROOT . 'config/config.demo.php';
+            $path = PATH_CONFIG . 'config.demo.php';
             if (file_exists($path)) {
                 return $this->parse($path);
             }
         }
 
-        $path = PATH_ROOT . 'config/config.php';
+        $path = PATH_CONFIG . 'config.php';
         if (file_exists($path)) {
             return $this->parse($path);
         }

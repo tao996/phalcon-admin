@@ -4,367 +4,777 @@ $testPrefix = 'local-test-'; // 用于测试
 
 // 判断操作系统
 const IS_WIN = PHP_OS_FAMILY === 'Windows';
+const PATH_ROOT = __DIR__ . '/';
 const PATH_SRC = __DIR__ . '/src/';
 const PATH_MAINTAIN_tmp = __DIR__ . '/maintain.tmp.txt';
 
-$projectName = pathinfo(__DIR__, PATHINFO_BASENAME);
-$args = $argv;
-array_shift($args); // 移除脚本名称
-
-$action = $args[0] ?? 'help';
-
-include_once __DIR__ . '/src/tao996/phar/dotenv.phar';
-spl_autoload_register(function ($class) {
-    if (str_starts_with($class, 'Phax\\')) {
-        include_once PATH_SRC . 'tao996/' . str_replace('\\', '/', $class) . '.php';
-    }
-});
-/**
- * 获取 .env 配置信息
- * @return void
- */
-function loadEnv(): void
+class G
 {
-    global $testPrefix;
-    $dotenv = new \Symfony\Component\Dotenv\Dotenv();
-    if (!file_exists(__DIR__ . '/' . $testPrefix . '.env')) {
-        die('.env 配置文件不存在' . PHP_EOL);
-    }
-    $dotenv->overload(__DIR__ . '/' . $testPrefix . '.env');
-}
+    public array $maintainData = [];
+    public array $argsOptions = [];
+    public string $projectName = '';
+    public string $action = '';
 
-/**
- * 获取命令行中的 --key=value 或者 -key=value 或者 -key 参数
- * @return array
- */
-function loadKvArgs(): array
-{
-    global $args;
-    $options = [];
-    foreach ($args as $item) {
-        if (preg_match('/^(--?)([\w-]+)=(.*)$/', $item, $matches)) {
-            $value = $matches[3];
-            $key = ltrim($matches[2], "-");
-            $options[$key] = $value;
-        } elseif (preg_match('/^(--?)([\w-]+)$/', $item, $matches)) {
-            $key = ltrim($matches[2], "-");
-            $options[$key] = null;
+    public function __construct()
+    {
+        include_once __DIR__ . '/src/tao996/phar/dotenv.phar';
+        spl_autoload_register(function ($class) {
+            if (str_starts_with($class, 'Phax\\')) {
+                include_once PATH_SRC . 'tao996/' . str_replace('\\', '/', $class) . '.php';
+            }
+        });
+        $this->projectName = pathinfo(__DIR__, PATHINFO_BASENAME);
+        $this->maintainData = $this->getMaintainTmp();
+        $this->argsOptions = $this->loadKvArgs();
+        $this->loadEnv();
+    }
+
+    /**
+     * 获取 .env 配置信息
+     * @return void
+     */
+    private function loadEnv(): void
+    {
+        global $testPrefix;
+        $dotenv = new \Symfony\Component\Dotenv\Dotenv();
+        if (!file_exists(__DIR__ . '/' . $testPrefix . '.env')) {
+            return;
         }
+        $dotenv->overload(__DIR__ . '/' . $testPrefix . '.env');
     }
-    return $options;
-}
 
-/**
- * 获取当前命令所保存的配置信息，用于在无指定参数时使用
- * @return array
- */
-function getMaintainTmp(): array
-{
-    if (file_exists(PATH_MAINTAIN_tmp)) {
-        return json_decode(file_get_contents(PATH_MAINTAIN_tmp), true);
+
+    /**
+     * 获取命令行中的 --key=value 或者 -key=value 或者 -key 参数
+     * @return array
+     */
+    private function loadKvArgs(): array
+    {
+        global $argv;
+        $args = $argv;
+        array_shift($args); // 移除脚本名称
+
+        $this->action = $args[0] ?? 'help';
+
+        $options = [];
+        foreach ($args as $item) {
+            if (preg_match('/^(--?)([\w-]+)=(.*)$/', $item, $matches)) {
+                $value = $matches[3];
+                $key = ltrim($matches[2], "-");
+                $options[$key] = $value;
+            } elseif (preg_match('/^(--?)([\w-]+)$/', $item, $matches)) {
+                $key = ltrim($matches[2], "-");
+                $options[$key] = null;
+            }
+        }
+        return $options;
     }
-    return [];
+
+
+    /**
+     * 获取当前命令所保存的配置信息，用于在无指定参数时使用
+     * @return array
+     */
+    private function getMaintainTmp(): array
+    {
+        if (file_exists(PATH_MAINTAIN_tmp)) {
+            return json_decode(file_get_contents(PATH_MAINTAIN_tmp), true);
+        }
+        return [];
+    }
+
+    /**
+     * 保存命令行所指定的数据
+     * @return void
+     */
+    function saveMaintainTmp(): void
+    {
+        file_put_contents(PATH_MAINTAIN_tmp, json_encode($this->maintainData));
+    }
+
+    /**
+     * 命令行中是否存在参数
+     * @param string $key
+     * @return bool
+     */
+    public function hasArgsWithKey($key): bool
+    {
+        return array_key_exists($key, $this->argsOptions);
+    }
+
+    /**
+     * 获取参数中的值
+     * @param string $key
+     * @param mixed $default
+     * @param bool $int 是否转为整型
+     * @return int|mixed|string
+     */
+    public function getArgsWithKey($key, $default = '', $int = false): mixed
+    {
+        $data = $this->argsOptions[$key] ?? $this->maintainData[$key] ?? $default;
+        return $int ? intval($data) : $data;
+    }
+
+    /**
+     * 读取指定的文件
+     * @param string $filePath 文件路径
+     * @param string $filterStart 不要读取以此字符开头的行
+     * @return string
+     */
+    function readFileWith($filePath, $filterStart = '#'): string
+    {
+        $fileHandle = fopen($filePath, 'r');
+
+        if ($fileHandle === false) {
+            die("无法打开文件: $filePath");
+        }
+
+        $filteredLines = [];
+
+        while (($line = fgets($fileHandle)) !== false) {
+            $line = trim($line);
+            if (!str_starts_with($line, $filterStart)) {
+                $filteredLines[] = $line;
+            }
+        }
+
+        fclose($fileHandle);
+        return join(PHP_EOL, $filteredLines);
+    }
 }
 
-$maintainData = getMaintainTmp();
-/**
- * 保存命令行所指定的数据
- * @return void
- */
-function saveMaintainTmp(): void
-{
-    global $maintainData;
-    file_put_contents(PATH_MAINTAIN_tmp, json_encode($maintainData));
-}
+$g = new G();
 
-$argsOptions = loadKvArgs(); // 全部参数
-/**
- * 命令行中是否存在参数
- * @param string $key
- * @return bool
- */
-function hasArgsWithKey($key): bool
-{
-    global $argsOptions;
-    return array_key_exists($key, $argsOptions);
-}
+const ActionInitFiles = [
+    // .env.example 手动生成
+    'docker-compose.example.yaml',
+    'php/php.example.ini',
+    'php/supervisord.example.conf',
 
-/**
- * 获取参数中的值
- * @param string $key
- * @param mixed $default
- * @param bool $int 是否转为整型
- * @return int|mixed|string
- */
-function getArgsWithKey($key, $default = '', $int = false)
-{
-    global $argsOptions, $maintainData;
-    $data = $argsOptions[$key] ?? $maintainData[$key] ?? $default;
-    return $int ? intval($data) : $data;
-}
+    'src/.env.example',
+    'src/phpunit.example.xml',
+    'src/config/config.example.php',
+    'src/config/project.example.php'
+];
 
-
-switch ($action) {
+switch ($g->action) {
     case 'init':
-        $port = getArgsWithKey('port', 0, true);
-        if ($port < 1) {
-            die('必须指定端口号 -port=9988' . PHP_EOL);
-        }
-        $maintainData['port'] = $port;
-        // 生成 .env 文件
-        $envContent = file_get_contents(__DIR__ . '/.env.example');
-        $envContent = str_replace('OPEN_PORT=8071', 'OPEN_PORT=' . $maintainData['port'], $envContent);
-        $envContent = str_replace('APP_NAME=phax', 'APP_NAME=' . $projectName, $envContent);
-        $newEnvFilePath = __DIR__ . '/' . $testPrefix . '.env';
-        file_put_contents($newEnvFilePath, $envContent);
-
-        $overwrite = hasArgsWithKey('y');
-
-        function copyExample($example): string
+        class ActionInit
         {
-            global $testPrefix, $overwrite;
-            if (!file_exists($example)) {
-                die('找不到文件:' . $example . PHP_EOL);
+            private bool $overwrite = false;
+
+            public function __construct(public G $g)
+            {
+                $port = $g->getArgsWithKey('port', 0, true);
+                if ($port < 1) {
+                    die('必须指定端口号 -port=9988' . PHP_EOL);
+                }
+                $g->maintainData['port'] = $port;
+
+                $this->overwrite = $g->hasArgsWithKey('y');
             }
 
-            $info = pathinfo($example);
-            $toName = $info['dirname'] . '/' . $testPrefix . str_replace('.example', '', $info['basename']);
-            $title = str_replace(__DIR__ . '/', '', $toName);
-
-            if (file_exists($toName) && !$overwrite) {
-                echo '跳过文件 {' . $toName . '}', PHP_EOL;
-                return $toName;
+            public function createEnvFile(): void
+            {
+                global $testPrefix;
+                $newEnvFilePath = __DIR__ . '/' . $testPrefix . '.env';
+                if (file_exists($newEnvFilePath) && !$this->overwrite) {
+                    echo '跳过文件 {' . $testPrefix . '.env}', PHP_EOL;
+                } else {
+                    $envContent = file_get_contents(__DIR__ . '/.env.example');
+                    $envContent = str_replace(
+                        'OPEN_PORT=8071',
+                        'OPEN_PORT=' . $this->g->maintainData['port'],
+                        $envContent
+                    );
+                    $envContent = str_replace('APP_NAME=phax', 'APP_NAME=' . $this->g->projectName, $envContent);
+                    file_put_contents($newEnvFilePath, $envContent);
+                    echo '复制成功 {' . $testPrefix . '.env}', PHP_EOL;
+                }
             }
 
+            private function copyExample($example): void
+            {
+                global $testPrefix;
+                if (!file_exists($example)) {
+                    die('找不到文件:' . $example . PHP_EOL);
+                }
 
-            if (copy($example, $toName)) {
-                echo '复制成功 {', $title . '}', PHP_EOL;
+                $info = pathinfo($example);
+                $toName = $info['dirname'] . '/' . $testPrefix . str_replace('.example', '', $info['basename']);
+                $title = str_replace(__DIR__ . '/', '', $toName);
+
+                if (file_exists($toName) && !$this->overwrite) {
+                    echo '跳过文件 {' . $title . '}', PHP_EOL;
+                    return;
+                }
+
+
+                if (copy($example, $toName)) {
+                    echo '复制成功 {', $title . '}', PHP_EOL;
+                }
             }
-            return $toName;
+
+            public function copyFiles(): void
+            {
+                foreach (ActionInitFiles as $file) {
+                    $this->copyExample(PATH_ROOT . $file);
+                }
+            }
+
+            public function replaceDockerComposeImage(): void
+            {
+                global $testPrefix;
+                $dcYaml = PATH_ROOT . $testPrefix . 'docker-compose.yaml';
+                $g = $this->g;
+                if ($g->hasArgsWithKey('cn') || (isset($g->maintainData['cn']) && $g->maintainData['cn'])) {
+                    $dcYamlContent = file_get_contents($dcYaml);
+                    $dcYamlContent = str_replace(
+                        'image: authus/phalcon:',
+                        'image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:',
+                        $dcYamlContent
+                    );
+                    file_put_contents($dcYaml, $dcYamlContent);
+                    $g->maintainData['cn'] = true;
+                }
+            }
         }
 
-        $dcYaml = copyExample(__DIR__ . '/docker-compose.example.yaml');
+        $action = new ActionInit($g);
+        $action->createEnvFile();
+        $action->copyFiles();
+        $action->replaceDockerComposeImage();
 
-        if (hasArgsWithKey('cn') || (isset($maintainData['cn']) && $maintainData['cn'])) {
-            $dcYamlContent = file_get_contents($dcYaml);
-            $dcYamlContent = str_replace(
-                'image: authus/phalcon:',
-                'image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:',
-                $dcYamlContent
-            );
-            file_put_contents($dcYaml, $dcYamlContent);
-            $maintainData['cn'] = true;
-        }
-
-        copyExample(PATH_SRC . '.env.example');
-        copyExample(__DIR__ . '/php/php.example.ini');
-        copyExample(PATH_SRC . 'phpunit.example.xml');
-        copyExample(PATH_SRC . 'config/config.example.php');
-        copyExample(PATH_SRC . 'config/project.example.php');
         echo 'SUCCESS.', PHP_EOL;
         break;
     case 'clear':
-        echo '准备清除生成的文件', PHP_EOL;
-        function reverseCopyExample($example): string
+        class ActionClear
         {
-            global $testPrefix;
-            $info = pathinfo($example);
-            return $info['dirname'] . '/' . $testPrefix . str_replace('.example', '', $info['basename']);
-        }
+            public array $toDeleteFiles = [];
 
-        $files = [
-            reverseCopyExample(__DIR__ . '/.env.example'),
-            reverseCopyExample(__DIR__ . '/docker-compose.example.yaml'),
-            reverseCopyExample(__DIR__ . '/php/php.example.ini'),
-
-            reverseCopyExample(PATH_SRC . 'phpunit.example.xml'),
-            reverseCopyExample(PATH_SRC . '.env.example'),
-            reverseCopyExample(PATH_SRC . 'config/config.example.php'),
-            reverseCopyExample(PATH_SRC . 'config/project.example.php'),
-        ];
-        $configName = getArgsWithKey('c', $projectName);
-        $defaultConfFile = __DIR__ . '/nginx/' . $testPrefix . $configName . '.conf';
-        if (file_exists($defaultConfFile)) {
-            $files[] = $defaultConfFile;
-        }
-        if (hasArgsWithKey('y')) {
-            foreach ($files as $file) {
-                if (file_exists($file)) {
-                    if (unlink($file)) {
-                        echo '删除成功 {', $file, '}', PHP_EOL;
-                    } else {
-                        echo '删除失败 {', $file, '}', PHP_EOL;
-                    }
-                } else {
-                    echo '文件不存在 {', $file, '}', PHP_EOL;
+            public function __construct(public G $g)
+            {
+                foreach (array_merge(['.env.example'], ActionInitFiles) as $file) {
+                    $this->toDeleteFiles[] = $this->reverseCopyExample(PATH_ROOT . $file);
                 }
             }
+
+            private function reverseCopyExample($example): string
+            {
+                global $testPrefix;
+                $info = pathinfo($example);
+                return $info['dirname'] . '/' . $testPrefix . str_replace('.example', '', $info['basename']);
+            }
+
+            public function deleteFiles(): void
+            {
+                foreach ($this->toDeleteFiles as $file) {
+                    if (file_exists($file)) {
+                        $title = str_replace(PATH_ROOT, '', $file);
+                        if (unlink($file)) {
+                            echo '删除成功 {', $title, '}', PHP_EOL;
+                        } else {
+                            echo '删除失败 {', $title, '}', PHP_EOL;
+                        }
+                    } else {
+                        echo '文件不存在 {', $file, '}', PHP_EOL;
+                    }
+                }
+            }
+
+            public function printDeleteFiles()
+            {
+                return array_map(function ($file) {
+                    return str_replace(PATH_ROOT, '', $file);
+                }, $this->toDeleteFiles);
+            }
+        }
+
+        $action = new ActionClear($g);
+        if ($g->hasArgsWithKey('y')) {
+            $action->deleteFiles();
         } else {
-            print_r($files);
+            print_r($action->printDeleteFiles());
             echo '检查上面的文件，如果没有问题，则可使用 -y 进行删除', PHP_EOL;
-        }
-        break;
-    case 'nginx':
-        $configName = getArgsWithKey('c', $projectName);
-        $maintainData['c'] = $configName;
-
-        $defaultConfFile = __DIR__ . '/nginx/' . $testPrefix . $configName . '.conf';
-        loadEnv();
-        define("PATH_NGINX_SSL", __DIR__ . '/nginx/ssl/');
-        /**
-         * @param string $domain
-         * @return array{key:string,pem:string} 证书；如果 pem 证书的广告名可能为 crt
-         */
-        function getCerts($domain = ''): array
-        {
-            // 替换证书
-            $files = \Phax\Utils\MyFileSystem::findInDirs(PATH_NGINX_SSL, 'file');
-            $data = [];
-            foreach ($files as $file) {
-                $ext = pathinfo($file)['extension'];
-                if (!empty($domain)) {
-                    if (!str_starts_with($file, $domain)) {
-                        break;
-                    }
-                }
-                if (in_array($ext, ['crt', 'pem', 'key'])) {
-                    $data[$ext == 'key' ? 'key' : 'pem'] = $file;
-                }
-            }
-
-            return $data;
-        }
-
-        function getDomains(): array
-        {
-            global $argsOptions;
-            $domains = $argsOptions['domain'] ?? '';
-            if (empty($domains)) {
-                return [];
-            }
-            $domains = explode(',', $domains); // 域名列表
-            $wwwDomains = []; // 生成的域名列表
-            foreach ($domains as $domain) {
-                if (!str_starts_with($domain, 'www.')) {
-                    $wwwDomain = 'www.' . $domain;
-                    if (!in_array($wwwDomain, $domains) && !in_array($wwwDomain, $wwwDomains)) {
-                        $wwwDomains[] = $wwwDomain;
-                    }
-                }
-            }
-            return array_merge($domains, $wwwDomains);
-        }
-
-        // 生成配置文件
-        if (hasArgsWithKey('c')) {
-            if (!file_exists($defaultConfFile) || hasArgsWithKey('y')) {
-                echo '准备创建站点配置文件', PHP_EOL;
-                $wwwDomains = getDomains();
-                if (empty($wwwDomains)) {
-                    die('请配置域名，示例 -domain=xx.com' . PHP_EOL);
-                }
-                $maintainData['domains'] = $wwwDomains;
-
-                $port = $_ENV['OPEN_PORT']; // 端口
-
-                // 替换端口
-                if (file_exists(__DIR__ . '/nginx/host.location.conf')) {
-                    $locationContext = file_get_contents(__DIR__ . '/nginx/host.location.conf');
-                } else {
-                    $locationContext = file_get_contents(__DIR__ . '/nginx/host.location.example.conf');
-                }
-                $newLocationContent = str_replace(':8071', ':' . $port, $locationContext);
-
-                // 替换域名
-                $hostContent = file_get_contents(__DIR__ . '/nginx/host.example.conf');
-                $newHostContent = str_replace('xxx.test', join(' ', $wwwDomains), $hostContent);
-                // 替换证书
-                $certs = getCerts();
-
-                if (isset($certs['key'])) {
-                    $newHostContent = str_replace(
-                        'conf.d/xxx.key',
-                        'conf.d/' . $maintainData['c'] . '.key',
-                        $newHostContent
-                    );
-                }
-                if (isset($certs['pem'])) {
-                    $newHostContent = str_replace(
-                        'conf.d/xxx.pem',
-                        'conf.d/' . $maintainData['c'] . '.' . pathinfo($certs['pem'])['extension'],
-                        $newHostContent
-                    );
-                }
-
-                $newHostContent = str_replace(
-                    'include host.location.example.conf;',
-                    $newLocationContent,
-                    $newHostContent
-                );
-                file_put_contents($defaultConfFile, $newHostContent);
-                echo "创建成功站点配置文件成功", PHP_EOL;
-            } else {
-                echo "配置文件已存在，跳过", PHP_EOL;
-            }
-        }
-        if (hasArgsWithKey('host') || hasArgsWithKey('hosts')) {
-            $pathHosts = '/etc/hosts';
-            // 修改 /etc/hosts 文件
-            $hostsContent = file_get_contents($pathHosts);
-            print_r($hostsContent);
-            if (!empty($maintainData['domains'])) {
-                foreach ($maintainData['domains'] as $domain) {
-                    if (str_contains($hostsContent, $domain)) {
-                        echo '域名已存在 {', $domain, '}', PHP_EOL;
-                    } else {
-                        $hostsContent .= (PHP_EOL . '127.0.0.1 ' . $domain);
-                    }
-                }
-                file_put_contents($pathHosts, $hostsContent);
-            }
-            echo '已更新 {', $pathHosts, '}', PHP_EOL;
-        }
-        // 将配置文件移动到 nginx
-        if (hasArgsWithKey('m')) {
-            if (!file_exists($defaultConfFile)) {
-                die('站点配置文件不存在，使用 -c 生成此文件' . PHP_EOL);
-            }
-            define("NginxConfD", '/etc/nginx/conf.d/');
-
-            $copyFiles = [];
-            $copyFiles[] = [
-                $defaultConfFile,
-                NginxConfD . basename($defaultConfFile),
-            ];
-            $certs = getCerts();
-            if (isset($certs['key'])) {
-                $copyFiles[] = [
-                    PATH_NGINX_SSL . $certs['key'],
-                    NginxConfD . $maintainData['c'] . '.key',
-                ];
-            }
-            if (isset($certs['pem'])) {
-                $copyFiles[] = [
-                    PATH_NGINX_SSL . $certs['pem'],
-                    NginxConfD . $maintainData['c'] . '.' . pathinfo($certs['pem'])['extension'],
-                ];
-            }
-//            print_r($copyFiles);
-            if (!is_dir('/etc/nginx/conf.d')) {
-                die('无法移动到 nginx 目录，请检查 /etc/nginx/conf.d 目录是否存在' . PHP_EOL);
-            } else {
-                foreach ($copyFiles as $files) {
-                    if (copy($files[0], $files[1])) {
-                        echo '复制成功 {' . basename($files[1]) . '}', PHP_EOL;
-                    } else {
-                        echo '复制失败 {' . basename($files[1]) . '}', PHP_EOL;
-                    }
-                }
-            }
         }
         break;
     case "backup":
         echo "TODO 备份外部数据库", PHP_EOL;
+        break;
+    case "prod":
+        define('PATH_NGINX_SSL', PATH_ROOT . 'nginx/ssl/');
+
+        class ActionProd
+        {
+            private string $dir = '';
+            private string $path_prod_ssh_json_file = '';
+
+            public string $path_prod_save = '';
+            public string $path_prod_host_file = '';
+            public array $files = [
+                '.env.example',
+                'docker-compose.example.yaml',
+                'php/php.example.ini',
+                'php/supervisord.example.conf',
+                'src/.env.example',
+                'src/config/config.example.php',
+                'src/config/project.example.php',
+                'src/config/migration.example.php',
+                'nginx/sites/default.example.conf',
+            ];
+            public array $nginxFiles = []; // 站点配置
+            /**
+             * @return array{ip:string,port:int,username:string,password:string,public_ssh_key:string,private_ssh_key:string,path:string,nginx:string,
+             *     certs:array{key:string,pem:string},hosts:array{string}}
+             */
+            private array $sshCC = [];
+            public string $remotePhalconAdminPath = '';
+            public string $remoteNginxConf = '';
+
+            public function __construct(public G $g)
+            {
+                $this->dir = $g->getArgsWithKey('dir', 'default');
+                $this->path_prod_save = __DIR__ . '/prod/' . $this->dir . '/';
+                $this->path_prod_host_file = $this->path_prod_save . $g->projectName . '.conf';
+                $this->path_prod_ssh_json_file = $this->path_prod_save . 'ssh.json';
+
+                $this->nginxFiles = [
+                    ['nginx/host.example.conf', $g->projectName . '.conf'],
+                    ['nginx/host.location.example.conf', $g->projectName . '.location.conf']
+                ];
+            }
+
+            /**
+             * 获取 $this->files 在本地文件路径
+             * @param string|array{string,string} $file
+             * @return string
+             */
+            public function getLocalFile($file)
+            {
+                if (is_array($file)) {
+                    return $this->path_prod_save . $file[1];
+                }
+                return $this->path_prod_save . str_replace('/', '_', str_replace('.example', '', $file));
+            }
+
+            /**
+             * 获取 $this->files 在远程文件路径
+             * @param string $remotePath
+             * @param string|array{string,string} $file
+             * @return string
+             */
+            public function getRemoteFile($remotePath, $file)
+            {
+                if (is_array($file)) {
+                    return $remotePath . $file[1];
+                }
+                return $remotePath . str_replace('.example', '', $file);
+            }
+
+            /**
+             * @return array{ip:string,port:int,username:string,password:string,public_ssh_key:string,private_ssh_key:string,path:string,nginx:string,
+             *     certs:array{key:string,pem:string},hosts:array{string}}
+             */
+            public function getSshJson(): array
+            {
+                if (empty($this->sshCC)) {
+                    if (!file_exists($this->path_prod_save)) {
+                        die('目录不存在 ' . $this->path_prod_save . PHP_EOL);
+                    }
+                    $this->sshCC = json_decode(file_get_contents($this->path_prod_ssh_json_file), true);
+                    $this->remotePhalconAdminPath = rtrim($this->sshCC['path'], '/') . '/';
+                    $this->remoteNginxConf = rtrim($this->sshCC['nginx'] ?? '/etc/nginx/cond.f') . '/';
+                }
+                return $this->sshCC;
+            }
+
+            public function getCerts()
+            {
+                $certs = [];
+                foreach ($this->sshCC['certs'] ?? [] as $cert) {
+                    $file = PATH_ROOT . 'nginx/ssl/' . $cert;
+                    if (is_file($file) && file_exists($file)) {
+                        $certs[] = $cert;
+                    }
+                }
+                return $certs;
+            }
+
+            public function getHosts()
+            {
+                return $this->sshCC['hosts'] ?? [];
+            }
+
+            public function createSshJson()
+            {
+                // 合并 ssh.json 文件
+                $sshData = [
+                    'ip' => '',
+                    'port' => 22,
+                    'username' => '',
+                    'password' => '',
+                    'public_ssh_key' => '',
+                    'private_ssh_key' => '',
+                    'path' => 'path/of/phalcon-admin',
+                    'nginx' => '/etc/nginx/conf.d/',
+                    'certs' => ['key' => '', 'pem' => ''], // 上传到 nginx 目录的证书，要保存在 nginx/ssl 目录下
+                    'hosts' => [], // 添加到 /etc/hosts 的域名列表；示例 [a1.test,www.a1.test]
+                ];
+                if (file_exists($this->path_prod_ssh_json_file)) {
+                    $sshData = array_merge(
+                        $sshData,
+                        json_decode(file_get_contents($this->path_prod_ssh_json_file), true)
+                    );
+                }
+                file_put_contents($this->path_prod_ssh_json_file, json_encode($sshData));
+            }
+
+            public function createProdSaveDir()
+            {
+                if (is_dir($this->path_prod_save)) {
+                    $hasFiles = glob($this->path_prod_save . '*');
+                    if ($this->g->hasArgsWithKey('c')) {
+                        if ($hasFiles && !$this->g->hasArgsWithKey('y')) {
+                            die('{prod/' . $this->dir . '} 目录不为空；如需覆盖请追加参数 -y' . PHP_EOL);
+                        }
+                    } elseif (!$hasFiles) {
+                        die('{prod/' . $this->dir . '} 目录为空，请先使用参数 -c 使用' . PHP_EOL);
+                    }
+                } else {
+                    mkdir($this->path_prod_save);
+                }
+            }
+
+            public function createFiles(): void
+            {
+                foreach (array_merge($this->files, $this->nginxFiles) as $file) {
+                    if (is_string($file)) {
+                        $toName = str_replace('.example', '', $file);
+                    } else {
+                        $toName = $file[1];
+                        $file = $file[0];
+                    }
+                    $pathToName = $this->path_prod_save . str_replace('/', '_', $toName);
+                    if (copy(PATH_ROOT . $file, $pathToName)) {
+                        echo '复制成功 {', $toName . '}', PHP_EOL;
+                    } else {
+                        echo '复制失败 {', $toName . '}', PHP_EOL;
+                        die();
+                    }
+                }
+            }
+        }
+
+        $action = new ActionProd($g);
+        $action->createProdSaveDir();
+
+        if ($g->hasArgsWithKey('c')) {
+            $action->createFiles();
+            $action->createSshJson();
+
+            echo "生成完毕，请修改你的 ssh.json，然后再次执行命令 `php maintain prod -r -y`，将自动更新配置", PHP_EOL;
+        } elseif ($g->hasArgsWithKey('r')) {
+            class ActionProdReplace
+            {
+
+                public function __construct(public ActionProd $prod)
+                {
+                    if (!file_exists($this->prod->path_prod_save . 'ssh.json')) {
+                        die('ssh.json 文件不存在');
+                    }
+                    $this->prod->getSshJson();
+                }
+
+                // 更改 host 文件中的 xxx.test
+                function replaceNginxHost(): void
+                {
+                    $hostContent = file_get_contents($this->prod->path_prod_host_file);
+
+                    $domains = $this->prod->getHosts();
+
+                    // phalcon-admin.conf
+                    // 1。替换域名
+                    if ($domains) {
+                        $dbDomains = array_map(function ($domain) {
+                            return str_starts_with($domain, 'www.')
+                                ? str_replace('www.', 'www.db-', $domain)
+                                : 'db-' . $domain;
+                        }, $domains);
+                        $hostContent = str_replace('db-xxx.test', join(' ', $dbDomains), $hostContent);
+                        $hostContent = str_replace('xxx.test', join(' ', $domains), $hostContent);
+                        echo '替换域名成功 {', $this->prod->g->projectName, '.conf}', PHP_EOL;
+                    }
+                    $phpmyadminPort = $_ENV['PHPMYADMIN_PORT'] ?? 0;
+                    if ($phpmyadminPort > 0) {
+                        $hostContent = str_replace(':5456', ':' . $phpmyadminPort, $hostContent);
+                        echo '替换 db 端口成功', PHP_EOL;
+                    }
+                    // 2。替换 include
+                    $hostContent = str_replace(
+                        'include host.location.example.conf;',
+                        'include conf.d/' . $this->prod->g->projectName . '.location.conf',
+                        $hostContent
+                    );
+                    // 3. 替换证书
+                    $certs = $this->prod->getCerts();
+                    if ($certs) {
+                        if (!empty($certs['key'])) {
+                            $hostContent = str_replace('xxx.key', $certs['key'], $hostContent);
+                            echo '替换 key 证书成功', PHP_EOL;
+                        }
+                        if (!empty($certs['pem'])) {
+                            $hostContent = str_replace('xxx.pem', $certs['pem'], $hostContent);
+                            echo '替换 pem 证书成功', PHP_EOL;
+                        }
+                    }
+                    file_put_contents($this->prod->path_prod_host_file, $hostContent);
+
+                    // phalcon-admin.location.conf
+                    if ($port = $this->getPort()) {
+                        $path_location_file = $this->prod->path_prod_save . $this->prod->g->projectName . '.location.conf';
+                        $locationContent = file_get_contents($path_location_file);
+                        $locationContent = str_replace(':8071', ':' . $port, $locationContent);
+                        file_put_contents($path_location_file, $locationContent);
+                        echo '替换端口成功 {', $this->prod->g->projectName . '.location.conf', '}', PHP_EOL;
+                    }
+                }
+
+                public function getPort()
+                {
+                    $port = intval($this->prod->g->maintainData['port'] ?? 0);
+                    return $port > 0 && $port != 8071 ? $port : 0;
+                }
+
+                public function replaceEnv()
+                {
+                    if ($port = $this->getPort()) {
+                        $envContent = file_get_contents($this->prod->path_prod_save . '.env');
+                        $envContent = str_replace('OPEN_PORT=8071', 'OPEN_PORT=' . $port, $envContent);
+                        file_put_contents($this->prod->path_prod_save . '.env', $envContent);
+                    }
+                }
+            }
+
+            $replace = new ActionProdReplace($action);
+            $replace->replaceEnv();
+            $replace->replaceNginxHost();
+
+            echo '替换完成', PHP_EOL;
+        }
+
+        class ActionProdServer
+        {
+
+            private mixed $ssh;
+
+            public function __construct(public array $config)
+            {
+                if (!function_exists('ssh2_connect')) {
+                    die('请安装 ssh2 扩展' . PHP_EOL);
+                }
+                $this->validate();
+            }
+
+            private function validate(): void
+            {
+                if (empty($this->config['path'])) {
+                    die('必须指定远程保存地址 ssh.json->path');
+                }
+                if (empty($this->config['ip'])) {
+                    die('必须指定 ssh ip 地址' . PHP_EOL);
+                } elseif (empty($this->config['username'])) {
+                    die('必须指定 ssh username' . PHP_EOL);
+                } elseif (empty($this->config['password']) && (empty($this->config['public_ssh_key']) || empty($this->config['private_ssh_key']))) {
+                    die('必须指定密码或者登录证书');
+                }
+            }
+
+
+            private function connect()
+            {
+                if (empty($this->ssh)) {
+                    if (!$this->ssh = ssh2_connect($this->config['ip'], $this->config['port'] ?? 22)) {
+                        die('SSH validation failed for IP:' . $this->config['ip'] . PHP_EOL);
+                    }
+
+                    if (!empty($this->config['password'])) {
+                        if (!ssh2_auth_password($this->ssh, $this->config['username'], $this->config['password'])) {
+                            die("SSH validation failed using Username: " . $this->config['username'] . " (specify valid password)");
+                        }
+                    } else {
+                        if (!ssh2_auth_pubkey_file(
+                            $this->ssh,
+                            $this->config['username'],
+                            $this->config['public_ssh_key'],
+                            $this->config['private_ssh_key']
+                        )) {
+                            die("SSH validation failed using Username: " . $this->config['username'] . " (specify valid SSH keys or check your SSH key path)");
+                        }
+                    }
+                    echo 'SSH connect success...', PHP_EOL;
+                }
+            }
+
+            public function sendCommand($command): string|false
+            {
+                $this->connect();
+                $stream = ssh2_exec($this->ssh, $command);
+                stream_set_blocking($stream, true);
+                return stream_get_contents($stream);
+            }
+
+
+            public function sendFile($local_file, $remote_file, $print = true): bool
+            {
+                $this->connect();
+                if (!file_exists($local_file)) {
+                    die('文件不存在 {' . $local_file . '}' . PHP_EOL);
+                }
+                $rst = ssh2_scp_send($this->ssh, $local_file, $remote_file, 0644);
+                if ($print) {
+                    if ($rst) {
+                        echo '上传成功 {', $remote_file, '}', PHP_EOL;
+                    } else {
+                        echo '本地文件:', $local_file, PHP_EOL;
+                        echo '远程文件:', $remote_file, PHP_EOL;
+                        throw new \Exception('上传失败');
+                    }
+                }
+                return $rst;
+            }
+
+            public function recvFile($remote_file, $local_file, $print = true): bool
+            {
+                $this->connect();
+                $rst = ssh2_scp_recv($this->ssh, '"' . $remote_file . '"', $local_file);
+                if ($print) {
+                    if ($rst) {
+                        echo '获取成功 {', $remote_file, '}', PHP_EOL;
+                    } else {
+                        echo '获取失败 {', $remote_file, '}', PHP_EOL;
+                    }
+                }
+                return $rst;
+            }
+
+            private mixed $sftp;
+
+            private function connectSFTP()
+            {
+                if (empty($this->sftp)) {
+                    $this->connect();
+                    $this->sftp = ssh2_sftp($this->ssh);
+                }
+            }
+
+            public function unlink($remote_file, $print = true): bool
+            {
+                $this->connectSFTP();
+                $rst = ssh2_sftp_unlink($this->sftp, $remote_file);
+                if ($print) {
+                    if ($rst) {
+                        echo '移除成功 {', $remote_file, '}', PHP_EOL;
+                    } else {
+                        echo '移除失败 {', $remote_file . '}', PHP_EOL;
+                    }
+                }
+                return $rst;
+            }
+
+
+        }
+
+        if ($g->hasArgsWithKey('u')) {
+            $ssh = new ActionProdServer($action->getSshJson());
+
+            $uValue = $g->getArgsWithKey('u', '*');
+
+            if (in_array($uValue, ['*', 'app'])) {
+                echo '准备上传项目配置文件...', PHP_EOL;
+                foreach ($action->files as $file) {
+                    $local_file = $action->getLocalFile($file);
+                    $remote_file = $action->getRemoteFile($action->remotePhalconAdminPath, $file);
+                    $ssh->sendFile($local_file, $remote_file);
+                }
+            }
+            if (in_array($uValue, ['*', 'nginx'])) {
+                if (empty($ssh->sendCommand('which nginx'))) {
+                    die("nginx 还没有安装作" . PHP_EOL);
+                }
+                echo '准备上传站点文件到 nginx...', PHP_EOL;
+                foreach ($action->nginxFiles as $files) {
+                    $ssh->sendFile(
+                        $action->path_prod_save . $files[1],
+                        $action->remoteNginxConf . $files[1]
+                    );
+                }
+
+                echo '准备上传证书到 nginx...', PHP_EOL;
+                foreach ($action->getCerts() as $cert) {
+                    $ssh->sendFile(
+                        PATH_NGINX_SSL . $cert,
+                        $action->remoteNginxConf . $cert
+                    );
+                }
+            }
+            if (in_array($uValue, ['*', 'hosts', 'host'])) {
+                echo '准备处理 /etc/hosts...', PHP_EOL;
+                $content = $ssh->sendCommand('cat /etc/hosts');
+                $appendHosts = [];
+                foreach ($action->getHosts() as $host) {
+                    if (!str_contains($content, $host)) {
+                        $appendHosts[] = '127.0.0.1 ' . $host;
+                    }
+                }
+                if (!empty($appendHosts)) {
+                    $cmd = 'echo "' . join(PHP_EOL, $appendHosts) . PHP_EOL . '" >> /etc/hosts';
+                    $ssh->sendCommand($cmd);
+                    echo '写入完成 /etc/hosts', PHP_EOL;
+                }
+            }
+        } elseif ($g->hasArgsWithKey('del')) {
+            $ssh = new ActionProdServer($action->getSshJson());
+
+            $dValue = $g->getArgsWithKey('del', '*');
+            if (in_array($dValue, ['*', 'app'])) {
+                echo '准备移除项目配置文件...', PHP_EOL;
+                foreach ($action->files as $file) {
+                    $remote_file = $action->getRemoteFile($action->remotePhalconAdminPath, $file);
+                    $ssh->unlink($remote_file);
+                }
+            }
+            if (in_array($dValue, ['*', 'nginx'])) {
+                echo '准备移除配置到 nginx 的文件...', PHP_EOL;
+                foreach ($action->nginxFiles as $files) {
+                    $remote_file = $action->remoteNginxConf . $files[1];
+                    $ssh->unlink($remote_file);
+                }
+                if ($certs = $action->getCerts()) {
+                    echo '准备移除配置到 nginx 的证书...', PHP_EOL;
+                    foreach ($certs as $cert) {
+                        $remote_file = $action->remoteNginxConf . $cert;
+                        $ssh->unlink($remote_file);
+                    }
+                }
+            }
+            if (in_array($dValue, ['*', 'hosts', 'host'])) {
+                echo '准备移除 /etc/hosts 域名配置信息 ...', PHP_EOL;
+                $hosts = $action->getHosts();
+                if (!empty($hosts)) {
+                    $content = $ssh->sendCommand('cat /etc/hosts');
+                    if (str_contains($content, '"')) {
+                        die('/etc/hosts 中包含双引号，请手动替换' . PHP_EOL);
+                    }
+                    foreach ($hosts as $host) {
+                        $content = str_replace('127.0.0.1 ' . $host, '', $content);
+                    }
+                    $content = preg_replace('/\n{2,}/', "\n", $content);
+                    $cmd = 'echo "' . $content . '" >> /etc/hosts';
+                    $ssh->sendCommand($cmd);
+                    echo '更新完成 /etc/hosts', PHP_EOL;
+                }
+            }
+        }
         break;
     case 'help':
         echo "~~~~~~~~~~ HOW TO USE ~~~~~~~~~~", PHP_EOL;
@@ -377,13 +787,18 @@ php maintain init       # 根据当前目录初始化环境
     -y          : 覆盖已存在的文件
 php maintain clear      # 删除由 maintain 生成的文件
     -y          : 确定删除，如果不提供则参数，则会打印待删除的文件
-php maintain nginx      # 生成 nginx 配置文件，并复制到 nginx 目录
-    -c[=Str]     : 创建配置文件；可以指定生成的配置文件名
-    -y           : 强制覆盖已经存在的配置文件
-    -domain=Str  : 为指定域名生成一份配置文件，不需要添加 www；示例: -domain=a1.com,b1.com
-    -domains=Str : 【TODO】为指定域名生成多份配置文件，不需要添加 www；示例: -domains=a1.com,b1.com
-    -m           : 将配置文件及证书移动到 nginx/conf.d 目录
-    -host        : 将 -domain 写入到系统的 /etc/hosts 文件中
+php maintain prod       # 将应用配置文件生成到 prod 目录下
+    -dir[=Str]   : 保存目录，默认为 default；如果目录存在
+    -c           : create 全部配置文件到 prod 目录，并生成 ssh.json 文件
+    -y           : 覆盖已经存在的配置文件（ssh.json 不会被覆盖）
+    -r           : 使用 ssh.json 的信息来更新配置文件中的默认信息
+    -u[=Str]     : 将 -dir 目录下的配置文件 upload 到 ssh.json 中服务器指定的项目位置；注意：需要安装 ssh2 扩展， apt install php8.2-ssh2 ssh
+                   默认值为 *，表示同时上传 app, nginx, hosts
+                   app   上传应用相关的配置文件
+                   nginx 上传 nginx 相关的配置文件
+                   hosts 修改 /etc/hosts 文件
+    -del[=Str]   : 移除 -u 所上传的文件，默认值为 *，可选值为 app|nginx|hosts
+    -d           : 下载 ssh.json 中远程项目的配置文件下载到 -dir 指定的本地目录，保存时到自动追加日期
 HELP;
         echo PHP_EOL;
         break;
@@ -391,5 +806,5 @@ HELP;
         die('unknown action!!' . PHP_EOL);
 }
 
-saveMaintainTmp();
+$g->saveMaintainTmp();
 

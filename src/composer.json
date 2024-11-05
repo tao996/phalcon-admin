@@ -13,7 +13,8 @@
     "ext-redis": "*",
     "ext-pdo": "*",
     "ext-gd": "*",
-    "ext-intl": "*"
+    "ext-intl": "*",
+    "ext-ssh2": "*"
   },
   "require-dev": {
     "php": "^8.3",
