@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
+ * @var \Phax\Support\Config $config
+ */
+$config = $this->di->get('config');
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><?php
+        echo $config->path('app.name') ?> - 应用</title>
+</head>
+<body>
+
+
+<ul>
+    <li><a href="/">首页</a></li>
+</ul>
+
+<h6>~~~~~ start ~~~</h6>
+<?php
+echo $this->getContent() ?>
+<h6>~~~~~ end ~~~~~</h6>
+</body>
+</html>
+
