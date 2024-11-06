@@ -1,5 +1,8 @@
 #!/usr/bin/env php
 <?php
+
+use phpseclib3\Net\SFTP;
+
 $testPrefix = 'local-test-'; // 用于测试
 
 // 判断操作系统
@@ -156,6 +159,24 @@ const ActionInitFiles = [
     'src/config/config.example.php',
     'src/config/project.example.php'
 ];
+const SshData = [
+    'ip' => '',
+    'port' => 22,
+    'username' => '',
+    'password' => '', // ssh2/sftp 密码登录
+    'private_ssh_key' => '', // ssh2/sftp 证书登录
+    'path' => 'path/of/phalcon-admin', // 当前项目在线上服务器所映射的目录
+    'nginx' => '/etc/nginx/conf.d/',
+    'certs' => ['key' => '', 'pem' => ''], // 上传到 nginx 目录的证书，要保存在 nginx/ssl 目录下
+    'hosts' => [], // 添加到 /etc/hosts 的域名列表；示例 [a1.test,www.a1.test]
+    'logs' => [ // 需要下载的日志
+        'log/nginx/access.log',
+        'log/nginx/error.log',
+        'php/php_errors.log',
+        ['src/storage/logs'] // 数组表示一个目录
+    ],
+    'backup' => [],// 其它需要备份的文件，在执行 php maintain prod -d 时也会一同下载
+];
 
 switch ($g->action) {
     case 'init':
@@ -306,11 +327,28 @@ switch ($g->action) {
 
         class ActionProd
         {
-            private string $dir = '';
-            private string $path_prod_ssh_json_file = '';
-
+            /**
+             * 目录名称，默认为 default
+             * @var string|int|mixed
+             */
+            public string $dir = '';
+            public string $path_prod = __DIR__ . '/prod/';
+            /**
+             * 配置目录路径 `$path_prod.$dir`，默认 `__DIR__./prod/default/`
+             * @var string
+             */
             public string $path_prod_save = '';
+            /**
+             * 远程服务器文件路径，默认 `__DIR__./prod/default/ssh.php`
+             * @var string
+             */
+            public string $path_prod_config_file = '';
+            /**
+             * nginx 站点返回，默认 `__DIR__./prod/default/$projectName.conf`
+             * @var string
+             */
             public string $path_prod_host_file = '';
+            public string $path_prod_logs = __DIR__ . '/prod/logs/';
             public array $files = [
                 '.env.example',
                 'docker-compose.example.yaml',
@@ -320,23 +358,24 @@ switch ($g->action) {
                 'src/config/config.example.php',
                 'src/config/project.example.php',
                 'src/config/migration.example.php',
-                'nginx/sites/default.example.conf',
+                'nginx/sites/default.example.conf', // 如果使用这个文件，则需要修改 docker-compose.yaml
             ];
             public array $nginxFiles = []; // 站点配置
             /**
+             * ssh.php 的配置信息
              * @return array{ip:string,port:int,username:string,password:string,public_ssh_key:string,private_ssh_key:string,path:string,nginx:string,
              *     certs:array{key:string,pem:string},hosts:array{string}}
              */
-            private array $sshCC = [];
+            private array $config = [];
             public string $remotePhalconAdminPath = '';
             public string $remoteNginxConf = '';
 
             public function __construct(public G $g)
             {
                 $this->dir = $g->getArgsWithKey('dir', 'default');
-                $this->path_prod_save = __DIR__ . '/prod/' . $this->dir . '/';
+                $this->path_prod_save = $this->path_prod . $this->dir . '/';
                 $this->path_prod_host_file = $this->path_prod_save . $g->projectName . '.conf';
-                $this->path_prod_ssh_json_file = $this->path_prod_save . 'ssh.json';
+                $this->path_prod_config_file = $this->path_prod_save . 'ssh.php';
 
                 $this->nginxFiles = [
                     ['nginx/host.example.conf', $g->projectName . '.conf'],
@@ -345,26 +384,33 @@ switch ($g->action) {
             }
 
             /**
-             * 获取 $this->files 在本地文件路径
+             * 获取 `$this->files[i]` 保存在 prod 目录时的文件路径
              * @param string|array{string,string} $file
+             * @param string|null $localPath 本地保存目录，默认为 `$this->path_prod_save`
              * @return string
              */
-            public function getLocalFile($file)
+            public function getLocalFile($file, $localPath = null)
             {
-                if (is_array($file)) {
-                    return $this->path_prod_save . $file[1];
+                if (is_null($localPath)) {
+                    $localPath = $this->path_prod_save;
                 }
-                return $this->path_prod_save . str_replace('/', '_', str_replace('.example', '', $file));
+                if (is_array($file)) {
+                    return $localPath . $file[1];
+                }
+                return $localPath . str_replace('/', '_', str_replace('.example', '', $file));
             }
 
             /**
-             * 获取 $this->files 在远程文件路径
-             * @param string $remotePath
+             * 获取 `$this->files[i]` 在远程文件路径
              * @param string|array{string,string} $file
-             * @return string
+             * @param string|null $remotePath 远程对应的目录，默认来自 ssh.php->path
+             * @return string 示例 `xxx/.env` 或者 `xxx/src/config/config.php`
              */
-            public function getRemoteFile($remotePath, $file)
+            public function getRemoteFile($file, $remotePath = null)
             {
+                if (is_null($remotePath)) {
+                    $remotePath = $this->remotePhalconAdminPath;
+                }
                 if (is_array($file)) {
                     return $remotePath . $file[1];
                 }
@@ -375,23 +421,28 @@ switch ($g->action) {
              * @return array{ip:string,port:int,username:string,password:string,public_ssh_key:string,private_ssh_key:string,path:string,nginx:string,
              *     certs:array{key:string,pem:string},hosts:array{string}}
              */
-            public function getSshJson(): array
+            public function getConfig(): array
             {
-                if (empty($this->sshCC)) {
+                if (empty($this->config)) {
                     if (!file_exists($this->path_prod_save)) {
                         die('目录不存在 ' . $this->path_prod_save . PHP_EOL);
                     }
-                    $this->sshCC = json_decode(file_get_contents($this->path_prod_ssh_json_file), true);
-                    $this->remotePhalconAdminPath = rtrim($this->sshCC['path'], '/') . '/';
-                    $this->remoteNginxConf = rtrim($this->sshCC['nginx'] ?? '/etc/nginx/cond.f') . '/';
+                    $this->config = include_once $this->path_prod_config_file;
+                    $this->remotePhalconAdminPath = rtrim($this->config['path'], '/') . '/';
+                    $this->remoteNginxConf = rtrim($this->config['nginx'] ?? '/etc/nginx/cond.f', '/') . '/';
                 }
-                return $this->sshCC;
+                return $this->config;
+            }
+
+            public function getConfigWith($key, $default = '')
+            {
+                return $this->getConfig()[$key] ?? $default;
             }
 
             public function getCerts()
             {
                 $certs = [];
-                foreach ($this->sshCC['certs'] ?? [] as $cert) {
+                foreach ($this->config['certs'] ?? [] as $cert) {
                     $file = PATH_ROOT . 'nginx/ssl/' . $cert;
                     if (is_file($file) && file_exists($file)) {
                         $certs[] = $cert;
@@ -402,31 +453,24 @@ switch ($g->action) {
 
             public function getHosts()
             {
-                return $this->sshCC['hosts'] ?? [];
+                return $this->config['hosts'] ?? [];
             }
 
-            public function createSshJson()
+            public function createConfig()
             {
-                // 合并 ssh.json 文件
-                $sshData = [
-                    'ip' => '',
-                    'port' => 22,
-                    'username' => '',
-                    'password' => '',
-                    'public_ssh_key' => '',
-                    'private_ssh_key' => '',
-                    'path' => 'path/of/phalcon-admin',
-                    'nginx' => '/etc/nginx/conf.d/',
-                    'certs' => ['key' => '', 'pem' => ''], // 上传到 nginx 目录的证书，要保存在 nginx/ssl 目录下
-                    'hosts' => [], // 添加到 /etc/hosts 的域名列表；示例 [a1.test,www.a1.test]
-                ];
-                if (file_exists($this->path_prod_ssh_json_file)) {
-                    $sshData = array_merge(
-                        $sshData,
-                        json_decode(file_get_contents($this->path_prod_ssh_json_file), true)
-                    );
+                $data = SshData;
+                if (file_exists($this->path_prod_config_file)) {
+                    $data = array_merge($data, include_once $this->path_prod_config_file);
                 }
-                file_put_contents($this->path_prod_ssh_json_file, json_encode($sshData));
+                file_put_contents($this->path_prod_config_file, '<?php return ' . var_export($data, true) . ';');
+            }
+
+            public function hasFilesInSaveDir()
+            {
+                if (is_dir($this->path_prod_save)) {
+                    return glob($this->path_prod_save . '*');
+                }
+                return false;
             }
 
             public function createProdSaveDir()
@@ -469,20 +513,23 @@ switch ($g->action) {
         $action->createProdSaveDir();
 
         if ($g->hasArgsWithKey('c')) {
-            $action->createFiles();
-            $action->createSshJson();
+            $type = $g->getArgsWithKey('c', '');
+            if ($type == '*' || !$action->hasFilesInSaveDir()) {
+                $action->createFiles();
+            }
+            $action->createConfig();
 
-            echo "生成完毕，请修改你的 ssh.json，然后再次执行命令 `php maintain prod -r -y`，将自动更新配置", PHP_EOL;
+            echo "生成完毕，请修改你的 ssh.php，然后再次执行命令 `php maintain prod -r -y`，将自动更新配置", PHP_EOL;
         } elseif ($g->hasArgsWithKey('r')) {
             class ActionProdReplace
             {
 
                 public function __construct(public ActionProd $prod)
                 {
-                    if (!file_exists($this->prod->path_prod_save . 'ssh.json')) {
-                        die('ssh.json 文件不存在');
+                    if (!file_exists($this->prod->path_prod_save . 'ssh.php')) {
+                        die('ssh.php 文件不存在');
                     }
-                    $this->prod->getSshJson();
+                    $this->prod->getConfig();
                 }
 
                 // 更改 host 文件中的 xxx.test
@@ -564,73 +611,87 @@ switch ($g->action) {
 
         class ActionProdServer
         {
-
-            private mixed $ssh;
+            // https://phpseclib.com/docs/auth
 
             public function __construct(public array $config)
             {
-                if (!function_exists('ssh2_connect')) {
-                    die('请安装 ssh2 扩展' . PHP_EOL);
-                }
                 $this->validate();
+                include_once __DIR__ . '/src/tao996/phar/phpseclib.phar';
             }
 
             private function validate(): void
             {
                 if (empty($this->config['path'])) {
-                    die('必须指定远程保存地址 ssh.json->path');
+                    die('必须指定远程保存地址 ssh.php->path');
                 }
                 if (empty($this->config['ip'])) {
                     die('必须指定 ssh ip 地址' . PHP_EOL);
                 } elseif (empty($this->config['username'])) {
                     die('必须指定 ssh username' . PHP_EOL);
-                } elseif (empty($this->config['password']) && (empty($this->config['public_ssh_key']) || empty($this->config['private_ssh_key']))) {
+                } elseif (empty($this->config['password']) && empty($this->config['private_ssh_key'])) {
                     die('必须指定密码或者登录证书');
                 }
             }
 
-
-            private function connect()
+            private function sftp()
             {
-                if (empty($this->ssh)) {
-                    if (!$this->ssh = ssh2_connect($this->config['ip'], $this->config['port'] ?? 22)) {
-                        die('SSH validation failed for IP:' . $this->config['ip'] . PHP_EOL);
-                    }
-
+                static $sftp = null;
+                if (is_null($sftp)) {
+                    $sftp = new phpseclib3\Net\SFTP($this->config['ip']);
                     if (!empty($this->config['password'])) {
-                        if (!ssh2_auth_password($this->ssh, $this->config['username'], $this->config['password'])) {
-                            die("SSH validation failed using Username: " . $this->config['username'] . " (specify valid password)");
+                        if (!$sftp->login($this->config['username'], $this->config['password'])) {
+                            die('SFTP 密码登录失败');
                         }
                     } else {
-                        if (!ssh2_auth_pubkey_file(
-                            $this->ssh,
-                            $this->config['username'],
-                            $this->config['public_ssh_key'],
-                            $this->config['private_ssh_key']
-                        )) {
-                            die("SSH validation failed using Username: " . $this->config['username'] . " (specify valid SSH keys or check your SSH key path)");
+                        $key = \phpseclib3\Crypt\PublicKeyLoader::load(
+                            file_get_contents($this->config['private_ssh_key'])
+                        );
+                        if (!$sftp->login($this->config['username'], $key)) {
+                            die('SFTP Public Key 登录失败');
                         }
                     }
-                    echo 'SSH connect success...', PHP_EOL;
                 }
+                return $sftp;
             }
+
+            private function ssh2()
+            {
+                static $ssh = null;
+                if (is_null($ssh)) {
+                    $ssh = new \phpseclib3\Net\SSH2($this->config['ip']);
+                    if (!empty($this->config['password'])) {
+                        if (!$ssh->login($this->config['username'], $this->config['password'])) {
+                            die("SSH2 validation failed using Username: " . $this->config['username'] . " (specify valid password)");
+                        }
+                    } else {
+                        $key = \phpseclib3\Crypt\PublicKeyLoader::load(
+                            file_get_contents($this->config['private_ssh_key'])
+                        );
+                        if (!$ssh->login(
+                            $this->config['username'],
+                            $key
+                        )) {
+                            die("SSH2 validation failed using Username: " . $this->config['username'] . " (specify valid SSH keys or check your SSH key path)");
+                        }
+                    }
+                }
+                return $ssh;
+            }
+
 
             public function sendCommand($command): string|false
             {
-                $this->connect();
-                $stream = ssh2_exec($this->ssh, $command);
-                stream_set_blocking($stream, true);
-                return stream_get_contents($stream);
+                return $this->ssh2()->exec($command);
             }
 
 
             public function sendFile($local_file, $remote_file, $print = true): bool
             {
-                $this->connect();
                 if (!file_exists($local_file)) {
                     die('文件不存在 {' . $local_file . '}' . PHP_EOL);
                 }
-                $rst = ssh2_scp_send($this->ssh, $local_file, $remote_file, 0644);
+                $rst = $this->sftp()->put($remote_file, $local_file, SFTP::SOURCE_LOCAL_FILE);
+
                 if ($print) {
                     if ($rst) {
                         echo '上传成功 {', $remote_file, '}', PHP_EOL;
@@ -643,34 +704,30 @@ switch ($g->action) {
                 return $rst;
             }
 
+            /**
+             * 获取文件
+             */
             public function recvFile($remote_file, $local_file, $print = true): bool
             {
-                $this->connect();
-                $rst = ssh2_scp_recv($this->ssh, '"' . $remote_file . '"', $local_file);
+                $rst = $this->sftp()->get($remote_file, $local_file);
                 if ($print) {
                     if ($rst) {
                         echo '获取成功 {', $remote_file, '}', PHP_EOL;
+                        echo '   =>{', $local_file, '}', PHP_EOL;
                     } else {
                         echo '获取失败 {', $remote_file, '}', PHP_EOL;
                     }
                 }
+
                 return $rst;
             }
 
-            private mixed $sftp;
-
-            private function connectSFTP()
+            /**
+             * 移除文件
+             */
+            public function delFile($remote_file, $print = true): bool
             {
-                if (empty($this->sftp)) {
-                    $this->connect();
-                    $this->sftp = ssh2_sftp($this->ssh);
-                }
-            }
-
-            public function unlink($remote_file, $print = true): bool
-            {
-                $this->connectSFTP();
-                $rst = ssh2_sftp_unlink($this->sftp, $remote_file);
+                $rst = $this->sftp()->delete($remote_file);
                 if ($print) {
                     if ($rst) {
                         echo '移除成功 {', $remote_file, '}', PHP_EOL;
@@ -681,11 +738,62 @@ switch ($g->action) {
                 return $rst;
             }
 
+            private function skipDownloadFile($file)
+            {
+                return in_array($file, ['.', '..', '.gitignore']);
+            }
 
+            public function download($remote_dir, $local_dir)
+            {
+                $remote_dir = rtrim($remote_dir, '/') . '/';
+                $local_dir = rtrim($local_dir, '/') . '/';
+
+                $sftp = $this->sftp();
+                if ($remoteList = $sftp->nlist($remote_dir)) {
+                    foreach ($remoteList as $item) {
+                        if (!$this->skipDownloadFile($item)) {
+                            if ($sftp->is_dir($remote_dir . $item)) {
+                                $localSubDir = $local_dir . $item;
+                                if (!is_dir($localSubDir)) {
+                                    mkdir($localSubDir, 0777, true);
+                                }
+                                // 递归下载
+                                $this->downloadDirectoryRecursive($sftp, $remote_dir . $item, $localSubDir);
+                            } else {
+                                // 直接下载
+                                $this->recvFile($remote_dir . $item, $local_dir . $item);
+                            }
+                        }
+                    }
+                }
+            }
+
+            private function downloadDirectoryRecursive(SFTP $sftp, string $remoteSubDir, string $localSubDir)
+            {
+                $remoteList = $sftp->nlist($remoteSubDir);
+                if ($remoteList) {
+                    foreach ($remoteList as $item) {
+                        if (!$this->skipDownloadFile($item)) {
+                            if ($sftp->is_dir($remoteSubDir . $item)) {
+                                $newLocalSubDir = $localSubDir . $item;
+                                if (!is_dir($newLocalSubDir)) {
+                                    mkdir($newLocalSubDir, 0777, true);
+                                }
+                                $this->downloadDirectoryRecursive($sftp, $remoteSubDir . $item, $newLocalSubDir);
+                            } else {
+                                $localFilePath = $localSubDir . $item;
+                                $remoteFilePath = $remoteSubDir . $item;
+                                $this->recvFile($remoteFilePath, $localFilePath);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if ($g->hasArgsWithKey('u')) {
-            $ssh = new ActionProdServer($action->getSshJson());
+            $ssh = new ActionProdServer($action->getConfig());
+            echo '待上传目录: prod/', $action->dir, PHP_EOL;
 
             $uValue = $g->getArgsWithKey('u', '*');
 
@@ -693,7 +801,7 @@ switch ($g->action) {
                 echo '准备上传项目配置文件...', PHP_EOL;
                 foreach ($action->files as $file) {
                     $local_file = $action->getLocalFile($file);
-                    $remote_file = $action->getRemoteFile($action->remotePhalconAdminPath, $file);
+                    $remote_file = $action->getRemoteFile($file);
                     $ssh->sendFile($local_file, $remote_file);
                 }
             }
@@ -702,6 +810,7 @@ switch ($g->action) {
                     die("nginx 还没有安装作" . PHP_EOL);
                 }
                 echo '准备上传站点文件到 nginx...', PHP_EOL;
+
                 foreach ($action->nginxFiles as $files) {
                     $ssh->sendFile(
                         $action->path_prod_save . $files[1],
@@ -733,27 +842,27 @@ switch ($g->action) {
                 }
             }
         } elseif ($g->hasArgsWithKey('del')) {
-            $ssh = new ActionProdServer($action->getSshJson());
+            $ssh = new ActionProdServer($action->getConfig());
 
             $dValue = $g->getArgsWithKey('del', '*');
             if (in_array($dValue, ['*', 'app'])) {
                 echo '准备移除项目配置文件...', PHP_EOL;
                 foreach ($action->files as $file) {
-                    $remote_file = $action->getRemoteFile($action->remotePhalconAdminPath, $file);
-                    $ssh->unlink($remote_file);
+                    $remote_file = $action->getRemoteFile($file);
+                    $ssh->delFile($remote_file);
                 }
             }
             if (in_array($dValue, ['*', 'nginx'])) {
                 echo '准备移除配置到 nginx 的文件...', PHP_EOL;
                 foreach ($action->nginxFiles as $files) {
                     $remote_file = $action->remoteNginxConf . $files[1];
-                    $ssh->unlink($remote_file);
+                    $ssh->delFile($remote_file);
                 }
                 if ($certs = $action->getCerts()) {
                     echo '准备移除配置到 nginx 的证书...', PHP_EOL;
                     foreach ($certs as $cert) {
                         $remote_file = $action->remoteNginxConf . $cert;
-                        $ssh->unlink($remote_file);
+                        $ssh->delFile($remote_file);
                     }
                 }
             }
@@ -774,7 +883,66 @@ switch ($g->action) {
                     echo '更新完成 /etc/hosts', PHP_EOL;
                 }
             }
+        } elseif ($g->hasArgsWithKey('log')) {
+            echo '准备下载日志...', PHP_EOL;
+            if ($logs = $action->getConfigWith('logs', [])) {
+                $pathLog = $action->path_prod_logs . $action->dir . '/' . date('Ymd') . '/';
+                if (!file_exists($pathLog)) {
+                    mkdir($pathLog, 0777, true);
+                }
+                $ssh = new ActionProdServer($action->getConfig());
+                foreach ($logs as $log) {
+                    if (is_string($log)) {
+                        $remote_file = $action->remotePhalconAdminPath . $log;
+                        $local_file = $pathLog . str_replace('/', '_', $log);
+                        $ssh->recvFile($remote_file, $local_file);
+                    } elseif (is_array($log)) {
+                        $ssh->download($action->remotePhalconAdminPath . $log[0], $pathLog);
+                    }
+                }
+            } else {
+                echo '没有配置下载日志...', PHP_EOL;
+            }
+        } elseif ($g->hasArgsWithKey('d')) { // 备份远程的配置文件
+            $ssh = new ActionProdServer($action->getConfig());
+            echo '备份项目配置文件...', PHP_EOL;
+            $pathBackup = rtrim($action->path_prod_save, '/') . '_' . date('Ymd') . '/';
+            if (!file_exists($pathBackup)) {
+                mkdir($pathBackup);
+            }
+
+            foreach ($action->files as $file) {
+                $remote_file = $action->getRemoteFile($file);
+                $local_file = $action->getLocalFile($file, $pathBackup);
+                $ssh->recvFile($remote_file, $local_file);
+            }
+            echo '备份 nginx 站点文件...', PHP_EOL;
+            foreach ($action->nginxFiles as $files) {
+                $ssh->recvFile(
+                    $action->remoteNginxConf . $files[1],
+                    $pathBackup . $files[1]
+                );
+            }
+            if ($backups = $action->getConfigWith('backup', [])) {
+                echo '备份自定义项目文件...', PHP_EOL;
+                foreach ($backups as $file) {
+                    $local_file = $pathBackup . str_replace('/', '_', $file);
+                    $ssh->recvFile(
+                        $action->remotePhalconAdminPath . $file,
+                        $local_file
+                    );
+                }
+            }
+
+            echo '备份 ssh.php 文件...', PHP_EOL;
+            copy(
+                $action->path_prod_config_file,
+                $pathBackup . 'ssh.php'
+            );
+
+            echo '完成备份 {', $pathBackup, '}', PHP_EOL;
         }
+
         break;
     case 'help':
         echo "~~~~~~~~~~ HOW TO USE ~~~~~~~~~~", PHP_EOL;
@@ -789,16 +957,17 @@ php maintain clear      # 删除由 maintain 生成的文件
     -y          : 确定删除，如果不提供则参数，则会打印待删除的文件
 php maintain prod       # 将应用配置文件生成到 prod 目录下
     -dir[=Str]   : 保存目录，默认为 default；如果目录存在
-    -c           : create 全部配置文件到 prod 目录，并生成 ssh.json 文件
-    -y           : 覆盖已经存在的配置文件（ssh.json 不会被覆盖）
-    -r           : 使用 ssh.json 的信息来更新配置文件中的默认信息
-    -u[=Str]     : 将 -dir 目录下的配置文件 upload 到 ssh.json 中服务器指定的项目位置；注意：需要安装 ssh2 扩展， apt install php8.2-ssh2 ssh
+    -c[=*]       : -c=* 时会 create 全部配置文件到 prod 目录；否则只会更新 ssh.php 文件
+    -y           : 覆盖已经存在的配置文件（ssh.php 不会被覆盖）
+    -r           : 使用 ssh.php 的信息来更新配置文件中的默认信息
+    -u[=Str]     : 将 -dir 目录下的配置文件 upload 到 ssh.php 中服务器指定的项目位置；注意：需要安装 ssh2 扩展， apt install php8.2-ssh2 ssh
                    默认值为 *，表示同时上传 app, nginx, hosts
                    app   上传应用相关的配置文件
                    nginx 上传 nginx 相关的配置文件
                    hosts 修改 /etc/hosts 文件
     -del[=Str]   : 移除 -u 所上传的文件，默认值为 *，可选值为 app|nginx|hosts
-    -d           : 下载 ssh.json 中远程项目的配置文件下载到 -dir 指定的本地目录，保存时到自动追加日期
+    -d           : 下载 ssh.php 中远程项目的配置文件下载到 -dir 指定的本地目录，保存时到自动追加日期
+    -log         : 下载 ssh.php 配置的日志文件到 prod/logs 目录下，保存时以 {-dir}/{Ymd}/ 为前缀
 HELP;
         echo PHP_EOL;
         break;
