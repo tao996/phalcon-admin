@@ -176,6 +176,8 @@ const SshData = [
         ['src/storage/logs'] // 数组表示一个目录
     ],
     'backup' => [],// 其它需要备份的文件，在执行 php maintain prod -d 时也会一同下载
+    // 以下字段由系统自动更新，不需要更新
+    'projects' => [],
 ];
 
 switch ($g->action) {
@@ -462,7 +464,27 @@ switch ($g->action) {
                 if (file_exists($this->path_prod_config_file)) {
                     $data = array_merge($data, include_once $this->path_prod_config_file);
                 }
+                $this->updateConfigFile($data);
+            }
+
+            public function updateConfigFile($data)
+            {
                 file_put_contents($this->path_prod_config_file, '<?php return ' . var_export($data, true) . ';');
+            }
+
+            // 项目最新上传的时间
+            public function getProjectMtime($project)
+            {
+                $projects = $this->getConfigWith('projects', []);
+                return $projects[$project] ?? 0;
+            }
+
+            public function updateProjectMtime($project)
+            {
+                $projects = $this->getConfigWith('projects', []);
+                $projects[$project] = time();
+                $this->config['projects'] = $projects;
+                $this->updateConfigFile($this->config);
             }
 
             public function hasFilesInSaveDir()
@@ -690,6 +712,10 @@ switch ($g->action) {
                 if (!file_exists($local_file)) {
                     die('文件不存在 {' . $local_file . '}' . PHP_EOL);
                 }
+                $remote_dir = dirname($remote_file);
+                if (!$this->sftp()->is_dir($remote_dir)) {
+                    $this->createRemoteDirectoryRecursively($this->sftp(), $remote_dir);
+                }
                 $rst = $this->sftp()->put($remote_file, $local_file, SFTP::SOURCE_LOCAL_FILE);
 
                 if ($print) {
@@ -702,6 +728,19 @@ switch ($g->action) {
                     }
                 }
                 return $rst;
+            }
+
+
+            // 递归创建目录
+            private function createRemoteDirectoryRecursively(SFTP $sftp, string $directory)
+            {
+                $parentDir = dirname($directory);
+                if ($parentDir !== '.' && !$sftp->is_dir($parentDir)) {
+                    $this->createRemoteDirectoryRecursively($sftp, $parentDir);
+                }
+                if (!$sftp->is_dir($directory)) {
+                    $sftp->mkdir($directory);
+                }
             }
 
             /**
@@ -743,7 +782,7 @@ switch ($g->action) {
                 return in_array($file, ['.', '..', '.gitignore']);
             }
 
-            public function download($remote_dir, $local_dir)
+            public function downloadDir($remote_dir, $local_dir)
             {
                 $remote_dir = rtrim($remote_dir, '/') . '/';
                 $local_dir = rtrim($local_dir, '/') . '/';
@@ -897,7 +936,7 @@ switch ($g->action) {
                         $local_file = $pathLog . str_replace('/', '_', $log);
                         $ssh->recvFile($remote_file, $local_file);
                     } elseif (is_array($log)) {
-                        $ssh->download($action->remotePhalconAdminPath . $log[0], $pathLog);
+                        $ssh->downloadDir($action->remotePhalconAdminPath . $log[0], $pathLog);
                     }
                 }
             } else {
@@ -941,6 +980,28 @@ switch ($g->action) {
             );
 
             echo '完成备份 {', $pathBackup, '}', PHP_EOL;
+        } elseif ($g->hasArgsWithKey('project')) {
+            $project = $g->getArgsWithKey('project', '');
+            if (empty($project)) {
+                die('必须指定待推送的项目名称' . PHP_EOL);
+            }
+            $path_project = PATH_SRC . 'App/Projects/' . $project . '/';
+            if (!is_dir($path_project)) {
+                die('待推送项目不存在 {' . $project . '}' . PHP_EOL);
+            }
+            $ssh = new ActionProdServer($action->getConfig());
+            $files = \Phax\Utils\MyFileSystem::getFilesInDirectory($path_project);
+            $remote_dir = $action->remotePhalconAdminPath . 'src/';
+            $lastMtime = $action->getProjectMtime($project);
+            foreach ($files as $file) {
+                $mtime = filemtime($file);
+                if ($mtime > $lastMtime) {
+                    $remote_file = $remote_dir . str_replace(PATH_SRC, '', $file);
+                    $ssh->sendFile($file, $remote_file);
+                }
+            }
+            $action->updateProjectMtime($project);
+            echo '上传项目完毕', PHP_EOL;
         }
 
         break;
@@ -968,6 +1029,7 @@ php maintain prod       # 将应用配置文件生成到 prod 目录下
     -del[=Str]   : 移除 -u 所上传的文件，默认值为 *，可选值为 app|nginx|hosts
     -d           : 下载 ssh.php 中远程项目的配置文件下载到 -dir 指定的本地目录，保存时到自动追加日期
     -log         : 下载 ssh.php 配置的日志文件到 prod/logs 目录下，保存时以 {-dir}/{Ymd}/ 为前缀
+    -project=Str : 推送指定  project 到远程目录
 HELP;
         echo PHP_EOL;
         break;

@@ -38,6 +38,21 @@ class MyFileSystem
         return $rows;
     }
 
+    public static function getFilesInDirectory($directory):array
+    {
+        $files = [];
+        if (is_dir($directory)) {
+            $dirIterator = new \RecursiveDirectoryIterator($directory);
+            $iterator = new \RecursiveIteratorIterator($dirIterator);
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    $files[] = $file->getPathname();
+                }
+            }
+        }
+        return $files;
+    }
+
     /**
      * 拼接文件路径，注意，不处理 '\' 符号
      * @param $directory
