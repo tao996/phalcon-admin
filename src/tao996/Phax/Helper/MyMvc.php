@@ -43,9 +43,13 @@ class MyMvc
      * 是否为演示环境
      * @return bool
      */
-    public function isDemo(): bool
+    public function isDemo(bool $must = false): bool
     {
-        return $this->config()->isDemo();
+        $rst = $this->config()->isDemo();
+        if ($must && !$rst) {
+            throw new \Exception('only support in demo mode');
+        }
+        return $rst;
     }
 
     /**

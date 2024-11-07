@@ -31,6 +31,7 @@ class TestController extends Controller
      */
     public function insertAction()
     {
+        $this->vv->isDemo(true);
         $cat = new Cat();
         if (!$cat->assign([
             'name' => 'gray',
@@ -51,6 +52,7 @@ class TestController extends Controller
      */
     public function removeAction()
     {
+        $this->vv->isDemo(true);
         $cats = Cat::findOnlyTrashed();
         ddd($cats->getFirst()->isDelete(), $cats->toArray());
 

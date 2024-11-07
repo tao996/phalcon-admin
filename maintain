@@ -1,35 +1,74 @@
 #!/usr/bin/env php
 <?php
 
+use Phax\Utils\MyFileSystem;
+use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Net\SFTP;
+use phpseclib3\Net\SSH2;
+use Symfony\Component\Dotenv\Dotenv;
 
-$testPrefix = 'local-test-'; // 用于测试
+const HelpInfo = <<<HELP
+-y : 默认情况下如果 nginx 目录下存在着站点的配置文件，则不会自动生成
 
+php maintain init       # 根据当前目录初始化本地环境
+    -port=Num   : nginx 反代的端口号；示例 -port=8090
+    -cn         : 使用 aliyun image 镜像，适用于 CN
+    -y          : 覆盖已存在的文件
+    -prefix=Str : 生成带前缀的配置文件，主要用于演示
+php maintain clear      # 删除由 maintain 生成的文件
+    -y          : 确定删除，如果不提供则参数，则会打印待删除的文件
+    -prefix=Str : 删除带前缀的配置文件，主要用于演示
+php maintain prod       # 将应用配置文件生成到 prod 目录下
+    -dir[=Str]   : 保存目录，默认为 default；如果目录存在
+    -c[=*]       : -c=* 时会 create 全部配置文件到 prod 目录；否则只会更新 ssh.php 文件
+    -y           : 覆盖已经存在的配置文件（ssh.php 不会被覆盖）
+    -r           : 使用 ssh.php 的信息来更新配置文件中的默认信息
+    -u[=Str]     : 将 -dir 目录下的配置文件 upload 到 ssh.php 中服务器指定的项目位置；注意：需要安装 ssh2 扩展， apt install php8.2-ssh2 ssh
+                   默认值为 *，表示同时上传 app, nginx, hosts
+                   app   上传应用相关的配置文件
+                   nginx 上传 nginx 相关的配置文件
+                   hosts 修改 /etc/hosts 文件
+    -del[=Str]   : 移除 -u 所上传的文件，默认值为 *，可选值为 app|nginx|hosts
+    -d           : 下载 ssh.php 中远程项目的配置文件下载到 -dir 指定的本地目录，保存时到自动追加日期
+    -log         : 下载 ssh.php 配置的日志文件到 prod/logs 目录下，保存时以 {-dir}/{Ymd}/ 为前缀
+    -project=Str : 推送指定  project 到远程目录
+HELP;
+
+$testPrefix = ''; // 指定生成前缀，
+if (explode('.', phpversion())[0] < 8) {
+    die('最低版本 php 8');
+}
 // 判断操作系统
-const IS_WIN = PHP_OS_FAMILY === 'Windows';
-const PATH_ROOT = __DIR__ . '/';
-const PATH_SRC = __DIR__ . '/src/';
-const PATH_MAINTAIN_tmp = __DIR__ . '/maintain.tmp.txt';
+//const IS_WIN = PHP_OS_FAMILY === 'Windows';
+define("PATH_ROOT", str_replace('\\', '/', __DIR__ . '/'));
+const PATH_SRC = PATH_ROOT . 'src/';
+const PATH_MAINTAIN_tmp = PATH_ROOT . 'maintain.tmp.txt';
 
 class G
 {
     public array $maintainData = [];
     public array $argsOptions = [];
+    /**
+     * 当前项目名称
+     * @var string
+     */
     public string $projectName = '';
     public string $action = '';
 
     public function __construct()
     {
-        include_once __DIR__ . '/src/tao996/phar/dotenv.phar';
+        global $testPrefix;
+        include_once PATH_SRC . 'tao996/phar/dotenv.phar';
         spl_autoload_register(function ($class) {
             if (str_starts_with($class, 'Phax\\')) {
                 include_once PATH_SRC . 'tao996/' . str_replace('\\', '/', $class) . '.php';
             }
         });
-        $this->projectName = pathinfo(__DIR__, PATHINFO_BASENAME);
+        $this->projectName = pathinfo(PATH_ROOT, PATHINFO_BASENAME);
         $this->maintainData = $this->getMaintainTmp();
         $this->argsOptions = $this->loadKvArgs();
         $this->loadEnv();
+        $testPrefix = $this->getArgsWithKey('prefix');
     }
 
     /**
@@ -39,11 +78,11 @@ class G
     private function loadEnv(): void
     {
         global $testPrefix;
-        $dotenv = new \Symfony\Component\Dotenv\Dotenv();
-        if (!file_exists(__DIR__ . '/' . $testPrefix . '.env')) {
+        $dotenv = new Dotenv();
+        if (!file_exists(PATH_ROOT . $testPrefix . '.env')) {
             return;
         }
-        $dotenv->overload(__DIR__ . '/' . $testPrefix . '.env');
+        $dotenv->overload(PATH_ROOT . $testPrefix . '.env');
     }
 
 
@@ -100,7 +139,7 @@ class G
      * @param string $key
      * @return bool
      */
-    public function hasArgsWithKey($key): bool
+    public function hasArgsWithKey(string $key): bool
     {
         return array_key_exists($key, $this->argsOptions);
     }
@@ -112,37 +151,10 @@ class G
      * @param bool $int 是否转为整型
      * @return int|mixed|string
      */
-    public function getArgsWithKey($key, $default = '', $int = false): mixed
+    public function getArgsWithKey(string $key, mixed $default = '', bool $int = false): mixed
     {
         $data = $this->argsOptions[$key] ?? $this->maintainData[$key] ?? $default;
         return $int ? intval($data) : $data;
-    }
-
-    /**
-     * 读取指定的文件
-     * @param string $filePath 文件路径
-     * @param string $filterStart 不要读取以此字符开头的行
-     * @return string
-     */
-    function readFileWith($filePath, $filterStart = '#'): string
-    {
-        $fileHandle = fopen($filePath, 'r');
-
-        if ($fileHandle === false) {
-            die("无法打开文件: $filePath");
-        }
-
-        $filteredLines = [];
-
-        while (($line = fgets($fileHandle)) !== false) {
-            $line = trim($line);
-            if (!str_starts_with($line, $filterStart)) {
-                $filteredLines[] = $line;
-            }
-        }
-
-        fclose($fileHandle);
-        return join(PHP_EOL, $filteredLines);
     }
 }
 
@@ -184,10 +196,12 @@ switch ($g->action) {
     case 'init':
         class ActionInit
         {
+            public G $g;
             private bool $overwrite = false;
 
-            public function __construct(public G $g)
+            public function __construct(G $g)
             {
+                $this->g = $g;
                 $port = $g->getArgsWithKey('port', 0, true);
                 if ($port < 1) {
                     die('必须指定端口号 -port=9988' . PHP_EOL);
@@ -200,11 +214,11 @@ switch ($g->action) {
             public function createEnvFile(): void
             {
                 global $testPrefix;
-                $newEnvFilePath = __DIR__ . '/' . $testPrefix . '.env';
+                $newEnvFilePath = PATH_ROOT . $testPrefix . '.env';
                 if (file_exists($newEnvFilePath) && !$this->overwrite) {
                     echo '跳过文件 {' . $testPrefix . '.env}', PHP_EOL;
                 } else {
-                    $envContent = file_get_contents(__DIR__ . '/.env.example');
+                    $envContent = file_get_contents(PATH_ROOT . '.env.example');
                     $envContent = str_replace(
                         'OPEN_PORT=8071',
                         'OPEN_PORT=' . $this->g->maintainData['port'],
@@ -225,7 +239,7 @@ switch ($g->action) {
 
                 $info = pathinfo($example);
                 $toName = $info['dirname'] . '/' . $testPrefix . str_replace('.example', '', $info['basename']);
-                $title = str_replace(__DIR__ . '/', '', $toName);
+                $title = str_replace(PATH_ROOT, '', $toName);
 
                 if (file_exists($toName) && !$this->overwrite) {
                     echo '跳过文件 {' . $title . '}', PHP_EOL;
@@ -274,9 +288,11 @@ switch ($g->action) {
         class ActionClear
         {
             public array $toDeleteFiles = [];
+            public G $g;
 
-            public function __construct(public G $g)
+            public function __construct(G $g)
             {
+                $this->g = $g;
                 foreach (array_merge(['.env.example'], ActionInitFiles) as $file) {
                     $this->toDeleteFiles[] = $this->reverseCopyExample(PATH_ROOT . $file);
                 }
@@ -305,7 +321,7 @@ switch ($g->action) {
                 }
             }
 
-            public function printDeleteFiles()
+            public function printDeleteFiles(): array
             {
                 return array_map(function ($file) {
                     return str_replace(PATH_ROOT, '', $file);
@@ -334,23 +350,23 @@ switch ($g->action) {
              * @var string|int|mixed
              */
             public string $dir = '';
-            public string $path_prod = __DIR__ . '/prod/';
+            public string $path_prod = PATH_ROOT . 'prod/';
             /**
-             * 配置目录路径 `$path_prod.$dir`，默认 `__DIR__./prod/default/`
+             * 配置目录路径 `$path_prod.$dir`，默认 `PATH_ROOT.prod/default/`
              * @var string
              */
             public string $path_prod_save = '';
             /**
-             * 远程服务器文件路径，默认 `__DIR__./prod/default/ssh.php`
+             * 远程服务器文件路径，默认 `PATH_ROOT.prod/default/ssh.php`
              * @var string
              */
             public string $path_prod_config_file = '';
             /**
-             * nginx 站点返回，默认 `__DIR__./prod/default/$projectName.conf`
+             * nginx 站点返回，默认 `PATH_ROOT.prod/default/$projectName.conf`
              * @var string
              */
             public string $path_prod_host_file = '';
-            public string $path_prod_logs = __DIR__ . '/prod/logs/';
+            public string $path_prod_logs = PATH_ROOT . 'prod/logs/';
             public array $files = [
                 '.env.example',
                 'docker-compose.example.yaml',
@@ -363,6 +379,7 @@ switch ($g->action) {
                 'nginx/sites/default.example.conf', // 如果使用这个文件，则需要修改 docker-compose.yaml
             ];
             public array $nginxFiles = []; // 站点配置
+            public G $g;
             /**
              * ssh.php 的配置信息
              * @return array{ip:string,port:int,username:string,password:string,public_ssh_key:string,private_ssh_key:string,path:string,nginx:string,
@@ -372,26 +389,27 @@ switch ($g->action) {
             public string $remotePhalconAdminPath = '';
             public string $remoteNginxConf = '';
 
-            public function __construct(public G $g)
+            public function __construct(G $g)
             {
+                $this->g = $g;
                 $this->dir = $g->getArgsWithKey('dir', 'default');
                 $this->path_prod_save = $this->path_prod . $this->dir . '/';
-                $this->path_prod_host_file = $this->path_prod_save . $g->projectName . '.conf';
+                $this->path_prod_host_file = $this->path_prod_save . $this->getProjectName() . '.conf';
                 $this->path_prod_config_file = $this->path_prod_save . 'ssh.php';
 
                 $this->nginxFiles = [
-                    ['nginx/host.example.conf', $g->projectName . '.conf'],
-                    ['nginx/host.location.example.conf', $g->projectName . '.location.conf']
+                    ['nginx/host.example.conf', $this->getProjectName() . '.conf'],
+                    ['nginx/host.location.example.conf', $this->getProjectName() . '.location.conf']
                 ];
             }
 
             /**
              * 获取 `$this->files[i]` 保存在 prod 目录时的文件路径
-             * @param string|array{string,string} $file
+             * @param array{string,string}|string $file
              * @param string|null $localPath 本地保存目录，默认为 `$this->path_prod_save`
              * @return string
              */
-            public function getLocalFile($file, $localPath = null)
+            public function getLocalFile(array|string $file, string $localPath = null): string
             {
                 if (is_null($localPath)) {
                     $localPath = $this->path_prod_save;
@@ -404,11 +422,11 @@ switch ($g->action) {
 
             /**
              * 获取 `$this->files[i]` 在远程文件路径
-             * @param string|array{string,string} $file
+             * @param array{string,string}|string $file
              * @param string|null $remotePath 远程对应的目录，默认来自 ssh.php->path
              * @return string 示例 `xxx/.env` 或者 `xxx/src/config/config.php`
              */
-            public function getRemoteFile($file, $remotePath = null)
+            public function getRemoteFile(array|string $file, string $remotePath = null): string
             {
                 if (is_null($remotePath)) {
                     $remotePath = $this->remotePhalconAdminPath;
@@ -436,12 +454,29 @@ switch ($g->action) {
                 return $this->config;
             }
 
-            public function getConfigWith($key, $default = '')
+            public function getProjectName(): string
+            {
+                static $project = '';
+                if (empty($project)) {
+                    if (file_exists($this->path_prod_config_file)) {
+                        if ($path = $this->getConfigWith('path', '')) {
+                            $project = basename($path);
+                        } else {
+                            $project = $this->g->projectName;
+                        }
+                    } else {
+                        $project = $this->g->projectName;
+                    }
+                }
+                return $project;
+            }
+
+            public function getConfigWith($key, $default = ''): mixed
             {
                 return $this->getConfig()[$key] ?? $default;
             }
 
-            public function getCerts()
+            public function getCerts(): array
             {
                 $certs = [];
                 foreach ($this->config['certs'] ?? [] as $cert) {
@@ -458,7 +493,7 @@ switch ($g->action) {
                 return $this->config['hosts'] ?? [];
             }
 
-            public function createConfig()
+            public function createConfig(): void
             {
                 $data = SshData;
                 if (file_exists($this->path_prod_config_file)) {
@@ -467,7 +502,7 @@ switch ($g->action) {
                 $this->updateConfigFile($data);
             }
 
-            public function updateConfigFile($data)
+            public function updateConfigFile($data): void
             {
                 file_put_contents($this->path_prod_config_file, '<?php return ' . var_export($data, true) . ';');
             }
@@ -479,7 +514,7 @@ switch ($g->action) {
                 return $projects[$project] ?? 0;
             }
 
-            public function updateProjectMtime($project)
+            public function updateProjectMtime($project): void
             {
                 $projects = $this->getConfigWith('projects', []);
                 $projects[$project] = time();
@@ -487,15 +522,15 @@ switch ($g->action) {
                 $this->updateConfigFile($this->config);
             }
 
-            public function hasFilesInSaveDir()
+            public function hasFilesInSaveDir(): bool
             {
                 if (is_dir($this->path_prod_save)) {
-                    return glob($this->path_prod_save . '*');
+                    return !empty(glob($this->path_prod_save . '*'));
                 }
                 return false;
             }
 
-            public function createProdSaveDir()
+            public function createProdSaveDir(): void
             {
                 if (is_dir($this->path_prod_save)) {
                     $hasFiles = glob($this->path_prod_save . '*');
@@ -535,7 +570,7 @@ switch ($g->action) {
         $action->createProdSaveDir();
 
         if ($g->hasArgsWithKey('c')) {
-            $type = $g->getArgsWithKey('c', '');
+            $type = $g->getArgsWithKey('c');
             if ($type == '*' || !$action->hasFilesInSaveDir()) {
                 $action->createFiles();
             }
@@ -546,8 +581,11 @@ switch ($g->action) {
             class ActionProdReplace
             {
 
-                public function __construct(public ActionProd $prod)
+                public ActionProd $prod;
+
+                public function __construct(ActionProd $prod)
                 {
+                    $this->prod = $prod;
                     if (!file_exists($this->prod->path_prod_save . 'ssh.php')) {
                         die('ssh.php 文件不存在');
                     }
@@ -571,7 +609,7 @@ switch ($g->action) {
                         }, $domains);
                         $hostContent = str_replace('db-xxx.test', join(' ', $dbDomains), $hostContent);
                         $hostContent = str_replace('xxx.test', join(' ', $domains), $hostContent);
-                        echo '替换域名成功 {', $this->prod->g->projectName, '.conf}', PHP_EOL;
+                        echo '替换域名成功 {', $this->prod->getProjectName(), '.conf}', PHP_EOL;
                     }
                     $phpmyadminPort = $_ENV['PHPMYADMIN_PORT'] ?? 0;
                     if ($phpmyadminPort > 0) {
@@ -581,7 +619,7 @@ switch ($g->action) {
                     // 2。替换 include
                     $hostContent = str_replace(
                         'include host.location.example.conf;',
-                        'include conf.d/' . $this->prod->g->projectName . '.location.conf',
+                        'include conf.d/' . $this->prod->getProjectName() . '.location.conf',
                         $hostContent
                     );
                     // 3. 替换证书
@@ -608,13 +646,13 @@ switch ($g->action) {
                     }
                 }
 
-                public function getPort()
+                public function getPort(): int
                 {
                     $port = intval($this->prod->g->maintainData['port'] ?? 0);
                     return $port > 0 && $port != 8071 ? $port : 0;
                 }
 
-                public function replaceEnv()
+                public function replaceEnv(): void
                 {
                     if ($port = $this->getPort()) {
                         $envContent = file_get_contents($this->prod->path_prod_save . '.env');
@@ -635,10 +673,13 @@ switch ($g->action) {
         {
             // https://phpseclib.com/docs/auth
 
-            public function __construct(public array $config)
+            public array $config;
+
+            public function __construct(array $config)
             {
+                $this->config = $config;
                 $this->validate();
-                include_once __DIR__ . '/src/tao996/phar/phpseclib.phar';
+                include_once PATH_SRC . 'tao996/phar/phpseclib.phar';
             }
 
             private function validate(): void
@@ -665,7 +706,7 @@ switch ($g->action) {
                             die('SFTP 密码登录失败');
                         }
                     } else {
-                        $key = \phpseclib3\Crypt\PublicKeyLoader::load(
+                        $key = PublicKeyLoader::load(
                             file_get_contents($this->config['private_ssh_key'])
                         );
                         if (!$sftp->login($this->config['username'], $key)) {
@@ -680,13 +721,13 @@ switch ($g->action) {
             {
                 static $ssh = null;
                 if (is_null($ssh)) {
-                    $ssh = new \phpseclib3\Net\SSH2($this->config['ip']);
+                    $ssh = new SSH2($this->config['ip']);
                     if (!empty($this->config['password'])) {
                         if (!$ssh->login($this->config['username'], $this->config['password'])) {
                             die("SSH2 validation failed using Username: " . $this->config['username'] . " (specify valid password)");
                         }
                     } else {
-                        $key = \phpseclib3\Crypt\PublicKeyLoader::load(
+                        $key = PublicKeyLoader::load(
                             file_get_contents($this->config['private_ssh_key'])
                         );
                         if (!$ssh->login(
@@ -701,7 +742,11 @@ switch ($g->action) {
             }
 
 
-            public function sendCommand($command): string|false
+            /**
+             * @param $command
+             * @return string|false
+             */
+            public function sendCommand($command): bool|string
             {
                 return $this->ssh2()->exec($command);
             }
@@ -732,7 +777,7 @@ switch ($g->action) {
 
 
             // 递归创建目录
-            private function createRemoteDirectoryRecursively(SFTP $sftp, string $directory)
+            private function createRemoteDirectoryRecursively(SFTP $sftp, string $directory): void
             {
                 $parentDir = dirname($directory);
                 if ($parentDir !== '.' && !$sftp->is_dir($parentDir)) {
@@ -777,12 +822,12 @@ switch ($g->action) {
                 return $rst;
             }
 
-            private function skipDownloadFile($file)
+            private function skipDownloadFile($file): bool
             {
                 return in_array($file, ['.', '..', '.gitignore']);
             }
 
-            public function downloadDir($remote_dir, $local_dir)
+            public function downloadDir($remote_dir, $local_dir): void
             {
                 $remote_dir = rtrim($remote_dir, '/') . '/';
                 $local_dir = rtrim($local_dir, '/') . '/';
@@ -807,7 +852,7 @@ switch ($g->action) {
                 }
             }
 
-            private function downloadDirectoryRecursive(SFTP $sftp, string $remoteSubDir, string $localSubDir)
+            private function downloadDirectoryRecursive(SFTP $sftp, string $remoteSubDir, string $localSubDir): void
             {
                 $remoteList = $sftp->nlist($remoteSubDir);
                 if ($remoteList) {
@@ -990,7 +1035,7 @@ switch ($g->action) {
                 die('待推送项目不存在 {' . $project . '}' . PHP_EOL);
             }
             $ssh = new ActionProdServer($action->getConfig());
-            $files = \Phax\Utils\MyFileSystem::getFilesInDirectory($path_project);
+            $files = MyFileSystem::getFilesInDirectory($path_project);
             $remote_dir = $action->remotePhalconAdminPath . 'src/';
             $lastMtime = $action->getProjectMtime($project);
             foreach ($files as $file) {
@@ -1007,30 +1052,7 @@ switch ($g->action) {
         break;
     case 'help':
         echo "~~~~~~~~~~ HOW TO USE ~~~~~~~~~~", PHP_EOL;
-        echo <<<HELP
--y : 默认情况下如果 nginx 目录下存在着站点的配置文件，则不会自动生成
-
-php maintain init       # 根据当前目录初始化环境
-    -port=Num   : nginx 反代的端口号；示例 -port=8090
-    -cn         : 使用 aliyun image 镜像，适用于 CN
-    -y          : 覆盖已存在的文件
-php maintain clear      # 删除由 maintain 生成的文件
-    -y          : 确定删除，如果不提供则参数，则会打印待删除的文件
-php maintain prod       # 将应用配置文件生成到 prod 目录下
-    -dir[=Str]   : 保存目录，默认为 default；如果目录存在
-    -c[=*]       : -c=* 时会 create 全部配置文件到 prod 目录；否则只会更新 ssh.php 文件
-    -y           : 覆盖已经存在的配置文件（ssh.php 不会被覆盖）
-    -r           : 使用 ssh.php 的信息来更新配置文件中的默认信息
-    -u[=Str]     : 将 -dir 目录下的配置文件 upload 到 ssh.php 中服务器指定的项目位置；注意：需要安装 ssh2 扩展， apt install php8.2-ssh2 ssh
-                   默认值为 *，表示同时上传 app, nginx, hosts
-                   app   上传应用相关的配置文件
-                   nginx 上传 nginx 相关的配置文件
-                   hosts 修改 /etc/hosts 文件
-    -del[=Str]   : 移除 -u 所上传的文件，默认值为 *，可选值为 app|nginx|hosts
-    -d           : 下载 ssh.php 中远程项目的配置文件下载到 -dir 指定的本地目录，保存时到自动追加日期
-    -log         : 下载 ssh.php 配置的日志文件到 prod/logs 目录下，保存时以 {-dir}/{Ymd}/ 为前缀
-    -project=Str : 推送指定  project 到远程目录
-HELP;
+        echo HelpInfo;
         echo PHP_EOL;
         break;
     default:

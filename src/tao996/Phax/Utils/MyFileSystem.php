@@ -38,7 +38,7 @@ class MyFileSystem
         return $rows;
     }
 
-    public static function getFilesInDirectory($directory):array
+    public static function getFilesInDirectory($directory): array
     {
         $files = [];
         if (is_dir($directory)) {
@@ -46,7 +46,7 @@ class MyFileSystem
             $iterator = new \RecursiveIteratorIterator($dirIterator);
             foreach ($iterator as $file) {
                 if ($file->isFile()) {
-                    $files[] = $file->getPathname();
+                    $files[] = str_replace('\\', '/', $file->getPathname());
                 }
             }
         }

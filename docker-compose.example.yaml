@@ -10,7 +10,7 @@ services:
   php:
     container_name: ${APP_NAME}-php
     image: authus/phalcon:5.8.0-s4
-    #image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0
+    #image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0-s4
     working_dir: /var/www
     volumes:
       - ./src:/var/www:delegated
