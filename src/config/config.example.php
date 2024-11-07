@@ -3,12 +3,18 @@
 $data = include_once PATH_CONFIG . 'config-services.example.php';
 
 $data['app'] = array_merge($data['app'], [
-    'name' => env('APP_NAME', 'Phalcon Admin'),
-    'cdn_locate' => '',
+    'title' => 'Phalcon Admin Dev',
+//    'cdn_locate' => 'ncn',
+//    'https' => true,
     'hosts' => [
     ],
 ]);
-$data['app']['jwt']['secret'] = 'your new jwt secret';
-$data['crypt']['key'] = 'your new crypt key';
+// must modify
+$data['app']['jwt']['secret'] = 'phalcon';
+$data['crypt']['key'] = '123456'; // 只能修改一次，否则加密的账号信息解密失败
+
+// only for dev
+$data['metadata']['driver'] = 'memory';
+$data['database']['log']['driver'] = 'file';
 
 return $data;

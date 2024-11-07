@@ -48,8 +48,8 @@ class AuthController extends BaseController
                     );
 
                 if ($user = $qb->findFirstModel()) {
-                    $user->checkPassword($data['password']);
-                    $user->checkStatus();
+                    $this->vv->userService()->checkPassword($data['password'], $user);
+                    $this->vv->userService()->activeStatus($user);
                 } else {
                     return $this->error('请检查您的账号和密码是否正确..');
                 }

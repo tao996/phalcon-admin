@@ -4,14 +4,15 @@
 return [
     'app' => [
         'title' => 'Phalcon Admin Dev', // 应用标题/名称
-        'url' => env('APP_URL', 'http://phadmin.test/'), // 必须以 / 结尾，用于生成链接地址；默认从 $_SERVER['HTTP_HOST'] 或其它参数中获取
-        'logo' => env('APP_LOGO', '/assets/logo.png'), // 30*30
+        'url' => 'http://localhost:8071/', // 必须以 / 结尾，用于生成链接地址；默认从 $_SERVER['HTTP_HOST'] 或其它参数中获取
+        'https' => false, // 是否将 http 转为 https，线上的时候需要设置为 true
+        'logo' => '/assets/logo.png', // 30*30
         'timezone' => env('TZ', 'UTC'),
         'locale' => 'cn', // 默认的语言（总是2位）[a-z]{2}
         'jwt' => [
             'hmac' => 'sha256',
-            'secret' => env('APP_JWT_SECRET', 'phalcon'), // 建议修改
-            'expire' => intval(env('APP_JWT_EXPIRE', 3600 * 48)),
+            'secret' => 'your new jwt secret', // 建议修改
+            'expire' => 3600 * 48, // 建议修改
             'subject' => 'jwt'
         ],
         // 异常和错误处理的类

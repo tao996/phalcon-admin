@@ -160,6 +160,9 @@ class MyMvc
                     $this->origin = MyUrl::getRealOrigin($this->request());
                 }
             }
+            if ($this->config()->path('app.https')) {
+                $this->origin = str_replace('http://', 'https://', $this->origin);
+            }
         }
         return $this->origin;
     }
