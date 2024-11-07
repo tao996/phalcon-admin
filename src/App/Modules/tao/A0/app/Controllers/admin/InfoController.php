@@ -10,7 +10,7 @@ use App\Modules\tao\A0\App\Models\AppInfo;
  */
 class InfoController extends \App\Modules\tao\BaseController
 {
-    protected string $htmlName = '应用信息';
+    protected string $htmlTitle = '应用信息';
 
     protected array|string $superAdminActions = '*';
     protected array $appendModifyFields = ['title'];

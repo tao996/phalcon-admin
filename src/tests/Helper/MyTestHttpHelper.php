@@ -12,7 +12,8 @@ class MyTestHttpHelper
 
     public function __construct(public \PHPUnit\Framework\TestCase $tc)
     {
-        $this->myCurl = new MyTestCurl(self::$origin ?: env('NAME_NGINX'));
+//        ddd($_ENV);
+        $this->myCurl = new MyTestCurl(self::$origin ?: env('APP_NAME') . '-nginx');
         $this->afterConstruct();
     }
 
@@ -32,7 +33,7 @@ class MyTestHttpHelper
      */
     public function cliServer(): static
     {
-        $this->myCurl->origin = env('NAME_PHP') . '-cli:' . env('WS_PORT');
+        $this->myCurl->origin = env('APP_NAME') . '-cli:' . env('WS_PORT');
         return $this;
     }
 

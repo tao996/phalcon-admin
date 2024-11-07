@@ -15,7 +15,7 @@ class MyTestTaoHttpHelper extends MyTestHttpHelper
     /**
      * 用户登录
      * 配置文件 src/config/project.php `['test'=>['tokens'=>['tao'=>1]]]`
-     * src/app/Modules/tao/Helper/Auth/LoginDemoTokenAuthAdapter.php
+     * src/App/Modules/tao/Helper/Auth/LoginDemoTokenAuthAdapter.php
      * @return $this
      */
     public function login(string $token = 'tao'): static

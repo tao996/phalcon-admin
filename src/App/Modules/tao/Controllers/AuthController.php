@@ -11,7 +11,7 @@ use Phax\Utils\MyData;
 class AuthController extends BaseController
 {
     protected array|string $openActions = '*';
-    protected string $htmlName = '注册登录';
+    protected string $htmlTitle = '注册登录';
 
     public function afterInitialize(): void
     {

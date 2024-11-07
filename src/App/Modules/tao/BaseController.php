@@ -68,7 +68,7 @@ class BaseController extends BaseRbacController
     /**
      * @var string 設置 HTML 頁面名称
      */
-    protected string $htmlName = '';
+    protected string $htmlTitle = '';
 
 
     /**
@@ -145,19 +145,19 @@ class BaseController extends BaseRbacController
 
     /**
      * 页面标题
-     * @param string $action
-     * @param bool $prefix
+     * @param string $action 操作名称
+     * @param bool $prefix 操作名称是放在 htmlName 前面，还是后面
      * @return void
      */
     private function updateHtmlTitle(string $action, bool $prefix = true): void
     {
         if (!$this->isApiRequest()) {
-            if ($this->htmlName) {
+            if ($this->htmlTitle) {
                 $this->addViewData(
-                    'title',
+                    'html_title',
                     $prefix
-                        ? $action . $this->htmlName
-                        : $this->htmlName . $action
+                        ? $action . $this->htmlTitle
+                        : $this->htmlTitle . $action
                 );
             }
         }
@@ -165,8 +165,8 @@ class BaseController extends BaseRbacController
 
     protected function beforeViewResponse(mixed $data)
     {
-        if ($this->htmlName && !$this->view->getVar('title')) {
-            $this->addViewData('title', $this->htmlName);
+        if ($this->htmlTitle && !$this->view->getVar('html_title')) {
+            $this->addViewData('html_title', $this->htmlTitle);
         }
         return parent::beforeViewResponse($data);
     }

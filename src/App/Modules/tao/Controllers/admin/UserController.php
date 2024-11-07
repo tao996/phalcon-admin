@@ -17,7 +17,7 @@ use Phax\Utils\MyData;
  */
 class UserController extends BaseController
 {
-    protected string $htmlName = '用户管理';
+    protected string $htmlTitle = '用户管理';
 
     public function afterInitialize(): void
     {
@@ -209,7 +209,7 @@ class UserController extends BaseController
                 return self::error($user->getErrors());
             }
         }
-        $this->htmlName = '修改密码';
+        $this->htmlTitle = '修改密码';
         return [
             'user' => $user->toArray(),
         ];

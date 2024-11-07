@@ -17,7 +17,7 @@ class ArticleController extends BaseTaoA0CmsController
 {
     protected array $cateOptions = [];
     protected array $appendModifyFields = ['top'];
-    protected string $htmlName = '文章';
+    protected string $htmlTitle = '文章';
 
     /**
      * @throws \Exception

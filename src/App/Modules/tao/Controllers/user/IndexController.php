@@ -12,7 +12,7 @@ use Phax\Utils\MyData;
  */
 class IndexController extends BaseController
 {
-    protected string $htmlName = '会员中心';
+    protected string $htmlTitle = '会员中心';
     protected array $allowModifyFields = ['status', 'nickname', 'head_img', 'signature'];
     protected array|string $userActions = '*';
     public array $smsConfig = [];
@@ -172,7 +172,7 @@ class IndexController extends BaseController
         $ms = $this->vv->loginUserHelper();
         $data = [
             'logoInfo' => [
-                'title' => $this->vv->config()->path('app.name'),
+                'title' => $this->vv->config()->path('app.title'),
                 'image' => $this->vv->config()->path('app.logo'),
                 'href' => $this->vv->urlModule('tao')
             ],

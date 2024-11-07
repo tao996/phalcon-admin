@@ -213,7 +213,7 @@ class Model extends \Phalcon\Mvc\Model
      *     public function articles()
      *          return $this->hasManyPhx(Article::class);
      *          // getRelatedCaller() will return [
-     *          //      "key" => "/var/www/app/Modules/demo/Models/User.php.articles",
+     *          //      "key" => "/var/www/App/Modules/demo/Models/User.php.articles",
      *          //      "alias" => "articles",
      *          //      "fk" => "user_id",
      *          //      "method" => "getArticles"
@@ -240,7 +240,7 @@ class Model extends \Phalcon\Mvc\Model
     /**
      * 一对多关系，示例 every User has many Article
      * <code>
-     * // see example: src/app/Modules/demo/A0/db/Controllers/TestController.php indexAction
+     * // see example: src/App/Modules/demo/A0/db/Controllers/TestController.php indexAction
      * class User extends DemoBaseModel {
      *     public int $id = 0;
      *     public function articles(){
@@ -282,7 +282,7 @@ class Model extends \Phalcon\Mvc\Model
     /**
      * 定义多对多的关系，以 User(id) => UserRole(user_id, role_id) => Role(id) 为例
      * <code>
-     * // example: // see example: src/app/Modules/demo/A0/db/Controllers/TestController.php
+     * // example: // see example: src/App/Modules/demo/A0/db/Controllers/TestController.php
      * public function roles() {
      *   return $this->hasManyToManyPhx(Role::class,UsersRoles::class);
      * }

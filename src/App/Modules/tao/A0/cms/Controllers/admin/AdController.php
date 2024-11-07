@@ -15,7 +15,7 @@ use Phax\Utils\MyData;
 class AdController extends BaseTaoA0CmsController
 {
 
-    protected string $htmlName = '广告';
+    protected string $htmlTitle = '广告';
     protected array $appendModifyFields = ['at_banner', 'at_index', 'at_list', 'at_page', 'tag', 'gname'];
 
     public function afterInitialize(): void

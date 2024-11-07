@@ -170,6 +170,20 @@ class MyMvc
         return \Phax\Utils\MyData::findWithPath($this->viewData, $path, $default);
     }
 
+    /**
+     * 页面标题
+     * @return string
+     */
+    public function htmlTitle(): string
+    {
+        $title = $this->get('html_title');
+        if ($title) {
+            return $title . ' - ' . $this->config()->path('app.title');
+        } else {
+            return $this->config()->path('app.title');
+        }
+    }
+
     public function pick(string $path, mixed $default = '')
     {
         return $this->get(self::$prefix . '.' . $path, $default);

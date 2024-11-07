@@ -3,7 +3,7 @@
 
 return [
     'app' => [
-        'name' => env('APP_NAME', 'Phalcon Admin'), // 应用标题/名称
+        'title' => 'Phalcon Admin Dev', // 应用标题/名称
         'url' => env('APP_URL', 'http://phadmin.test/'), // 必须以 / 结尾，用于生成链接地址；默认从 $_SERVER['HTTP_HOST'] 或其它参数中获取
         'logo' => env('APP_LOGO', '/assets/logo.png'), // 30*30
         'timezone' => env('TZ', 'UTC'),

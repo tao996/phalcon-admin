@@ -17,7 +17,7 @@ use Phax\Utils\MyData;
 class CategoryController extends BaseTaoA0CmsController
 {
     protected array $appendModifyFields = ['navbar', 'name', 'tag'];
-    protected string $htmlName = '栏目';
+    protected string $htmlTitle = '栏目';
 
 
     public function afterInitialize(): void

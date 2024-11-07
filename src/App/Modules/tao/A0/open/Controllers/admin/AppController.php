@@ -12,7 +12,7 @@ use Phax\Utils\MyData;
  */
 class AppController extends BaseOpenController
 {
-    protected string $htmlName = '应用';
+    protected string $htmlTitle = '应用';
 
     protected array $saveWhiteList = [
         'platform',

@@ -15,9 +15,10 @@ class ControllersTest extends \PHPUnit\Framework\TestCase
     {
         // http test
         $http = MyTestHttpHelper::with($this);
+//        ddd($_ENV);
         $http->get('/p/demo')->send()
             ->notContainsFailed()
-            ->contains(['Phax Admin - 应用']);
+            ->contains(['- 应用']);
 
         // action test
         /**

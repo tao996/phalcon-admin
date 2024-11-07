@@ -17,7 +17,7 @@ use Phax\Db\QueryBuilder;
  */
 class MenuController extends BaseController
 {
-    protected string $htmlName = '菜单';
+    protected string $htmlTitle = '菜单';
 
     protected array $allowModifyFields = ['sort', 'status', 'roles', 'remark', 'href', 'params', 'remark'];
     protected string|array $indexQueryColumns = [

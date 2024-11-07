@@ -29,7 +29,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                 "action" => "notify",
             ],
             "namespace" => "App\Projects\\family\Controllers",
-            "viewpath" => "/var/www/app/Projects/family/views",
+            "viewpath" => "/var/www/App/Projects/family/views",
             "project" => "family",
             "isLanguage" => false,
             "isApi" => true
@@ -49,8 +49,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 'index', 'controller' => 'index', 'action' => 'index'],
             'pathsname' => ['module' => 'index', 'controller' => 'index', 'action' => 'index'],
             'namespace' => "App\Modules\index\Controllers",
-            'viewpath' => "/var/www/app/Modules/index/views",
-            'module' => '/var/www/app/Modules/index/Module.php',
+            'viewpath' => "/var/www/App/Modules/index/views",
+            'module' => '/var/www/App/Modules/index/Module.php',
             'name' => 'index',
             'isLanguage' => false,
             'isApi' => false
@@ -73,8 +73,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 'index', 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'index', 'action' => 'index'],
             'namespace' => "App\Modules\m1\Controllers",
-            'viewpath' => "/var/www/app/Modules/m1/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'isLanguage' => false,
             'isApi' => false,
@@ -99,8 +99,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => "m1", 'controller' => "c", 'action' => 'index'],
             'namespace' => "App\Modules\m1\Controllers",
-            'viewpath' => "/var/www/app/Modules/m1/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'isLanguage' => false,
             'isApi' => false,
@@ -123,8 +123,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Modules\m1\Controllers",
-            'viewpath' => "/var/www/app/Modules/m1/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'isLanguage' => false,
             'isApi' => false,
@@ -148,8 +148,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3, 'params' => 4],
             'pathsname' => ['module' => 'm2', 'controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Modules\m2\Controllers",
-            'viewpath' => "/var/www/app/Modules/m2/views",
-            'module' => '/var/www/app/Modules/m2/Module.php',
+            'viewpath' => "/var/www/App/Modules/m2/views",
+            'module' => '/var/www/App/Modules/m2/Module.php',
             'name' => 'm2',
             'isLanguage' => false,
             'isApi' => false,
@@ -174,7 +174,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'pattern' => '/m/:module',
             'pathsname' => ['module' => 'tao', 'controller' => 'index', 'action' => 'index'],
             'namespace' => 'App\Modules\tao\A0\wechat\Controllers',
-            'viewpath' => '/var/www/app/Modules/tao/A0/wechat/views',
+            'viewpath' => '/var/www/App/Modules/tao/A0/wechat/views',
             'route' => '/m/:module\.wechat',
         ];
         $keys = ['pattern', 'pathsname', 'namespace', 'viewpath', 'route'];
@@ -196,8 +196,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Modules\m1\A0\\m11\Controllers",
-            'viewpath' => "/var/www/app/Modules/m1/A0/m11/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/A0/m11/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'subm' => 'm11',
             'isLanguage' => false,
@@ -208,7 +208,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([
             'registerModules' => [
                 'm1' => [
-                    'path' => '/var/www/tao996/phax/Mvc/Module.php',
+                    'path' => '/var/www/tao996/Phax/Mvc/Module.php',
                     'className' => 'Phax\Mvc\Module'
                 ]
             ],
@@ -229,8 +229,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'c2', 'action' => 'index'],
             'namespace' => "App\Modules\m1\A0\\m11\Controllers\sub1",
-            'viewpath' => "/var/www/app/Modules/m1/A0/m11/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/A0/m11/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'subc' => 'sub1',
             'subm' => 'm11',
@@ -248,8 +248,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Modules\m1\Controllers\sub1",
-            'viewpath' => "/var/www/app/Modules/m1/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'subc' => 'sub1',
             'isLanguage' => false,
@@ -265,8 +265,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Modules\m1\Controllers\sub",
-            'viewpath' => "/var/www/app/Modules/m1/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'subc' => 'sub',
             'isLanguage' => false,
@@ -282,8 +282,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3, 'params' => 4],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Modules\m1\Controllers\sub",
-            'viewpath' => "/var/www/app/Modules/m1/views",
-            'module' => '/var/www/app/Modules/m1/Module.php',
+            'viewpath' => "/var/www/App/Modules/m1/views",
+            'module' => '/var/www/App/Modules/m1/Module.php',
             'name' => 'm1',
             'subc' => 'sub',
             'isLanguage' => false,
@@ -299,7 +299,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 'index', 'action' => 'index'],
             'pathsname' => ['controller' => 'index', 'action' => 'index'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'isLanguage' => false,
             'isApi' => false,
         ];
@@ -325,7 +325,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 'index'],
             'pathsname' => ['controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'isLanguage' => false,
             'isApi' => false,
         ], $rst);
@@ -338,7 +338,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'isLanguage' => false,
             'isApi' => false,
         ], $rst);
@@ -351,7 +351,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'isLanguage' => false,
             'isApi' => false,
         ], $rst);
@@ -364,7 +364,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'isLanguage' => false,
             'isApi' => false,
         ], $rst);
@@ -377,7 +377,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'isLanguage' => false,
             'isApi' => false,
         ], $rst);
@@ -393,7 +393,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 'index'],
             'pathsname' => ['controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'subc' => 'sub',
             'isLanguage' => false,
             'isApi' => false,
@@ -407,7 +407,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'subc' => 'sub',
             'isLanguage' => false,
             'isApi' => false,
@@ -421,7 +421,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'subc' => 'sub',
             'isLanguage' => false,
             'isApi' => false,
@@ -435,7 +435,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/app/Http/views",
+            'viewpath' => "/var/www/App/Http/views",
             'subc' => 'sub',
             'isLanguage' => false,
             'isApi' => false,
@@ -451,7 +451,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2,],
             'pathsname' => ['controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Http\A0\m1\Controllers\sub",
-            'viewpath' => "/var/www/app/Http/A0/m1/views",
+            'viewpath' => "/var/www/App/Http/A0/m1/views",
             'subm' => 'm1',
             'subc' => 'sub',
             'isLanguage' => false,
@@ -467,7 +467,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Http\A0\m1\Controllers\sub",
-            'viewpath' => "/var/www/app/Http/A0/m1/views",
+            'viewpath' => "/var/www/App/Http/A0/m1/views",
             'subm' => 'm1',
             'subc' => 'sub',
             'isLanguage' => false,
@@ -482,7 +482,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Http\A0\m1\Controllers\sub",
-            'viewpath' => "/var/www/app/Http/A0/m1/views",
+            'viewpath' => "/var/www/App/Http/A0/m1/views",
             'subm' => 'm1',
             'subc' => 'sub',
             'isLanguage' => false,
@@ -496,25 +496,25 @@ class RouterTest extends \PHPUnit\Framework\TestCase
 //        dd($rst);
         $this->assertEquals(['controller' => 'simpleRent', 'action' => 'index'], $rst['pathsname']);
         $this->assertEquals('App\Projects\city\Controllers\admin', $rst['namespace']);
-        $this->assertEquals('/var/www/app/Projects/city/views', $rst['viewpath']);
+        $this->assertEquals('/var/www/App/Projects/city/views', $rst['viewpath']);
 
 
         $data = Router::analysisRoutePath('/about/us', ['project' => 'city']);
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
-            'viewpath' => '/var/www/app/Projects/city/views'
+            'viewpath' => '/var/www/App/Projects/city/views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
 
         $data = Router::analysisRoutePath('/', ['project' => 'city']);
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
-            'viewpath' => '/var/www/app/Projects/city/views'
+            'viewpath' => '/var/www/App/Projects/city/views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
 
         $data = Router::analysisRoutePath('/auth', ['project' => 'city']);
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
-            'viewpath' => '/var/www/app/Projects/city/views'
+            'viewpath' => '/var/www/App/Projects/city/views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
         $this->assertEquals('auth', $data['pathsname']['controller']);
 
@@ -646,11 +646,11 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'module' => 'tao1',
             'modules' => [
 //                'tao' => [ // 需要模块存在才会这里
-//                    'path' => '/var/www/app/Modules/tao1/Module.php',
+//                    'path' => '/var/www/App/Modules/tao1/Module.php',
 //                    'className' => 'App\Modules\tao\Module',
 //                ],
                 'tao1' => [
-                    'path' => '/var/www/tao996/phax/Mvc/Module.php',
+                    'path' => '/var/www/tao996/Phax/Mvc/Module.php',
                     'className' => 'Phax\Mvc\Module'
                 ]
             ]

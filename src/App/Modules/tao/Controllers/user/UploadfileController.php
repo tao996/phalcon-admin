@@ -11,7 +11,7 @@ use Phax\Db\QueryBuilder;
  */
 class UploadfileController extends BaseController
 {
-    protected string $htmlName = '文件管理';
+    protected string $htmlTitle = '文件管理';
 
     protected array|string $userActions = '*';
     public array $enableActions = ['index', 'modify', 'add', 'delete'];

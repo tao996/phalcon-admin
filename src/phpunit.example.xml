@@ -20,7 +20,7 @@
             <directory>./tests/Unit</directory>
         </testsuite>
         <testsuite name="Modules TAO - Unit Test">
-            <directory>./app/Modules/tao/tests/PHPUnit</directory>
+            <directory>./App/Modules/tao/tests/PHPUnit</directory>
         </testsuite>
     </testsuites>
 <!-- 默认使用的配置文件 -->

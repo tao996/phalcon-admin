@@ -11,7 +11,7 @@ use Phax\Mvc\Model;
  */
 class QuickController extends BaseController
 {
-    protected string $htmlName = '链接';
+    protected string $htmlTitle = '链接';
 
     protected array|string $userActions = '*';
 

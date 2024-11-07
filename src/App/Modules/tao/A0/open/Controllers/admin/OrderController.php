@@ -11,7 +11,7 @@ use App\Modules\tao\A0\open\Models\OpenOrder;
  */
 class OrderController extends BaseOpenController
 {
-    protected string $htmlName = '订单管理';
+    protected string $htmlTitle = '订单管理';
 
     protected string|array $indexQueryColumns = [
         'id',

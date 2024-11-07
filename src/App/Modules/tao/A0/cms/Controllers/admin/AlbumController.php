@@ -11,7 +11,7 @@ use App\Modules\tao\A0\cms\Models\CmsAlbum;
  */
 class AlbumController extends BaseTaoA0CmsController
 {
-    protected string $htmlName = '图集';
+    protected string $htmlTitle = '图集';
     protected array $appendModifyFields = ['tag'];
 
     public function afterInitialize(): void

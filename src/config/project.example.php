@@ -20,17 +20,17 @@ return [
 
     'test' => [
         'open' => false, // true 开启测试环境，并让上面 superAdmin 的 999, 1000 生效
-        // src/app/Modules/tao/tests/Helper/MyTestTaoHttpHelper.php
+        // src/App/Modules/tao/tests/Helper/MyTestTaoHttpHelper.php
         // src/tests/Helper/MyTestHttpHelper.php.pathTest($path) —— 在测试 url 后添加 '?test=on'
-        // src/app/Modules/tao/Helper/Auth/LoginTestAuthAdapter.php —— 测试登录
-        // src/app/Modules/tao/Helper/CaptchaHelper.php —— 验证码
+        // src/App/Modules/tao/Helper/Auth/LoginTestAuthAdapter.php —— 测试登录
+        // src/App/Modules/tao/Helper/CaptchaHelper.php —— 验证码
         'tokens' => [
             'abc' => 1, // 'tokenValue' => userId
         ],
     ],
     // '项目'=>'域名不需要添加 www.' 如 ['abc' => ['abc.test','abc.com']]
     // abc 是项目名，位于 src/App/Projects/abc
-    // 可查看 src/tao996/phax/Support/Config.php
+    // 可查看 src/tao996/Phax/Support/Config.php
     'sites' => [
         'demo' => ['demo1.test', 'demo2.test'],
         'aabb' => ['a1.com', 'b1.org']

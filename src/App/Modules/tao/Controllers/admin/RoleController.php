@@ -13,7 +13,7 @@ use Phax\Db\QueryBuilder;
  */
 class RoleController extends BaseController
 {
-    protected string $htmlName = '角色';
+    protected string $htmlTitle = '角色';
 
     public function afterInitialize(): void
     {

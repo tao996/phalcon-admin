@@ -59,7 +59,7 @@ class Router
     }
 
     /**
-     * 应用 src/app/Projects
+     * 应用 src/App/Projects
      * @param string $url
      * @return bool
      */
@@ -325,7 +325,7 @@ class Router
                         }
                     } elseif ($isProject) {
                         $data['namespace'] = 'App\Projects\\' . $data['project'] . '\Controllers';
-                        $data['viewpath'] = '/var/www/app/Projects/' . $data['project'] . '/views';
+                        $data['viewpath'] = '/var/www/App/Projects/' . $data['project'] . '/views';
                     }
                     break;
             }
@@ -409,9 +409,9 @@ class Router
             $data['pathsname']['module'] = $m[0];
             // "App\Modules\m1.m2\Controllers" => "App\Modules\m1\A0\m2\Controllers"
             $data['namespace'] = str_replace('.', '\A0\\', $data['namespace']);
-            // "/var/www/app/Modules/m1.m2/views" => "/var/www/app/Modules/m1/A0/m2/views"
+            // "/var/www/App/Modules/m1.m2/views" => "/var/www/App/Modules/m1/A0/m2/views"
             $data['viewpath'] = str_replace('.', '/A0/', $data['viewpath']);
-            // "/var/www/app/Modules/m1.m2/Module.php" => '/var/www/app/Modules/m1/Module.php'
+            // "/var/www/App/Modules/m1.m2/Module.php" => '/var/www/App/Modules/m1/Module.php'
             $data['module'] = str_replace($module, $m[0], $data['module']);
             $data['name'] = $m[0];
             $data['subm'] = $m[1];

@@ -12,8 +12,7 @@ $user = $vv->user();
 <html>
 <head>
     <meta charset="utf-8">
-    <title><?php
-        echo $pageTitle ?? $vv->config()->path('app.name') ?></title>
+    <title><?php echo $vv->htmlTitle() ?></title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -145,7 +144,7 @@ $user = $vv->user();
                 <div class="layui-logo" lay-href="<?php
                 echo $vv->urlModule('tao') ?>">
                     <span><?php
-                        echo $vv->config()->path('app.name') ?></span>
+                        echo $vv->config()->path('app.title') ?></span>
                 </div>
                 <!-- 显示模块菜单 -->
                 <div id="menuTree">

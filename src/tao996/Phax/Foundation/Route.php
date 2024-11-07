@@ -147,11 +147,11 @@ class Route
 
         if (empty($this->routerOptions['mainView'])) {
             if (isset($this->routerOptions['module'])) {
-                $this->routerOptions['mainView'] = '/var/www/app/Modules/' . $this->mergeFileViewWithTheme(
+                $this->routerOptions['mainView'] = '/var/www/App/Modules/' . $this->mergeFileViewWithTheme(
                         $this->routerOptions['name']
                     ) . 'index';
             } elseif (!empty($this->routerOptions['project'])) {
-                $this->routerOptions['mainView'] = '/var/www/app/Projects/' . $this->mergeFileViewWithTheme(
+                $this->routerOptions['mainView'] = '/var/www/App/Projects/' . $this->mergeFileViewWithTheme(
                         $this->routerOptions['project']
                     ) . 'index';
             } elseif ($index = strpos($this->routerOptions['viewpath'], '/A0/')) {

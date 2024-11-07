@@ -15,7 +15,7 @@ class MchController extends BaseOpenController
 {
     protected string|array $indexHiddenColumns = ['secret_key'];
     protected array|string $superAdminActions = '*';
-    protected string $htmlName = '商户';
+    protected string $htmlTitle = '商户';
 
     public function localInitialize(): void
     {

@@ -12,7 +12,7 @@ use App\Modules\tao\A0\cms\Models\CmsLink;
 class LinkController extends BaseTaoA0CmsController
 {
     protected array $appendModifyFields = ['tag'];
-    protected string $htmlName = '链接';
+    protected string $htmlTitle = '链接';
 
     public function afterInitialize(): void
     {

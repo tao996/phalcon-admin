@@ -3,6 +3,7 @@
 $data = include_once PATH_CONFIG . 'config-services.example.php';
 
 $data['app'] = array_merge($data['app'], [
+    'name' => env('APP_NAME', 'Phalcon Admin'),
     'cdn_locate' => '',
     'hosts' => [
     ],

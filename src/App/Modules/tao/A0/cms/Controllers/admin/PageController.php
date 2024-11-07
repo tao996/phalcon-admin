@@ -22,7 +22,7 @@ class PageController extends BaseTaoA0CmsController
         $this->model = new CmsPage();
     }
 
-    protected string $htmlName = '单页';
+    protected string $htmlTitle = '单页';
     protected string|array $indexQueryColumns = ['id', 'tag', 'name', 'title', 'sort', 'status'];
     protected array $allowModifyFields = ['sort', 'status'];
 
