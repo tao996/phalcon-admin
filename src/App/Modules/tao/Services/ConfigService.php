@@ -27,7 +27,7 @@ class ConfigService
             return $cache;
         }
         if ($this->cache->has(self::cacheKey)) {
-            $cache = (array)($this->cache->get(self::cacheKey));
+            $cache = (array)($this->cache->get(self::cacheKey)) ?: [];
             return $cache;
         }
         return self::forceCache();
@@ -61,7 +61,6 @@ class ConfigService
     public function groupRows(string $gname, bool $resetKey = true): array
     {
         $rows = [];
-//        dd(self::rows());
         foreach ($this->rows() as $key => $value) {
             if (str_starts_with($key, $gname)) {
                 if ($resetKey) {

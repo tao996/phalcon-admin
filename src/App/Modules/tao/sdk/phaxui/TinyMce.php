@@ -22,6 +22,11 @@ class TinyMce
     public static array $editImageCorsHosts = [];
     public static string $version = '6.8.0';
 
+    /**
+     * @param array{language:string,content_css:string} $config
+     * @link https://www.tiny.cloud/docs/tinymce/latest/editor-important-options/
+     * @return void
+     */
     public static function init(array $config = [])
     {
         if (HtmlAssets::isLocal()) {
@@ -31,7 +36,7 @@ class TinyMce
         }
         $config = array_merge([
             'selector' => '#content',
-            'language' => 'zh-Hans',
+//            'language' => 'zh-Hans', // langs/zh-Hans.js
             'content_css' => '/massets/tao/tinymce.css', // may be you should recover this
             'plugins' => [
                 'advlist',

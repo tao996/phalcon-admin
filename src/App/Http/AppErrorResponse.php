@@ -2,7 +2,6 @@
 
 namespace App\Http;
 
-use Phalcon\Support\Debug;
 use Phax\Mvc\Controller;
 
 
@@ -35,9 +34,6 @@ class AppErrorResponse extends Controller
      */
     public function notFound(\Exception $e)
     {
-        ddd($e->getMessage(), false);
-        if (is_debug()) {
-            Debug::info();
-        }
+        ddd($e->getMessage());
     }
 }

@@ -71,6 +71,6 @@ class MchController extends BaseOpenController
         } else {
             $this->model->assign([$data['name'] => '']);
         }
-        return $this->saveModelResponse(true, false);
+        return $this->saveModelResponse($this->model->save(), false);
     }
 }

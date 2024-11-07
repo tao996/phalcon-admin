@@ -46,8 +46,7 @@ class Application
         }
 
         Env::load(PATH_ROOT . '.env');
-        define('IS_DEBUG', (bool)env('APP_DEBUG', false));
-
+        define('IS_DEBUG', env('APP_DEBUG', '') === 'true');
         // 配置文件
         $cc = new Config($di);
         $di->setShared('config', $cc);
