@@ -47,7 +47,7 @@ class CaptchaHelper
     public function compare(string $code, string $actual = '', bool $destroy = true): void
     {
         if (empty($code)) {
-            throw new \Exception('必须填写验证码', 200);
+            throw new \Exception('必须填写验证码');
         }
         if (!$this->isTest) {
             if (empty($actual)) {
@@ -60,7 +60,7 @@ class CaptchaHelper
             }
             $expect = $this->secret($code);
             if ($actual != $expect) {
-                throw new \Exception('验证码错误', 200);
+                throw new \Exception('验证码错误');
             }
         }
         if ($destroy) {

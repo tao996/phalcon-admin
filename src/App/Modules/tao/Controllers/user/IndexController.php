@@ -131,7 +131,7 @@ class IndexController extends BaseController
                 }
                 $this->vv->smsCodeService()->done($code);
             });
-            $this->loginUser->updateUserInfo($user->toArray());
+            $this->vv->loginUserHelper()->updateUserInfo($user->toArray());
             return $this->success('修改邮箱成功');
         }
 

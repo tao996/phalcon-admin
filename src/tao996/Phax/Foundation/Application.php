@@ -129,7 +129,7 @@ class Application
         $di->setShared('security', function () {
             return new \Phalcon\Encryption\Security();
         });
-        if ($namespaces = $cc->path('loader.namespaces',[])->toArray()){
+        if ($namespaces = $cc->path('loader.namespaces', [])->toArray()) {
             loader()->setNamespaces($namespaces, true)
                 ->register();
         }
@@ -166,9 +166,8 @@ class Application
             echo $e->getMessage();
             return null;
         } catch (\Exception $e) {
-            // 重要的错误需要设置 code，否则不会被记录到日志中
-            // 403 是未登录或凭证过期
-            if (is_debug() || !in_array($e->getCode(), [0, 200, 403])) {
+            // 服务器内部错误需要记录
+            if (is_debug() || $e->getCode() >= 500) {
                 Logger::exception($e);
             }
             /**

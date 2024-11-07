@@ -72,7 +72,7 @@ class PayController extends BaseOpenController
             $prepay = $this->mvc->wepayHelper()->prepay($appid, $mchid);
             $prepay->setOpenid($openid);
             $order = $prepay->createOrder($money, $metadata);
-            $order->user_id = 1; // $this->loginUser->userId();
+            $order->user_id = 1;
             $order->trade_type = OpenOrder::TradeTypeJsapi;
             return $prepay->prepay($order, $metadata);
         }

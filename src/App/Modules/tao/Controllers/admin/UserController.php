@@ -178,7 +178,7 @@ class UserController extends BaseController
     public function passwordAction()
     {
         $id = $this->getRequestInt('id');
-        if (in_array($id, $this->vv->superAdminIds()) && $id != $this->loginUser->userId()) {
+        if (!in_array($id, $this->vv->superAdminIds()) && $id != $this->loginUser()->id) {
             throw new \Exception('没有修改超级管理员密码的权限');
         }
         $data = $this->request->get();
