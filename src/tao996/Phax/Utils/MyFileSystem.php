@@ -38,15 +38,23 @@ class MyFileSystem
         return $rows;
     }
 
-    public static function getFilesInDirectory($directory): array
+    public static function getFilesInDirectory($directory, callable $filter = null): array
     {
         $files = [];
         if (is_dir($directory)) {
             $dirIterator = new \RecursiveDirectoryIterator($directory);
             $iterator = new \RecursiveIteratorIterator($dirIterator);
+            $hasFilter = $filter !== null;
             foreach ($iterator as $file) {
                 if ($file->isFile()) {
-                    $files[] = str_replace('\\', '/', $file->getPathname());
+                    $path = str_replace('\\', '/', $file->getPathname());
+                    if ($hasFilter) {
+                        if (!$filter($path)) {
+                            $files[] = $path;
+                        }
+                    } else {
+                        $files[] = $path;
+                    }
                 }
             }
         }

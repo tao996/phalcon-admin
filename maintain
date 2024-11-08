@@ -1035,7 +1035,10 @@ switch ($g->action) {
                 die('待推送项目不存在 {' . $project . '}' . PHP_EOL);
             }
             $ssh = new ActionProdServer($action->getConfig());
-            $files = MyFileSystem::getFilesInDirectory($path_project);
+            $files = MyFileSystem::getFilesInDirectory($path_project, function ($path){
+                return str_contains($path,'.git');
+            });
+
             $remote_dir = $action->remotePhalconAdminPath . 'src/';
             $lastMtime = $action->getProjectMtime($project);
             foreach ($files as $file) {

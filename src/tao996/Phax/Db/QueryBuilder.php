@@ -248,7 +248,7 @@ class QueryBuilder
     {
         $this->parameter->group($field);
         if ($rows = $this->field(['count(*) as total', $field])->find()) {
-            return array_column($rows, 'total', 'status');
+            return array_column($rows, 'total', $field);
         }
         return [];
     }
