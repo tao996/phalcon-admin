@@ -1,0 +1,64 @@
+<?php
+/**
+ * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
+ * @var \Phax\Helper\MyMvc $vv
+ */
+
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><?php echo $vv->htmlTitle() ?></title>
+</head>
+<body>
+
+<h1>App/Http/views/index.phtml</h1>
+<h4>App/Http is the default home page for DEMO</h4>
+<ul>
+    <li><a href="<?php
+        echo $vv->urlWith('/') ?>">首页</a></li>
+    <li><a href="<?php
+        echo $vv->urlWith('/index/about') ?>">/index/about</a></li>
+    <li><a href="<?php
+        echo $vv->urlWith('/index/about/phax/5') ?>">/index/about/phax/5</a> 带参数
+    </li>
+    <li><a href="<?php
+        echo $vv->urlWith('/sub.test/abc') ?>">/sub.test/abc</a> 子目录
+    </li>
+    <li><a href="<?php
+        echo $vv->urlWith('/sub/sub1.me/say') ?>">/sub/sub1.me/say</a> 子模块+子目录
+    </li>
+</ul>
+<h5>App/Projects 多应用</h5>
+<ul>
+    <li><a href="<?php
+        echo $vv->urlWith('/p/demo') ?>">/p/demo</a> => /p/demo/index/index => src/App/Projects/demo
+    </li>
+</ul>
+<h5>App/Modules 多模块</h5>
+<ul>
+    <li><a href="<?php
+        echo $vv->urlWith('/m/demo') ?>">/m/demo</a> => /m/demo/index/index => src/App/Modules/demo
+    </li>
+</ul>
+<h6>~~~~~ start ~~~</h6>
+<?php
+echo $this->getContent() ?>
+<h6>~~~~~ end ~~~~~</h6>
+<pre>
+<?php
+echo '<h2>route->routerOptions</h2>';
+print_r($vv->route()->routerOptions);
+echo '<h2>route->urlOptions</h2>';
+print_r($vv->route()->urlOptions);
+echo '<h2>route->origin()</h2>';
+print_r($vv->route()->origin());
+?>
+</pre>
+</body>
+</html>
+

@@ -1,0 +1,8 @@
+.env
+.phpunit.result.cache
+vendor
+phpunit.xml
+public/favicon.ico
+
+# if you want to know what happen inside phalcon
+phar-src

@@ -1,0 +1,6 @@
+.idea
+.vscode
+DirectoryV3.xml
+
+.env
+docker-compose.yaml

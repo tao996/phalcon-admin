@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheResult="false"
+         displayDetailsOnIncompleteTests="true"
+         displayDetailsOnSkippedTests="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+>
+    <!--
+             displayDetailsOnTestsThatTriggerDeprecations="true"
+    -->
+    <testsuites>
+        <testsuite name="phax - Unit Test">
+            <directory>./tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+<!-- 默认使用的配置文件 -->
+    <php>
+        <env name="PATH_CONFIG" value="/var/www/tests/config.php"/>
+    </php>
+</phpunit>

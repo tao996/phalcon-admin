@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @var \Phax\Helper\MyMvc $vv
+ */
+$config = $vv->config();
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><?php
+        echo $config->path('app.title') ?> - 应用</title>
+</head>
+<body>
+
+
+<ul>
+    <li><a href="/">首页</a></li>
+</ul>
+
+<h6>~~~~~ start ~~~</h6>
+<?php
+echo $this->getContent() ?>
+<h6>~~~~~ end ~~~~~</h6>
+<pre>
+<?php
+echo '<h2>route->routerOptions</h2>';
+print_r($vv->route()->routerOptions);
+echo '<h2>route->urlOptions</h2>';
+print_r($vv->route()->urlOptions);
+echo '<h2>route->origin()</h2>';
+print_r($vv->route()->origin());
+?>
+</pre>
+</body>
+</html>
+
