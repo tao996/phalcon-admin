@@ -33,7 +33,7 @@ class Db
 
         $em->attach('db:beforeQuery', function (\Phalcon\Events\Event $event, \Phalcon\Db\Adapter\Pdo\AbstractPdo $db) use ($logger) {
             $logger->info($db->getSQLStatement());
-            if (is_debug()) {
+            if (IS_DEBUG) {
                 $logger->info(json_encode($db->getSQLVariables()));
             }
 //            switch ($event->getType()) {

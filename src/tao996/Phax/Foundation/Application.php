@@ -84,8 +84,8 @@ class Application
                     return $response->send();
                 }
             }
-        } catch (LocationException $e){
-            header('Location:'.$e->getMessage(), true, 302);
+        } catch (LocationException $e) {
+            header('Location:' . $e->getMessage(), true, 302);
             return null;
         } catch (BlankException $e) {
             echo $e->getMessage();
@@ -101,7 +101,7 @@ class Application
 
     public function handleException(\Exception $e, Di $di = null): string
     {
-        if (is_debug() || $e->getCode() >= 500) {
+        if (IS_DEBUG || $e->getCode() >= 500) {
             Logger::exception($e);
         }
 
@@ -145,7 +145,7 @@ class Application
      */
     public function routeWith(string $requestURL, Di $di): \Phalcon\Http\ResponseInterface
     {
-        require_once PATH_ROOT . 'routes/web.php';
+
         $route = new Route($requestURL, $di);
         $di->setShared('route', $route);
 //        ddd($requestURL,$di->getServices());
@@ -163,6 +163,8 @@ class Application
          * @var \Phalcon\Mvc\Router $router
          */
         $router = $di->getShared('router');
+//        require_once PATH_ROOT . 'routes/web.php';
+
         $router->setDefaultNamespace($route->routerOptions['namespace']);
         // 添加到路由
         // 注意：pattern, route 要和 application->handle($uri) 保持一致
@@ -173,9 +175,12 @@ class Application
          */
         $application = $di->get('application');
         $application->setDI($di);
-        $route = $di->get('route');
+
         if (isset($route->routerOptions['registerModules'])) {
             $application->registerModules($route->routerOptions['registerModules']);
+        }
+        if ($route->isApiRequest()) {
+            $application->useImplicitView(false);
         }
         return $application->handle($requestURL);
     }

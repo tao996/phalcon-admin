@@ -73,7 +73,7 @@ class Logger
 
     public static function debug(...$args): void
     {
-        if (is_debug()) {
+        if (IS_DEBUG) {
             if (count($args) === 1) {
                 self::logger()->debug(print_r($args[0], true));
             } else {

@@ -39,7 +39,7 @@ class Route
         if (empty($this->origin)) {
             $baseUri = new MyBaseUri($this->di);
             $this->origin = $baseUri->getOrigin();
-            Config::$localAssetsOrigin = rtrim($this->origin,'/');
+            Config::$localAssetsOrigin = rtrim($this->origin, '/');
         }
         return $this->origin;
     }
@@ -245,7 +245,16 @@ class Route
 
     public function isApiRequest(): bool
     {
-        return $this->urlOptions['api'] ?: false;
+        if ($this->urlOptions['api']) {
+            return true;
+        } elseif (IS_PHP_FPM) {
+            /**
+             * @var $request \Phalcon\Http\RequestInterface
+             */
+            $request = $this->di->get('request');
+            return $request->isAjax() || str_contains($request->getServer('HTTP_ACCEPT') ?: '', 'application/json');
+        }
+        return false;
     }
 
     public function isMultipleModules(): bool

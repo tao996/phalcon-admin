@@ -1,2 +1,5 @@
 <?php
-// https://docs.phalcon.io/5.0/en/routing
+/**
+ * this file has disabled
+ * https://docs.phalcon.io/latest/routing/
+ */

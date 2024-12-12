@@ -314,7 +314,7 @@ class Router
      * 分析链接
      * @param string $requestURI 待处理的 URL
      * @param array $options 配置信息  ['project'=> 默认前端应用]
-     * @return array{pattern:string,paths:array{module:string,controller:string,action:string},pathsname:array{module:string,controller:string,action:string},namespace:string,viewpath:string,project:string,isLanguage:bool,language:string,isApi:bool,route:string,pickview:string}
+     * @return array{pattern:string,paths:array{module:string,controller:string,action:string},pathsname:array{module:string,controller:string,action:string},namespace:string,viewpath:string,project:string,route:string,pickview:string}
      * @throws \Exception
      */
     public static function analysisWithURL(string $requestURI, array $options = []): array

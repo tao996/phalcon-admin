@@ -55,7 +55,6 @@ CliRouter::add('cc', function ($params) {
     }
     system('php ' . PATH_ROOT . 'vendor/bin/codecept ' . join(' ', $params), $code);
 }, '使用 cc 来代替 vendor/bin/codecept，以方便执行命令');
-
 // load your self cli script
 if (file_exists(__DIR__ . '/cli.more.php')) {
     include_once __DIR__ . '/cli.more.php';

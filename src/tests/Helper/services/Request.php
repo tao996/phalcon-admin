@@ -209,7 +209,7 @@ class Request implements \Phalcon\Http\RequestInterface
 
     public function getServer(string $name): ?string
     {
-        return $this->data['getServer'][$name];
+        return $this->data['getServer'][$name] ?? '';
     }
 
     public function getServerAddress(): string

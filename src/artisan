@@ -7,6 +7,23 @@
 // define('PATH_ROOT', '/var/www/'); // if you can copy this file to /usr/bin/artisan
 
 const PATH_ROOT = __DIR__ . '/';
+
+if (isset($argv[1]) && 'phalcon' === $argv[1]) {
+    $path = '/usr/local/etc/php/conf.d/';
+    $files = [
+        $path . 'docker-php-ext-phalcon.ini',
+        $path . 'docker-php-ext-phalcon.ini.backup'
+    ];
+    if (file_exists($files[0])) {
+        rename($files[0], $files[1]);
+        echo '[PHP Modules] disable phalcon', PHP_EOL;
+    } elseif (file_exists($files[1])) {
+        rename($files[1], $files[0]);
+        echo '[PHP Modules] enable phalcon', PHP_EOL;
+    }
+    return;
+}
+
 /**
  * @var $app \Phax\Foundation\Application
  */

@@ -139,7 +139,7 @@ class Controller extends \Phalcon\Mvc\Controller
 
     public function isApiRequest(): bool
     {
-        return $this->jsonResponse || $this->request->isAjax() || $this->route->isApiRequest();
+        return $this->jsonResponse || $this->route->isApiRequest();
     }
 
     // 输出 JSON  内容，通常在控制器中使用

@@ -220,7 +220,7 @@ class DiService
 
                     // 在非生产环境下，取消预处理功能，性能下降，但可以看到最终的 sql 语句
                     // 或者你可以通过函数  getRawPdoSql 来打印预处理的语句
-                    if (is_debug()) {
+                    if (IS_DEBUG) {
                         $pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, true);
                     }
                     return $pdo;
@@ -342,6 +342,7 @@ class DiService
     {
         $di = $this->di;
         $this->di->set('view', function () use ($di, $share) {
+//            debug_print_backtrace();
             $view = new \Phalcon\Mvc\View();
             $view->registerEngines([
                 ".phtml" => \Phalcon\Mvc\View\Engine\Php::class,

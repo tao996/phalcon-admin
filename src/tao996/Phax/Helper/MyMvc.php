@@ -31,7 +31,7 @@ class MyMvc
 
     public function __construct(public \Phalcon\Di\Di $di)
     {
-        if ($this->di->has('view')) {
+        if (!$this->route()->isApiRequest()) {
             $this->view = $di->get('view');
             $this->view->setVar('vv', $this);
         }
@@ -266,7 +266,7 @@ class MyMvc
         $this->route()->doneView();
         if ($pickview = $this->route()->pickView(false)) {
             if (!file_exists($pickview)) {
-                if (is_debug()) {
+                if (IS_DEBUG) {
                     throw new \Exception('Pick view not exist:' . $pickview . '.[phtml|volt]');
                 } else {
                     Logger::error('Pick view not exist:' . $pickview);
