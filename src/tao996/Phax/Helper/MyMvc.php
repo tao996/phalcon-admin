@@ -198,7 +198,7 @@ class MyMvc
      * @param mixed $default
      * @return mixed
      */
-    public function pick(string $path, mixed $default = '')
+    public function pick(string $path, mixed $default = ''): mixed
     {
         return $this->get(self::$prefix . '.' . $path, $default);
     }
@@ -254,6 +254,28 @@ class MyMvc
     {
         $this->viewData = array_merge($this->viewData, $params);
         return $this;
+    }
+
+    /**
+     * 返回 Project 资源路径
+     * @param string $project 应用名称
+     * @param string $pathInView 资源在 views/ 目录下的路径
+     * @return string
+     */
+    public function projectAsset(string $project, string $pathInView): string
+    {
+        return \Phax\Support\Config::$local_assets_origin."/pstatic/{$project}/{$pathInView}";
+    }
+
+    /**
+     * 返回 Module 资源路径
+     * @param string $module 模块名称
+     * @param string $pathInView 资源在 views/ 目录下的路径
+     * @return string
+     */
+    public function moduleAsset(string $module,string $pathInView):string
+    {
+        return \Phax\Support\Config::$local_assets_origin."/mstatic/{$module}/{$pathInView}";
     }
 
     /**

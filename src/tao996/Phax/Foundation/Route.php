@@ -18,14 +18,34 @@ class Route
      * @var array{sw:bool,language:string,api:bool,project:bool,module:bool,path:string}
      */
     public array $urlOptions = [];
-    public string $theme = ''; // 主题
+    /**
+     * 主题
+     * @var string
+     */
+    public string $theme = '';
     public \Phalcon\Mvc\View $view;
+    /**
+     * 当前访问的域名
+     * @var string
+     */
     private string $origin = '';
+    /**
+     * 当前的项目
+     * @var string
+     */
+    private string $project = '';
 
     /**
      * @param string $requestURI
      */
-    public function __construct(public string $requestURI, public Di $di)
+    public function __construct(public string $requestURI, public Di $di, bool $lazyLoadURI = false)
+    {
+        if (!$lazyLoadURI) {
+            $this->loadRequestURI();
+        }
+    }
+
+    public function loadRequestURI():void
     {
         $this->urlOptions = Router::pathMatch($this->requestURI);
     }
@@ -39,7 +59,7 @@ class Route
         if (empty($this->origin)) {
             $baseUri = new MyBaseUri($this->di);
             $this->origin = $baseUri->getOrigin();
-            Config::$localAssetsOrigin = rtrim($this->origin, '/');
+            Config::$local_assets_origin = rtrim($this->origin, '/');
         }
         return $this->origin;
     }
