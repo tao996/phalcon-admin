@@ -22,12 +22,12 @@ $wp->setWorkerFiles('ws');
 $http_worker = new Worker("http://0.0.0.0:80");
 
 // 启动4个进程对外提供服务
-$http_worker->count = 1;
+$http_worker->count = 1; // 开发环境
 $http_worker->onMessage = function (TcpConnection $connection, Request $request) use ($wp) {
     if ('/favicon.ico' == $request->uri()) {
         return $connection->send('');
     }
-    if ($wp->staticFile($connection,$request, true)){
+    if ($wp->staticFile($connection, $request, true)) {
         return true;
     }
     $start_time = 0;
@@ -43,6 +43,17 @@ $http_worker->onMessage = function (TcpConnection $connection, Request $request)
     }
 
     return true;
+};
+$http_worker->onWorkerStart = function () {
+    // show global variables like '%timeout';
+    \Workerman\Timer::add(3600, function () {
+        /**
+         * @var \Phalcon\Db\Adapter\Pdo\AbstractPdo $db
+         */
+        $db = \Phax\Foundation\Application::di()->get('db');
+        $db->query('select 1');
+        echo 'ping db:' . date('Y-m-d H:i:s'), PHP_EOL;
+    });
 };
 
 // 运行worker

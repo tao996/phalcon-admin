@@ -38,6 +38,11 @@ class MyMvc
         $this->translate = new Translate();
     }
 
+    public function getDi(): \Phalcon\Di\Di
+    {
+        return $this->di;
+    }
+
     /**
      * 是否为演示环境
      * @return bool

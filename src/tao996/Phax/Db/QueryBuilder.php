@@ -2,6 +2,7 @@
 
 namespace Phax\Db;
 
+use Phalcon\Di\DiInterface;
 use Phalcon\Mvc\Model;
 use Phax\Foundation\Application;
 use Phax\Utils\MyData;
@@ -31,7 +32,7 @@ class QueryBuilder
     }
 
 
-    public static function with(string|\Phax\Mvc\Model|null $model, bool $excludeSoftDelete = true): QueryBuilder
+    public static function with(string|\Phax\Mvc\Model|null $model): QueryBuilder
     {
         if (empty($model)) {
             throw new \Exception('model is empty in QueryBuilder.with');
@@ -40,10 +41,18 @@ class QueryBuilder
             $model = call_user_func([$model, 'getObject']);
         }
         $qb = new QueryBuilder($model);
-        if ($excludeSoftDelete) {
-            $qb->softDelete();
-        }
+        $qb->softDelete();
         return $qb;
+    }
+
+    /**
+     * 查询全部记录（包含软删除）
+     * @return $this
+     */
+    public function withTrashed(): static
+    {
+        $this->parameter->withTrashed();
+        return $this;
     }
 
     /**
@@ -355,10 +364,25 @@ class QueryBuilder
 
     public function builder(): \Phalcon\Mvc\Model\Query\Builder
     {
+        // 在 workerman 下，长久没有连接会导致  General error: 2006 MySQL server has gone away
+        // 必须设置 onWorkerStart 设置定时连接
         if (empty($this->parameter->parameter['container'])) {
             $this->parameter->parameter['container'] = Application::di();
         }
         return new \Phalcon\Mvc\Model\Query\Builder($this->getParameter());
+    }
+
+    /**
+     * todo prepare
+     * @param DiInterface|null $di
+     * @return $this
+     */
+    public function setContainer(DiInterface $di = null): static
+    {
+//        if (!is_null($di)) {
+//            $this->parameter->parameter['container'] = $di;
+//        }
+        return $this;
     }
 
     public function count(): int
@@ -426,10 +450,11 @@ class QueryBuilder
                     foreach ($rst as $item) {
                         $ids[] = $item[$joinInfo[2]];
                     }
-                    $rows = QueryBuilder::with($joinInfo[0])->in($joinInfo[3], $ids)->findColumn(
-                        [$joinInfo[3], $joinInfo[1]],
-                        $joinInfo[3]
-                    );
+                    $rows = QueryBuilder::with($joinInfo[0])
+                        ->in($joinInfo[3], $ids)->findColumn(
+                            [$joinInfo[3], $joinInfo[1]],
+                            $joinInfo[3]
+                        );
 
                     foreach ($rst as $index => $item) {
                         $key = $item[$joinInfo[2]];
@@ -440,7 +465,8 @@ class QueryBuilder
         } else {
             foreach ($this->joinInfo as $joinInfo) {
                 if (isset($rst[$joinInfo[2]])) {
-                    $rst[$joinInfo[4]] = QueryBuilder::with($joinInfo[0])->int($joinInfo[3], $rst[$joinInfo[2]])
+                    $rst[$joinInfo[4]] = QueryBuilder::with($joinInfo[0])
+                        ->int($joinInfo[3], $rst[$joinInfo[2]])
                         ->columns([$joinInfo[3], $joinInfo[1]])
                         ->findFirstArray();
                 }

@@ -28,6 +28,7 @@ class Parameter
 //        'order' => [],
     ];
     private int $numberLen = 0;
+    private string $sql_soft_delete = '';
 
     /**
      * @param bool $numPlaceholder 占位符格式，如果为 true 则使用 ?0,?1；如果为 false 则使用 ?, ?
@@ -54,8 +55,18 @@ class Parameter
     public function sortDelete(Model $model): static
     {
         if ($model->isSoftDelete()) {
-            $this->appendConditionSQL($model->getDeleteTimeName() . ' IS NULL');
+            $this->sql_soft_delete = $model->getDeleteTimeName() . ' IS NULL';
         }
+        return $this;
+    }
+
+    /**
+     * to also get soft deleted records
+     * @return $this
+     */
+    public function withTrashed(): static
+    {
+        $this->sql_soft_delete = '';
         return $this;
     }
 
@@ -452,6 +463,9 @@ class Parameter
      */
     public function getParameter(): array
     {
+        if ($this->sql_soft_delete) {
+            $this->appendConditionSQL($this->sql_soft_delete);
+        }
         return $this->parameter;
     }
 

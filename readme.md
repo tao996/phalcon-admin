@@ -1,5 +1,10 @@
 ## Phalcon Admin
 
+```
+git clone --depth=1 https://github.com/tao996/phalcon-admin.git
+git clone --depth=1 https://gitee.com/taoooo/phalcon-damin.git
+```
+
 * [中英文 Document](https://tao996.github.io/phalcon-admin-docs/#/)
 * [phalcon images](https://github.com/tao996/phalcon-docker-images) build your self phalcon docker image
 

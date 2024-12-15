@@ -70,7 +70,8 @@ class TestController extends Controller
      */
     public function listAction()
     {
-        $p = Cat::queryBuilder(false)
+        $p = Cat::queryBuilder($this->getDI())
+            ->withTrashed()
             ->excludeColumns(['created_at', 'updated_at']);
         $this->json([
             'all' => $p->find(),

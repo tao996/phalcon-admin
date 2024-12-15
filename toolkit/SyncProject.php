@@ -128,6 +128,7 @@ class SyncProject
     private array $replaces = [
         'docker-compose.yaml' => [
             ['/assets.example.conf', '/assets.conf'],
+            ['/default.example.conf', '/default.conf'],
             ['/php.example.ini', '/php.ini'],
             ['/supervisord.example.conf', '/supervisord.conf']
         ],

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phax\Mvc;
 
+use Phalcon\Di\DiInterface;
 use Phax\Db\Layer;
 use Phax\Db\QueryBuilder;
 use Phax\Support\Facade\MyHelperFacade;
@@ -450,12 +451,25 @@ class Model extends \Phalcon\Mvc\Model
     }
 
     /**
-     * 辅助拼接 Phalcon SQL 语句；注意需要手动添加 softDelete()
-     * @return \Phax\Db\QueryBuilder
+     * 辅助拼接 Phalcon SQL 语句
+     * @return QueryBuilder
+     * @throws \Exception
      */
-    public static function queryBuilder(bool $excludeSoftDelete = true): QueryBuilder
+    public static function queryBuilder(DiInterface $di = null): QueryBuilder
     {
-        return QueryBuilder::with(static::getObject(), $excludeSoftDelete);
+        return QueryBuilder::with(static::getObject())
+            ->setContainer($di);
+    }
+
+    /**
+     * @param DiInterface|null $di
+     * @return QueryBuilder
+     * @throws \Exception
+     */
+    public function getQueryBuilder(DiInterface $di = null): QueryBuilder
+    {
+        return QueryBuilder::with($this)
+            ->setContainer($di);
     }
 
     /**
@@ -468,14 +482,6 @@ class Model extends \Phalcon\Mvc\Model
         return Layer::with(static::getObject());
     }
 
-    /**
-     * @return QueryBuilder
-     * @throws \Exception
-     */
-    public function getQueryBuilder(): QueryBuilder
-    {
-        return QueryBuilder::with($this, $this->isSoftDelete());
-    }
     /**
      * 用于使用原生SQL来执行 Insert/Update/Delete 操作
      * @return Layer
