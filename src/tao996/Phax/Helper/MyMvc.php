@@ -124,16 +124,16 @@ class MyMvc
         return $this->di->get('response');
     }
 
-    public function responseMimeType(array $kvHeaders,string $content)
+    public function responseMimeType(array $kvHeaders, string $content)
     {
-        if (IS_WORKER_WEB){
+        if (IS_WORKER_WEB) {
             $response = $this->response();
-            foreach ($kvHeaders as $k => $v){
+            foreach ($kvHeaders as $k => $v) {
                 $response->setHeader($k, $v);
             }
             $response->setContent($content);
         } else {
-            foreach ($kvHeaders as $k => $v){
+            foreach ($kvHeaders as $k => $v) {
                 header("$k: $v");
             }
             echo $content;
@@ -269,7 +269,7 @@ class MyMvc
      */
     public function projectAsset(string $project, string $pathInView): string
     {
-        return \Phax\Support\Config::$local_assets_origin."/pstatic/{$project}/{$pathInView}";
+        return \Phax\Support\Config::$local_assets_origin . "/pstatic/{$project}/{$pathInView}";
     }
 
     /**
@@ -278,9 +278,9 @@ class MyMvc
      * @param string $pathInView 资源在 views/ 目录下的路径
      * @return string
      */
-    public function moduleAsset(string $module,string $pathInView):string
+    public function moduleAsset(string $module, string $pathInView): string
     {
-        return \Phax\Support\Config::$local_assets_origin."/mstatic/{$module}/{$pathInView}";
+        return \Phax\Support\Config::$local_assets_origin . "/mstatic/{$module}/{$pathInView}";
     }
 
     /**

@@ -4,14 +4,11 @@
  * 用于在程序中代替 die/exit
  */
 
-use Phax\Foundation\Application;
-
 if (!function_exists('appExit')) {
     function appExit(string $message = ''): void
     {
         if (IS_WORKER_WEB) {
-            ob_clean();
-            throw new \Exception('SORRY:'.$message);
+            throw new \Exception('see the message in console when run in cli mode');
         } else {
             exit($message);
         }
@@ -25,20 +22,11 @@ if (!function_exists('is_debug')) {
     }
 }
 
-
-function ddd($var): void
-{
-    $args = func_get_args();
-    array_map(function ($x) {
-        $string = (new \Phalcon\Support\Debug\Dump())->variable($x);
-        echo IS_TASK || IS_WORKER_WEB ? strip_tags($string) . PHP_EOL : $string;
-    }, $args);
-    appExit();
-}
-
-// 接口测试专用
-if (!function_exists('ppp')) {
-    function ppp($var): void
+if (!function_exists('ddd')) {
+    /**
+     * print var type and value, and stop
+     */
+    function ddd($var): void
     {
         $args = func_get_args();
         array_map(function ($x) {
@@ -50,6 +38,12 @@ if (!function_exists('ppp')) {
 }
 
 if (!function_exists('pr')) {
+    /**
+     * print only value (if run in cli, the print in console)
+     * @param $var
+     * @return void
+     * @throws Exception
+     */
     function pr($var): void
     {
         echo IS_TASK || IS_WORKER_WEB ? '|<--- ' . PHP_EOL : '<pre>';
@@ -58,12 +52,7 @@ if (!function_exists('pr')) {
             echo IS_TASK || IS_WORKER_WEB ? PHP_EOL : '<br/>';
         }
         echo IS_TASK || IS_WORKER_WEB ? '|---> ' . PHP_EOL : '</pre>';
-        if (func_get_args()[func_num_args() - 1] === false) {
-            if (IS_WORKER_WEB) {
-                ob_flush();
-            }
-            return;
-        } else {
+        if (func_get_args()[func_num_args() - 1] !== false) {
             appExit();
         }
     }
