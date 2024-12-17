@@ -13,7 +13,11 @@ CliRouter::add('metadata', function () {
     echo "refresh metadata success", PHP_EOL;
 }, 'refresh all Model metadata');
 
-// run `php artisan migration` to see the help
+
+/**
+ * run `php artisan migration` to see the help
+ * https://tao996.github.io/phalcon-admin-docs/#/zh-cn/migration
+ */
 CliRouter::add('migration', function () {
     if (file_exists(PATH_PHAR_SRC . 'phalcon-migrations/index.php')) {
         include_once PATH_PHAR_SRC . 'phalcon-migrations/index.php';

@@ -31,7 +31,7 @@ class MyMvc
 
     public function __construct(public \Phalcon\Di\Di $di)
     {
-        if (!$this->route()->isApiRequest()) {
+        if ($this->di->has('route') && !$this->route()->isApiRequest()) {
             $this->view = $di->get('view');
             $this->view->setVar('vv', $this);
         }

@@ -31,7 +31,7 @@ if (!function_exists('ddd')) {
         $args = func_get_args();
         array_map(function ($x) {
             $string = (new \Phalcon\Support\Debug\Dump())->variable($x);
-            echo strip_tags($string) . PHP_EOL;
+            echo IS_PHP_FPM ? $string : strip_tags($string) . PHP_EOL;
         }, $args);
         appExit();
     }
