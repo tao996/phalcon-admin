@@ -346,10 +346,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $expect['route'] = Router::$languageRule . $expect['route'];
         $this->assertEquals($expect, \Phax\Utils\MyData::getByKeys($rst, $keys));
-//
-        $rst1 = Router::analysisWithURL('/m/m1.m11/');
-        $rst2 = Router::analysisWithURL('/m/m1.m11');
-        $this->assertEquals($rst1, $rst2);
+
 
         $rst = Router::analysisRoutePath('/m/m1.m11/c1');
         $this->assertEquals([

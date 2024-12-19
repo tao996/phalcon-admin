@@ -69,7 +69,7 @@ class Controller extends \Phalcon\Mvc\Controller
      */
     public function addViewData(string $name, mixed $value): self
     {
-        $this->vv->setVar($name, $value);
+        $this->vv->html()->setVar($name, $value);
         return $this;
     }
 
@@ -103,13 +103,10 @@ class Controller extends \Phalcon\Mvc\Controller
         if ($isApi) {
             $this->json($data);
         } else {
-            $this->vv->setVar('language', $this->vv->getLanguage());
-            if (is_scalar($data)) {
-                $this->vv->setVar('message', $data);
-            } else {
-                $this->vv->setVar(MyMvc::$prefix, $data);
-            }
-            $this->vv->doneViewResponse();
+            $this->vv->html()
+                ->setVar('language', $this->vv->getLanguage())
+                ->setResponseVar($data)
+                ->doneViewResponse();
         }
     }
 
@@ -145,7 +142,7 @@ class Controller extends \Phalcon\Mvc\Controller
     // 输出 JSON  内容，通常在控制器中使用
     // 注意：，如果你不是在控制器调用 \json()；那么则需要手动 exit
     // 否则会出现 Phalcon\Http\Response\Exception: Response was already sent
-    function json($data):void
+    function json($data): void
     {
         $this->jsonResponse = true;
         $this->response

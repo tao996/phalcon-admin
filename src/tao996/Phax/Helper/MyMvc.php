@@ -9,7 +9,6 @@ use Phax\Foundation\Route;
 use Phax\Support\Config;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\I18n\Translate;
-use Phax\Support\Logger;
 use Phax\Support\Router;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
@@ -29,18 +28,24 @@ class MyMvc
 
     public array $viewData = [];
 
+    private HtmlHelper $_html;
+
     public function __construct(public \Phalcon\Di\Di $di)
     {
-        if ($this->di->has('route') && !$this->route()->isApiRequest()) {
-            $this->view = $di->get('view');
-            $this->view->setVar('vv', $this);
-        }
         $this->translate = new Translate();
+        if (IS_WEB) {
+            $this->_html = new HtmlHelper($this);
+        }
     }
 
     public function getDi(): \Phalcon\Di\Di
     {
         return $this->di;
+    }
+
+    public function html(): HtmlHelper
+    {
+        return $this->_html;
     }
 
     /**
@@ -62,7 +67,8 @@ class MyMvc
      */
     public function isTest(): bool
     {
-        return $this->request()->getQuery('test', 'string', '') === 'on'
+        return $this->request()
+                ->getQuery('test', 'string', '') === 'on'
             && $this->config()->isTest();
     }
 
@@ -171,32 +177,6 @@ class MyMvc
         return $this->di->get('logger');
     }
 
-
-    /**
-     * 获取 view 上所绑定的数据
-     * @param string $path
-     * @param mixed|null $default
-     * @return mixed
-     */
-    public function get(string $path, mixed $default = null)
-    {
-        return \Phax\Utils\MyData::findWithPath($this->viewData, $path, $default);
-    }
-
-    /**
-     * 页面标题
-     * @return string
-     */
-    public function htmlTitle(): string
-    {
-        $title = $this->get('html_title');
-        if ($title) {
-            return $title . ' - ' . $this->config()->path('app.title');
-        } else {
-            return $this->config()->path('app.title');
-        }
-    }
-
     /**
      * 获取控制器 Action 所返回的值
      * @param string $path
@@ -205,60 +185,12 @@ class MyMvc
      */
     public function pick(string $path, mixed $default = ''): mixed
     {
-        return $this->get(self::$prefix . '.' . $path, $default);
-    }
-
-
-    /**
-     * 与模板数据比较，如果相等，则输出 $text
-     * @param string $path 路径 或者 值
-     * @param mixed $text 输出的内容，如果提供，则会直接使用 echo
-     * @param mixed $cmpValue 待比较的值，默认为 1
-     * @return mixed
-     */
-    public function pickCompare(string $path, mixed $text = "", mixed $cmpValue = 1): mixed
-    {
-        $defValue = is_int($cmpValue) ? 0 : '';
-        $eq = $this->pick($path, $defValue) == $cmpValue;
-        return $eq ? $text : $defValue;
-    }
-
-    /**
-     * 通常用于将 php 变量转为 js 布尔值
-     * @param bool $condition
-     * @return string
-     */
-    public function htmlBoolText(bool $condition): string
-    {
-        return $condition ? 'true' : 'false';
-    }
-
-    /**
-     * print the view data，it should be called in debug mode
-     * 注意：在 workerman 中使用此方法，会把 $this->viewData 输出到控制台上
-     * @param bool $exit
-     * @return void
-     */
-    public function print(bool $exit = true): void
-    {
-        pr($this->viewData, $exit);
+        return $this->_html->pick($path, $default);
     }
 
     public function postData(string $name, mixed $default = '')
     {
         return $this->di->get('request')->getPost($name, '', $default);
-    }
-
-    public function setVar(string $key, $value): static
-    {
-        $this->viewData[$key] = $value;
-        return $this;
-    }
-
-    public function setVars(array $params): static
-    {
-        $this->viewData = array_merge($this->viewData, $params);
-        return $this;
     }
 
     /**
@@ -284,26 +216,6 @@ class MyMvc
     }
 
     /**
-     * 设置视图数据，并对视图模板进行检查
-     * @return void
-     * @throws \Exception
-     */
-    public function doneViewResponse(): void
-    {
-        $this->route()->doneView();
-        if ($pickview = $this->route()->pickView(false)) {
-            if (!file_exists($pickview)) {
-                if (IS_DEBUG) {
-                    throw new \Exception('Pick view not exist:' . $pickview . '.[phtml|volt]');
-                } else {
-                    Logger::error('Pick view not exist:' . $pickview);
-                    throw new \Exception('Pick view not exist');
-                }
-            }
-        }
-    }
-
-    /**
      * 生成一个 URL 地址
      * @param array{origin:string,prefix:string,language:bool,api:bool, module:bool,project:bool,path:string, query:array|string} $options
      * @return string
@@ -316,6 +228,17 @@ class MyMvc
         $options['language'] = $this->route()->urlOptions['language'];
         $options['prefix'] = $this->route()->urlOptions['sw'] ? Router::$swKeyword : '';
         return MyUrl::createWith($options);
+    }
+
+    /**
+     * 快捷地生成一个可带参数的链接地址
+     * @param string $path 路径，必须以 / 开头
+     * @param array $query 查询参数
+     * @return string
+     */
+    public function urlWith(string $path, array $query = []): string
+    {
+        return $this->url(['path' => $path, 'query' => $query]);
     }
 
     /**
@@ -344,15 +267,30 @@ class MyMvc
     }
 
     /**
-     * 生成一个普通链接地址
-     * @param string $path 路径，必须以 / 开头
-     * @param array $query 查询参数
+     * 生成一个 project 请求链接
+     * @param string $path 路径
+     * @param array|bool $mixed 如果为 `true` 则表示 `api` 请求；<br>
+     * 如果为 `false` 则表示`不需要 origin`；<br>
+     * 如果为 `array`，则是请求参数
      * @return string
      */
-    public function urlWith(string $path, array $query = []): string
+    public function urlProject(string $path, array|bool $mixed = []): string
     {
-        return $this->url(['path' => $path, 'query' => $query]);
+        $options = [
+            'path' => $path,
+            'project' => true,
+            'origin' => true,
+        ];
+        if ($mixed === true) {
+            $options['api'] = true;
+        } elseif ($mixed === false) {
+            $options['origin'] = '';
+        } elseif (!empty($mixed)) {
+            $options['query'] = $mixed;
+        }
+        return $this->url($options);
     }
+
 
     /**
      * 通常生成生成/校验表单 token；对密码进行加密处理
