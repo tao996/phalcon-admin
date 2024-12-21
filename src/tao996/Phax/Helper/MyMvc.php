@@ -15,27 +15,15 @@ use Phax\Utils\MyData;
 
 class MyMvc
 {
-    // controller.action 返回的数据在视图中的前缀
-    public static string $prefix = 'api';
-
-    /**
-     * 视图服务
-     * @var View|mixed
-     */
-    private View $view;
 
     private Translate $translate;
+    private HtmlHelper|null $_html = null;
 
-    public array $viewData = [];
-
-    private HtmlHelper $_html;
+    protected string $html_helper_class = HtmlHelper::class;
 
     public function __construct(public \Phalcon\Di\Di $di)
     {
         $this->translate = new Translate();
-        if (IS_WEB) {
-            $this->_html = new HtmlHelper($this);
-        }
     }
 
     public function getDi(): \Phalcon\Di\Di
@@ -45,6 +33,9 @@ class MyMvc
 
     public function html(): HtmlHelper
     {
+        if (empty($this->_html)) {
+            $this->_html = new $this->html_helper_class($this);
+        }
         return $this->_html;
     }
 
@@ -74,12 +65,12 @@ class MyMvc
 
     public function config(): Config
     {
-        return $this->di->get('config');
+        return $this->di->getShared('config');
     }
 
     public function view(): View
     {
-        return $this->view;
+        return $this->di->getShared('view');
     }
 
     public function translate(): Translate
@@ -89,12 +80,12 @@ class MyMvc
 
     public function route(): Route
     {
-        return $this->di->get('route');
+        return $this->di->getShared('route');
     }
 
     public function eventsManager(): \Phalcon\Events\Manager
     {
-        return $this->di->get('eventsManager');
+        return $this->di->getShared('eventsManager');
     }
 
     public function helper(): \Phalcon\Support\HelperFactory
@@ -104,7 +95,7 @@ class MyMvc
 
     public function router(): \Phalcon\Mvc\Router|\Phalcon\Cli\Router
     {
-        return $this->di->get('router');
+        return $this->di->getShared('router');
     }
 
     public function validate(): Validate
@@ -117,20 +108,31 @@ class MyMvc
 
     public function cookies(): Cookies
     {
-        return $this->di->get('cookies');
+        return $this->di->getShared('cookies');
     }
 
     public function request(): \Phalcon\Http\RequestInterface
     {
-        return $this->di->get('request');
+        return $this->di->getShared('request');
     }
 
     public function response(): \Phalcon\Http\ResponseInterface
     {
-        return $this->di->get('response');
+        return $this->di->getShared('response');
     }
 
-    public function responseMimeType(array $kvHeaders, string $content)
+    /**
+     * 用于返回一些特殊格式的数据，如图片
+     * <pre>
+     * // 输出图片
+     * responseMimeType(['Content-Type' => 'image/jpeg'], $response->getContent())
+     * </pre>
+     * @param array $kvHeaders
+     * @param string $content
+     * @return mixed
+     * @throws BlankException
+     */
+    public function responseMimeType(array $kvHeaders, string $content): mixed
     {
         if (IS_WORKER_WEB) {
             $response = $this->response();
@@ -149,32 +151,32 @@ class MyMvc
 
     public function db(): \Phalcon\Db\Adapter\Pdo\AbstractPdo
     {
-        return $this->di->get('db');
+        return $this->di->getShared('db');
     }
 
     public function pdo(): \PDO
     {
-        return $this->di->get('pdo');
+        return $this->di->getShared('pdo');
     }
 
     public function redis(): \Redis
     {
-        return $this->di->get('redis');
+        return $this->di->getShared('redis');
     }
 
     public function cache(): \Phalcon\Cache\Cache
     {
-        return $this->di->get('cache');
+        return $this->di->getShared('cache');
     }
 
     public function metadata(): \Phalcon\Mvc\Model\MetaData
     {
-        return $this->di->get('modelsMetadata');
+        return $this->di->getShared('modelsMetadata');
     }
 
     public function logger(): \Phalcon\Logger\Logger
     {
-        return $this->di->get('logger');
+        return $this->di->getShared('logger');
     }
 
     /**
@@ -185,12 +187,13 @@ class MyMvc
      */
     public function pick(string $path, mixed $default = ''): mixed
     {
-        return $this->_html->pick($path, $default);
+        return $this->html()->pick($path, $default);
     }
 
     public function postData(string $name, mixed $default = '')
     {
-        return $this->di->get('request')->getPost($name, '', $default);
+        return $this->di->getShared('request')
+            ->getPost($name, '', $default);
     }
 
     /**
@@ -301,17 +304,17 @@ class MyMvc
      */
     public function security(): Security
     {
-        return $this->di->get('security');
+        return $this->di->getShared('security');
     }
 
     public function session(): \Phalcon\Session\ManagerInterface
     {
-        return $this->di->get('session');
+        return $this->di->getShared('session');
     }
 
     function dispatcher(): \Phalcon\Dispatcher\AbstractDispatcher
     {
-        return $this->di->get('dispatcher');
+        return $this->di->getShared('dispatcher');
     }
 
 
