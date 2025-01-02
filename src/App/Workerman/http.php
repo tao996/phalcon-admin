@@ -17,7 +17,7 @@ $wp = new \Phax\Bridge\Workerman\WorkermanPhalcon($application, true);
 //require_once PATH_ROOT . 'phar-src/workerman/vendor/index.php';
 
 
-$wp->setWorkerFiles('ws');
+$wp->setWorkerFiles('http');
 
 $http_worker = new Worker("http://0.0.0.0:80");
 
