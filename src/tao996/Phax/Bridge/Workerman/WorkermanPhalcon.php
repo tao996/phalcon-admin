@@ -22,26 +22,28 @@ class WorkermanPhalcon
     public array $sessionRedisOptions = [];
     public array $cookiesOptions = [];
 
-    public function __construct(public Application $application, bool $requireWorkermanPhar = true)
+    public function __construct(public Application|null $application, bool $requireWorkermanPhar = true)
     {
-        $diServices = new DiService(Application::di());
-        $diServices->cache()->flash()
-            ->db(false)->redis(false)->pdo(false)
-            ->view(false);
-        $this->diService = $diServices;
+        if (!is_null($this->application)) {
+            $diServices = new DiService(Application::di());
+            $diServices->cache()->flash()
+                ->db(false)->redis(false)->pdo(false)
+                ->view(false);
+            $this->diService = $diServices;
 
-        $sessionCc = $this->diService->getConfig()->path('session')->toArray();
-        $ses = $sessionCc['stores']['redis'];
-        $this->sessionRedisOptions = [
-            'host' => $ses['host'],
-            'port' => $ses['port'],
-            'timeout' => 2,
-            'auth' => $ses['auth'],
-            'database' => $ses['index'],
-            'prefix' => $ses['prefix'] ?? '_ses_'
-        ];
-        $this->cookiesOptions = $this->diService->getConfig()->path('cookie')->toArray();
+            $sessionCc = $this->diService->getConfig()->path('session')->toArray();
+            $ses = $sessionCc['stores']['redis'];
+            $this->sessionRedisOptions = [
+                'host' => $ses['host'],
 
+                'port' => $ses['port'],
+                'timeout' => 2,
+                'auth' => $ses['auth'],
+                'database' => $ses['index'],
+                'prefix' => $ses['prefix'] ?? '_ses_'
+            ];
+            $this->cookiesOptions = $this->diService->getConfig()->path('cookie')->toArray();
+        }
         if ($requireWorkermanPhar) {
             require_once PATH_PHAR . 'workerman.phar';
         }
@@ -117,7 +119,10 @@ class WorkermanPhalcon
                 $file = PATH_PUBLIC . ltrim($requestURL, '/');
                 $connection->send($this->withFile($file));
                 return true;
-            } elseif (preg_match('/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2|webp|txt|doc|docx|xls|xlsx|ppt|pptx|pdf|sql|phtml)$/',$requestURL)){
+            } elseif (preg_match(
+                '/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2|webp|txt|doc|docx|xls|xlsx|ppt|pptx|pdf|sql|phtml)$/',
+                $requestURL
+            )) {
                 $connection->send($this->withFile('//--')); // 404
                 return true;
             }

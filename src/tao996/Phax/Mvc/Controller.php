@@ -121,8 +121,19 @@ class Controller extends \Phalcon\Mvc\Controller
         if ($this->response->isSent()) {
             return;
         }
+
+        $data = $dispatcher->getReturnedValue() ?: null; // 接口返回的数据
+        $this->executeRouteResponseData($data);
+    }
+
+    /**
+     * @param mixed $data
+     * @return bool 是否已经有处理过
+     * @throws BlankException
+     */
+    protected function executeRouteResponseData(mixed $data): bool
+    {
         if ($this->autoResponse) {
-            $data = $dispatcher->getReturnedValue() ?: []; // 接口返回的数据
             // 获取控制器响应内容，并根据请求样式判断数据响应方式
             if ($this->isApiRequest()) {
                 $data = $this->beforeJsonResponse($data);
@@ -131,7 +142,9 @@ class Controller extends \Phalcon\Mvc\Controller
                 $data = $this->beforeViewResponse($data);
                 $this->doResponse(false, $data);
             }
+            return true;
         }
+        return false;
     }
 
     public function isApiRequest(): bool
