@@ -362,4 +362,21 @@ class MyMvc
         return $this->config()->path('app.locale', 'en');
     }
 
+    /**
+     * 调用 console 任务
+     * @param string $path 路径，示例 p/demo/main
+     * @return array
+     */
+    public function console(string $path, bool $filter = true): array
+    {
+        $cmd = 'php /var/www/artisan ' . $path;
+
+        exec($cmd, $output, $result_code);
+        if ($result_code === 0) {
+            return $filter ? array_filter($output) : $output;
+        } else {
+            throw new \Exception('failed:' . $cmd);
+        }
+    }
+
 }

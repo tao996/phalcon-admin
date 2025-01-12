@@ -71,4 +71,22 @@ class MyFileSystem
     {
         return rtrim($directory, '/') . '/' . ltrim($filename, '/');
     }
+
+    public static function readWithLines(string $filePath, callable $callback): void
+    {
+        if (!file_exists($filePath)) {
+            throw new \Exception("文件不存在: " . $filePath);
+        }
+
+        $fileHandle = fopen($filePath, 'r');
+        if ($fileHandle) {
+            while (($line = fgets($fileHandle)) !== false) {
+                $line = rtrim($line);
+                call_user_func($callback, $line);
+            }
+            fclose($fileHandle);
+        } else {
+            throw new \Exception("无法打开文件: " . $filePath);
+        }
+    }
 }

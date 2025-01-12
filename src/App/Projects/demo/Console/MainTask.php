@@ -2,7 +2,10 @@
 
 namespace App\Projects\demo\Console;
 
-class MainTask
+
+use Phax\Mvc\Console;
+
+class MainTask extends Console
 {
     /**
      * php artisan p/demo/main
@@ -25,6 +28,6 @@ class MainTask
      */
     public function sayAction(string $name)
     {
-        echo 'Project demo say Action: ', $name, PHP_EOL;
+        echo 'HELLO ' . $name;
     }
 }
