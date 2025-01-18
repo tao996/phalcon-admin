@@ -108,6 +108,8 @@ class G
             } elseif (preg_match('/^(--?)([\w-]+)$/', $item, $matches)) {
                 $key = ltrim($matches[2], "-");
                 $options[$key] = null;
+            } else {
+                $options[] = $item;
             }
         }
         return $options;

@@ -15,7 +15,7 @@ use phpseclib3\Net\SSH2;
 /**
  * 服务器连接管理
  */
-class CmdManager
+class RemoteCmdManager
 {
 
     private SshConfig $cc;

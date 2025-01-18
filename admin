@@ -26,14 +26,26 @@ php admin sync
     -urm[=Str]   : 移除 -u 所上传的文件，默认值为 *，可选值为 app|nginx|hosts
     -d           : 下载远程项目的配置文件到指定的本地目录，保存时到自动追加日期
     -log         : 下载远程项目日志文件到指定目录下，保存时自动追加日期
-    -proj=Str    : 推送指定  project 到远程目录，同时在 ssh.php 中记录 推送的时间
+    -proj[=Str]    : 推送指定  project 到远程目录，同时在 ssh.php 中记录 推送的时间；如果不指定名称，则从配置文件中读取
+                   : 示例: php admin sync -dir=x1 -proj=y1,y2
         -git     : 同时在项目下执行 git pull 更新项目
+
+php admin artisan xxx : 往 php 所在服务发送命令，与进入服务内容执行 php artisan xxx 效果相同
+                      : 示例: php admin artisan p/demo/main
+    -s=[Str]     : 可选，指定服务名称，否则将从 docker-compose.yaml 中读取
 HELP;
-include_once __DIR__.'/toolkit/__init__.php';
+include_once __DIR__ . '/toolkit/__init__.php';
 
 array_shift($argv);
 $g = new G($argv);
 switch ($g->action) {
+    case 'artisan': // 向 docker 服务内部发送命令
+        // 使用示例：
+        // php .\admin artisan p/demo/main/test
+        // php .\admin artisan p/demo/main/say 16
+        $artisan = new Artisan($g);
+        $artisan->exec();
+        break;
     case 'test':
         system('php src/vendor/bin/phpunit');
         break;
@@ -66,7 +78,7 @@ switch ($g->action) {
         } elseif ($g->hasArgsWithKey('log')) { // 下载远程项目的日志文件到本地
             $sync->downloadLogs();
         } elseif ($g->hasArgsWithKey('proj')) { // exam: php admin sync -dir=boyu -proj=house
-            $sync->pushProject($g->getArgsWithKey('proj'));
+            $sync->pushProjects($g->getArgsWithKey('proj'));
         }
         break;
     default:

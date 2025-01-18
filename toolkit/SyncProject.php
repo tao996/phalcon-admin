@@ -161,7 +161,7 @@ class SyncProject
     public function runPing()
     {
         $cc = new SshConfig($this->getSshPath());
-        $ssh = new CmdManager($this->g, $cc);
+        $ssh = new RemoteCmdManager($this->g, $cc);
         $ssh->ssh2();
         $this->g->messages[] = 'ping success';
     }
@@ -175,7 +175,7 @@ class SyncProject
     public function runUpload(string $part = '*')
     {
         $cc = new SshConfig($this->getSshPath());
-        $ssh = new CmdManager($this->g, $cc);
+        $ssh = new RemoteCmdManager($this->g, $cc);
         $this->getMapInitFiles();
         $localDir = $this->getSavePath(); // 本地目录
         $project = $cc->getProjectName();
@@ -241,7 +241,7 @@ class SyncProject
     public function runRemoteRm(string $part = '*'): void
     {
         $cc = new SshConfig($this->getSshPath());
-        $ssh = new CmdManager($this->g, $cc);
+        $ssh = new RemoteCmdManager($this->g, $cc);
         $this->getMapInitFiles();
         $project = $cc->getProjectName();
 
@@ -299,7 +299,7 @@ class SyncProject
     public function downloadRemote(): void
     {
         $cc = new SshConfig($this->getSshPath());
-        $ssh = new CmdManager($this->g, $cc);
+        $ssh = new RemoteCmdManager($this->g, $cc);
         $this->getMapInitFiles();
         $project = $cc->getProjectName();
         $localDir = $this->getSavePath('_d' . date('ymdHi')); // 本地目录
@@ -348,7 +348,7 @@ class SyncProject
         if ($logs = $cc->getConfigWith('logs', [])) {
             $this->g->messages[] = '准备下载日志文件';
 
-            $ssh = new CmdManager($this->g, $cc);
+            $ssh = new RemoteCmdManager($this->g, $cc);
             $localDir = $this->getSavePath('_log' . date('ymdHi')); // 本地目录
             if (!file_exists($localDir)) {
                 if (!mkdir($localDir)) {
@@ -371,12 +371,34 @@ class SyncProject
     }
 
     /**
+     * 推送项目到远程
+     * @throws Exception
+     */
+    public function pushProjects(string $proj): void
+    {
+        $cc = new SshConfig($this->getSshPath());
+        if (empty($proj)) {
+            $projects = $cc->getConfigWith('projects', []);
+            if (empty($projects)) {
+                throw new \Exception('could not find any projects in ssh.php');
+            }
+            $projects = array_keys($projects);
+        } else {
+            $projects = explode(',', $proj);
+        }
+        foreach ($projects as $project) {
+            $this->pushProject($project, $cc);
+        }
+    }
+
+    /**
      * 推送本地 App/xxx 到远程目录
      * @param string $proj
      * @return void
      */
-    public function pushProject(string $proj): void
+    public function pushProject(string $proj, SshConfig $cc): void
     {
+        $proj = trim($proj);
         if (empty($proj)) {
             throw new \Exception('必须指定推送的应用');
         }
@@ -386,13 +408,15 @@ class SyncProject
         }
 
         $this->g->messages[] = '准备推送本地应用:' . $proj;
-        $cc = new SshConfig($this->getSshPath());
-        $ssh = new CmdManager($this->g, $cc);
+        $ssh = new RemoteCmdManager($this->g, $cc);
 
         $gitignore = $path_project . '.gitignore';
         if (file_exists($gitignore)) {
             $patterns = MyFileSystem::generateFilterPatternsByGitignore(file_get_contents($gitignore));
             $files = MyFileSystem::getFilesInDirectory($path_project, function ($path) use ($patterns, $path_project) {
+                if (str_contains($path, '.git')) {
+                    return true;
+                }
                 return MyFileSystem::filterByGitignorePatterns($path, $patterns, $path_project);
             });
         } else {
