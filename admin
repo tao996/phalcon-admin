@@ -30,3 +30,53 @@ php admin sync
         -git     : 同时在项目下执行 git pull 更新项目
 HELP;
 include_once __DIR__.'/toolkit/__init__.php';
+
+array_shift($argv);
+$g = new G($argv);
+switch ($g->action) {
+    case 'test':
+        system('php src/vendor/bin/phpunit');
+        break;
+    case 'quick':
+        $local = new LocalProject($g); // 生成基本配置文件
+        $local->runQuickStart();
+        break;
+    case 'local':
+        $local = new LocalProject($g);
+        if ($g->hasArgsWithKey('init')) {// 初始化本地环境
+            $local->runInit();
+        } elseif ($g->hasArgsWithKey('backup')) { // 备份当前的配置文件
+            $local->runBackup();
+        } elseif ($g->hasArgsWithKey('clear')) { // 清除由 local init 生成的配置文件
+            $local->runClear($g->hasArgsWithKey('y'));
+        }
+        break;
+    case 'sync':
+        $sync = new SyncProject($g);
+        if ($g->hasArgsWithKey('c')) { // 将配置文件生成到指定目录下
+            $sync->runCreate();
+        } elseif ($g->hasArgsWithKey('ping')) { // 检测 ssh.php 配置是否正确
+            $sync->runPing();
+        } elseif ($g->hasArgsWithKey('u')) { // 将指定目录下的配置文件上传到远程
+            $sync->runUpload($g->getArgsWithKey('u', '*'));
+        } elseif ($g->hasArgsWithKey('urm')) { // 从远程删除
+            $sync->runRemoteRm($g->getArgsWithKey('urm', '*'));
+        } elseif ($g->hasArgsWithKey('d')) { // 下载远程项目的配置文件到本地
+            $sync->downloadRemote();
+        } elseif ($g->hasArgsWithKey('log')) { // 下载远程项目的日志文件到本地
+            $sync->downloadLogs();
+        } elseif ($g->hasArgsWithKey('proj')) { // exam: php admin sync -dir=boyu -proj=house
+            $sync->pushProject($g->getArgsWithKey('proj'));
+        }
+        break;
+    default:
+        echo "~~~~~~~~~~ HOW TO USE ~~~~~~~~~~", PHP_EOL;
+        echo HELP_INFO, PHP_EOL;
+        return;
+}
+if (!empty($g->messages)) {
+    echo PHP_EOL;
+    print_r($g->messages);
+}
+echo PHP_EOL;
+$g->saveMaintainTmp();

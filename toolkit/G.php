@@ -41,14 +41,18 @@ class G
 
     public array $messages = [];
 
-    public function __construct()
+    /**
+     * @param array $args 命令行参数，通常直接 $argv
+     * @return void
+     */
+    public function __construct(array $args)
     {
         $this->projectName = pathinfo(PATH_ROOT, PATHINFO_BASENAME);
         if (file_exists(PATH_ADMIN_TMP_FILE)) {
             $this->maintainData = include_once PATH_ADMIN_TMP_FILE;
         }
 
-        $this->argsOptions = $this->loadKvArgs();
+        $this->argsOptions = $this->loadKvArgs($args);
         $this->loadEnv();
         $this->prefix = $this->getArgsWithKey('prefix');
     }
@@ -89,14 +93,12 @@ class G
      * 获取命令行中的 --key=value 或者 -key=value 或者 -key 参数
      * @return array
      */
-    private function loadKvArgs(): array
+    private function loadKvArgs(array $args): array
     {
-        global $argv;
-        $args = $argv;
-        array_shift($args); // 移除脚本名称
-
+        if (in_array($args[0], ['admin', './admin', '.\admin'])) {
+            array_shift($args); // 移除脚本名称
+        }
         $this->action = $args[0] ?? 'help';
-
         $options = [];
         foreach ($args as $item) {
             if (preg_match('/^(--?)([\w-]+)=(.*)$/', $item, $matches)) {

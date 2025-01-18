@@ -8,6 +8,10 @@
 * file that was distributed with this source code.
 */
 
+/**
+ * 本地应用管理
+ * 用于快速地初始化本地项目
+ */
 class LocalProject
 {
     public G $g;
@@ -21,7 +25,7 @@ class LocalProject
         $this->testPrefix = $g->prefix;
     }
 
-    public function runQuickStart()
+    public function runQuickStart(): void
     {
         foreach (
             [

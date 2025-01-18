@@ -12,14 +12,16 @@ use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Net\SFTP;
 use phpseclib3\Net\SSH2;
 
-
-class SyncServer
+/**
+ * 服务器连接管理
+ */
+class CmdManager
 {
 
-    private SyncConfig $cc;
+    private SshConfig $cc;
     private G $g;
 
-    public function __construct(G $g, SyncConfig $cc)
+    public function __construct(G $g, SshConfig $cc)
     {
         $this->g = $g;
         $this->cc = $cc;

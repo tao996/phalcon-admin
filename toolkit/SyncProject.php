@@ -160,8 +160,8 @@ class SyncProject
 
     public function runPing()
     {
-        $cc = new SyncConfig($this->getSshPath());
-        $ssh = new SyncServer($this->g, $cc);
+        $cc = new SshConfig($this->getSshPath());
+        $ssh = new CmdManager($this->g, $cc);
         $ssh->ssh2();
         $this->g->messages[] = 'ping success';
     }
@@ -174,8 +174,8 @@ class SyncProject
      */
     public function runUpload(string $part = '*')
     {
-        $cc = new SyncConfig($this->getSshPath());
-        $ssh = new SyncServer($this->g, $cc);
+        $cc = new SshConfig($this->getSshPath());
+        $ssh = new CmdManager($this->g, $cc);
         $this->getMapInitFiles();
         $localDir = $this->getSavePath(); // 本地目录
         $project = $cc->getProjectName();
@@ -240,8 +240,8 @@ class SyncProject
      */
     public function runRemoteRm(string $part = '*'): void
     {
-        $cc = new SyncConfig($this->getSshPath());
-        $ssh = new SyncServer($this->g, $cc);
+        $cc = new SshConfig($this->getSshPath());
+        $ssh = new CmdManager($this->g, $cc);
         $this->getMapInitFiles();
         $project = $cc->getProjectName();
 
@@ -298,8 +298,8 @@ class SyncProject
      */
     public function downloadRemote(): void
     {
-        $cc = new SyncConfig($this->getSshPath());
-        $ssh = new SyncServer($this->g, $cc);
+        $cc = new SshConfig($this->getSshPath());
+        $ssh = new CmdManager($this->g, $cc);
         $this->getMapInitFiles();
         $project = $cc->getProjectName();
         $localDir = $this->getSavePath('_d' . date('ymdHi')); // 本地目录
@@ -343,12 +343,12 @@ class SyncProject
      */
     public function downloadLogs(): void
     {
-        $cc = new SyncConfig($this->getSshPath());
+        $cc = new SshConfig($this->getSshPath());
 
         if ($logs = $cc->getConfigWith('logs', [])) {
             $this->g->messages[] = '准备下载日志文件';
 
-            $ssh = new SyncServer($this->g, $cc);
+            $ssh = new CmdManager($this->g, $cc);
             $localDir = $this->getSavePath('_log' . date('ymdHi')); // 本地目录
             if (!file_exists($localDir)) {
                 if (!mkdir($localDir)) {
@@ -386,12 +386,20 @@ class SyncProject
         }
 
         $this->g->messages[] = '准备推送本地应用:' . $proj;
-        $cc = new SyncConfig($this->getSshPath());
-        $ssh = new SyncServer($this->g, $cc);
+        $cc = new SshConfig($this->getSshPath());
+        $ssh = new CmdManager($this->g, $cc);
 
-        $files = MyFileSystem::getFilesInDirectory($path_project, function ($path) {
-            return str_contains($path, '.git');
-        });
+        $gitignore = $path_project . '.gitignore';
+        if (file_exists($gitignore)) {
+            $patterns = MyFileSystem::generateFilterPatternsByGitignore(file_get_contents($gitignore));
+            $files = MyFileSystem::getFilesInDirectory($path_project, function ($path) use ($patterns, $path_project) {
+                return MyFileSystem::filterByGitignorePatterns($path, $patterns, $path_project);
+            });
+        } else {
+            $files = MyFileSystem::getFilesInDirectory($path_project, function ($path) {
+                return str_contains($path, '.git');
+            });
+        }
 
         $remote_push_path = $cc->remote_phalcon_admin_path . 'src';
         $last_mtime = $cc->getProjectMtime($proj);

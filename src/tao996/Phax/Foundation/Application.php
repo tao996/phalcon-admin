@@ -12,6 +12,7 @@ use Phax\Support\Exception\LocationException;
 use Phax\Support\Logger;
 use Phax\Support\Router;
 use Phax\Utils\Color;
+use Phax\Utils\MyData;
 
 /**
  * 记录每个应用的 di/config 等信息
@@ -145,7 +146,6 @@ class Application
      */
     public function routeWith(string $requestURL, Di $di): \Phalcon\Http\ResponseInterface
     {
-
         $route = new Route($requestURL, $di);
         $di->setShared('route', $route);
 //        ddd($requestURL,$di->getServices());
@@ -200,7 +200,9 @@ class Application
         $diServices->db()
             ->pdo()->redis()->cache()
             ->application();
-
+        /**
+         * @var $console \Phalcon\Cli\Console
+         */
         $console = $di->get('application');
         $console->setDI($di);
 
@@ -231,7 +233,9 @@ class Application
             'p' => Router::$projectKeyword,
         ];
 
-        $arguments = [];
+        $arguments = [
+            'params' => [],
+        ];
 
         foreach ($argv as $k => $arg) {
             if ($k === 1) { // main/test, m/demo/main/say
@@ -241,7 +245,12 @@ class Application
                 }
                 $arguments = array_merge($arguments, $info);
             } elseif ($k >= 2) {
-                $arguments['params'][] = $arg;
+                $argKV = $this->parseKeyValue($arg);
+                if (is_array($argKV)) {
+                    $arguments['params'] = array_merge($arguments['params'], $argKV);
+                } else {
+                    $arguments['params'][] = $arg;
+                }
             }
         }
         $di->get('dispatcher')->setDefaultNamespace($arguments['namespace']);
@@ -258,4 +267,13 @@ class Application
         }
     }
 
+    private function parseKeyValue($input)
+    {
+        // 使用正则表达式匹配 --key=value 或 -key=value 的格式
+        if (preg_match('/^--?([a-zA-Z0-9_]+)=(.*)$/', $input, $matches)) {
+            return [$matches[1] => 'true' === $matches[2] || 'false' === $matches['2'] ? $matches[2] === 'true' : $matches[2]];
+        } else {
+            return $input;
+        }
+    }
 }

@@ -8,7 +8,10 @@
 * file that was distributed with this source code.
 */
 
-class SyncConfig
+/**
+ * ssh.php 配置文件
+ */
+class SshConfig
 {
     /**
      * @var array

@@ -22,21 +22,6 @@ if (!function_exists('is_debug')) {
     }
 }
 
-if (!function_exists('ddd')) {
-    /**
-     * print var type and value, and stop
-     */
-    function ddd($var): void
-    {
-        $args = func_get_args();
-        array_map(function ($x) {
-            $string = (new \Phalcon\Support\Debug\Dump())->variable($x);
-            echo IS_PHP_FPM ? $string : strip_tags($string) . PHP_EOL;
-        }, $args);
-        appExit();
-    }
-}
-
 if (!function_exists('pr')) {
     /**
      * print only value (if run in cli, the print in console)
@@ -54,6 +39,25 @@ if (!function_exists('pr')) {
         echo IS_TASK || IS_WORKER_WEB ? '|---> ' . PHP_EOL : '</pre>';
         if (func_get_args()[func_num_args() - 1] !== false) {
             appExit();
+        }
+    }
+}
+
+if (!function_exists('ddd')) {
+    /**
+     * print var type and value, and stop
+     */
+    function ddd($var): void
+    {
+        if (class_exists('\Phalcon\Support\Debug\Dump')) {
+            $args = func_get_args();
+            array_map(function ($x) {
+                $string = (new \Phalcon\Support\Debug\Dump())->variable($x);
+                echo IS_PHP_FPM ? $string : strip_tags($string) . PHP_EOL;
+            }, $args);
+            appExit();
+        } else {
+            pr($var);
         }
     }
 }

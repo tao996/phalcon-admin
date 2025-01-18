@@ -2,6 +2,10 @@
 
 namespace Phax\Utils;
 
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
 class MyFileSystem
 {
     /**
@@ -38,7 +42,13 @@ class MyFileSystem
         return $rows;
     }
 
-    public static function getFilesInDirectory($directory, callable $filter = null): array
+    /**
+     * 根据 $filter 过滤目录下的文件
+     * @param string $directory 目录
+     * @param callable{string}|null $filter 过滤器
+     * @return array
+     */
+    public static function getFilesInDirectory(string $directory, callable $filter = null): array
     {
         $files = [];
         if (is_dir($directory)) {
@@ -88,5 +98,72 @@ class MyFileSystem
         } else {
             throw new \Exception("无法打开文件: " . $filePath);
         }
+    }
+
+    /**
+     * 根据 $gitignoreContent 生成过滤的内容
+     * @param string $gitignoreContent .gitignore 的仙鹤
+     * @return array
+     */
+    public static function generateFilterPatternsByGitignore(string $gitignoreContent): array
+    {
+        $includes = []; // 必须包含的文件，通常用于 !开头
+        $excludes = [];
+
+        $patterns = explode("\n", $gitignoreContent);
+        $patterns = array_filter($patterns); // 去除空行
+
+        foreach ($patterns as $pattern) {
+            $save_include = true;
+            if (str_starts_with($pattern, '!')) {
+                $pattern = ltrim($pattern, '!');
+                $save_include = false;
+            }
+
+            if (str_ends_with($pattern, '/')) {
+                $pattern = rtrim($pattern, '/') . '/*';
+            } elseif (preg_match('|\w$|', $pattern)) {
+                $pattern .= '*';
+            }
+            $pattern = str_replace('.', '\.', $pattern);
+            $pattern = str_replace('*', '.*', $pattern);
+            $pattern = str_replace('?', '.', $pattern);
+            $pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
+            if ($save_include) {
+                $excludes[] = $pattern;
+            } else {
+                $includes[] = $pattern;
+            }
+        }
+        return [$includes, $excludes];
+    }
+
+    /**
+     * 使用 createFilterByGitignore 生成的规则来过滤文件
+     * @param string $file 文件路径
+     * @param array $patterns createFilterByGitignore 生成的规则
+     * @param string $prefix_dir 文件所在的目录
+     * @return bool 如果被过滤掉则返回 true
+     */
+    public static function filterByGitignorePatterns(string $file, array $patterns, string $prefix_dir = ''): bool
+    {
+        if ($prefix_dir) {
+            if (!str_ends_with($prefix_dir, '/')) {
+                $prefix_dir .= '/';
+            }
+            $file = str_replace($prefix_dir, '', $file);
+        }
+        foreach ($patterns[0] as $include_pattern) {
+            if (preg_match($include_pattern, $file)) {
+                return false;
+            }
+        }
+        foreach ($patterns[1] as $exclude_pattern) {
+            if (preg_match($exclude_pattern, $file)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
