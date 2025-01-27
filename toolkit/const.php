@@ -18,7 +18,6 @@ const PROJECT_INIT_FILES = [
     'docker/php/php.example.ini',
     'docker/php/supervisord.example.conf',
     'docker/nginx/sites/default.example.conf',
-    'docker/nginx/assets.example.conf',
     // 下面两个文件属性于 /etc/nginx/conf.d/ 配置
     'docker/nginx/host.example.conf',
 

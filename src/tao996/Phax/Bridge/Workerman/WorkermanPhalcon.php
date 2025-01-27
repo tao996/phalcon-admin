@@ -84,7 +84,7 @@ class WorkermanPhalcon
      * 处理检查静态文件
      * @param \Workerman\Connection\TcpConnection $connection
      * @param \Workerman\Protocols\Http\Request $request
-     * @param bool $staticFiles 不建议在这里处理，应该交由 nginx proxy 去处理以提高性能；docker/nginx/assets.example.conf
+     * @param bool $staticFiles 不建议在这里处理，应该交由 nginx proxy 去处理以提高性能
      * @return bool
      */
     public function staticFile(
