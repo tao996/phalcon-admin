@@ -14,6 +14,6 @@ class MainTaskTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('Project demo test Action', $rst);
 
         $rst = \Tests\Helper\MyTestTaskHelper::cmd('p/demo/main/say 15');
-        $this->assertEquals('Project demo say Action: 15', $rst);
+        $this->assertEquals('HELLO 15', $rst);
     }
 }

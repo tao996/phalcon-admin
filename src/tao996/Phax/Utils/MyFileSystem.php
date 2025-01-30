@@ -2,10 +2,6 @@
 
 namespace Phax\Utils;
 
-use FilesystemIterator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-
 class MyFileSystem
 {
     /**
@@ -82,6 +78,12 @@ class MyFileSystem
         return rtrim($directory, '/') . '/' . ltrim($filename, '/');
     }
 
+    /**
+     * 读取文件每一行，并执行回调函数
+     * @param string $filePath 文件路径
+     * @param callable $callback 回调函数；如果返回 false，则停止继续读取
+     * @return void
+     */
     public static function readWithLines(string $filePath, callable $callback): void
     {
         if (!file_exists($filePath)) {
@@ -92,7 +94,9 @@ class MyFileSystem
         if ($fileHandle) {
             while (($line = fgets($fileHandle)) !== false) {
                 $line = rtrim($line);
-                call_user_func($callback, $line);
+                if (false === call_user_func($callback, $line)) {
+                    break;
+                }
             }
             fclose($fileHandle);
         } else {

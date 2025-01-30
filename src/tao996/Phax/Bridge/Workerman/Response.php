@@ -31,7 +31,7 @@ class Response extends AbstractResponse
     public function setStatusCode(int $code, string $message = null): ResponseInterface
     {
         $this->_code = $code;
-        $this->_message = $message;
+        $this->_message = $message || '';
         return $this;
     }
 

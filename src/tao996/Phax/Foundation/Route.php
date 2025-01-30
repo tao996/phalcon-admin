@@ -7,15 +7,24 @@ use Phax\Helper\MyBaseUri;
 use Phax\Support\Config;
 use Phax\Support\Router;
 
+require_once PATH_ROOT . 'routes/web.php';
+
 class Route
 {
+    /**
+     * 路由映射，示例  ['/login'=>'/m/tao/auth/index']，当访问 /login 时，实际路由映射为 /m/tao/auth/index
+     * @var array
+     */
+    public static array $mapRoute = [];
+
+
     /**
      * @var array{pattern:string,paths:array{module:string,controller:string,action:string},pathsname:array{module:string,controller:string,action:string},namespace:string,viewpath:string,project:string,route:string,pickview:string}
      */
     public array $routerOptions = [];
     /**
      * 获取当前 URL 中的组成
-     * @var array{sw:bool,language:string,api:bool,project:bool,module:bool,path:string}
+     * @var array{sw:bool,language:string,api:bool,project:bool,module:bool,path:string,mapurl:string}
      */
     public array $urlOptions = [];
     /**
@@ -38,28 +47,30 @@ class Route
     /**
      * @param string $requestURI
      */
-    public function __construct(public string $requestURI, public Di $di, bool $lazyLoadURI = false)
+    public function __construct(public string $requestURI, public Di $di)
     {
-        if (!$lazyLoadURI) {
-            $this->loadRequestURI();
-        }
-    }
-
-    public function loadRequestURI():void
-    {
+        $index = strpos($requestURI, '?');
+        $path = $index === false ? $requestURI : substr($requestURI, 0, $index);
+        $this->requestURI = self::$mapRoute[$path] ?? $path;
         $this->urlOptions = Router::pathMatch($this->requestURI);
+        $map_path = '/' . $this->urlOptions['path'];
+        if (isset(self::$mapRoute[$map_path])) {
+            $cliKeyword = $this->urlOptions[Router::$cliKeyword];
+            $this->urlOptions = Router::pathMatch(self::$mapRoute[$map_path]);
+            $this->urlOptions[Router::$cliKeyword] = $cliKeyword;
+        }
+        $this->origin();
     }
 
     /**
      * 当前访问的域名
-     * @return string
+     * @return string http://localhost:8071/
      */
     public function origin(): string
     {
         if (empty($this->origin)) {
             $baseUri = new MyBaseUri($this->di);
             $this->origin = $baseUri->getOrigin();
-            Config::$local_assets_origin = rtrim($this->origin, '/');
         }
         return $this->origin;
     }

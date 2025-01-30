@@ -56,6 +56,7 @@ class Controller extends \Phalcon\Mvc\Controller
 
     public function initialize(): void
     {
+//        ddd($this->getDI()->has('route'), get_class($this->getDI()));
         if (empty($this->vv)) {
             $this->vv = new MyMvc($this->di);
         }

@@ -8,7 +8,8 @@ if (!function_exists('appExit')) {
     function appExit(string $message = ''): void
     {
         if (IS_WORKER_WEB) {
-            throw new \Exception('see the message in console when run in cli mode');
+            echo $message, PHP_EOL;
+            throw new \Exception('appExit');
         } else {
             exit($message);
         }

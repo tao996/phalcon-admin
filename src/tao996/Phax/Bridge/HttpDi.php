@@ -15,15 +15,11 @@ class HttpDi extends Di
 
     public function __construct()
     {
-        self::$defaultDi = Application::di();
-    }
-
-    public function copyServices():void
-    {
-        foreach (array_keys(self::$defaultDi->services) as $name) {
+        $di = Application::di();
+        foreach (array_keys($di->services) as $name) {
             if (!$this->has($name)) {
-                $this->setShared($name, function () use ($name) {
-                    return self::$defaultDi->get($name);
+                $this->setShared($name, function () use ($name, $di) {
+                    return $di->get($name);
                 });
             }
         }

@@ -24,7 +24,7 @@ spl_autoload_register(function ($class) {
 const IS_TASK = true;
 const IS_WORKER_WEB = false;
 require_once PATH_SRC . 'tao996/Phax/function.php';
-require_once __DIR__ . '/Artisan.php';
+require_once __DIR__ . '/DockerService.php';
 require_once __DIR__ . '/const.php';
 require_once __DIR__ . '/G.php';
 require_once __DIR__ . '/LocalProject.php';

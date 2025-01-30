@@ -204,7 +204,7 @@ class MyMvc
      */
     public function projectAsset(string $project, string $pathInView): string
     {
-        return \Phax\Support\Config::$local_assets_origin . "/pstatic/{$project}/{$pathInView}";
+        return "/pstatic/{$project}/{$pathInView}";
     }
 
     /**
@@ -215,7 +215,7 @@ class MyMvc
      */
     public function moduleAsset(string $module, string $pathInView): string
     {
-        return \Phax\Support\Config::$local_assets_origin . "/mstatic/{$module}/{$pathInView}";
+        return "/mstatic/{$module}/{$pathInView}";
     }
 
     /**
@@ -229,7 +229,7 @@ class MyMvc
             $options['origin'] = $this->route()->origin();
         }
         $options['language'] = $this->route()->urlOptions['language'];
-        $options['prefix'] = $this->route()->urlOptions['sw'] ? Router::$swKeyword : '';
+        $options['prefix'] = $this->route()->urlOptions[Router::$cliKeyword] ? Router::$cliKeyword : '';
         return MyUrl::createWith($options);
     }
 

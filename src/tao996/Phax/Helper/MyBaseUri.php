@@ -20,6 +20,7 @@ class MyBaseUri
 
     public function getOrigin(): string
     {
+
         if (empty($this->origin)) {
             $scheme = $this->request->hasServer('HTTPS')
             && (($this->request->getServer('HTTPS') == 'on') || ($this->request->getServer('HTTPS') == 1))
@@ -28,8 +29,8 @@ class MyBaseUri
                 $scheme = 'https';
             }
             $port = '';
-            $server_port = $this->request->getServer('SERVER_PORT');
-            if (!empty($server_port) && $server_port != '80' && $server_port != '443') {
+            $server_port = $this->request->getServer('SERVER_PORT') ?: ($_SERVER['OPEN_PORT'] || '80');
+            if ($server_port != '80' && $server_port != '443') {
                 $port = ':' . $server_port;
             }
 

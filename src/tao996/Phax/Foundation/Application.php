@@ -148,7 +148,7 @@ class Application
     {
         $route = new Route($requestURL, $di);
         $di->setShared('route', $route);
-//        ddd($requestURL,$di->getServices());
+//        ddd($requestURL, $di->getServices());
         /**
          * @var Config $config
          */
@@ -157,13 +157,13 @@ class Application
             'module' => Router::$moduleKeyword,
             'project' => $config->getProject(),
         ];
-        $route->routerOptions = Router::analysisWithURL($requestURL, $options);
+        $route->routerOptions = Router::analysisWithURL($route->urlOptions['mapurl'], $options);
+//        ddd($route->urlOptions,$route->routerOptions);
 
         /**
          * @var \Phalcon\Mvc\Router $router
          */
         $router = $di->getShared('router');
-//        require_once PATH_ROOT . 'routes/web.php';
 
         $router->setDefaultNamespace($route->routerOptions['namespace']);
         // 添加到路由
@@ -182,7 +182,7 @@ class Application
         if ($route->isApiRequest()) {
             $application->useImplicitView(false);
         }
-        return $application->handle($requestURL);
+        return $application->handle($route->urlOptions['mapurl']);
     }
 
 

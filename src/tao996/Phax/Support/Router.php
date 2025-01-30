@@ -24,7 +24,7 @@ class Router
      * swoole 或者 workerman 标识
      * @var string
      */
-    public static string $swKeyword = 'sw';
+    public static string $cliKeyword = 'sw';
     /**
      * 默认的语言参数匹配表达式
      * @var string
@@ -33,20 +33,22 @@ class Router
 
     /**
      * @param string $path
-     * @return array{sw:bool,language:string,api:bool,project:bool,module:bool,path:string}
+     * @return array{sw:bool,language:string,api:bool,project:bool,module:bool,path:string,mapurl:string}
      */
     public static function pathMatch(string $path = ''): array
     {
         $matches = [
-            'sw' => false,
+            self::$cliKeyword => false,
             'language' => '',
             'api' => false,
             'project' => false,
             'module' => false,
+            'mapurl' => $path,
         ];
-        if (str_starts_with($path, '/' . self::$swKeyword)) {
-            $matches['sw'] = true;
-            $path = substr($path, strlen(self::$swKeyword) + 1);
+        if (str_starts_with($path, '/' . self::$cliKeyword)) {
+            $matches[self::$cliKeyword] = true;
+            $path = substr($path, strlen(self::$cliKeyword) + 1);
+            $matches['mapurl'] = $path;
         }
         preg_match('|^/[a-zA-Z]{2}(-[a-zA-Z]{2})?/|', $path, $match);
         if (isset($match[0])) {
@@ -227,8 +229,8 @@ class Router
                 }
             }
         }
-        if ($info['sw']) {
-            $data['pattern'] = '/' . self::$swKeyword . $data['pattern'];
+        if ($info[self::$cliKeyword]) {
+            $data['pattern'] = '/' . self::$cliKeyword . $data['pattern'];
         }
         return $data;
     }
@@ -309,6 +311,17 @@ class Router
         }
     }
 
+    /**
+     * 获取请求地址的路径
+     * @param string $requestURI
+     * @return string
+     */
+    public static function getURLPath(string $requestURI): string
+    {
+        // 去掉请求参数
+        $index = strpos($requestURI, '?');
+        return $index === false ? $requestURI : substr($requestURI, 0, $index);
+    }
 
     /**
      * 分析链接
@@ -320,8 +333,7 @@ class Router
     public static function analysisWithURL(string $requestURI, array $options = []): array
     {
         // 去掉请求参数
-        $index = strpos($requestURI, '?');
-        $requestURI = $index === false ? $requestURI : substr($requestURI, 0, $index);
+        $requestURI = self::getURLPath($requestURI);
         $config = self::analysisRoutePath($requestURI, $options);
 
         if (isset($config['subc'])) { // 子目录

@@ -33,18 +33,24 @@ php admin sync
 php admin artisan xxx : 往 php 所在服务发送命令，与进入服务内容执行 php artisan xxx 效果相同
                       : 示例: php admin artisan p/demo/main
     -s=[Str]     : 可选，指定服务名称，否则将从 docker-compose.yaml 中读取
+
+php admin nginx ws : 开启/关闭 docker/nginx/sites/nginx 配置文件中的 workerman 配置    
 HELP;
 include_once __DIR__ . '/toolkit/__init__.php';
 
 array_shift($argv);
 $g = new G($argv);
 switch ($g->action) {
-    case 'artisan': // 向 docker 服务内部发送命令
+    case 'artisan': // 向 docker php 服务内部发送命令
         // 使用示例：
         // php .\admin artisan p/demo/main/test
         // php .\admin artisan p/demo/main/say 16
-        $artisan = new Artisan($g);
-        $artisan->exec();
+        $dService = new DockerService($g);
+        $dService->artisan();
+        break;
+    case 'nginx': // 向 docker nginx 服务内部发送命令
+        $dService = new DockerService($g);
+        $dService->nginx();
         break;
     case 'test':
         system('php src/vendor/bin/phpunit');

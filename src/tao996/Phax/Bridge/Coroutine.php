@@ -78,18 +78,19 @@ class Coroutine
         $di = $this->httpDi;
         AbstractResponseCookies::$cookieClassName = Cookie::class;
         $this->httpDi->setShared(
-            'cookies', function () use ($responseCookiesClass, $cookieOptions, $di) {
-            /**
-             * @var $cookies AbstractResponseCookies
-             */
-            if ($cookieOptions['key']) {
-                $cookies = new $responseCookiesClass(true, md5($cookieOptions['key']));
-            } else {
-                $cookies = new $responseCookiesClass();
+            'cookies',
+            function () use ($responseCookiesClass, $cookieOptions, $di) {
+                /**
+                 * @var $cookies AbstractResponseCookies
+                 */
+                if ($cookieOptions['key']) {
+                    $cookies = new $responseCookiesClass(true, md5($cookieOptions['key']));
+                } else {
+                    $cookies = new $responseCookiesClass();
+                }
+                $cookies->setHttpDi($di);
+                return $cookies;
             }
-            $cookies->setHttpDi($di);
-            return $cookies;
-        }
         );
         return $this;
     }
@@ -107,8 +108,7 @@ class Coroutine
         $options = [
             'project' => $di->get('config')->getProject(),
         ];
-        $route->routerOptions = \Phax\Support\Router::analysisWithURL($uri, $options);
-
+        $route->routerOptions = \Phax\Support\Router::analysisWithURL($route->urlOptions['mapurl'], $options);
         $this->httpDi->setShared('url', function () use ($route) {
             $url = new Url();
             $url->setDI($this->httpDi);
@@ -128,26 +128,28 @@ class Coroutine
         // full match
         $router->add($route->routerOptions['route'], $route->routerOptions['paths']);
 
-        $router->handle($uri);
+        $router->handle($route->urlOptions['mapurl']);
 
         $ctrl = $route->getControllerClass();
 
-        if (PRINT_DEBUG_MESSAGE) {
-            print_r([
-                'uri' => $uri,
-                'options' => $route->routerOptions,
-                'ctrl' => $ctrl,
-                'route' => [
-                    'controller' => $route->getControllerName(),
-                    'action' => $route->getActionName(),
-                ],
-                'router' => [
-                    'namespace' => $router->getNamespaceName(),
-                    'controller' => $router->getControllerName(),
-                    'action' => $router->getActionName()
-                ]
-            ]);
-        }
+//        if (PRINT_DEBUG_MESSAGE) {
+//            echo '|<================', PHP_EOL;
+//            print_r([
+//                'uri' => $uri,
+//                'options' => $route->routerOptions,
+//                'ctrl' => $ctrl,
+//                'route' => [
+//                    'controller' => $route->getControllerName(),
+//                    'action' => $route->getActionName(),
+//                ],
+//                'router' => [
+//                    'namespace' => $router->getNamespaceName(),
+//                    'controller' => $router->getControllerName(),
+//                    'action' => $router->getActionName()
+//                ]
+//            ]);
+//            echo '|================>', PHP_EOL;
+//        }
 
         $dispatcher = new \Phalcon\Mvc\Dispatcher();
         $dispatcher->setDI($this->httpDi);
@@ -165,9 +167,21 @@ class Coroutine
             $obj = new $ctrl();
             $obj->setDI($this->httpDi);
             $obj->route = $route;
-            $this->httpDi->set($ctrl, $obj);
-            $this->httpDi->copyServices();
+            $this->httpDi->set($ctrl,$obj);
 
+//            if (PRINT_DEBUG_MESSAGE) {
+//                $handlerClass = $dispatcher->getHandlerClass();
+//                $handlerClassObj = $dispatcher->getDI()->getShared($handlerClass);
+//                $services = array_keys($handlerClassObj->getDI()->getServices());
+//                print_r([
+//                    '$dispatcher.di.route' => $dispatcher->getDI()->has('route'),
+//                    '$controller.di.route' => $obj->getDI()->has('route'),
+//                    '$dispatcher.hasHandlerClass' => $dispatcher->getDI()->has($handlerClass),
+//                    '$dispatcher.actionMethod' => $dispatcher->getActiveMethod(),
+//                    '$dispatcher.handlerClass.services'=> sort($services)
+//                ]);
+//                echo '|================>', PHP_EOL;
+//            }
             $dispatcher->dispatch();
             $possibleResponse = $dispatcher->getReturnedValue();
             if (!$this->response->isSent()) {
@@ -191,7 +205,11 @@ class Coroutine
             return $this->response->setContent($e->getMessage());
         } catch (\Exception $e) {
             if (PRINT_DEBUG_MESSAGE) {
-                print_r($e->getTraceAsString());
+                if ('appExit' === $e->getMessage()) {
+                    return $this->response->setContent('app exit');
+                } else {
+                    print_r($e->getTraceAsString());
+                }
             }
             $err = $this->application->handleException($e, $this->httpDi);
             return $this->response->setContent($err);

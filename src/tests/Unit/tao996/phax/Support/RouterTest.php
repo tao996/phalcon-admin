@@ -19,7 +19,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -28,9 +28,9 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                 ]
             ],
             [
-                '/sw/',
+                '/' . Router::$cliKeyword . '/',
                 [
-                    'sw' => true,
+                    Router::$cliKeyword => true,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -41,7 +41,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/zh-CN/',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => 'zh-CN',
                     'api' => false,
                     'project' => false,
@@ -52,7 +52,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -63,7 +63,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/bb',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -74,7 +74,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/bb/',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -85,7 +85,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/bb/index',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -96,7 +96,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -107,7 +107,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/aa',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -118,7 +118,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/cn/m/aa',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => 'cn',
                     'api' => false,
                     'project' => false,
@@ -129,7 +129,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/aa/',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -140,7 +140,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/aa/index',
                 [
-                    'sw' => false,
+                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -149,9 +149,9 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                 ]
             ],
             [
-                '/sw/zh-CN/api/p/project/controller/action/params',
+                '/'.Router::$cliKeyword.'/zh-CN/api/p/project/controller/action/params',
                 [
-                    'sw' => true,
+                    Router::$cliKeyword => true,
                     'language' => 'zh-CN',
                     'api' => true,
                     'project' => true,
@@ -164,7 +164,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             $this->assertEquals($testData[1], Router::pathMatch($testData[0]), 'not equal:' . $testData[0]);
         }
 
-//        $matches = Router::pathMatch('/sw/');
+//        $matches = Router::pathMatch('/'.Router::$cliKeyword.'/');
 //        ddd($matches);
     }
 
@@ -202,7 +202,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('index', $rst1['paths']['action']);
 
         $rst2 = \Phax\Support\Router::analysisWithURL('/m/tao/');
-        $this->assertEquals('/m/:module/',$rst2['route']);
+        $this->assertEquals('/m/:module/', $rst2['route']);
 
 //        $route = new Route('/m/tao', \Phax\Foundation\Application::di());
 //        $route->routerOptions = $rst2;

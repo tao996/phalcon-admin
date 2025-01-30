@@ -136,8 +136,7 @@ class WorkermanPhalcon
     public function handler(
         \Workerman\Connection\TcpConnection $connection,
         \Workerman\Protocols\Http\Request $request
-    ) {
-        $requestURL = $request->uri();
+    ): void {
         $coroutine = new Coroutine($this->application);
         $pRequest = new Request($request);
         $pResponse = new Response($connection);
@@ -153,6 +152,7 @@ class WorkermanPhalcon
             return new SessionManager($request);
         });
         try {
+            $requestURL = $request->uri();
             $coroutine->handler($requestURL)->send();
         } catch (LocationException $e) {
             $connection->send(new \Workerman\Protocols\Http\Response(302, ['Location' => $e->getMessage()]));
@@ -164,7 +164,5 @@ class WorkermanPhalcon
         } finally {
             $coroutine->httpDi->close();
         }
-
-        return $requestURL;
     }
 }

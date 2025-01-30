@@ -6,3 +6,5 @@ public/favicon.ico
 
 # if you want to know what happen inside phalcon
 phar-src
+routes/cli.more.php
+routes/web.more.php

@@ -290,8 +290,6 @@ class HtmlHelper
                     return false;
                 }
             } else {
-                // 映射到 module/project 的脚本文件
-                $file = \Phax\Support\Config::$local_assets_origin . $file;
                 $http = true;
             }
         }

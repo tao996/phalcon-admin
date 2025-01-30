@@ -5,14 +5,9 @@ namespace Phax\Support;
 
 use Phalcon\Config\Exception;
 use Phalcon\Di\Di;
-use Phax\Utils\MyFileSystem;
 
 class Config
 {
-    /**
-     * @var string 本地静态资源，因为 workerman 中的资源无法像 nginx 一样做映射，所以需要使用网址
-     */
-    public static string $local_assets_origin = '';
     /**
      * 当前项目
      * @var string

@@ -6,7 +6,7 @@ use Workerman\Worker;
 
 define('PATH_ROOT', dirname(__DIR__, 2) . '/');
 const IS_WORKER_WEB = true;
-const PRINT_DEBUG_MESSAGE = false; // 打印调试信息
+const PRINT_DEBUG_MESSAGE = true; // 打印调试信息
 const PRINT_REQUEST_TIME = true; // 打印响应时间
 
 /**
