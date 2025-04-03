@@ -106,7 +106,7 @@ class MyFileSystem
 
     /**
      * 根据 $gitignoreContent 生成过滤的内容
-     * @param string $gitignoreContent .gitignore 的仙鹤
+     * @param string $gitignoreContent .gitignore 的内容
      * @return array
      */
     public static function generateFilterPatternsByGitignore(string $gitignoreContent): array
