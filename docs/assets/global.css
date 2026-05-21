@@ -1,0 +1,87 @@
+.md-grid {
+  max-width: none;
+}
+.md-main__inner {
+  margin-top: 0;
+}
+.md-footer {
+  display: none;
+}
+.md-sidebar:first-child {
+  width: 10rem;
+}
+.md-typeset h2 {
+  background: green;
+  border-radius: 10px;
+  text-align: center;
+  color: white;
+}
+.md-typeset h2 a, .md-typeset h2 a:hover {
+  color: white;
+}
+.md-typeset h1 a,
+.md-typeset h2 a,
+.md-typeset h3 a,
+.md-typeset h4 a,
+.md-typeset h5 a,
+.md-typeset h6 a {
+  text-decoration: underline;
+}
+/* 表格 */
+table {
+  width: 100%;
+}
+
+/* 模仿 mat-table 的样式 */
+table.lib-table {
+  border-spacing: 0;
+  font-size: 14px;
+  width: 100%;
+  background: #fff;
+}
+
+table.lib-table td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.87);
+  vertical-align: top;
+  padding: 8px;
+}
+
+table.lib-table th {
+  height: 42px;
+  padding: 0 0 0 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+table.lib-table-border {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+table.lib-table-border td {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  /*padding-left: 24px;*/
+}
+
+/*table.lib-table-border td.mat-cell:last-of-type,*/
+table.lib-table-border td,
+table.lib-table-border th {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/*table.lib-table-border td.mat-cell:first-of-type,*/
+table.lib-table-border td,
+table.lib-table-border th {
+}
+
+table.lib-table .active {
+  background: #42a948; /* green */
+}
+
+/* mat-row [ngClass]="{'disabled':xxx}"*/
+table.lib-table .disabled {
+  background: #efefef;
+}
