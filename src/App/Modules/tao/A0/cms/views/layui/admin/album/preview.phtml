@@ -1,0 +1,41 @@
+<?php
+
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+    <style>
+    </style>
+    <table class="layui-table">
+        <tr>
+            <td width="90">发布时间</td>
+            <td><?php echo date('Y-m-d', $vv->pick('created_at')) ?></td>
+        </tr>
+        <tr>
+            <td>标题</td>
+            <td><?php echo $vv->pick('title') ?></td>
+        </tr>
+        <tr>
+            <td>封面</td>
+            <td><?php if ($cover = $vv->pick('cover')) { ?>
+                    <img src="<?php echo $cover ?>" alt="封面图片">
+                <?php } ?></td>
+        </tr>
+        <tr>
+            <td>图集</td>
+            <td>
+                <?php foreach ($vv->pick('images', []) as $item) { ?>
+                    <div style="margin: 0 10px 10px 0;">
+                        <img style="width: 150px;" src="<?php echo $item['url'] ?>" alt="">
+                        <div class="article-albums-desc"><?php echo $item['summary'] ?></div>
+                    </div>
+                <?php } ?>
+            </td>
+        </tr>
+    </table>
+<?php
+$vv->layui()->addWindowConfig()->footer();
+
+?>

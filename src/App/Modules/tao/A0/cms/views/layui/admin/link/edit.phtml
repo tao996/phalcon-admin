@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label required">TAG</label>
+        <div class="layui-input-inline">
+            <input type="number" name="tag" class="layui-input" placeholder="分组 TAG" value="<?php
+            echo $vv->pick('tag', 0) ?>">
+        </div>
+
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-inline">
+            <input type="number" name="sort" class="layui-input" placeholder="排序" value="<?php
+            echo $vv->pick('sort', 0) ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">链接标题</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" class="layui-input" placeholder="请输入链接标题"
+                   lay-verify="required" lay-reqtext="请输入链接标题"
+                   value="<?php
+                   echo $vv->pick('title') ?>">
+        </div>
+
+        <label class="layui-form-label required">链接地址</label>
+        <div class="layui-input-inline">
+            <input type="text" name="href" class="layui-input" placeholder="请输入链接地址"
+                   lay-verify="required" lay-reqtext="请输入链接地址"
+                   value="<?php
+                   echo $vv->pick('href') ?>">
+        </div>
+    </div>
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+$vv->layui()->addWindowConfig()->footer(); ?>
+<script>
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    })
+</script>

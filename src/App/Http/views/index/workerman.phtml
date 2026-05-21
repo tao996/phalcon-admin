@@ -1,0 +1,16 @@
+<?php
+/**
+ * @var \Phax\Helper\MyMvc $vv
+ */
+
+?>
+<div>
+    测试 workerman 功能
+    <p>session ID: <?php
+        echo $vv->session()->getId() ?></p>
+    <p>?session= <?php
+        echo $vv->session()->get('svalue', '') ?></p>
+    <p>?cookie=<?php
+        echo $vv->cookies()->get('cvalue') ?></p>
+</div>
+

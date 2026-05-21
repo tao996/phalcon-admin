@@ -1,0 +1,58 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<form class="layui-form">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">角色名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" class="layui-input"
+                   lay-verify="required"
+                   lay-reqtext="请输入角色名称"
+                   placeholder="请输入角色名称"
+                   value="<?php echo $vv->pick('title') ?>">
+        </div>
+        <div class="layui-form-mid layui-text-em">填写角色名称</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">英文名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="name" class="layui-input"
+                   placeholder="请输入角色的英文名称"
+                   value="<?php echo $vv->pick('name') ?>">
+
+        </div>
+        <div class="layui-form-mid layui-text-em">填写角色英文名称，英文名称通常用于某个特殊模块的快速授权；<br>
+            如果不清楚，可不填写
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注信息</label>
+        <div class="layui-input-block">
+                <textarea name="remark" class="layui-textarea"
+                          placeholder="请输入备注信息"><?php echo $vv->pick('remark') ?></textarea>
+        </div>
+    </div>
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-submit>确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+
+<?php
+$vv->layui()->addWindowConfig()->footer();
+?>
+<script>
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    })
+</script>

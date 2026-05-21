@@ -1,0 +1,40 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<form class="layui-form">
+
+    <h3 class="mb10">百度翻译</h3>
+    <div class="layui-form-item">
+        <label class="layui-form-label">appid</label>
+        <div class="layui-input-inline">
+            <input type="text" name="baidu_appid" class="layui-input"
+                   placeholder="请输入百度翻译 appid"
+                   value="<?php echo $vv->configService()->getWith('translate.baidu_appid') ?>">
+        </div>
+
+        <label class="layui-form-label">secret</label>
+        <div class="layui-input-inline">
+            <input type="text" name="baidu_secret" class="layui-input"
+                   placeholder="请输入百度翻译 secrent"
+                   value="<?php echo $vv->configService()->getWith('translate.baidu_secret') ?>">
+        </div>
+    </div>
+
+    <div class="tao-hre"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-submit lay-filter="submit_translate">确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<script>
+    admin.form.onSubmit('submit_translate', function (data) {
+        admin.ajax.post({
+            url: prefix + '/save/translate', data
+        })
+    })
+</script>

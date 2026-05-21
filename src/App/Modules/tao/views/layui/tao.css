@@ -1,0 +1,70 @@
+.tao-container {
+    padding: 10px;
+    margin: 5px;
+    background: white;
+}
+
+.tao-hr {
+    color: #fff;
+    height: 1px;
+    margin: 30px 0;
+    background-color: #fff;
+    border-top: 1px dashed #e7eaec;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-danger {
+    color: #ff5722;
+}
+
+.bg-red {
+    background-color: #e74c3c !important;
+}
+
+.my10 {
+    margin: 10px 0;
+}
+
+.mb10 {
+    margin-bottom: 10px;
+}
+
+.mr10 {
+    margin-right: 10px;
+}
+
+.link a, a.link {
+    text-decoration: underline;
+}
+
+.tao-form-input-readonly .layui-form-label {
+    color: darkgrey;
+    font-weight: bold;
+}
+
+.tao-form-input-readonly .layui-input {
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+}
+
+.tao-form-input-readonly .layui-input:focus {
+    box-shadow: none;
+}
+
+.tao-rows {
+    clear: both;
+    display: flex;
+    flex-direction: row;
+}
+
+.tao-flex1 {
+    flex: 1;
+}

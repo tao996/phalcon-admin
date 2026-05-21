@@ -1,0 +1,84 @@
+<style type="text/css">
+    form {
+        border-left: 1px solid grey;
+        padding: 10px 0;
+
+    }
+
+    .form-controller {
+        margin-bottom: 15px;
+    }
+
+    .form-controller label {
+        width: 150px;
+        padding-right: 10px;
+        text-align: right;
+        display: inline-block;
+    }
+
+    .form-controller input[type=text] {
+        width: 400px;
+    }
+
+    .d-inline {
+        display: inline-block;
+    }
+
+    .d-hint {
+        font-size: small;
+        color: grey;
+    }
+</style>
+<?php
+/**
+ * @var $vv \Phax\Helper\MyMvc
+ */ ?>
+<div style="color: orangered;">
+    <div>Flash Message:</div>
+    <?php
+
+    $this->flash->output(); ?>
+</div>
+<div>------------------</div>
+<div>
+    <?php
+    echo 'session name : ', $this->session->getName(); ?>
+</div>
+<div>
+
+    <?php
+    echo 'session id : ', $this->session->getId();
+    ?>
+</div>
+<div>------------------</div>
+<h5>表单验证</h5>
+<form method="post">
+    <?php
+    $tokenKey = $vv->security()->getTokenKey();
+    $tokenValue = $vv->security()->getToken();
+//    \Phax\Support\Logger::info('form', $tokenKey, $tokenValue);
+    ?>
+    <input type="hidden" name="<?php
+    echo $tokenKey ?>" value="<?php
+    echo $tokenValue ?>">
+    <div class="form-controller">
+        <div>tokenKey: <?php echo $tokenKey ?></div>
+        <div>tokenValue: <?php echo $tokenValue ?></div>
+    </div>
+    <div class="form-controller">
+        <label>accepted</label>
+        <input type="checkbox" name="accept" value="true" <?php
+        echo $vv->postData('accept', true) ? 'checked' : '' ?>>
+        同意【服务条款】
+    </div>
+    <div class="form-controller">
+        <label>email</label>
+        <input type="email" name="email" value="<?php
+        echo $vv->postData('email', 'abc@test.com') ?>" placeholder="请填写电子邮箱">
+        *
+    </div>
+    <div class="form-controller">
+        <label></label>
+        <input type="submit" value="提交">
+    </div>
+</form>

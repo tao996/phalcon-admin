@@ -1,0 +1,83 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<form class="layui-form">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">角色名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="title" readonly class="layui-input" value="<?php echo $vv->pick('title') ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">分配节点</label>
+        <div class="layui-input-block">
+            <div id="node_ids"></div>
+        </div>
+    </div>
+
+    <input type="hidden" name="id" readonly class="layui-input" value="<?php echo $vv->pick('id') ?>">
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit"
+                lay-submit
+                class="layui-btn layui-btn-normal layui-btn-sm">
+            确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script type="text/javascript">
+    const treeId = 'nodeDataId';
+    const id = <?php echo $vv->request()->getQuery('id', 'int', 0) ?>;
+    // 获取节点列表
+    admin.ajax.get({
+        url: window.location.href,
+    }, function (res) {
+        res.data = res.data || [];
+        layui.tree.render({
+            elem: '#node_ids',
+            data: res.data,
+            showCheckbox: true,
+            id: treeId,
+        });
+    })
+
+    admin.form.submitFirst(function () {
+        admin.iframe.closeFromParent(true);
+    }, function (data) {
+        // https://layui.dev/docs/2/tree/
+        const rows = layui.tree.getChecked(treeId);
+        const ids = [];
+        $.each(rows, function (_, v) {
+            if (v.checked) { // 一级菜单可能就是直接链接
+                ids.push(v.id);
+            }
+            if (v.children && v.children.length > 0) { // 控制器
+                $.each(v.children, function (_, vc) {
+                    if (vc.checked) {
+                        ids.push(vc.id);
+                    }
+                    if (vc.children && vc.children.length > 0) {
+                        $.each(vc.children, function (_, va) {
+                            if (va.checked) {
+                                ids.push(va.id);
+                            }
+                        })
+                    }
+                })
+            }
+        })
+        data.node = ids.join(',')
+        // console.log(rows,data);return false;
+        return data;
+    })
+</script>

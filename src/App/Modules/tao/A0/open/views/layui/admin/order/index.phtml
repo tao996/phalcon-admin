@@ -1,0 +1,112 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+use App\Modules\tao\A0\open\Models\OpenOrder;
+
+?>
+
+
+<fieldset class="table-search-fieldset layui-hide" id="table-search">
+    <legend>条件搜索</legend>
+    <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">渠道</label>
+            <div class="layui-input-inline">
+                <select name="channel">
+                    <option value="">全部</option>
+                    <?php foreach (OpenOrder::MapChannel as $v => $t) { ?>
+                        <option value="<?php echo $v ?>"><?php echo $t ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">支付状态</label>
+            <div class="layui-input-inline">
+                <select name="status">
+                    <option value="">全部</option>
+                    <?php foreach (OpenOrder::MapStatus as $v => $t) { ?>
+                        <option value="<?php echo $v ?>"><?php echo $t ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <div class="layui-form-item layui-inline">
+                <a class="layui-btn layui-btn-normal layui-btn-sm"
+                   lay-submit>搜索</a>
+                <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">
+                    重置
+                </button>
+            </div>
+    </form>
+</fieldset>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm" lay-on="refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+
+<!--        <button class="layui-btn layui-btn-normal layui-btn-sm"-->
+<!--                lay-on="create">-->
+<!--            <i class="fa fa-plus"></i>添加-->
+<!--        </button>-->
+    </div>
+</script>
+<script type="text/html" id="row-action">
+    <div class="layui-btn-container">
+    </div>
+</script>
+
+<table id="table" class="layui-hide"></table>
+
+<?php $vv->layui()->addWindowConfig([])->footer(); ?>
+<script>
+    const prefix = '<?php echo $vv->urlModule("tao.open/admin.order") ?>';
+
+    const mapChannel = <?php echo json_encode(OpenOrder::MapChannel)?>;
+    const mapTradeType = <?php echo json_encode(OpenOrder::MapTradeType) ?>;
+    const mapStatus = <?php echo json_encode(OpenOrder::MapStatus) ?>;
+
+
+        admin.table.with({url: prefix})
+            .render({
+                toolbar: '#toolbar',
+                cols: [[
+                    {field: 'created_at', title: '下单时间', width: 120, templet: admin.table.humanTime},
+                    {
+                        field: 'channel', title: '渠道', width: 80, templet: function (d) {
+                            return mapChannel[d.channel] || '--';
+                        }
+                    },
+                    {
+                        field: 'trade_type', title: '类型', width: 80, templet: function (d) {
+                            return mapTradeType[d.trade_type] || '--'
+                        }
+                    },
+                    {
+                        field: 'amount', title: '金额(元)', width: 150, templet: function (d) {
+                            return d.amount / 100;
+                        }
+                    },
+                    {
+                        field: 'status', title: '状态', width: 120, templet: function (d) {
+                            return mapStatus[d.status] || '--';
+                        }
+                    },
+                    {field: 'success_time', title: '支付时间', templet: admin.table.humanTime, width: 120},
+                    {
+                        title: '操作', toolbar: '#row-action'
+                    }
+                ]],
+                lineStyle: '60px',
+            })
+
+            .addPostEditText()
+            .addLayOnActions()
+            .addLayEventActions();
+</script>

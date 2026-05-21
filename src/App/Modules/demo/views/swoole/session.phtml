@@ -1,0 +1,20 @@
+<?php
+/**
+ * @var $vv \Phax\Helper\MyMvc
+ */
+
+?>
+
+<form method="get">
+    <div class="form-controller">
+        <label>time </label>
+        <input type="text" name="data" value="" placeholder="time 值">
+        <input type="submit" value="提交">
+    </div>
+</form>
+
+<h5>Session Data</h5>
+<div>session ID: <?php
+    echo $vv->pick('id') ?></div>
+<div>time: <?php
+    echo $vv->session()->get('time', 0) ?></div>

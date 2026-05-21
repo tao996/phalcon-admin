@@ -1,0 +1,53 @@
+<?php
+
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<form class="layui-form" id="form">
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label required">名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" placeholder="应用名称" class="layui-input"
+                   value="<?php
+                   echo $vv->pick('title') ?>">
+        </div>
+        <label class="layui-form-label">组名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="tag" placeholder="自定义组名" class="layui-input"
+                   value="<?php
+                   echo $vv->pick('tag', '') ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <input type="text" name="remark" class="layui-input" placeholder="备注内容仅内部可见"
+                   lay-affix="clear" maxlength="255"
+                   value="<?php
+                   echo $vv->pick('remark') ?>">
+        </div>
+    </div>
+
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<?php
+$vv->layui()->addWindowConfig()->footer();
+?>
+<script>
+    admin.form.submitFirst(() => {
+        admin.iframe.closeFromParent(true);
+    })
+</script>
+

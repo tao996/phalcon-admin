@@ -1,0 +1,37 @@
+{
+  "name": "tao996/phalconx",
+  "type": "project",
+  "description": "This application make the Phalcon framework write easy.",
+  "version": "dev-0.0.1",
+  "keywords": [
+    "phalcon",
+    "php"
+  ],
+  "license": "MIT",
+  "require": {
+    "ext-curl": "*",
+    "ext-redis": "*",
+    "ext-pdo": "*",
+    "ext-gd": "*",
+    "ext-intl": "*",
+    "ext-ssh2": "*"
+  },
+  "require-dev": {
+    "php": "^8.3",
+    "phpunit/phpunit": "^11.2",
+    "mockery/mockery": "^1.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests"
+    }
+  },
+  "extra": [],
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

@@ -1,0 +1,4 @@
+*
+!.gitignore
+!php.example.ini
+!supervisord.example.conf

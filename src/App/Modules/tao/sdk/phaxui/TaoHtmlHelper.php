@@ -1,0 +1,140 @@
+<?php
+/*
+* Copyright (c) 2024-present
+* Author: tao996<lvshutao@outlook.com>
+* 
+* For the full copyright and license information, please view the LICENSE.txt
+* file that was distributed with this source code.
+*/
+
+namespace App\Modules\tao\sdk\phaxui;
+
+use Phax\Helper\HtmlHelper;
+
+class TaoHtmlHelper extends HtmlHelper
+{
+    public static string $vue_version = '3.3.9';
+
+    /**
+     * 在页面顶部引入 vue 脚本
+     * @return void
+     */
+    public static function vueScriptHeader(): void
+    {
+        if (HtmlAssets::isLocal()) {
+            echo '<script src="/mstatic/tao/assets/vue/' . self::$vue_version . '/vue.global.prod.min.js"></script>';
+        } else {
+            echo '<script src="' . HtmlAssets::$cdn . 'vue/' . self::$vue_version . '/vue.global.prod.min.js"></script>';
+        }
+    }
+
+    /**
+     * @var array 允许图片域名如 a.com
+     * @link https://www.tiny.cloud/docs/tinymce/6/tinymce-and-cors/#editimage_cors_hosts
+     */
+    public static array $tinymce_edit_image_cors_hosts = [];
+    public static string $tinymce_version = '6.8.0';
+
+    /**
+     * 在页面中引入 tinymce
+     * <pre>
+     * 1. 在 html 中绑定 ID
+     * <textarea ... id="content"></textarea>
+     * 2. 在页面 js 中初始化
+     * TaoHtmlHelper::tinymce(); // 初始化
+     * 3. 在提交表单中获取内容
+     * admin.form.submitFirst(() => {
+     *      admin.iframe.closeFromParent(true);
+     * }, function (data) {
+     *      return Object.assign(data, {content: tinymce.activeEditor.getContent()})
+     * })
+     * </pre>
+     * @param array{language:string,content_css:string} $config
+     * @return void
+     * @link https://www.tiny.cloud/docs/tinymce/latest/editor-important-options/
+     * @link [文档](https://www.tiny.cloud/docs/tinymce/6/)
+     * @link [插件开发](https://www.tiny.cloud/docs/tinymce/6/creating-a-plugin/)
+     */
+    public static function tinymce(array $config = []): void
+    {
+        if (HtmlAssets::isLocal()) {
+            echo '<script src="/mstatic/tao/assets/tinymce/' . self::$tinymce_version . '/tinymce.min.js"></script>';
+            if (!isset($config['language'])) {
+                $config['language'] = 'zh-Hans'; // langs/zh-Hans.js
+            }
+        } else {
+            echo '<script src="' . HtmlAssets::$cdn . 'tinymce/' . self::$tinymce_version . '/tinymce.min.js"></script>';
+        }
+        $config = array_merge([
+            'selector' => '#content',
+
+            'content_css' => '/mstatic/tao/assets/tinymce.css',
+            // may be you should recover this
+            'plugins' => [
+                'advlist',
+                'autolink',
+                'lists',
+                'link',
+                'image',
+                'charmap',
+                'preview',
+                'anchor',
+                'searchreplace',
+                'visualblocks',
+                'code',
+                'fullscreen',
+                'insertdatetime',
+                'media',
+                'table',
+                'wordcount'
+                // 'editimage', 没有实现
+            ],
+            'toolbar' => `undo redo | styles | bold italic |
+  alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image`,
+            'promotion' => false,
+            'forced_root_block' => 'div',
+            // 使用 div 而不是 p
+//            'force_p_newlines'=>false,
+            'force_br_newlines' => true,
+            'convert_newlines_to_brs' => false,
+            'remove_linebreaks' => true,
+            'min_height' => 500,
+            // editimage_toolbar: 'rotateleft rotateright | flipv fliph | editimage imageoptions',
+            'editimage_cors_hosts' => self::$tinymce_edit_image_cors_hosts,
+            'image_dimensions' => false,
+            // 移除图片的 width, height
+            // image_advtab: true, // 添加样式
+            // https://www.tiny.cloud/docs-4x/plugins/image/#image_class_list
+            'image_class_list' => [ // 为图片追加样式
+                ['title' => '（默认）lazy/full-width', 'code' => 'lazy lazyload full-width'],
+                ['title' => '无', 'code' => ''],
+            ],
+            // https://www.tiny.cloud/docs/plugins/opensource/image/#images_file_types
+            'images_file_types' => 'jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF',
+            // 图片处理(不支持大写的文件扩展名，如 xxx.JPG 可能上传没有反应)
+            'setup' => <<<JS
+(editor: any) => {
+        editor.on('NodeChange', function (e: any) {
+            const tt = e.element.tagName;
+            if (tt && typeof tt.upperCase === 'function' && tt.upperCase() === "IMG") {
+                // console.log('e:', e.element)
+                // 图片懒加载需要 https://github.com/aFarkas/lazysizes 支持
+                // <script src="http://afarkas.github.io/lazysizes/lazysizes.min.js" async=""></script>
+                // e.element.setAttribute("data-src", e.element.currentSrc);
+                // e.element.setAttribute("data-sizes", "auto");
+                e.element.setAttribute("loading", "lazy"); // 延迟下载
+                // e.element.setAttribute("src", '/images/loading.gif');
+            }
+        });
+    }
+JS
+
+        ], $config);
+        echo '<script>tinymce.init(' . json_encode($config) . ')</script>';
+    }
+
+    protected function checkMinFile(string $file): string
+    {
+        return HtmlAssets::isLocal() && file_exists($file);
+    }
+}

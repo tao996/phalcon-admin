@@ -1,0 +1,126 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+
+<form class="layui-form">
+    <h3 class="mb10">注册登录</h3>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline">
+            <input type="checkbox" name="register" class="layui-input" value="1" title="允许注册"
+                <?php $vv->configService()->compare('oauth.register', 'checked'); ?>
+            >
+        </div>
+
+        <div class="layui-input-inline">
+            <input type="checkbox" name="login" class="layui-input" value="1" title="允许普通会员登录"
+                <?php $vv->configService()->compare('oauth.login', 'checked'); ?>
+            >
+        </div>
+
+        <div class="layui-input-inline">
+            <input type="checkbox" name="code_login" class="layui-input" value="1" title="允许验证码登录"
+                <?php $vv->configService()->compare('oauth.code_login', 'checked'); ?>
+            >
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline">
+            <input type="checkbox" name="email" class="layui-input" value="1" title="邮箱注册/登录"
+                <?php $vv->configService()->compare('oauth.email', 'checked'); ?>
+            >
+        </div>
+
+        <div class="layui-input-inline">
+            <input type="checkbox" name="cn_phone" class="layui-input" value="1" title="+86 手机号注册/登录"
+                <?php $vv->configService()->compare('oauth.cn_phone', 'checked'); ?>
+            >
+        </div>
+    </div>
+
+    <h3 class="mb10">谷歌授权</h3>
+    <div class="layui-form-item">
+        <label class="layui-form-label">启用</label>
+        <div class="layui-input-inline">
+            <input type="checkbox" name="google_oauth" class="layui-input" value="1"
+                <?php $vv->configService()->compare('oauth.google_oauth', 'checked'); ?>
+            >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">client id</label>
+        <div class="layui-input-inline">
+            <input type="text" name="google_client_id" class="layui-input"
+                   placeholder="请输入 google client id"
+                   value="<?php echo $vv->configService()->getWith('oauth.google_client_id') ?>">
+        </div>
+
+        <label class="layui-form-label">client secret</label>
+        <div class="layui-input-inline">
+            <input type="text" name="google_client_secret" class="layui-input"
+                   placeholder="请输入 google client secret"
+                   value="<?php echo $vv->configService()->getWith('oauth.google_client_secret') ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">回调地址</label>
+        <div class="layui-input-block">
+            <input type="text" name="google_redirect_domain" class="layui-input"
+                   placeholder="请输入回调地址"
+                   value="<?php echo $vv->configService()->getWith('oauth.google_redirect_domain') ?>">
+            <div class="hint">留空则会使用当前站点内部默认地址</div>
+        </div>
+    </div>
+
+    <h3 class="mb10">微信授权</h3>
+    <div class="hint">注意：此功能需要安装微信模块支持</div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">企业微信 ID</label>
+        <div class="layui-input-inline">
+            <input type="text" name="wechat_work" class="layui-input"
+                   placeholder="请输入企业微信应用ID"
+                   value="<?php echo $vv->configService()->getWith('oauth.wechat_work') ?>">
+        </div>
+        <div class="hint">填写 appid 则表示启用</div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">网页应用 appid</label>
+        <div class="layui-input-inline">
+            <input type="text" name="wechat_web_appid" class="layui-input"
+                   placeholder="请输入微信网页应用 appid"
+                   value="<?php echo $vv->configService()->getWith('oauth.wechat_web_appid') ?>">
+        </div>
+        <div class="hint">填写 appid 则表示启用</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">公众号 appid</label>
+        <div class="layui-input-inline">
+            <input type="text" name="wechat_gzh_appid" class="layui-input"
+                   placeholder="请输入授权公众号 appid"
+                   value="<?php echo $vv->configService()->getWith('oauth.wechat_gzh_appid') ?>">
+        </div>
+        <div class="hint">填写 appid 则表示启用</div>
+    </div>
+
+    <div class="tao-hr"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-submit lay-filter="submit_oauth">确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<script>
+    admin.form.onSubmit('submit_oauth', function (data) {
+        admin.ajax.post({
+            url: prefix + '/save/oauth', data
+        })
+    })
+</script>

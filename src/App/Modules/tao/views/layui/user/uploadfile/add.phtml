@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<style>
+    #select_head_img {
+        display: none;
+    }
+</style>
+<div class="layui-form">
+
+    <?php $vv->layuiHtml()->upload('文件地址', 'head_img', ['type' => 'text']); ?>
+
+    <div class="layui-form-item text-center">
+        <a class="layui-btn layui-btn-normal layui-btn-sm" lay-on="ok">完成</a>
+        <a class="layui-btn layui-btn-primary layui-btn-sm" lay-on="cancel">关闭</a>
+    </div>
+</div>
+
+<?php $vv->layui()->addWindowConfig([])->footer(); ?>
+<script>
+    admin.upload.run()
+
+    admin.util.layOn({
+        ok: function () {
+            if (admin.util.isEmpty($('#head_img').val())) {
+                admin.layer.error('请选择文件')
+            } else {
+                admin.iframe.closeFromParent(true);
+            }
+        },
+        cancel: function () {
+            admin.iframe.closeFromParent(false);
+        }
+    })
+</script>

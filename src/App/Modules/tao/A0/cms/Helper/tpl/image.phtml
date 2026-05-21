@@ -1,0 +1,56 @@
+<?php
+/**
+ * @var bool $formItem
+ */
+?>
+<div id="images">
+    <?php if ($formItem){ ?>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">图集</label>
+        <div class="layui-input-block">
+            <?php } ?>
+
+            <div class="group-button">
+                <button type="button" class="layui-btn layui-btn-normal" @click="picker()">
+                    <i class="fa fa-list"></i>
+                </button>
+                <button type="button" class="layui-btn" id="album-upload">
+                    <i class="fa fa-upload"></i>
+                </button>
+                <button v-if="removesLength>0" @click="recoverDelete()" type="button" style="margin-left: 10px;"
+                        class="layui-btn layui-btn-warm">
+                    <i class="layui-icon layui-icon-disabled"></i>
+                    撤销删除
+                </button>
+            </div>
+
+            <div class="cms-block-container">
+                <div class="cms-block-content" v-for="(item,index) in items">
+                    <div class="cms-block-bg" v-bind:style="{ 'background-image': 'url(' + item.url + ')' }"></div>
+                    <div @click="descShow(index)" class="cms-block-text" title="点击查看全部内容">{{item.summary}}</div>
+                    <div class="cms-block-actions">
+                        <button @click="moveToPre(index)" type="button"
+                                class="layui-btn layui-btn-xs layui-btn-primary">
+                            <i class="layui-icon layui-icon-left"></i>
+                        </button>
+                        <button @click="moveToNext(index)" type="button"
+                                class="layui-btn layui-btn-xs layui-btn-primary">
+                            <i class="layui-icon layui-icon-right"></i>
+                        </button>
+                        <button @click="editWith(index)" type="button"
+                                class="layui-btn layui-btn-xs layui-btn-normal">
+                            <i class="layui-icon layui-icon-edit"></i>
+                        </button>
+                        <button @click="removeWith(index)" type="button"
+                                class="layui-btn layui-btn-xs layui-btn-danger">
+                            <i class="layui-icon layui-icon-delete"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <?php if ($formItem){ ?>
+        </div>
+    </div>
+<?php } ?>
+</div>

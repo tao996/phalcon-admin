@@ -1,0 +1,66 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+
+<fieldset class="table-search-fieldset" id="table-search">
+    <legend>条件搜索</legend>
+    <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
+
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">时间</label>
+            <div class="layui-input-inline">
+                <input name="created_at" value="" id="created_at"
+                       placeholder="请输入创建时间" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
+            <a class="layui-btn layui-btn-normal"
+               lay-submit>搜索</a>
+            <button type="reset" class="layui-btn layui-btn-primary">
+                重置
+            </button>
+        </div>
+    </form>
+</fieldset>
+
+<script type="text/html" id="toolbar">
+    <div class="layui-table-tool-temp">
+        <button class="layui-btn layui-btn-sm" id="table-refresh">
+            <i class="fa fa-refresh"></i>
+        </button>
+    </div>
+</script>
+
+<table id="table" class="layui-hide"></table>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer();
+?>
+<script>
+    admin.table.with()
+        .render({
+            toolbar: '#toolbar',
+
+            cols: [[
+                {field: 'id', title: 'ID', width: 50, sort: true},
+                {
+                    title: '用户昵称', width: 150, align: 'center', templet: function (d) {
+                        return d.systemUser.nickname;
+                    }
+                },
+                {title: '时间', field: 'created_at', width: 150,},
+                {title: 'IP地址', field: 'ip', width: 150},
+                {title: '请求方法', field: 'method', width: 100},
+                {
+                    title: '行为', templet: function (d) {
+                        return `<div>${d.action} <br>${d.url}</div>`;
+                    }, width: 220,
+                },
+                {title: '设备', field: 'useragent'},
+            ]],
+            lineStyle: 'height: 95px;',
+        })
+    admin.date.renderDate('created_at')
+</script>

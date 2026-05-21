@@ -1,0 +1,66 @@
+<?php
+/**
+ * @var $this \Phalcon\Mvc\View\Engine\AbstractEngine
+ * @var $vv \Phax\Helper\MyMvc
+ */
+
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Phalcon Demo</title>
+</head>
+<body>
+<h1>Demo Module Main Layout - 导航</h1>
+<ul>
+    <li><a href="<?php echo $vv->urlWith('/') ?>">返回首页</a></li>
+</ul>
+<h5>app/Modules/demo/Controllers</h5>
+<ul>
+    <li><a href="<?php echo $vv->urlWith('/m/demo/index/hello') ?>">/m/demo/index/hello</a> —— 默认参数</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo/index/hello/phax') ?>">/m/demo/index/hello/phax</a> —— 参数: helloAction("phax")</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo/todo/list') ?>">/m/demo/todo/list</a> —— 控制器</li>
+</ul>
+<h5>子目录 app/Modules/demo/Controllers/db</h5>
+<ul>
+    <li><a href="<?php echo $vv->urlWith('/m/demo/db.test/hello') ?>">/m/demo/db.test/hello</a> —— 普通控制器</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo/db.test/trans') ?>">/m/demo/db.test/trans</a> —— Database transaction</li>
+</ul>
+
+<h5>子模块 app/Modules/demo/A0/db - Database 演示</h5>
+<ul>
+    <li><a href="<?php echo $vv->urlWith('/m/demo.db/test') ?>">/m/demo.db/test</a> —— 联表查询</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo.db/test/insert') ?>">/m/demo/db.test/insert</a> —— 添加记录(时间戳)</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo.db/test/remove') ?>">/m/demo/db.test/remove</a> —— 删除记录(软删除)</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo.db/test/list') ?>">/m/demo/db.test/list</a> —— 列表查询</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo.db/test/form') ?>">/m/demo/db.test/form</a> —— 表单 Form, CSRF token</li>
+    <li><a href="<?php echo $vv->urlWith('/m/demo.db/user.info/name') ?>">/m/demo.db/user.info/name</a> —— 子模块+子目录</li>
+</ul>
+
+<h5>Swoole Session/Cookie</h5>
+<ul>
+    <li>
+        <a href="<?php echo $vv->urlWith('/m/demo/swoole/session') ?>">/m/demo/swoole/session</a> —— Session 演示
+    </li>
+</ul>
+
+<div> ~~~~~</div>
+<?php
+echo $this->getContent() ?>
+<div> ~~~~~</div>
+<pre>
+<?php
+echo '<h2>route->routerOptions</h2>';
+print_r($vv->route()->routerOptions);
+echo '<h2>route->urlOptions</h2>';
+print_r($vv->route()->urlOptions);
+echo '<h2>route->origin()</h2>';
+print_r($vv->route()->origin());
+?>
+</pre>
+</body>
+</html>

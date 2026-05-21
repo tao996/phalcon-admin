@@ -1,0 +1,74 @@
+1,upload,upload_type,def,"当前上传方式 （local,alioss,qnoss,txoss）",0,0,1696640770
+2,upload,upload_allow_type,"local,alioss,qnoss,txcos",可用的上传文件方式,0,0,0
+3,upload,upload_allow_size,5,允许上传的大小(M),0,0,0
+4,upload,upload_allow_mime,"image/gif,image/jpeg,video/x-msvideo,text/plain,image/png",允许上传的文件mime,0,0,0
+5,upload,upload_allow_ext,"doc,gif,ico,icon,jpg,mp3,mp4,p12,pem,png,rar,jpeg",允许上传的文件类型,0,0,0
+6,upload,oss_dir,app,文件在云上保存的子目录,0,0,0
+7,upload,oss_mimeLimit,image/*,文件类型限制,0,0,0
+8,upload,oss_frontend,1,支持前端上传,0,0,0
+9,upload,oss_seconds,3600,"web 直传有效期",0,0,0
+10,upload,oss_size,5,"web 直传文件大小，单位 mb",0,0,0
+11,upload,txcos_secret_key,,腾讯云cos私钥,0,0,0
+12,upload,txcos_secret_id,,腾讯云cos密钥,0,0,0
+13,upload,txcos_region,,存储桶地域,0,0,0
+14,upload,txcos_bucket,,存储桶名称,0,0,0
+15,upload,qnoss_secret_key,,七牛安全密钥,0,0,0
+16,upload,qnoss_domain,,七牛访问域名,0,0,0
+17,upload,qnoss_bucket,,七牛存储空间,0,0,0
+18,upload,qnoss_access_key,,七牛访问密钥,0,0,0
+19,upload,alioss_endpoint,,阿里云oss数据中心,0,0,0
+20,upload,alioss_domain,,阿里云oss访问域名,0,0,0
+21,upload,alioss_bucket,,阿里云oss空间名称,0,0,0
+22,upload,alioss_access_key_secret,,阿里云oss私钥,0,0,0
+23,upload,alioss_access_key_id,,阿里云oss公钥,0,0,0
+24,translate,baidu_secret,,"百度翻译 secret",0,0,0
+25,translate,baidu_appid,,"百度翻译 appid",0,0,0
+26,sms,sms_type,mock,短信类型,0,0,0
+27,sms,sms_mock_result,1,假性发送结果:0随机;1成功;2失败,0,0,0
+28,sms,sms_mock,1,"是否启用 Mock 功能",0,0,0
+29,sms,alisms_signname,博与科技,阿里短信签名,0,0,0
+30,sms,alisms_num,0,阿里云短信发送条数,0,0,0
+31,sms,alisms_access_secret,,阿里大鱼私钥,0,0,0
+32,sms,alisms_access_key,,阿里大于公钥,0,0,0
+33,sms,alisms,0,是否启用阿里云短信功能,0,0,0
+34,sms,aliemail_fromalias,,阿里邮件发件人名称,0,0,0
+35,sms,aliemail_account,,阿里邮件发送账号,0,0,0
+36,sms,aliemail,0,是否启用阿里云邮件功能,0,0,0
+37,site,site_version,1.0.1,版本信息,0,0,0
+38,site,site_name,博与科技,站点名称,0,0,0
+39,site,site_maintain_time,,站点维护时间,0,0,0
+40,site,site_maintain,站点维护中，请稍候再试..,站点维护公告信息,0,0,0
+41,site,site_logo,,站点logo图片,0,0,0
+42,site,site_ico,,浏览器图标,0,0,0
+43,site,site_copyright,"©2023 版權所有",版权信息,0,0,0
+44,site,site_beian,,备案信息,0,0,0
+45,site,seo_keywords,,LOGO标题,0,0,0
+46,site,seo_description,,站点描述,0,0,0
+47,oauth,wechat_work,,"企业微信 appid",0,0,0
+48,oauth,wechat_web_appid,,"web 授权 appid",0,0,0
+49,oauth,wechat_mini_appid,,"小程序 appid",0,0,0
+50,oauth,wechat_gzh_appid,,"公众号授权 appid",0,0,0
+51,oauth,register,1,开启注册,0,0,0
+52,oauth,login,1,开启普通会员登录,0,0,0
+53,oauth,google_redirect_domain,,谷歌授权回调域名,0,0,0
+54,oauth,google_oauth,1,是否启用谷歌授权登录,0,0,0
+55,oauth,google_client_secret,,"谷歌授权 client secrent",0,0,0
+56,oauth,google_client_id,,"谷歌授权 client id",0,0,0
+57,oauth,email,1,邮箱注册/登录,0,0,0
+58,oauth,code_login,1,是否支持验证码登录,0,0,0
+59,oauth,cn_phone,1,"+86 中国大陆手机号注册",0,0,0
+60,map,gmap_proxy,,谷歌地址代理地址,0,0,0
+61,map,gmap_key,,"谷歌地址 key",0,0,0
+62,map,gaode_key,,"高德地图 key",0,0,0
+63,html,header,,页头共享代码,0,0,0
+64,html,footer,HELLO,页底共享代码,0,0,0
+65,contact,whatsapp,,"whatsapp 账号",0,0,0
+66,contact,wework_qrcode,,微信企业号客服二维码,0,0,0
+67,contact,wework_link,,微信企业号客服链接,0,0,0
+68,contact,wechat_qrcode,,微信公众号二维码,0,0,0
+69,contact,wechat_name,,微信公众号名称,0,0,0
+70,contact,facebook,,"facebook 账号",0,0,0
+71,contact,contact_tel,,联系电话,0,0,0
+72,contact,contact_fax,,传真号码,0,0,0
+73,contact,contact_email,,公司电子邮箱,0,0,0
+74,contact,contact_address,潮州市古巷镇,公司联系地址,0,0,0

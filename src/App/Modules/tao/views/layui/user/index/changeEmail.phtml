@@ -1,0 +1,98 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+
+<div class="text-danger" style="font-size: small;margin: 10px 15px;">提示：每隔 30天 才能修改登录邮箱！</div>
+<form id="app-form" class="layui-form">
+    <div class="layui-form" style="margin: 16px;">
+        <div class="layui-form-item">
+            <div class="layui-row">
+                <div class="layui-col-xs7">
+                    <div class="layui-input-wrap">
+                        <div class="layui-input-prefix">
+                            <i class="layui-icon layui-icon-email"></i>
+                        </div>
+                        <input type="text" name="email"
+                               placeholder="请输出您的登录邮箱" autocomplete="off"
+                               lay-affix="clear"
+                               lay-verify="required|email"
+                               lay-reqtext="请输入正确的邮箱"
+                               class="layui-input" id="email">
+                    </div>
+                </div>
+
+                <div class="layui-col-xs5">
+                    <div style="margin-left: 11px;">
+                        <button type="button" id="get-vercode"
+                                class="layui-btn layui-btn-fluid layui-btn-primary"
+                                lay-on="get-vercode">获取验证码
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-vercode"></i>
+                </div>
+                <input type="text" name="vercode" value=""
+                       lay-verify="required"
+                       placeholder="验证码"
+                       lay-reqtext="请填写验证码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo-login">确定修改</button>
+        </div>
+    </div>
+
+
+</form>
+
+<?php $vv->layui()->addWindowConfig()->footer(); ?>
+<script>
+
+    const verCodeBtn = $('#get-vercode');
+    const emailE = $('#email');
+    let seconds = 0;
+    admin.util.layOn({
+        'get-vercode': function () {
+            const isValid = layui.form.validate('#email');
+            if (isValid) {
+                if (seconds > 0) {
+                    return;
+                }
+                admin.ajax.postLimit({
+                    url: '<?php echo $vv->urlModule('tao/user.index/email-code', true) ?>',
+                    data: {email: emailE.val()},
+                }, function () {
+                    seconds = 60;
+                    verCodeBtn.addClass('layui-btn-disabled')
+                    let myTime = setInterval(function () {
+                        if (seconds < 1) {
+                            clearInterval(myTime);
+                            myTime = null;
+                            verCodeBtn.text('获取验证码')
+                            verCodeBtn.removeClass('layui-btn-disabled')
+                        } else {
+                            verCodeBtn.text(seconds + '秒后重发')
+                            seconds -= 1;
+                        }
+                    }, 1000);
+                })
+            }
+        }
+    })
+
+    admin.form.submitFirst(function () {
+        admin.page.closeCurrentOpen({refreshFrame: true})
+    })
+
+
+</script>
+

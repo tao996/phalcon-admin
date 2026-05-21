@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="src/vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="toolkit/tests/bootstrap.php"
+         colors="true"
+         cacheResult="false"
+         displayDetailsOnIncompleteTests="true"
+         displayDetailsOnSkippedTests="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+>
+    <testsuites>
+        <testsuite name="toolkit - Unit Test">
+            <directory>./toolkit/tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

@@ -1,0 +1,53 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<form class="layui-form">
+    <h3 class="mb10">高德地图</h3>
+    <div class="layui-form-item">
+        <label class="layui-form-label">Key</label>
+        <div class="layui-input-block">
+            <input type="text" name="gaode_key" class="layui-input"
+                   placeholder="请输入高德地图 key"
+                   value="<?php echo $vv->configService()->getWith('map.gaode_key') ?>">
+        </div>
+    </div>
+    <h3 class="mb10">谷歌地图</h3>
+    <div class="layui-form-item">
+        <label class="layui-form-label">Key</label>
+        <div class="layui-input-block">
+            <input type="text" name="gmap_key" class="layui-input"
+                   placeholder="请输入谷歌地图 key"
+                   value="<?php echo $vv->configService()->getWith('map.gmap_key') ?>">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">GMap Proxy</label>
+        <div class="layui-input-block">
+            <input type="text" name="gmap_proxy" class="layui-input"
+                   placeholder="谷歌地图代理地址"
+                   value="<?php echo $vv->configService()->getWith('map.gmap_proxy') ?>">
+            <div class="hint">[可选]请输入谷歌地图代理地址</div>
+        </div>
+    </div>
+
+    <div class="tao-hr"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-filter="submit_map"
+                lay-submit>确认
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
+<script>
+    admin.form.onSubmit('submit_map', function (data) {
+        admin.ajax.post({
+            url: prefix + '/save/map',
+            data,
+        })
+    })
+</script>
