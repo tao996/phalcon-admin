@@ -14,11 +14,6 @@ class Config
      */
     private string $current_project = '';
     private static \Phalcon\Config\Config $config;
-    /**
-     * 项目配置，只在 workerman 下有效
-     * @var array
-     */
-    private static array $projects_config = [];
 
     public function __construct(public Di $di)
     {
@@ -46,27 +41,14 @@ class Config
         }
         self::$config = $this->parse($global_config_file);
 
-        if (IS_WORKER_WEB) {
-//            TODO 暂时未实现，因为会涉及到全部的服务，后期再看是否需要支持此特性
-//            if ($projects = MyFileSystem::findInDirs(PATH_APP_PROJECTS, 'dir')) {
-//                foreach ($projects as $project) {
-//                    $configFilePath = PATH_APP_PROJECTS . $project . '/Config/config.php';
-//                    if (file_exists($configFilePath)) {
-//                        $project_cc = $this->parse($configFilePath);
-//                        $project_cc->merge(self::$config);
-//                        self::$projects_config[$project] = $project_cc;
-//                    }
-//                }
-//            }
-        } else {
-            if ($this->current_project = $this->getProject()) {
-                $configFilePath = PATH_APP_PROJECTS . $this->current_project . '/Config/config.php';
-                if (file_exists($configFilePath)) {
-                    $project_cc = $this->parse($configFilePath);
-                    self::$config->merge($project_cc);
-                }
+        if ($this->current_project = $this->getProject()) {
+            $configFilePath = PATH_APP_PROJECTS . $this->current_project . '/Config/config.php';
+            if (file_exists($configFilePath)) {
+                $project_cc = $this->parse($configFilePath);
+                self::$config->merge($project_cc);
             }
         }
+
         return self::$config;
     }
 
@@ -136,10 +118,8 @@ class Config
      */
     public function getProject(): string
     {
-        if (!IS_WORKER_WEB) {
-            if (!empty($this->current_project)) {
-                return $this->current_project;
-            }
+        if (!empty($this->current_project)) {
+            return $this->current_project;
         }
         if ($host = $this->getHost()) {
             if ($sites = $this->globalPath('app.sites', [])?->toArray()) {

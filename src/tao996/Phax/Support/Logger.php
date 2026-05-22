@@ -27,13 +27,8 @@ class Logger
     {
         $info = [];
         $application = [];
-        $workerman = [];
         foreach ($e->getTrace() as $item) {
             if (isset($item['file'])) {
-                if (strpos($item['file'], 'workerman.phar')) {
-                    $workerman[] = sprintf('%s(%d)', $item['function'], $item['line'] ?? -1);
-                    continue;
-                }
                 if (strrpos($item['file'], '/Foundation/Application.php')) {
                     $application[] = sprintf('%s(%d)', $item['function'], $item['line'] ?? -1);
                     continue;
@@ -46,9 +41,6 @@ class Logger
         try {
             if ($application) {
                 $info[] = 'Foundation/Application.php => ' . join(' <= ', $application);
-            }
-            if ($workerman){
-                $info[] = 'workerman.phar => ' . join(' <= ', $application);
             }
             self::logger()->error($e->getMessage() . "\n" . print_r($info, true));
         } catch (\Exception $e) {

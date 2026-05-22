@@ -28,12 +28,11 @@ class Application
     /**
      * @param string $sourceRoot 源码根目录
      * in docker , the basePath is /var/www, which put you source code files
-     * @throws BlankException
      */
     public function __construct(string $sourceRoot)
     {
         if (!file_exists($sourceRoot)) {
-            appExit('could not find the source root path： /xxx/src => /var/www');
+            exit('could not find the source root path： /xxx/src => /var/www');
         }
     }
 

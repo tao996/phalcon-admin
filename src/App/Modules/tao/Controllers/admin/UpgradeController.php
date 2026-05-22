@@ -31,9 +31,6 @@ class UpgradeController extends BaseController
      */
     public function migrationAction(string $project): bool
     {
-        if (!IS_WORKER_WEB) {
-            throw new \Exception('migration only run in cli mode');
-        }
         $path_project = PATH_APP_PROJECTS . '/' . $project;
         if (!is_dir($path_project)) {
             throw new \Exception('项目不存在');

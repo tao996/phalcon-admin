@@ -98,7 +98,6 @@ class HtmlHelper
 
     /**
      * print the view data，it should be called in debug mode
-     * 注意：在 workerman 中使用此方法，会把 $this->viewData 输出到控制台上
      * @param bool $exit
      * @return void
      */

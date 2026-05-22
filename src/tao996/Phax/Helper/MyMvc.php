@@ -134,18 +134,10 @@ class MyMvc
      */
     public function responseMimeType(array $kvHeaders, string $content): mixed
     {
-        if (IS_WORKER_WEB) {
-            $response = $this->response();
-            foreach ($kvHeaders as $k => $v) {
-                $response->setHeader($k, $v);
-            }
-            $response->setContent($content);
-        } else {
-            foreach ($kvHeaders as $k => $v) {
-                header("$k: $v");
-            }
-            echo $content;
+        foreach ($kvHeaders as $k => $v) {
+            header("$k: $v");
         }
+        echo $content;
         throw new BlankException();
     }
 
@@ -229,7 +221,6 @@ class MyMvc
             $options['origin'] = $this->route()->origin();
         }
         $options['language'] = $this->route()->urlOptions['language'];
-        $options['prefix'] = $this->route()->urlOptions[Router::$cliKeyword] ? Router::$cliKeyword : '';
         return MyUrl::createWith($options);
     }
 

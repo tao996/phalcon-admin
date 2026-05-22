@@ -11,7 +11,6 @@ const admin = {
             imageSave: '/api/m/tao/user.file/save',
             imageList: '/m/tao/user.file/index',
         },
-        cliKeyword: 'sw',
         ajax: {
             headers: function () {
                 if (!admin.util.isEmpty(window.CONFIG) && !admin.util.isEmpty(window.CONFIG.CSRF_TOKEN)) {
@@ -27,12 +26,9 @@ const admin = {
             }
         },
         /**
-         * 处理 workerman 下的请求
+         * 处理请求
          */
         urlReplace: function (url) {
-            if (url.indexOf('/api/' + this.cliKeyword + '/') > -1) {
-                return url.replace('/api/' + this.cliKeyword + '/', '/' + this.cliKeyword + '/api/');
-            }
             return url;
         }
     },

@@ -16,7 +16,6 @@ git clone --depth=1 https://gitee.com/taoooo/phalcon-damin.git
 * [中英文 Document](https://tao996.github.io/phalcon-admin-docs/#/)
 * [phalcon images](https://github.com/tao996/phalcon-docker-images) build your self phalcon docker image
 * [phalcon](https://github.com/phalcon/cphalcon), [phalcon-migrations](https://github.com/phalcon/migrations)
-* [workerman](https://github.com/walkor/workerman)
 * [symfony/dotenv](https://github.com/symfony/dotenv)
 * [phpseclib](https://github.com/phpseclib/phpseclib)
 

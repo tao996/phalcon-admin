@@ -55,9 +55,7 @@ class Route
         $this->urlOptions = Router::pathMatch($this->requestURI);
         $map_path = '/' . $this->urlOptions['path'];
         if (isset(self::$mapRoute[$map_path])) {
-            $cliKeyword = $this->urlOptions[Router::$cliKeyword];
             $this->urlOptions = Router::pathMatch(self::$mapRoute[$map_path]);
-            $this->urlOptions[Router::$cliKeyword] = $cliKeyword;
         }
         $this->origin();
     }

@@ -33,7 +33,7 @@ src/App/Modules
 ```
 根据路由来加载不同的控制器，返回不同模式的数据
 
-[sw/][语言/][api/][p/ProjectName/|m/ModuleName/][controller/][action/][params]
+[语言/][api/][p/ProjectName/|m/ModuleName/][controller/][action/][params]
 ```
 
 ### 目录结构
@@ -60,7 +60,6 @@ phalcon-admin/
         |-- host.location.example.txt   # proxy setting for host.example.conf, copy to nginx conf.d together
     |-- php/
         |-- php.example.ini             # php service image use this file like php.ini
-        |-- supervisord.example.conf    # php cli image use this file to start workerman
     |-- storage/
         |-- mysql/                      # mysql image data, (zip this dir to replace the backup/ dir ?)
         |-- redis/                      # redis image data
@@ -72,7 +71,6 @@ phalcon-admin/
             |-- demo                # a demo how to use module, http://localhost:8071/m/demo
         |-- Projects/
             |-- demo                # a demo how to use project, http://localhost:8071/p/demo
-        |-- Workerman               # a demo how to use workerman, http://localhost:8072
     |-- bootstrap/
         |-- app.php                 # bootstrap file
     |-- config/
@@ -94,9 +92,7 @@ phalcon-admin/
             |-- dotenv.phar             # https://github.com/symfony/dotenv
             |-- phalcon-migrations.phar # https://github.com/phalcon/migrations , modify to make it work together with phalcon-admin
             |-- phpseclib.phar          # `php admin` tool, use this to backup/upload files from/to production server
-            |-- workerman.phar          # https://github.com/walkor/workerman, modify the session manager to share
         |-- Phax
-            |-- Bridge/             # rewrite phalcon services to make it work in workerman
             |-- Db/                 # db classes, make ORM write like laravel/thinkphp
             |-- Events/             # I use it in development mode
             |-- Foundation/         # load service and route
@@ -115,15 +111,4 @@ phalcon-admin/
 |-- docker-compose.example.yaml     
 |-- toolkit/                        # files for admin
 |-- admin                           # a tool to help manage phalcon-admin project, `php admin` to see the help
-```
-
-## 本地开发
-
-在本地开发时，大部分 `.example.xxx` 可以在 `docker-compose.yaml` 中被直接使用；具体查看内部服务的  `volumes` 部分
-
-```
-yourProjectDir/
-    |-- phalcon-admin/      # 框架所在目录
-    |-- App/Modules/        # 你的模块目录，通过 docker-compose.yaml 映射到容器中
-        |-- yours           # 模块，如果不是 docker 运行，则需要将模块目录移动到框架内部
 ```

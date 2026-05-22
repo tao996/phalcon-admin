@@ -4,17 +4,11 @@ if (!defined('PATH_ROOT')) {
     die('you should define the PATH_ROOT first.');
 }
 
-if (!defined('IS_WORKER_WEB')) {
-    /**
-     * workerman/swoole 运行模式
-     */
-    define('IS_WORKER_WEB', false);
-}
 /**
  * 传统 php-fpm 模式
  */
 define('IS_PHP_FPM', isset($_SERVER['HTTP_HOST']));
-const IS_WEB = IS_PHP_FPM || IS_WORKER_WEB;
+const IS_WEB = IS_PHP_FPM ;
 /**
  * 命令行任务模式
  */

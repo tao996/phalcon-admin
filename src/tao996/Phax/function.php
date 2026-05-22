@@ -1,21 +1,5 @@
 <?php
 
-/**
- * 用于在程序中代替 die/exit
- */
-
-if (!function_exists('appExit')) {
-    function appExit(string $message = ''): void
-    {
-        if (IS_WORKER_WEB) {
-            echo $message, PHP_EOL;
-            throw new \Exception('appExit');
-        } else {
-            exit($message);
-        }
-    }
-}
-
 if (!function_exists('is_debug')) {
     function is_debug(): bool
     {
@@ -32,14 +16,14 @@ if (!function_exists('pr')) {
      */
     function pr($var): void
     {
-        echo IS_TASK || IS_WORKER_WEB ? '|<--- ' . PHP_EOL : '<pre>';
+        echo IS_TASK  ? '|<--- ' . PHP_EOL : '<pre>';
         foreach (func_get_args() as $arg) {
             print_r($arg);
-            echo IS_TASK || IS_WORKER_WEB ? PHP_EOL : '<br/>';
+            echo IS_TASK ? PHP_EOL : '<br/>';
         }
-        echo IS_TASK || IS_WORKER_WEB ? '|---> ' . PHP_EOL : '</pre>';
+        echo IS_TASK ? '|---> ' . PHP_EOL : '</pre>';
         if (func_get_args()[func_num_args() - 1] !== false) {
-            appExit();
+            exit();
         }
     }
 }
@@ -56,7 +40,7 @@ if (!function_exists('ddd')) {
                 $string = (new \Phalcon\Support\Debug\Dump())->variable($x);
                 echo IS_PHP_FPM ? $string : strip_tags($string) . PHP_EOL;
             }, $args);
-            appExit();
+            exit();
         } else {
             pr($var);
         }

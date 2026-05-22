@@ -183,12 +183,7 @@ class BaseResponseController extends Controller
             throw new \Exception('simple view data must not have vv');
         }
         $data['vv'] = $this->vv;
-        $content = $this->vv->responseHelper()->simpleView($tpl, $data);
-        if (IS_WORKER_WEB) {
-            $this->response->setContent($content);
-        } else {
-            echo $content;
-        }
+        echo $this->vv->responseHelper()->simpleView($tpl, $data);
         throw new BlankException();
     }
 

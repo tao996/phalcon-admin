@@ -23,16 +23,4 @@ class IndexController extends Controller
             'age' => $age
         ];
     }
-
-    public function workermanAction()
-    {
-        if ($sessionValue = $this->request->getQuery('session')) {
-            $this->vv->session()->set('svalue', $sessionValue);
-        }
-
-        if ($cookieValue = $this->request->getQuery('cookie')) {
-            $this->vv->cookies()->set('cvalue', $cookieValue);
-        }
-        return [];
-    }
 }

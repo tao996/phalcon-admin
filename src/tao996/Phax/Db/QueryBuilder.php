@@ -364,8 +364,6 @@ class QueryBuilder
 
     public function builder(): \Phalcon\Mvc\Model\Query\Builder
     {
-        // 在 workerman 下，长久没有连接会导致  General error: 2006 MySQL server has gone away
-        // 必须设置 onWorkerStart 设置定时连接
         if (empty($this->parameter->parameter['container'])) {
             $this->parameter->parameter['container'] = Application::di();
         }

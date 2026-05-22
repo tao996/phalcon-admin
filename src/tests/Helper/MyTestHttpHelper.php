@@ -8,7 +8,7 @@ class MyTestHttpHelper
     public static string $origin = '';
     protected MyTestCurl $myCurl;
     public int $httpCode = 0;
-    public string $content = '';
+    public string $content =  '';
 
 
     public function __construct(public \PHPUnit\Framework\TestCase $tc)
@@ -31,16 +31,6 @@ class MyTestHttpHelper
     public static function with(\PHPUnit\Framework\TestCase $tc): MyTestHttpHelper
     {
         return new MyTestHttpHelper($tc);
-    }
-
-    /**
-     * 使用 CLI（workerman/swoole） 服务器地址
-     * @return $this
-     */
-    public function cliServer(): static
-    {
-        $this->myCurl->origin = env('APP_NAME') . '-cli:' . env('WS_PORT');
-        return $this;
     }
 
     /**

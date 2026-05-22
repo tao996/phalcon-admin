@@ -21,11 +21,23 @@ php admin quick
 docker compose up -d # or docker-compose up -d
 ```
 
-docker 运行后，可以访问 http://localhost:8071 `(php-fpm)`, 或者 http://localhost:8072 `(workerman 模型)`, 
+docker 运行后，可以访问 http://localhost:8071 
 
 
 * 如果需要更好的控制全部的配置文件，请查看 [admin](admin.md) 一节；
 * 如果你想要构建自己的 phalcon image，请访问 https://github.com/tao996/phalcon-docker-images
+
+
+## 本地开发
+
+在本地开发时，大部分 `.example.xxx` 可以在 `docker-compose.yaml` 中被直接使用；具体查看内部服务的  `volumes` 部分
+
+```
+yourProjectDir/
+    |-- phalcon-admin/      # 框架所在目录
+    |-- App/Modules/        # 你的模块目录，通过 docker-compose.yaml 映射到容器中
+        |-- yours           # 模块，如果不是 docker 运行，则需要将模块目录移动到框架内部
+```
 
 ### PHPStorm
 
@@ -35,7 +47,7 @@ docker 运行后，可以访问 http://localhost:8071 `(php-fpm)`, 或者 http:/
 * docker
 * src/storage
 
-## windows
+### windows
 
 * [phalcon 8.3](https://pecl.php.net/package/phalcon)
 * [redis](https://pecl.php.net/package/redis)

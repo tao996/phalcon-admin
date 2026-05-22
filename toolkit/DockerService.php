@@ -111,25 +111,6 @@ class DockerService
             if (!file_exists($path_nginx_config)) {
                 throw new \Exception("could not find the nginx service config file from $path_nginx_config");
             }
-            // 3. 切换 ws 配置
-            // 包含两个 # workerman 注释，分别标记开始和结束位置
-            $position = ['start' => 0, 'end' => 0, 'line' => 0];
-            \Phax\Utils\MyFileSystem::readWithLines($path_nginx_config, function ($line) use (&$position, &$lines) {
-                $position['line'] += 1;
-                if (str_contains($line, '# workerman')) {
-                    if ($position['start'] === 0) {
-                        $position['start'] = $position['line'] + 1;
-                    } elseif ($position['end'] === 0) {
-                        $position['end'] = $position['line'] - 1;
-                        return false;
-                    }
-                }
-            });
-            if ($position['start'] < 1 || $position['end'] < 1) {
-                throw new \Exception(
-                    'could not find the workerman config in nginx config file. the "# workerman" comment is missing'
-                );
-            }
             // 4. 重新加载配置文件
             $lines = [];
             $position['line'] = 0;

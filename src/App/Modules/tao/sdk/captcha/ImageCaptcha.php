@@ -109,15 +109,8 @@ class ImageCaptcha
         $response->setHeader('Content-Type', 'image/png');
         $response->setHeader('Cache-Control', 'private, max-age=0, no-store, no-cache, must-revalidate');
         $response->setHeader('Pragma', 'no-cache');
-        if (IS_WORKER_WEB) {
-            ob_start();
-            imagepng($this->image, null, $quality);
-            $image = ob_get_clean();
-            $response->setContent($image);
-        } else {
-            imagepng($this->image, null, $quality);
-            $response->send();
-        }
+        imagepng($this->image, null, $quality);
+        $response->send();
         throw new BlankException();
     }
 

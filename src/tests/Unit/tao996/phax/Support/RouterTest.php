@@ -19,7 +19,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -27,21 +26,10 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'path' => ''
                 ]
             ],
-            [
-                '/' . Router::$cliKeyword . '/',
-                [
-                    Router::$cliKeyword => true,
-                    'language' => '',
-                    'api' => false,
-                    'project' => false,
-                    'module' => false,
-                    'path' => ''
-                ]
-            ],
+
             [
                 '/zh-CN/',
                 [
-                    Router::$cliKeyword => false,
                     'language' => 'zh-CN',
                     'api' => false,
                     'project' => false,
@@ -52,7 +40,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -63,7 +50,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/bb',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -74,7 +60,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/bb/',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -85,7 +70,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/p/bb/index',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => true,
@@ -96,7 +80,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -107,7 +90,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/aa',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -118,7 +100,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/cn/m/aa',
                 [
-                    Router::$cliKeyword => false,
                     'language' => 'cn',
                     'api' => false,
                     'project' => false,
@@ -129,7 +110,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/aa/',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -140,7 +120,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             [
                 '/m/aa/index',
                 [
-                    Router::$cliKeyword => false,
                     'language' => '',
                     'api' => false,
                     'project' => false,
@@ -149,9 +128,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                 ]
             ],
             [
-                '/'.Router::$cliKeyword.'/zh-CN/api/p/project/controller/action/params',
+                '/zh-CN/api/p/project/controller/action/params',
                 [
-                    Router::$cliKeyword => true,
                     'language' => 'zh-CN',
                     'api' => true,
                     'project' => true,

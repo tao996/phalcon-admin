@@ -6,7 +6,7 @@ use Phax\Support\Facade\MyHelperFacade;
 
 
 /**
- * 处理 uri 请求，请求地址格式为 /sw/语言/api/[模块|应用]
+ * 处理 uri 请求，请求地址格式为 /语言/api/[模块|应用]
  */
 class Router
 {
@@ -20,11 +20,7 @@ class Router
      */
     public static string $projectKeyword = 'p';
     public static string $projectPrefix = '/p/';
-    /**
-     * swoole 或者 workerman 标识
-     * @var string
-     */
-    public static string $cliKeyword = 'sw';
+
     /**
      * 默认的语言参数匹配表达式
      * @var string
@@ -38,18 +34,12 @@ class Router
     public static function pathMatch(string $path = ''): array
     {
         $matches = [
-            self::$cliKeyword => false,
             'language' => '',
             'api' => false,
             'project' => false,
             'module' => false,
             'mapurl' => $path,
         ];
-        if (str_starts_with($path, '/' . self::$cliKeyword)) {
-            $matches[self::$cliKeyword] = true;
-            $path = substr($path, strlen(self::$cliKeyword) + 1);
-            $matches['mapurl'] = $path;
-        }
         preg_match('|^/[a-zA-Z]{2}(-[a-zA-Z]{2})?/|', $path, $match);
         if (isset($match[0])) {
             $matches['language'] = trim($match[0], '/');
@@ -228,9 +218,6 @@ class Router
                     $data['paths'][$key] = $value + 1;
                 }
             }
-        }
-        if ($info[self::$cliKeyword]) {
-            $data['pattern'] = '/' . self::$cliKeyword . $data['pattern'];
         }
         return $data;
     }
