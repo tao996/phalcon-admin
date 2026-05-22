@@ -244,7 +244,7 @@ class DiService
     /**
      * 注册 Redis 服务（全局 DI 中的 'redis' 服务）
      * 注意：该连接设置了 `_prefix('{$prefix}')`，所有 key 操作都会自动添加此前缀。
-     * 例如 `$redis->get('abc')` 实际查询 `_phx_abc`。
+     * 例如 `$redis->get('abc')` 实际查询 `_前辍_abc`。
      * 使用 `redis-cli` 直接查看时需要手动拼接前缀。
      */
     public function redis(bool $shared = true): static

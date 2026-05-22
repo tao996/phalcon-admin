@@ -40,7 +40,7 @@ class WorkermanPhalcon
                 'timeout' => 2,
                 'auth' => $ses['auth'],
                 'database' => $ses['index'],
-                'prefix' => $ses['prefix'] ?? '_ses_'
+                'prefix' => $ses['prefix'] ?? ''
             ];
             $this->cookiesOptions = $this->diService->getConfig()->path('cookie')->toArray();
         }

@@ -284,7 +284,7 @@ class HtmlHelper
         $http = str_starts_with($file, 'https://') || str_starts_with($file, 'http://');
         // 如果是本地文件，则优先检查是否有 min 文件
         if (!$http) {
-            if (str_starts_with($file, PATH_ROOT)) {
+            if (str_starts_with($file, PATH_ROOT) || $file[1] == ':') { // windows 路径
                 $file = $this->getLocalFilePath($file); // 检查是否存在压缩文件
                 if (!file_exists($file)) {
                     return false;

@@ -2,21 +2,6 @@
 
 > 适用于 `App\Modules\tao` 模块的后台管理视图。前端基于 Layui 2.9 构建，集成了 FontAwesome 图标和自定义的 `admin.*` JS 工具库。
 
----
-
-## 目录
-
-1. [视图文件的位置规则](#1-视图文件的位置规则)
-2. [视图中的可用变量与助手方法](#2-视图中的可用变量与助手方法)
-3. [列表页（index.phtml）](#3-列表页)
-4. [编辑/添加页面（edit.phtml / add.phtml）](#4-编辑添加页面)
-5. [文件上传组件](#5-文件上传组件)
-6. [表单控件速查](#6-表单控件速查)
-7. [JavaScript 交互约定](#7-javascript-交互约定)
-8. [完整示例：快速生成一个新模块](#8-完整示例)
-
----
-
 ## 1. 视图文件的位置规则
 
 ```
@@ -29,11 +14,11 @@ src/App/Modules/tao/views/{theme}/{controller-dir}/{action}.phtml
 
 **示例**：
 
-| 控制器类文件 | 对应视图路径 |
-|---|---|
-| `Controllers/admin/UserController.php` | `views/layui/admin/user/index.phtml` |
-| `Controllers/admin/UserController.php` | `views/layui/admin/user/edit.phtml` |
-| `Controllers/admin/MenuController.php` | `views/layui/admin/menu/index.phtml` |
+| 控制器类文件                                        | 对应视图路径                                      |
+|-----------------------------------------------|---------------------------------------------|
+| `Controllers/admin/UserController.php`        | `views/layui/admin/user/index.phtml`        |
+| `Controllers/admin/UserController.php`        | `views/layui/admin/user/edit.phtml`         |
+| `Controllers/admin/MenuController.php`        | `views/layui/admin/menu/index.phtml`        |
 | `A0/app/Controllers/admin/InfoController.php` | `A0/app/views/layui/admin/info/index.phtml` |
 
 **约定**：`add.phtml` 通常只需要 `require_once __DIR__ . '/edit.phtml';` 一行——添加和编辑共用同一个表单视图。
@@ -52,17 +37,17 @@ src/App/Modules/tao/views/{theme}/{controller-dir}/{action}.phtml
 
 ### 2.1 核心助手 `$vv`
 
-| 方法 | 用途 | 示例 |
-|---|---|---|
-| `$vv->pick('field')` | 获取控制器返回数组中的值 | `$vv->pick('title')` |
-| `$vv->pick('field', 'default')` | 带默认值 | `$vv->pick('status', 1)` |
-| `$vv->urlModule("tao/module.ctrl")` | 生成模块 URL 前缀 | `/m/tao/admin.user` |
-| `$vv->html()` | HtmlHelper（高级 DOM 操作） | — |
-| `$vv->html()->pickCompare('field', 'checked')` | 比较输出 `checked` | 见复选框用法 |
-| `$vv->layui()` | Layui 实例（header/footer 资源引用） | — |
-| `$vv->layuiHtml()` | 预制 UI 组件 | 上传、图标选择 |
-| `$vv->configService()` | 系统配置服务 | `configService()->getWith('site.site_name')` |
-| `$vv->request()` | 当前请求对象 | — |
+| 方法                                             | 用途                           | 示例                                           |
+|------------------------------------------------|------------------------------|----------------------------------------------|
+| `$vv->pick('field')`                           | 获取控制器返回数组中的值                 | `$vv->pick('title')`                         |
+| `$vv->pick('field', 'default')`                | 带默认值                         | `$vv->pick('status', 1)`                     |
+| `$vv->urlModule("tao/module.ctrl")`            | 生成模块 URL 前缀                  | `/m/tao/admin.user`                          |
+| `$vv->html()`                                  | HtmlHelper（高级 DOM 操作）        | —                                            |
+| `$vv->html()->pickCompare('field', 'checked')` | 比较输出 `checked`               | 见复选框用法                                       |
+| `$vv->layui()`                                 | Layui 实例（header/footer 资源引用） | —                                            |
+| `$vv->layuiHtml()`                             | 预制 UI 组件                     | 上传、图标选择                                      |
+| `$vv->configService()`                         | 系统配置服务                       | `configService()->getWith('site.site_name')` |
+| `$vv->request()`                               | 当前请求对象                       | —                                            |
 
 ### 2.2 标准视图尾部
 
@@ -166,36 +151,35 @@ src/App/Modules/tao/views/{theme}/{controller-dir}/{action}.phtml
 
 ### 3.2 几种常用的列渲染模板
 
-```javascript
+```
 // 开关（对应数据库 int 类型 status 字段）
-{field: 'status', title: '状态', width: 85, templet: admin.table.switch}
+{field: 'status', title:'状态', width:85, templet:admin.table.switch}
 
 // 时间戳格式化
-{field: 'created_at', width: 150, title: '创建时间', templet: admin.table.humanTime}
+{field: 'created_at', width:150, title:'创建时间', templet:admin.table.humanTime}
 
 // 图片缩略图
-{field: 'url', width: 70, title: '图片', templet: admin.table.image}
+{field: 'url', width:70, title:'图片', templet:admin.table.image}
 
 // 图标
-{field: 'icon', width: 60, title: '图标', templet: admin.table.icon}
+{field: 'icon', width:60, title:'图标', templet:admin.table.icon}
 
 // 自定义 HTML（function 方式）
-{
-    field: 'upload_type', width: 100, title: '存储位置',
-    templet: function (d) {
+{field: 'upload_type', width:100, title:'存储位置',templet:function (d) {
         const map = {local: '本地', alioss: '阿里云'};
         return map[d.upload_type] || '---';
     }
 }
 
 // 可直接编辑的文本框
-{field: 'sort', title: '排序', edit: 'text'},
-{field: 'remark', title: '备注', edit: 'text'},
+{field: 'sort', title:'排序', edit:text'},
+{field: 'remark', title:'备注', edit:'text'}
+,
 ```
 
 ### 3.3 搜索字段与后端的对应
 
-```javascript
+```
 // 下拉搜索 → controller 中 indexActionQueryBuilder 通过 $queryBuilder->int('status', ...) 接收
 {field: 'status', title: '状态', search: true}
 
@@ -261,14 +245,14 @@ protected function indexActionQueryBuilder(\Phax\Db\QueryBuilder $qb): void
 
 **关键属性说明**：
 
-| 属性 | 作用 |
-|---|---|
-| `lay-verify="required"` | 必填验证 |
-| `lay-reqtext="..."` | 必填提示文字 |
-| `lay-affix="clear"` | 显示清除按钮 |
-| `lay-verify="email\|phone\|number"` | 格式验证 |
-| `layui-form-mid` + `layui-text-em` | 辅助说明文字 |
-| `layui-form-label required` | 标签上的 `required` 类显示红色星号 |
+| 属性                                  | 作用                      |
+|-------------------------------------|-------------------------|
+| `lay-verify="required"`             | 必填验证                    |
+| `lay-reqtext="..."`                 | 必填提示文字                  |
+| `lay-affix="clear"`                 | 显示清除按钮                  |
+| `lay-verify="email\|phone\|number"` | 格式验证                    |
+| `layui-form-mid` + `layui-text-em`  | 辅助说明文字                  |
+| `layui-form-label required`         | 标签上的 `required` 类显示红色星号 |
 
 ### 4.3 多行文本框
 
@@ -433,11 +417,11 @@ protected function indexActionQueryBuilder(\Phax\Db\QueryBuilder $qb): void
 
 `type` 参数可选值：
 
-| 值 | 效果 |
-|---|---|
+| 值              | 效果                          |
+|----------------|-----------------------------|
 | `'hidden'`（默认） | 隐藏的 URL 输入框 + 上传按钮 + 预览编辑按钮 |
-| `'input'` | 可见的文本输入框 + 上传按钮（可手动输入URL） |
-| `'text'` | 只显示上传按钮，点击后从文件管理器选择 |
+| `'input'`      | 可见的文本输入框 + 上传按钮（可手动输入URL）   |
+| `'text'`       | 只显示上传按钮，点击后从文件管理器选择         |
 
 ### 5.2 上传按钮的 JS 初始化
 
@@ -475,21 +459,21 @@ protected function indexActionQueryBuilder(\Phax\Db\QueryBuilder $qb): void
 
 ## 6. 表单控件速查
 
-| 控件类型 | 代码片段 |
-|---|---|
-| **文本框** | `<input type="text" name="title" class="layui-input" value="<?= $vv->pick('title') ?>">` |
-| **必填文本框** | 加 `lay-verify="required" lay-reqtext="请填写标题"` |
-| **数字** | `<input type="number" name="sort" class="layui-input" value="<?= $vv->pick('sort', 0) ?>">` |
-| **文本域** | `<textarea name="remark" class="layui-textarea"><?= $vv->pick('remark') ?></textarea>` |
-| **下拉框** | `<select name="status"><option value="1" <?= $vv->pick('status')==1?'selected':'' ?>>启用</option></select>` |
-| **单选** | `<input type="radio" name="sex" value="m" title="男" <?= $vv->html()->pickCompare('sex','checked','m') ?>>` |
-| **开/关** | `<input type="checkbox" name="valid" lay-skin="switch" title="是|否" <?= $vv->html()->pickCompare('valid','checked') ?>>` |
-| **多选组** | `<input type="checkbox" name="ids[1]" lay-skin="primary" title="选项A" <?= in_array(1,$selected)?'checked':'' ?>>` |
-| **文件上传** | `<?php $vv->layuiHtml()->upload('头像','avatar',['value'=>$vv->pick('avatar')]); ?>` |
-| **日期+时间** | `<input type="text" id="dt" name="dt" class="layui-input">` + `admin.date.renderDatetime('dt')` |
-| **仅日期** | `<input type="text" id="d" name="d" class="layui-input">` + `admin.date.renderDate('d')` |
-| **图标的隐藏值** | `<?php $vv->layuiHtml()->icon(['value' => $vv->pick('icon')]); ?>` + `$vv->layuiHtml()->iconJs()` |
-| **辅助提示** | `<div class="layui-form-mid layui-text-em">提示文字</div>` 或 `<div class="hint">提示</div>` |
+| 控件类型       | 代码片段                                                                                                             |
+|------------|------------------------------------------------------------------------------------------------------------------|
+| **文本框**    | `<input type="text" name="title" class="layui-input" value="<?= $vv->pick('title') ?>">`                         |
+| **必填文本框**  | 加 `lay-verify="required" lay-reqtext="请填写标题"`                                                                    |
+| **数字**     | `<input type="number" name="sort" class="layui-input" value="<?= $vv->pick('sort', 0) ?>">`                      |
+| **文本域**    | `<textarea name="remark" class="layui-textarea"><?= $vv->pick('remark') ?></textarea>`                           |
+| **下拉框**    | `<select name="status"><option value="1" <?= $vv->pick('status')==1?'selected':'' ?>>启用</option></select>`       |
+| **单选**     | `<input type="radio" name="sex" value="m" title="男" <?= $vv->html()->pickCompare('sex','checked','m') ?>>`       |
+| **开/关**    | `<input type="checkbox" name="valid" lay-skin="switch" title="是                                                  |否" <?= $vv->html()->pickCompare('valid','checked') ?>>` |
+| **多选组**    | `<input type="checkbox" name="ids[1]" lay-skin="primary" title="选项A" <?= in_array(1,$selected)?'checked':'' ?>>` |
+| **文件上传**   | `<?php $vv->layuiHtml()->upload('头像','avatar',['value'=>$vv->pick('avatar')]); ?>`                               |
+| **日期+时间**  | `<input type="text" id="dt" name="dt" class="layui-input">` + `admin.date.renderDatetime('dt')`                  |
+| **仅日期**    | `<input type="text" id="d" name="d" class="layui-input">` + `admin.date.renderDate('d')`                         |
+| **图标的隐藏值** | `<?php $vv->layuiHtml()->icon(['value' => $vv->pick('icon')]); ?>` + `$vv->layuiHtml()->iconJs()`                |
+| **辅助提示**   | `<div class="layui-form-mid layui-text-em">提示文字</div>` 或 `<div class="hint">提示</div>`                            |
 
 ---
 
@@ -724,13 +708,13 @@ layui.util.on('lay-on', {
 
 ## 附：视图文件管理约定速查
 
-| 步骤 | 文件 |
-|---|---|
-| 列表页 | `views/layui/admin/{entity}/index.phtml` |
-| 新增页 | `views/layui/admin/{entity}/add.phtml`（`require_once 'edit.phtml'`） |
-| 编辑页 | `views/layui/admin/{entity}/edit.phtml` |
-| 行操作按钮 | `id="row-action"` 的 `laytpl` 模板 |
-| 工具栏按钮 | `id="toolbar"` 的 `laytpl` 模板 |
-| 搜索区 | `id="table-search"` 的 `fieldset` |
-| 表格 JS | `admin.table.with({url: prefix}).render(...)` |
-| 弹窗提交关闭 | `admin.form.submitFirst(() => admin.iframe.closeFromParent(true))` |
+| 步骤     | 文件                                                                  |
+|--------|---------------------------------------------------------------------|
+| 列表页    | `views/layui/admin/{entity}/index.phtml`                            |
+| 新增页    | `views/layui/admin/{entity}/add.phtml`（`require_once 'edit.phtml'`） |
+| 编辑页    | `views/layui/admin/{entity}/edit.phtml`                             |
+| 行操作按钮  | `id="row-action"` 的 `laytpl` 模板                                     |
+| 工具栏按钮  | `id="toolbar"` 的 `laytpl` 模板                                        |
+| 搜索区    | `id="table-search"` 的 `fieldset`                                    |
+| 表格 JS  | `admin.table.with({url: prefix}).render(...)`                       |
+| 弹窗提交关闭 | `admin.form.submitFirst(() => admin.iframe.closeFromParent(true))`  |

@@ -7,6 +7,10 @@ git clone --depth=1 https://github.com/tao996/phalcon-admin.git
 git clone --depth=1 https://gitee.com/taoooo/phalcon-damin.git
 ```
 
+### 命令
+
+* 文档预览 `mkdocs serve --livereload -a 127.0.0.1:8001`
+
 ### Links
 
 * [中英文 Document](https://tao996.github.io/phalcon-admin-docs/#/)

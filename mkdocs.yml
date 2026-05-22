@@ -2,8 +2,8 @@ site_name: "Phalcon admin docs"
 
 nav:
   - 目录: "index.md"
-  - 模板:
-      - "Layui phtml": "layui_phtml.md"
+  - 快速开始: "quick_start.md"
+  - "模板 phtml": "layui_phtml.md"
 # https://squidfunk.github.io/mkdocs-material/reference/admonitions/
 markdown_extensions:
   - pymdownx.highlight:

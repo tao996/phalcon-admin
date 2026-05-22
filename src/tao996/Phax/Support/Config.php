@@ -37,7 +37,7 @@ class Config
                 PATH_CONFIG . 'config.demo.php'
             ] as $file
         ) {
-            if (file_exists($file)) {
+            if (!empty($file) && file_exists($file)) {
                 $global_config_file = $file;
             }
         }

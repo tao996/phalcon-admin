@@ -66,6 +66,8 @@ class NodeController extends BaseController
             $nodes = array_merge($nodes, RbacAnnotation::getNodes($baseInfo));
         }
 //dd($project,$nodes);
+
+
         $modules = MyFileSystem::findInDirs(PATH_APP_MODULES, 'dir');
 
         foreach ($modules as $module) {
@@ -91,8 +93,7 @@ class NodeController extends BaseController
             try {
                 $pdo->beginTransaction();
                 $stmt = $pdo->prepare(
-                    'UPDATE ' . SystemNode::getObject()->getSource(
-                    ) . ' SET title=:title, is_auth=:is_auth, ac=2 WHERE id=:id'
+                    'UPDATE ' . SystemNode::getObject()->getSource() . ' SET title=:title, is_auth=:is_auth, ac=2 WHERE id=:id'
                 );
                 foreach ($rows['update'] as $row) {
                     $stmt->execute([
@@ -105,7 +106,7 @@ class NodeController extends BaseController
                 foreach ($rows['append'] as $index => $row) {
                     $rows['append'][$index]['ac'] = SystemNode::AC_INSERT;
                 }
-                SystemNode::layer()->batchInsert($rows['append'],[],false);
+                SystemNode::layer()->batchInsert($rows['append'], [], false);
 
                 // 移除旧的记录
                 if ($deleteIds) {
@@ -116,8 +117,7 @@ class NodeController extends BaseController
                     $pdo->exec($sql);
 
                     // 移除角色绑定
-                    $roleNodeSQL = 'DELETE FROM ' . SystemRoleNode::getObject()->getSource(
-                        ) . ' WHERE node_id IN (' . join(',', $deleteIds) . ')';
+                    $roleNodeSQL = 'DELETE FROM ' . SystemRoleNode::getObject()->getSource() . ' WHERE node_id IN (' . join(',', $deleteIds) . ')';
                     $pdo->exec($roleNodeSQL);
                 }
 

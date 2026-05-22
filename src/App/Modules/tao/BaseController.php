@@ -4,6 +4,7 @@ namespace App\Modules\tao;
 
 use App\Modules\tao\Config\Config;
 
+use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Db\QueryBuilder;
 
 use Phax\Mvc\Model;
@@ -188,7 +189,7 @@ class BaseController extends BaseRbacController
                 $this->model->user_id = $this->loginUser()->id;
             }
 
-            return $this->saveModelResponse($this->save($data),'add');
+            return $this->saveModelResponse($this->save($data), 'add');
         }
         $this->updateHtmlTitle('添加');
         return [];
@@ -207,8 +208,26 @@ class BaseController extends BaseRbacController
             return $this->saveModelResponse($this->save($data));
         }
         $this->updateHtmlTitle('编辑');
-        return $this->model->toArray();
+        return $this->afterEditAction($this->model->toArray());
     }
+
+    protected function afterEditAction(array $data): array
+    {
+        if ($this->modelFilesTime2Timestamp) {
+            foreach ($this->modelFilesTime2Timestamp as $fieldName) {
+                $data[$fieldName] = $data[$fieldName] ? date('Y-m-d H:i:s', $data[$fieldName]) : '';
+
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * 在模型保存之前
+     * @var array
+     */
+    public array $modelFilesBool2Int = [];
+    public array $modelFilesTime2Timestamp = [];
 
     /**
      * 处理保存到模型的数据，在 addAction/editAction 中被调用
@@ -217,6 +236,14 @@ class BaseController extends BaseRbacController
      */
     protected function beforeModelSaveAssign(array $data): array
     {
+        if ($this->modelFilesBool2Int) {
+
+            LayuiData::bool2Int($data, $this->modelFilesBool2Int);
+        }
+        if ($this->modelFilesTime2Timestamp) {
+
+            LayuiData::dateTime2Timestamp($data, $this->modelFilesTime2Timestamp);
+        }
         return $data;
     }
 
@@ -377,10 +404,10 @@ class BaseController extends BaseRbacController
     /**
      * 模型修改快速响应
      * @param bool $success
-     * @param string $action['add'] 操作类型
+     * @param string $action ['add'] 操作类型
      * @return array
      */
-    protected function saveModelResponse(bool $success, string $action='save'): array
+    protected function saveModelResponse(bool $success, string $action = 'save'): array
     {
         static $actions = ['add' => '添加', 'insert' => '创建', 'save' => '保存', 'delete' => '删除', 'edit' => '修改'];
         $text = $actions[$action] ?? $action;

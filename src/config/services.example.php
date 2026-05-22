@@ -1,5 +1,5 @@
 <?php
-
+// docker image 前缀
 define('ENV_APP_NAME', env('APP_NAME') ? env('APP_NAME') . '-' : '');
 return [
     // https://docs.phalcon.io/5.0/en/cache
@@ -17,24 +17,24 @@ return [
                 'port' => 6379,
                 'auth' => env('REDIS_PASSWORD'),
                 'index' => env('REDIS_CACHE_INDEX', 0),
-                'prefix' => env('CACHE_PREFIX', '_phc_'),
+                'prefix' => env('CACHE_PREFIX', ''),
                 'persistent' => env('CACHE_PERSISTENT', false)
             ],
             'stream' => [
                 'defaultSerializer' => 'Json',
                 'lifetime' => 7200,
-                'prefix' => env('CACHE_PREFIX', '_phc_'),
+                'prefix' => env('CACHE_PREFIX', ''),
                 'storageDir' => PATH_STORAGE . 'cache'
             ],
             'memory' => [ // warning: https://docs.phalcon.io/5.0/en/cache#memory
                 'defaultSerializer' => 'Json',
                 'lifetime' => 7200,
-                'prefix' => env('CACHE_PREFIX', '_phc_')
+                'prefix' => env('CACHE_PREFIX', '')
             ],
             'memcached' => [
                 'defaultSerializer' => 'Json',
                 'lifetime' => 3600,
-                'prefix' => env('CACHE_PREFIX', '_phc_'),
+                'prefix' => env('CACHE_PREFIX', ''),
                 'saslAuthData' => [
                     'user' => env('MEMCACHED_USER'),
                     'pass' => env("MEMCACHED_PASS"),
@@ -95,7 +95,7 @@ return [
         'port' => 6379,
         'auth' => env('REDIS_PASSWORD'),
         'index' => (int)env('REDIS_CACHE_INDEX', 0),
-        'prefix' => env('REDIS_PREFIX', '_phx_'),
+        'prefix' => env('REDIS_PREFIX', ''),
         'username' => env('REDIS_USERNAME'),
         'persistent' => env('REDIS_PERSISTENT', false),
     ],
@@ -145,7 +145,7 @@ return [
                 'port' => 6379,
                 'auth' => env('REDIS_PASSWORD'),
                 'index' => (int)env('REDIS_SESSION_INDEX', 0),
-                'prefix' => env('REDIS_PREFIX', '_ses_'),
+                'prefix' => env('REDIS_PREFIX', ''),
                 'username' => env('REDIS_USERNAME'),
                 'persistent' => env('REDIS_PERSISTENT', false),
 // https://github.com/phalcon/cphalcon/blob/5.0.x/phalcon/Storage/Adapter/AbstractAdapter.zep
@@ -171,7 +171,7 @@ return [
             ],
             'apcu' => [
                 'lifetime' => 86400,
-                'prefix' => '_phm_',
+                'prefix' => '',
             ],
             'memcached' => [
                 'servers' => [
@@ -182,7 +182,7 @@ return [
                     ],
                 ],
                 'lifetime' => 86400,
-                'prefix' => '_phm_',
+                'prefix' => '',
             ],
             'redis' => [
                 'host' => env('REDIS_HOST', ENV_APP_NAME.'redis'),
@@ -190,7 +190,7 @@ return [
                 'auth' => env('REDIS_PASSWORD'),
                 'index' => 1,
                 'lifetime' => 86400,
-                'prefix' => env('REDIS_PREFIX', '_phm_'),
+                'prefix' => env('REDIS_PREFIX', ''),
             ]
         ]
     ]

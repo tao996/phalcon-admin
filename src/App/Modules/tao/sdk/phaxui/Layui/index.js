@@ -41,15 +41,37 @@ const admin = {
     },
     /**
      * 覆盖 admin 默认配置
-     * @param option {Object}
+     * @param {Object} option 要合并的配置对象
+     * @example admin.assign({ debug: true })
      */
     assign: function (option) {
-        Object.assign(admin.config, option)
+        Object.assign(admin.config, option);
+    },
+    /**
+     * 当前是否开启调试模式
+     * @returns {boolean}
+     */
+    debug: function () {
+        return admin.config.debug || false;
     },
     /**
      * 工具类
      */
     util: {
+        /**
+         * 判断值是否为空（0/'null'/undefined/空对象/空数组 均视为空）
+         * @param {*} data 待检查的值
+         * @returns {boolean}
+         * @example
+         * admin.util.isEmpty(null)         // true
+         * admin.util.isEmpty('')            // true
+         * admin.util.isEmpty('null')        // true
+         * admin.util.isEmpty({})            // true
+         * admin.util.isEmpty([])            // true
+         * admin.util.isEmpty(0)             // true
+         * admin.util.isEmpty('abc')         // false
+         * admin.util.isEmpty({a:1})         // false
+         */
         isEmpty: function (data) {
             if (data === null || data === undefined) {
                 return true;
@@ -90,10 +112,18 @@ const admin = {
          * @param dict {Object}
          * @returns {string}
          */
+        /**
+         * 拼接成 URL 请求参数（自动 encode）
+         * @link https://layui.dev/docs/2/base.html#url
+         * @param {Object} dict 参数键值对
+         * @returns {string} 编码后的 query string，如 "name=abc&age=18"
+         */
         concatQuery: function (dict) {
             var d = [];
             for (var key in dict) {
-                d.push(key + '=' + dict[key]);
+                if (Object.prototype.hasOwnProperty.call(dict, key)) {
+                    d.push(encodeURIComponent(key) + '=' + encodeURIComponent(dict[key]));
+                }
             }
             return d.join('&');
         },
@@ -128,14 +158,24 @@ const admin = {
             layui.util.on('lay-on', binds);
         },
         /**
-         * 从 obj 中挑选出需要的值
-         * @param {Object} obj 对象
-         * @param props
-         * @return {{}}
+         * 从 obj 中挑选出需要的字段
+         * @param {Object} obj 源对象
+         * @param {...string} props 要提取的字段名
+         * @returns {Object} 包含所选字段的新对象
+         * @example admin.util.pick({a:1, b:2, c:3}, 'a', 'c') // {a:1, c:3}
          */
         pick: function (obj, ...props) {
-            return Object.assign({}, ...props.map(prop => ({[prop]: obj[prop]})));
+            return Object.assign({}, ...props.map(function (prop) {
+                return {[prop]: obj[prop]};
+            }));
         },
+        /**
+         * PHP 时间戳（秒）格式化为日期字符串
+         * @param {number} phpTimestamp PHP 时间戳（秒）
+         * @param {string} [format] 格式，默认 'yyyy-MM-dd'，支持 yyyy MM dd HH mm ss
+         * @returns {string}
+         * @example admin.util.toDateString(1684723200) // "2025-05-22"
+         */
         toDateString: function (phpTimestamp, format = 'yyyy-MM-dd') {
             if (phpTimestamp < 1) {
                 return '';
@@ -261,12 +301,15 @@ const admin = {
             })
         },
         /**
-         * 加载提示，并自动关闭
-         * @param seconds {number} 秒数，默认为2
+         * 加载提示，并在指定秒数后自动关闭
+         * @param {number} [seconds] 秒数，默认 2
          */
         load: function (seconds = 2) {
-            const index = layer.load(2, {time: seconds * 1000}); // 加载图标风格，并设置最长等待 10 秒
-            layer.close(index);
+            const index = layer.load(2, {time: seconds * 1000});
+            // 使用 setTimeout 延迟关闭，使 loading 可见
+            setTimeout(function () {
+                layer.close(index);
+            }, seconds * 1000);
         },
         // 关闭消息框
         close: function (index = 0) {
@@ -278,20 +321,20 @@ const admin = {
         },
         /**
          * 生成一个回调函数
+         * 用于 layer.msg/load 的 end 回调，当不传 callback 时自动关闭层
          * @param {function} [callback]
-         * @returns {*|(function(*): void)}
+         * @returns {function}
          * @private
          */
         _createCallback_: function (callback) {
             if (typeof callback === "function") {
                 return callback;
-            } else {
-                return function (index) {
-                    if (!admin.util.isEmpty(index)) {
-                        this.close(index);
-                    }
-                }
             }
+            return function (index) {
+                if (!admin.util.isEmpty(index)) {
+                    admin.layer.close(index);
+                }
+            };
         }
     },
     /**
@@ -349,13 +392,20 @@ const admin = {
             })
         },
         /**
-         * 请求方法
-         * @param type {string} get|post|put|delete
-         * @param option {{url?:string,data:Object,dataType?:string,}}
-         * @param {function} [ok] 返回成功回调
-         * @param {function} [no] 返回错误回调
-         * @param {function} [complete] 完成回调
-         * @param {function} [ex] 错误回调味
+         * 通用 Ajax 请求
+         * @param {string} type 请求方法：get|post|put|delete
+         * @param {{url?:string, data:Object, dataType?:string, contentType?:string, timeout?:number, statusName?:string, statusCode?:number}} option
+         *    - url {string} 接口地址，为空则自动从当前 location 拼接
+         *    - data {Object} 请求参数
+         *    - dataType {string} 响应类型，默认 'json'
+         *    - contentType {string} Content-Type，默认 'application/x-www-form-urlencoded; charset=UTF-8'
+         *    - timeout {number} 超时毫秒数，默认 60000
+         *    - statusName {string} 响应中标识状态码的字段名，默认 'code'
+         *    - statusCode {number} 期望的成功状态码，默认 0
+         * @param {function|string} [ok] 成功回调（function）或成功提示文本（string）；当为字符串时自动弹出成功消息
+         * @param {function|string} [no] 失败回调或失败提示文本
+         * @param {function} [complete] 请求完成回调，接收 data 参数
+         * @param {function} [ex] 错误回调，接收 {xhr, textstatus, thrown} 对象
          */
         ajax: function (type, option, ok, no, complete, ex) {
             option = Object.assign({
@@ -407,7 +457,7 @@ const admin = {
                 error: function (xhr, textstatus, thrown) {
                     admin.layer.error('Status:' + xhr.status + '，' + xhr.statusText + '，请稍后再试！', function () {
                         if (typeof ex === 'function') {
-                            ex(this);
+                            ex({xhr: xhr, textstatus: textstatus, thrown: thrown});
                         }
                     });
                 },
@@ -685,7 +735,9 @@ const admin = {
             })
             if (options.resize) {
                 $(window).on("resize", function () {
-                    index && layer.full(iFrameIndex);
+                    if (iFrameIndex) {
+                        layer.full(iFrameIndex);
+                    }
                 })
             }
 
@@ -1199,11 +1251,20 @@ const admin = {
             }
         },
         /**
-         * switch 模板
-         * @param data {Object} 配置信息
+         * 渲染 switch 模板
+         * @param data {Object} 包含当前行数据及特定的额外字段
          * @return string
+         * @example
+         * ```
+         * {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
+         * // 默认 selectList: {0: '禁用', 1: '启用'},tips: '开|关',
+         * ```
          */
         switch: function (data) {
+            // this => {"field": "status","title": "状态","width": 85,"key": "1-0-5",
+            //     "colspan": 0,"rowspan": 0,"type": "normal","colGroup": false,"hide": false
+            // } 等价于 data[LAY_COL]
+            // data => {LAY_COL, LAY_INDEX:0, LAY_NUM:1, ...模型数据}
             const option = {
                 field: this.field,
                 value: data[this.field],
@@ -1226,8 +1287,8 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          * @return {string}
          */
         humanTime: function (data) {
-            const datat = typeof data;
-            const v = datat === 'string' || datat === 'number' ? data : data[this.field];
+            const dataType = typeof data;
+            const v = dataType === 'string' || dataType === 'number' ? data : data[this.field];
             if (admin.util.isEmpty(v)) {
                 return '';
             }
