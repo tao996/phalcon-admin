@@ -125,6 +125,7 @@ return [
     'session' => [
         'auto_start' => true,
         'driver' => 'redis', // stream, memcached, redis, noop(just for test),
+        'cookie_lifetime' => 86400, // 确保与 stores redis 保持一致
         'stores' => [
             'stream' => [
                 'savePath' => PATH_STORAGE . 'cache/session',
@@ -148,7 +149,7 @@ return [
                 'username' => env('REDIS_USERNAME'),
                 'persistent' => env('REDIS_PERSISTENT', false),
 // https://github.com/phalcon/cphalcon/blob/5.0.x/phalcon/Storage/Adapter/AbstractAdapter.zep
-                'lifetime' => 3600, // 测试，默認為 3600，与 php.ini 中保持一致
+                'lifetime' => 86400, // 默认 24 小时；可根据需要调整，应与 config.php 中的值保持一致
             ],
         ],
     ],

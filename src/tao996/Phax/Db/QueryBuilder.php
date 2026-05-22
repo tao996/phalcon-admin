@@ -373,15 +373,14 @@ class QueryBuilder
     }
 
     /**
-     * todo prepare
      * @param DiInterface|null $di
      * @return $this
      */
     public function setContainer(DiInterface $di = null): static
     {
-//        if (!is_null($di)) {
-//            $this->parameter->parameter['container'] = $di;
-//        }
+        if (!is_null($di)) {
+            $this->parameter->parameter['container'] = $di;
+        }
         return $this;
     }
 
@@ -408,70 +407,14 @@ class QueryBuilder
         return !$this->exits();
     }
 
-    private array $joinInfo = [];
-
     /**
-     * TODO 联表查询；只会影响到 find/findFirst
-     * @param string $referenceModel Profile::class 联表类名
-     * @param array|string $fields 查询的字段
-     * @param string $foreignKey 外键
-     * @param string $referenceModelKey 联表类，默认为 id
-     * @return $this
+     * 联表查询请使用 Phalcon 原生 PHQL JOIN 或手写 SQL。
+     * 此方法已移除，因为其实现是 N+1 应用层拼接而非数据库 JOIN。
+     * @deprecated
      */
-    public function join(
-        string $referenceModel,
-        mixed $fields,
-        string $foreignKey,
-        string $referenceModelKey = 'id'
-    ): static {
-        $parts = explode('\\', $referenceModel);
-        $this->joinInfo[] = [
-            $referenceModel,
-            $fields,
-            $foreignKey,
-            $referenceModelKey,
-            lcfirst(end($parts)),// 4
-        ];
-//        dd($this->joinInfo);
-        return $this;
-    }
-
-    /**
-     * @param array $rst
-     * @param bool $deepArray 是否多维数组
-     * @return void
-     */
-    private function doJoinWithResult(array &$rst, bool $deepArray = false): void
+    public function join(...$args): static
     {
-        if ($deepArray) {
-            if ($this->joinInfo) {
-                foreach ($this->joinInfo as $joinInfo) {
-                    $ids = [];
-                    foreach ($rst as $item) {
-                        $ids[] = $item[$joinInfo[2]];
-                    }
-                    $rows = QueryBuilder::with($joinInfo[0])
-                        ->in($joinInfo[3], $ids)->findColumn(
-                            [$joinInfo[3], $joinInfo[1]],
-                            $joinInfo[3]
-                        );
-
-                    foreach ($rst as $index => $item) {
-                        $key = $item[$joinInfo[2]];
-                        $rst[$index][$joinInfo[4]] = $rows[$key] ?? [];
-                    }
-                }
-            }
-        } else {
-            foreach ($this->joinInfo as $joinInfo) {
-                if (isset($rst[$joinInfo[2]])) {
-                    $rst[$joinInfo[4]] = QueryBuilder::with($joinInfo[0])
-                        ->int($joinInfo[3], $rst[$joinInfo[2]])
-                        ->columns([$joinInfo[3], $joinInfo[1]])
-                        ->findFirstArray();
-                }
-            }
-        }
+        throw new \Exception('QueryBuilder::join() 已移除。请使用 Phalcon 原生 PHQL JOIN 或手写 SQL。');
     }
 
     /**
@@ -487,8 +430,6 @@ class QueryBuilder
         if (!empty($this->parameter->parameter['distinct'])) {
             return array_column($rows, $this->parameter->parameter['distinct']);
         }
-        $this->doJoinWithResult($rows, true);
-
         return $rows;
     }
 
@@ -507,9 +448,6 @@ class QueryBuilder
             return $toArray ? [] : null;
         }
         $row = $toArray ? $record->toArray() : $record;
-        if ($toArray) { // todo 联表查询
-            $this->doJoinWithResult($row, false);
-        }
         if ($callback && $row) {
             $callback($row);
         }
@@ -558,12 +496,28 @@ class QueryBuilder
     }
 
     /**
-     * 删除符合条件的记录 (注意：使用软删除会触发 beforeSave)
+     * 删除符合条件的记录
+     * 注意：不会触发模型事件（beforeDelete/afterDelete）
+     * 如需触发事件，请使用  $model::find($params)->delete()
      * @return bool
      */
     public function delete(): bool
     {
-        return $this->model::find($this->getParameter())->delete();
+        $params = $this->getParameter();
+        $source = $this->model->getSource();
+        $connection = $this->model->getWriteConnection();
+
+        // 从参数中提取 conditions
+        $conditions = $params['conditions'] ?? '';
+        $bind = $params['bind'] ?? [];
+        $bindTypes = $params['bindTypes'] ?? [];
+
+        if (empty($conditions) && empty($bind)) {
+            // 无条件删除——走 find + delete 触发事件（安全）
+            return $this->model::find($params)->delete();
+        }
+
+        return $connection->delete($source, $conditions, $bind, $bindTypes);
     }
 
     /**

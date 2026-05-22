@@ -36,7 +36,7 @@ class Validate
                     $rowRules[] = [$ruleWithParams[0], []];
                 }
             }
-            $fInfo = explode('|', $fieldInfo); // 'name|用户名' ==> ['name', '用户名']
+            $fInfo = explode('|', $fieldInfo, 2); // 'name|用户名' ==> ['name', '用户名']
             $rows[] = [
                 'name' => $fInfo[0],
                 'title' => $fInfo[1] ?? '',
@@ -114,7 +114,7 @@ class Validate
                 return [
                     'different',
                     Validation\DifferentValidation::class,
-                    'with' => $params[0]
+                    ['with' => $params[0]]
                 ];
             case 'digit': // 纯数字（不包含负数和小数），height, width
             case 'number':
@@ -360,12 +360,7 @@ class Validate
         foreach ($this->rules($rules) as $item) {
             foreach ($item['rules'] as $row) {
                 $rr = $this->getCallerValidation($row[0], $row[1]);
-                $arguments = [];
-                if (isset($rr['with'])) {
-                    $arguments['with'] = $data[$rr['with']];
-                } elseif (isset($rr[2])) {
-                    $arguments = $rr[2];
-                }
+                $arguments = $rr[2] ?? [];
                 $message = $messages[$item['name'] . '.' . $row[0]] ?? $this->mvc->__($rr[0]);
                 if ($item['title']) {
 //                    $arguments['field'] = $item['title'];

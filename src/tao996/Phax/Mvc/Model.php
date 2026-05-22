@@ -226,13 +226,16 @@ class Model extends \Phalcon\Mvc\Model
      *     public int $user_id = 0;
      * }
      * </code>
+     * @param string|null $alias 可选，显式指定关联别名；传 null 时通过 debug_backtrace 自动推断（仅供向后兼容）
      * @return array{key:string,alias:string,fk:string,method:string} ['key'=>'识别 id', 'alias'=>'名称', 'fk'=>'外键']
      */
-    protected function getRelatedCaller(): array
+    protected function getRelatedCaller(?string $alias = null): array
     {
-        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
-        $alias = $trace[2]['function'];
-        $key = $trace[1]['file'] . '.' . $alias;
+        if (null === $alias) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+            $alias = $trace[2]['function'];
+        }
+        $key = get_class($this) . '.' . $alias;
         $nameParts = explode('\\', get_class($this));
         $foreignKey = $this->getDI()->get('helper')->uncamelize(array_pop($nameParts)) . '_id';
         return ['key' => $key, 'alias' => $alias, 'fk' => $foreignKey, 'method' => 'get' . ucwords($alias)];
@@ -264,8 +267,7 @@ class Model extends \Phalcon\Mvc\Model
      */
     protected function hasManyPhx(string $referenceModel, array $options = [])
     {
-        $info = $this->getRelatedCaller();
-//        dd($info);
+        $info = $this->getRelatedCaller($options['alias'] ?? null);
         if (!isset(static::$relationsMap[$info['key']])) {
             static::$relationsMap[$info['key']] = true;
             $localKey = $options['localKey'] ?? 'id';
@@ -310,7 +312,7 @@ class Model extends \Phalcon\Mvc\Model
             ['alias' => 'roles']
         );
          */
-        $info = $this->getRelatedCaller();
+        $info = $this->getRelatedCaller($options['alias'] ?? null);
 
         if (!isset(static::$relationsMap[$info['key']])) {
             static::$relationsMap[$info['key']] = true;
@@ -353,7 +355,7 @@ class Model extends \Phalcon\Mvc\Model
      */
     protected function hasOnePhx(string $referenceModel, array $options = [])
     {
-        $info = $this->getRelatedCaller();
+        $info = $this->getRelatedCaller($options['alias'] ?? null);
         if (!isset(static::$relationsMap[$info['key']])) {
             static::$relationsMap[$info['key']] = true;
             $this->hasOne($options['localKey'] ?? 'id', $referenceModel, $options['foreignKey'] ?? $info['fk'], [
@@ -398,7 +400,8 @@ class Model extends \Phalcon\Mvc\Model
     }
 
     /**
-     * 获取当前实例(用于获取实例的各种原始信息)，注意不要修改实例的属性
+     * 获取当前实例(用于获取实例的各种原始信息)
+     * 返回的是原型对象的副本，修改返回对象的属性不会影响后续调用
      * @return static
      */
     public static function getObject(): \Phax\Mvc\Model|self
@@ -408,8 +411,7 @@ class Model extends \Phalcon\Mvc\Model
         if (!isset($obj[$called])) {
             $obj[$called] = new static();
         }
-//        pr('------',get_class(new static()),get_called_class(),false);
-        return $obj[$called];
+        return clone $obj[$called];
     }
 
 

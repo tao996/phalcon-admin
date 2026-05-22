@@ -241,6 +241,12 @@ class DiService
         return $this;
     }
 
+    /**
+     * 注册 Redis 服务（全局 DI 中的 'redis' 服务）
+     * 注意：该连接设置了 `_prefix('{$prefix}')`，所有 key 操作都会自动添加此前缀。
+     * 例如 `$redis->get('abc')` 实际查询 `_phx_abc`。
+     * 使用 `redis-cli` 直接查看时需要手动拼接前缀。
+     */
     public function redis(bool $shared = true): static
     {
         // redis
@@ -418,6 +424,21 @@ class DiService
             }
             $session = new \Phalcon\Session\Manager();
             $session->setAdapter($adapter);
+            $session->setOptions($cc);
+
+            // 显式设置 cookie 过期时间，覆盖 php.ini 中的 session.cookie_lifetime
+            // 确保 Cookie 的 Max-Age 与 Redis session 的 TTL 一致，防止
+            // "Cookie 未过期但 Redis 数据已过期" 导致的登录失效
+            $cookieLifetime = (int)($cc['cookie_lifetime'] ?? $sessionConfig['lifetime'] ?? 86400);
+            session_set_cookie_params([
+                'lifetime' => $cookieLifetime,
+                'path' => ini_get('session.cookie_path') ?: '/',
+                'domain' => ini_get('session.cookie_domain') ?: '',
+                'secure' => (bool)(ini_get('session.cookie_secure') ?: false),
+                'httponly' => (bool)(ini_get('session.cookie_httponly') ?: true),
+                'samesite' => ini_get('session.cookie_samesite') ?: 'Lax',
+            ]);
+
             $session->start();
             return $session;
         }, $shared);

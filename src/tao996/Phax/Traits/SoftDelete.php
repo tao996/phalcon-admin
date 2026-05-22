@@ -50,9 +50,9 @@ trait SoftDelete
      * 单记录 (deleted_at IS NULL)的查询
      * @param $parameters string|numeric|array|null 查询参数 <br>
      * findFirst() // 查询最后一条记录 id DESC <br>
-     * findFirst(5) // 数字 查询主键 id=5 的记录 <br>
+     * findFirst(5) // 数字 查询主键 id=5 的记录（参数化绑定）<br>
      * findFirst('name="phx"') // 字符串，直接设置条件<br>
-     * findFirst(['name'=>'phx', 'age'=>5]) // 使用绑定方式查询 name='phx' AND age=5 的记录
+     * findFirst(['name'=>'phx', 'age'=>5]) // 使用绑定方式
      * @param callable|null $queryBuilder \Phalcon\Mvc\Model\Query\Builder()
      * @throws \Exception
      * @return \Phalcon\Mvc\Model\Row|\Phalcon\Mvc\Model|self|null
@@ -61,38 +61,76 @@ trait SoftDelete
     {
         /**
          * @var $obj \Phax\Mvc\Model
-         * @var $builder \Phalcon\Mvc\Model\Query\Builder
          */
         $obj = static::getObject();
-        $builder = new \Phalcon\Mvc\Model\Query\Builder();
-        $builder->from(__CLASS__);
-        $builder->where($obj->getDeleteTimeName() . ' IS NULL');
+
+        // null：默认按主键降序取第一条
         if (is_null($parameters)) {
-            $builder->orderBy($obj->getPrimaryKey() . ' DESC');
-        } elseif (is_numeric($parameters)) {
-            $builder->andWhere($obj->getPrimaryKey() . ' = ' . $parameters);
-        } elseif (is_string($parameters)) {
-            $builder->andWhere($parameters);
-        } elseif (is_array($parameters)) {
-            foreach ($parameters as $key => $value) {
-                $builder->andWhere($key . ' = :' . $key . ':', [
-                    $key => $value
-                ]);
+            $parameters = [
+                'conditions' => $obj->getDeleteTimeName() . ' IS NULL',
+                'order' => $obj->getPrimaryKey() . ' DESC'
+            ];
+            if ($queryBuilder) {
+                $builder = (new \Phalcon\Mvc\Model\Query\Builder())
+                    ->from(static::class)
+                    ->where($parameters['conditions'])
+                    ->orderBy($parameters['order']);
+                $queryBuilder($builder);
+                return $builder->getQuery()->execute()->getFirst();
             }
-        } else {
-            throw new \Exception('parameters must be of type array,string,numeric or null');
+            return parent::findFirst($parameters);
         }
-        if (!is_null($queryBuilder)) {
-            $queryBuilder($builder);
+
+        // 数字主键 → 参数化绑定，避免 SQL 注入
+        if (is_numeric($parameters)) {
+            $pk = $obj->getPrimaryKey();
+            $conditions = $pk . ' = :_pk_: AND ' . $obj->getDeleteTimeName() . ' IS NULL';
+            $parameters = ['conditions' => $conditions, 'bind' => ['_pk_' => intval($parameters)]];
+            if ($queryBuilder) {
+                $builder = (new \Phalcon\Mvc\Model\Query\Builder())
+                    ->from(static::class)
+                    ->where($conditions, ['_pk_' => intval($parameters['bind']['_pk_'])]);
+                $queryBuilder($builder);
+                return $builder->getQuery()->execute()->getFirst();
+            }
+            return parent::findFirst($parameters);
         }
-//        $builder->limit(1);
-//        dd($builder->getQuery()->getSql(),$builder->getQuery()->getBindParams());
-        /**
-         * @var $results \Phalcon\Mvc\Model\Resultset
-         */
-        $results = $builder->getQuery()->execute();
-//        dd($results,$results->getFirst());
-        return $results?->getFirst();
+
+        // 字符串 SQL 条件 + 软删除
+        if (is_string($parameters)) {
+            $params = $parameters . ' AND ' . $obj->getDeleteTimeName() . ' IS NULL';
+            if ($queryBuilder) {
+                $builder = (new \Phalcon\Mvc\Model\Query\Builder())
+                    ->from(static::class)->where($params);
+                $queryBuilder($builder);
+                return $builder->getQuery()->execute()->getFirst();
+            }
+            return parent::findFirst($params);
+        }
+
+        // 数组：委托给 mergeParameters 追加软删除条件
+        if (is_array($parameters)) {
+            $parameters = self::mergeParameters($parameters, 1);
+            if ($queryBuilder) {
+                $builder = (new \Phalcon\Mvc\Model\Query\Builder())->from(static::class);
+                if (is_string($parameters)) {
+                    $builder->where($parameters);
+                } else {
+                    $builder->where($parameters['conditions'] ?? '1=1');
+                    if (isset($parameters['bind'])) {
+                        $builder->setBindParams($parameters['bind'], true);
+                    }
+                    if (isset($parameters['order'])) {
+                        $builder->orderBy($parameters['order']);
+                    }
+                }
+                $queryBuilder($builder);
+                return $builder->getQuery()->execute()->getFirst();
+            }
+            return parent::findFirst($parameters);
+        }
+
+        throw new \Exception('parameters must be of type array,string,numeric or null');
     }
 
     /**
@@ -177,36 +215,43 @@ trait SoftDelete
                 null,
                 $obj->deletedTime . ' IS NULL'
             ];
-        } elseif (is_numeric($parameters)) {
+            return $items[$softDelete + 1];
+        }
+        if (is_numeric($parameters)) {
+            $pk = $obj->getPrimaryKey();
             $items = [
-                $obj->getPrimaryKey() . '=' . $parameters . ' AND ' . $obj->deletedTime . ' IS NOT NULL',
-                $obj->getPrimaryKey() . '=' . $parameters,
-                $obj->getPrimaryKey() . '=' . $parameters . ' AND ' . $obj->deletedTime . ' IS NULL',
+                $pk . '=' . intval($parameters) . ' AND ' . $obj->deletedTime . ' IS NOT NULL',
+                $pk . '=' . intval($parameters),
+                $pk . '=' . intval($parameters) . ' AND ' . $obj->deletedTime . ' IS NULL',
             ];
-        } elseif (is_string($parameters)) {
+            return $items[$softDelete + 1];
+        }
+        if (is_string($parameters)) {
             $items = [
                 $parameters . ' AND ' . $obj->deletedTime . ' IS NOT NULL',
                 $parameters,
                 $parameters . ' AND ' . $obj->deletedTime . ' IS  NULL',
             ];
-        } elseif (is_array($parameters)) {
-            if (isset($parameters[0]) && is_string($parameters[0])) {
+            return $items[$softDelete + 1];
+        }
+        if (is_array($parameters)) {
+            // 复制数组，避免修改传入的原变量
+            $params = $parameters;
+            if (isset($params[0]) && is_string($params[0])) {
                 if ($softDelete == -1) {
-                    $parameters[0] = $parameters[0] . ' AND ' . $obj->deletedTime . ' IS NOT NULL';
+                    $params[0] = $params[0] . ' AND ' . $obj->deletedTime . ' IS NOT NULL';
                 } elseif ($softDelete == 1) {
-                    $parameters[0] = $parameters[0] . ' AND ' . $obj->deletedTime . ' IS NULL';
+                    $params[0] = $params[0] . ' AND ' . $obj->deletedTime . ' IS NULL';
                 }
-            } elseif (isset($parameters['conditions'])) {
+            } elseif (isset($params['conditions'])) {
                 if ($softDelete == -1) {
-                    $parameters['conditions'] = $parameters['conditions'] . ' AND ' . $obj->deletedTime . ' IS NOT NULL';
+                    $params['conditions'] = $params['conditions'] . ' AND ' . $obj->deletedTime . ' IS NOT NULL';
                 } elseif ($softDelete == 1) {
-                    $parameters['conditions'] = $parameters['conditions'] . ' AND ' . $obj->deletedTime . ' IS NULL';
+                    $params['conditions'] = $params['conditions'] . ' AND ' . $obj->deletedTime . ' IS NULL';
                 }
             }
-            return $parameters;
-        } else {
-            throw new \Exception('parameters must be of type array,string,numeric or null');
+            return $params;
         }
-        return $items[$softDelete + 1];
+        throw new \Exception('parameters must be of type array,string,numeric or null');
     }
 }

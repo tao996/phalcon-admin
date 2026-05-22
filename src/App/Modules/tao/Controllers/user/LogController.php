@@ -22,7 +22,24 @@ class LogController extends BaseController
 
     protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
     {
-        $queryBuilder->join(SystemUser::class, 'nickname', 'user_id');
-        return parent::indexActionGetResult($count, $queryBuilder);
+        $rows = parent::indexActionGetResult($count, $queryBuilder);
+        if (empty($rows)) {
+            return $rows;
+        }
+        // 批量填充用户昵称（替代已移除的 QueryBuilder::join）
+        $uids = array_unique(array_filter(array_column($rows, 'user_id')));
+        if ($uids) {
+            $users = SystemUser::find([
+                'columns' => 'id, nickname',
+                'conditions' => 'id IN ({ids:array})',
+                'bind' => ['ids' => $uids],
+            ])->toArray();
+            $userMap = array_column($users, 'nickname', 'id');
+            foreach ($rows as &$row) {
+                $row['nickname'] = $userMap[$row['user_id']] ?? '';
+            }
+            unset($row);
+        }
+        return $rows;
     }
 }
