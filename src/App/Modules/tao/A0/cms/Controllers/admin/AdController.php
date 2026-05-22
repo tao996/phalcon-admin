@@ -56,13 +56,13 @@ class AdController extends BaseTaoA0CmsController
         'gname'
     ];
 
-    public array $modelFilesBool2Int = [
+    public array $layuiBool2Int = [
         'at_index',
         'at_list',
         'at_page',
         'at_banner'
     ];
-    public array $modelFilesTime2Timestamp = [
+    public array $layuiDatetime2Timestamp = [
         'begin_at',
         'end_at'
     ];

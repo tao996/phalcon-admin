@@ -25,7 +25,7 @@ class MyData
     {
         $keys = explode('.', $path);
         if (count($keys) == 1) {
-            return isset($data[$path]) && $data[$path] ? $data[$path] : $default;
+            return empty($data[$path]) ? $default : $data[$path];
         }
         $current = $data;
         foreach ($keys as $key) {
@@ -34,7 +34,7 @@ class MyData
             }
             $current = $current[$key];
         }
-        return $current ?: $default;
+        return empty($current) ? $default : $current;
     }
 
     /**
