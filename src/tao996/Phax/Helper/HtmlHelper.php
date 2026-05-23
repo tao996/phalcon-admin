@@ -73,6 +73,18 @@ class HtmlHelper
     }
 
     /**
+     * 用于 select option 中显示
+     * @param string $path
+     * @param mixed $value
+     * @return string
+     */
+    public function selected(string $path, mixed $value):string
+    {
+        $eq = $this->pick($path, is_int($value) ? 0 : '') == $value;
+        return $eq ? 'selected' : '';
+    }
+
+    /**
      * 页面标题
      * @return string
      */

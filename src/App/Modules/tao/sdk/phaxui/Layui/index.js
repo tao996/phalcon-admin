@@ -7,6 +7,7 @@ const admin = {
      */
     config: {
         debug: false,
+        // 固定的请求地址
         url: {
             imageSave: '/api/m/tao/user.file/save',
             imageList: '/m/tao/user.file/index',
@@ -31,9 +32,6 @@ const admin = {
         urlReplace: function (url) {
             return url;
         }
-    },
-    debug: function () {
-        return admin.config.debug || false;
     },
     /**
      * 覆盖 admin 默认配置
@@ -185,7 +183,7 @@ const admin = {
      * @link https://layui.dev/docs/2/layer/#options.callback
      */
     layer: {
-        image: function (src, title = '圖片展示') {
+        image: function (src, title = '图片展示') {
             layer.photos({
                 photos: {
                     title, start: 0, data: [{src}]
@@ -995,13 +993,11 @@ const admin = {
         },
         /**
          * 初始化 id: 表格 ID，url 请求接口, rowAction:修改行数据时回调函数
-         * @param {{id?:string, url?:string, rowAction?:function}} [config]
-         * @return this;
+         * @param {{id?:string, url?:string, rowAction?:function,query?:array}} [config]
+         * @return this
          */
         with: function (config = {}) {
             Object.assign(this._config, {url: admin.ajax.apiURL()}, config)
-            // console.log(this._config)
-            this._config.url = admin.config.urlReplace(this._config.url);
             return this;
         },
         getTableId: function () {

@@ -390,9 +390,9 @@ protected function indexActionQueryBuilder(\Phax\Db\QueryBuilder $qb): void
     </div>
 </div>
 <script>
-    admin.date.renderDatetime('maintain_time');  // 日期+时间
+    admin.date.renderDatetime('maintain_time', false);  // 日期+时间,不需要范围选择
     // 或
-    admin.date.renderDate('created_at');          // 仅日期
+    admin.date.renderDate('created_at',false );          // 仅日期,不需要范围选择
 </script>
 ```
 
@@ -455,25 +455,161 @@ protected function indexActionQueryBuilder(\Phax\Db\QueryBuilder $qb): void
 </script>
 ```
 
+## 数据选择
+
+通常用于关联表字段数据的选择
+
+### 选择按钮
+
+```phtml
+<div class="layui-form-item">
+    <label class="layui-form-label required">关联客户</label>
+    <div class="layui-input-inline">
+        <input type="text" id="customer_name" class="layui-input" placeholder="客户名称"
+               lay-verify="required" readonly
+               value="<?=$vv->pick('customer_name') ?>">
+        <input type="hidden" name="customer_id" value="<?=$vv->pick('customer_id') ?>">
+    </div>
+    <a class="layui-btn layui-btn-normal" id="select_customer"><i class="fa fa-list"></i></a>
+</div>
+
+<script>
+$('#select_customer').off('click').on('click', function () {
+    admin.iframe.open('/m/yihe/customer/select', { // type=checkbox 则表示多选,默认为单选
+            title: '客户选择', width: '500px', height: '500px',
+            end: function () {
+            // customers 为保存中介名称
+                admin.storage.getFirst('customers', item => {
+                    customer_id = item.id;
+                    $('#customer_name').val(item.name);
+                    $('#customer_id').val(customer_id);
+                });
+            }
+        });
+});
+</script>
+```
+
+### 数据选择页面
+
+* 控制器 `CustomerController.php` 添加数据选择操作
+
+```php
+public function selectAction(): array
+{
+    $this->disabledMainLayout = true;
+    return $this->indexAction();
+}
+```
+
+* 视图 `customer/select.phtml`
+
+```pthml
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>客户选择</title>
+    <?php
+    $vv->layui()->selectHeader();
+    $vv->html()->outputHeaders();
+    ?>
+</head>
+<body class="layui-padding-1">
+<div id="table-search" style="margin-top: 8px;">
+    <form class="layui-form" style="display:inline-block;" lay-filter="form-search">
+        <div class="layui-form-item" style="margin-bottom: 0">
+
+            <div class="layui-input-inline">
+                <input type="text" id="keyword"
+                       name="keyword" placeholder="请输入关键词" autocomplete="off"
+                       lay-affix="clear"
+                       class="layui-input input-keyword"
+                >
+            </div>
+            <div class="layui-form-item layui-inline">
+                <a class="layui-btn layui-btn-normal"
+                   lay-submit>搜索</a>
+                <button type="reset" class="layui-btn layui-btn-primary">
+                    重置
+                </button>
+                <a class="layui-btn" lay-on="picker">选择</a>
+            </div>
+        </div>
+    </form>
+</div>
+<div>
+    <table id="table" class="layui-hide"></table>
+</div>
+</body>
+<?php
+$vv->html()->outputFooters();
+$vv->layui()->footer();
+?>
+<script>
+    const index = parent.layer.getFrameIndex(window.name);
+    admin.util.layOn({
+        picker: function () {
+            const rows = layui.table.cache['table'];
+            const items = rows.filter(d => d['LAY_CHECKED'] === true);
+            if (items.length > 0) {
+                const rows = items.map(d => admin.util.pick(d, 'id', 'name'));
+                admin.storage.save('customers', rows);
+                parent.layer.close(index)
+            } else {
+                admin.layer.error('没有选中任何记录')
+            }
+        }
+    })
+
+// 接口请求路径
+    const apiUrl = '<?php echo $vv->urlModule("yihe/customer", false) ?>';
+    const tt = admin.table.with({url: apiUrl})
+        .render({
+            defaultToolbar: '-',
+            cols: [[
+                {type: "<?php echo $vv->request()->getQuery('type') === 'checkbox' ? 'checkbox' : 'radio' ?>"},
+                {
+                    field: 'name',
+                    width: 120,
+                    title: '客户名称',
+                    align: "center",
+                }, // 其它字段
+            ]],
+        }, {search: false})
+</script>
+</html>
+
+```
+
 ---
 
 ## 6. 表单控件速查
 
-| 控件类型       | 代码片段                                                                                                             |
-|------------|------------------------------------------------------------------------------------------------------------------|
-| **文本框**    | `<input type="text" name="title" class="layui-input" value="<?= $vv->pick('title') ?>">`                         |
-| **必填文本框**  | 加 `lay-verify="required" lay-reqtext="请填写标题"`                                                                    |
-| **数字**     | `<input type="number" name="sort" class="layui-input" value="<?= $vv->pick('sort', 0) ?>">`                      |
-| **文本域**    | `<textarea name="remark" class="layui-textarea"><?= $vv->pick('remark') ?></textarea>`                           |
-| **下拉框**    | `<select name="status"><option value="1" <?= $vv->pick('status')==1?'selected':'' ?>>启用</option></select>`       |
-| **单选**     | `<input type="radio" name="sex" value="m" title="男" <?= $vv->html()->pickCompare('sex','checked','m') ?>>`       |
-| **开/关**    | `<input type="checkbox" name="valid" lay-skin="switch" title="是                                                  |否" <?= $vv->html()->pickCompare('valid','checked') ?>>` |
-| **多选组**    | `<input type="checkbox" name="ids[1]" lay-skin="primary" title="选项A" <?= in_array(1,$selected)?'checked':'' ?>>` |
-| **文件上传**   | `<?php $vv->layuiHtml()->upload('头像','avatar',['value'=>$vv->pick('avatar')]); ?>`                               |
-| **日期+时间**  | `<input type="text" id="dt" name="dt" class="layui-input">` + `admin.date.renderDatetime('dt')`                  |
-| **仅日期**    | `<input type="text" id="d" name="d" class="layui-input">` + `admin.date.renderDate('d')`                         |
-| **图标的隐藏值** | `<?php $vv->layuiHtml()->icon(['value' => $vv->pick('icon')]); ?>` + `$vv->layuiHtml()->iconJs()`                |
-| **辅助提示**   | `<div class="layui-form-mid layui-text-em">提示文字</div>` 或 `<div class="hint">提示</div>`                            |
+| 控件类型       | 代码片段                                                                                                                     |
+|------------|--------------------------------------------------------------------------------------------------------------------------|
+| **文本框**    | `<input type="text" name="title" class="layui-input" value="<?= $vv->pick('title') ?>">`                                 |
+| **必填文本框**  | 加 `lay-verify="required" lay-reqtext="请填写标题"`                                                                            |
+| **数字**     | `<input type="number" name="sort" class="layui-input" value="<?= $vv->pick('sort', 0) ?>">`                              |
+| **文本域**    | `<textarea name="remark" class="layui-textarea"><?= $vv->pick('remark') ?></textarea>`                                   |
+| **下拉框**    | `<select name="status"><option value="1" <?= $vv->pick('status')==1?'selected':'' ?>>启用</option></select>`               |
+| **单选**     | `<input type="radio" name="sex" value="m" title="男" <?= $vv->html()->pickCompare('sex','checked','m') ?>>`               |
+| **开/关**    | `<input type="checkbox" name="valid" lay-skin="switch" title="是\|否" <?= $vv->html()->pickCompare('valid','checked') ?>>` |
+| **多选组**    | `<input type="checkbox" name="ids[1]" lay-skin="primary" title="选项A" <?= in_array(1,$selected)?'checked':'' ?>>`         |
+| **文件上传**   | `<?php $vv->layuiHtml()->upload('头像','avatar',['value'=>$vv->pick('avatar')]); ?>`                                       |
+| **日期+时间**  | `<input type="text" id="dt" name="dt" class="layui-input">` + `admin.date.renderDatetime('dt')`                          |
+| **仅日期**    | `<input type="text" id="d" name="d" class="layui-input">` + `admin.date.renderDate('d')`                                 |
+| **图标的隐藏值** | `<?php $vv->layuiHtml()->icon(['value' => $vv->pick('icon')]); ?>` + `$vv->layuiHtml()->iconJs()`                        |
+| **辅助提示**   | `<div class="layui-form-mid layui-text-em">提示文字</div>` 或 `<div class="hint">提示</div>`                                    |
 
 ---
 

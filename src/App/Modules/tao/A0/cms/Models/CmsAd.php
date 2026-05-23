@@ -17,8 +17,8 @@ class CmsAd extends BaseTaoModel
     ];
 
     public int $user_id = 0;
-    public int $begin_at = 0; // 开始时间
-    public int $end_at = 0; // 结束时间
+    public string|null $begin_at = null; // 生效时间
+    public string|null $end_at = null; // 结束时间
     public string $cover = ''; // 封面
     public string $title = ''; // 标题
     public string $link = ''; // 内链/外链/ID

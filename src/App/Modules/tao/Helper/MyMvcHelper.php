@@ -7,6 +7,7 @@ use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\Helper\Auth\AuthRedisData;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\sdk\phaxui\Layui\Layui;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
 use App\Modules\tao\sdk\phaxui\TaoHtmlHelper;
 use App\Modules\tao\Services\ConfigService;
@@ -123,6 +124,11 @@ class MyMvcHelper extends MyMvc
         return $this->di->getShared('tao.layuiHtml');
     }
 
+    public function layuiForm(): LayuiForm
+    {
+        return $this->di->getShared('tao.layuiForm');
+    }
+
     protected function injectServices(): void
     {
         $mvc = $this;
@@ -187,6 +193,9 @@ class MyMvcHelper extends MyMvc
         });
         $this->di->setShared('tao.layuiHtml', function () use ($mvc) {
             return new LayuiHtml($mvc);
+        });
+        $this->di->setShared('tao.layuiForm', function () use ($mvc) {
+            return new LayuiForm($mvc);
         });
         $this->di->setShared('tao.ossUploadHelper', function () use ($mvc) {
             return new OssUploadHelper($mvc);

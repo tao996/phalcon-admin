@@ -25,6 +25,16 @@ class MyArray
         return false;
     }
 
+    public static function firstOrNull(array $rows, callable $predicate)
+    {
+        foreach ($rows as $item){
+            if (call_user_func($predicate, $item) === true) {
+                return $item;
+            }
+        }
+        return null;
+    }
+
     /**
      * 交换数组的元素
      * @param array $rows

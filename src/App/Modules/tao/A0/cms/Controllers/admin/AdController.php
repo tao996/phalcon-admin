@@ -29,7 +29,7 @@ class AdController extends BaseTaoA0CmsController
         }
         $status = $this->request->getQuery('status', 'int', 0);
         if ($beginAt = $this->request->getQuery('begin_at')) {
-            $queryBuilder->opt('begin_at', '>=', strtotime($beginAt), \PDO::PARAM_INT);
+            $queryBuilder->opt('begin_at', '>=', $beginAt);
         }
         if (MyData::isBool($this->request->getQuery('active'))) {
             $status = 1;
@@ -61,9 +61,5 @@ class AdController extends BaseTaoA0CmsController
         'at_list',
         'at_page',
         'at_banner'
-    ];
-    public array $layuiDatetime2Timestamp = [
-        'begin_at',
-        'end_at'
     ];
 }

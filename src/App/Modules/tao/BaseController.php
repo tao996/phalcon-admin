@@ -213,11 +213,6 @@ class BaseController extends BaseRbacController
 
     protected function afterEditAction(array $data): array
     {
-        if ($this->layuiDatetime2Timestamp) {
-            foreach ($this->layuiDatetime2Timestamp as $fieldName) {
-                $data[$fieldName] = $data[$fieldName] ? date($this->layuiTimestampReverseFormat ?: 'Y-m-d H:i:s', $data[$fieldName]) : '';
-            }
-        }
         return $data;
     }
 
@@ -226,16 +221,6 @@ class BaseController extends BaseRbacController
      * @var array
      */
     public array $layuiBool2Int = [];
-    /**
-     * 将 layui date 转为时间戳以便保存到 数据库
-     * @var array
-     */
-    public array $layuiDatetime2Timestamp = [];
-    /**
-     * 将被转换的时间戳格式或为日期，默认为 Y-m-d H:i:s
-     * @var string
-     */
-    public string $layuiTimestampReverseFormat = '';
 
     /**
      * 处理保存到模型的数据，在 addAction/editAction 中被调用
@@ -245,12 +230,7 @@ class BaseController extends BaseRbacController
     protected function beforeModelSaveAssign(array $data): array
     {
         if ($this->layuiBool2Int) {
-
             LayuiData::bool2Int($data, $this->layuiBool2Int);
-        }
-        if ($this->layuiDatetime2Timestamp) {
-
-            LayuiData::dateTime2Timestamp($data, $this->layuiDatetime2Timestamp);
         }
         return $data;
     }
