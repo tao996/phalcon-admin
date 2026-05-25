@@ -1,6 +1,6 @@
 <?php
 
-define('PATH_ROOT', dirname(__DIR__) . '/');
+define('PATH_ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
 if (file_exists(__DIR__ . '/bootstrap.test.php')) {
     /**
      * 默认测试所使用配置文件
@@ -10,8 +10,17 @@ if (file_exists(__DIR__ . '/bootstrap.test.php')) {
 }
 
 require_once PATH_ROOT . 'bootstrap/app.php';
-
-\Phax\Foundation\DiService::with(\Phax\Foundation\Application::di())
+$di = \Phax\Foundation\Application::di();
+$di->setShared('request', function () {
+    return new \Tests\Helper\services\Request();
+});
+$di->setShared('response', function () {
+    return new \Tests\Helper\services\Response();
+});
+$di->setShared('session', function () {
+    return new \Tests\Helper\services\Session();
+});
+\Phax\Foundation\DiService::with($di)
     ->db()
     ->pdo()->redis()->cache()
     ->application();

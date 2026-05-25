@@ -23,7 +23,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => false,
                     'module' => false,
-                    'path' => ''
+                    'path' => '',
+                    'mapurl' => '/'
                 ]
             ],
 
@@ -34,7 +35,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => false,
                     'module' => false,
-                    'path' => ''
+                    'path' => '',
+                    'mapurl' => '/zh-CN/'
                 ]
             ],
             [
@@ -44,7 +46,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => true,
                     'module' => false,
-                    'path' => ''
+                    'path' => '',
+                    'mapurl' => '/p/'
                 ]
             ],
             [
@@ -54,7 +57,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => true,
                     'module' => false,
-                    'path' => 'bb'
+                    'path' => 'bb',
+                    'mapurl' => '/p/bb'
                 ]
             ],
             [
@@ -64,7 +68,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => true,
                     'module' => false,
-                    'path' => 'bb'
+                    'path' => 'bb',
+                    'mapurl' => '/p/bb/'
                 ]
             ],
             [
@@ -74,7 +79,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => true,
                     'module' => false,
-                    'path' => 'bb/index'
+                    'path' => 'bb/index',
+                    'mapurl' => '/p/bb/index'
                 ]
             ],
             [
@@ -84,7 +90,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => false,
                     'module' => true,
-                    'path' => ''
+                    'path' => '',
+                    'mapurl' => '/m/'
                 ]
             ],
             [
@@ -94,7 +101,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => false,
                     'module' => true,
-                    'path' => 'aa'
+                    'path' => 'aa',
+                    'mapurl' => '/m/aa'
                 ]
             ],
             [
@@ -104,7 +112,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => false,
                     'module' => true,
-                    'path' => 'aa'
+                    'path' => 'aa',
+                    'mapurl' => '/cn/m/aa'
                 ]
             ],
             [
@@ -114,7 +123,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => false,
                     'module' => true,
-                    'path' => 'aa'
+                    'path' => 'aa',
+                    'mapurl' => '/m/aa/'
                 ]
             ],
             [
@@ -124,7 +134,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => false,
                     'project' => false,
                     'module' => true,
-                    'path' => 'aa/index'
+                    'path' => 'aa/index',
+                    'mapurl' => '/m/aa/index'
                 ]
             ],
             [
@@ -134,7 +145,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                     'api' => true,
                     'project' => true,
                     'module' => false,
-                    'path' => 'project/controller/action/params'
+                    'path' => 'project/controller/action/params',
+                    'mapurl' => '/zh-CN/api/p/project/controller/action/params'
                 ]
             ]
         ];
@@ -167,7 +179,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
                 "action" => "notify",
             ],
             "namespace" => "App\Projects\\family\Controllers",
-            "viewpath" => "/var/www/App/Projects/family/views",
+            "viewpath" => PATH_APP_PROJECTS. "family".DIRECTORY_SEPARATOR."views",
             "project" => "family",
         ], $rst);
     }
@@ -203,8 +215,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 'index', 'controller' => 'index', 'action' => 'index'],
             'pathsname' => ['module' => 'index', 'controller' => 'index', 'action' => 'index'],
             'namespace' => "App\Modules\index\Controllers",
-            'viewpath' => "/var/www/App/Modules/index/views",
-            'module' => '/var/www/App/Modules/index/Module.php',
+            'viewpath' => PATH_APP_MODULES. 'index'.DIRECTORY_SEPARATOR.'views',
+            'module' => PATH_APP_MODULES.'index'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'index',
         ];
 
@@ -224,8 +236,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 'index', 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'index', 'action' => 'index'],
             'namespace' => "App\Modules\m1\Controllers",
-            'viewpath' => "/var/www/App/Modules/m1/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' =>PATH_APP_MODULES. "m1".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES. 'm1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
         ];
         $rst = Router::analysisRoutePath('/m/m1');
@@ -247,8 +259,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => "m1", 'controller' => "c", 'action' => 'index'],
             'namespace' => "App\Modules\m1\Controllers",
-            'viewpath' => "/var/www/App/Modules/m1/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' =>PATH_APP_MODULES.  "m1".DIRECTORY_SEPARATOR."views",
+            'module' =>PATH_APP_MODULES. 'm1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
         ];
         $rst = Router::analysisRoutePath('/m/m1/c');
@@ -268,8 +280,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Modules\m1\Controllers",
-            'viewpath' => "/var/www/App/Modules/m1/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' => PATH_APP_MODULES."m1".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES.'m1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
         ];
         $rst = Router::analysisRoutePath('/m/m1/c1/a1');
@@ -290,8 +302,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3, 'params' => 4],
             'pathsname' => ['module' => 'm2', 'controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Modules\m2\Controllers",
-            'viewpath' => "/var/www/App/Modules/m2/views",
-            'module' => '/var/www/App/Modules/m2/Module.php',
+            'viewpath' => PATH_APP_MODULES."m2".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES.'m2'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm2',
         ];
         $rst = Router::analysisRoutePath('/m/m2/c2/a2/p');
@@ -313,7 +325,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'pattern' => '/m/:module',
             'pathsname' => ['module' => 'tao', 'controller' => 'index', 'action' => 'index'],
             'namespace' => 'App\Modules\tao\A0\wechat\Controllers',
-            'viewpath' => '/var/www/App/Modules/tao/A0/wechat/views',
+            'viewpath' => PATH_APP_MODULES.'tao'.DIRECTORY_SEPARATOR.'A0'.DIRECTORY_SEPARATOR.'wechat'.DIRECTORY_SEPARATOR.'views',
             'route' => '/m/:module\.wechat',
         ];
         $keys = ['pattern', 'pathsname', 'namespace', 'viewpath', 'route'];
@@ -332,8 +344,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Modules\m1\A0\\m11\Controllers",
-            'viewpath' => "/var/www/App/Modules/m1/A0/m11/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' => PATH_APP_MODULES."m1".DIRECTORY_SEPARATOR."A0".DIRECTORY_SEPARATOR."m11".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES.'m1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
             'subm' => 'm11',
         ], $rst);
@@ -342,7 +354,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals([
             'registerModules' => [
                 'm1' => [
-                    'path' => '/var/www/tao996/Phax/Mvc/Module.php',
+                    'path' => PATH_TAO996_PHAX. 'Mvc'.DIRECTORY_SEPARATOR.'Module.php',
                     'className' => 'Phax\Mvc\Module'
                 ]
             ],
@@ -363,8 +375,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'c2', 'action' => 'index'],
             'namespace' => "App\Modules\m1\A0\\m11\Controllers\sub1",
-            'viewpath' => "/var/www/App/Modules/m1/A0/m11/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' => PATH_APP_MODULES."m1".DIRECTORY_SEPARATOR."A0".DIRECTORY_SEPARATOR."m11".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES.'m1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
             'subc' => 'sub1',
             'subm' => 'm11',
@@ -380,8 +392,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Modules\m1\Controllers\sub1",
-            'viewpath' => "/var/www/App/Modules/m1/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' => PATH_APP_MODULES."m1".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES.'m1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
             'subc' => 'sub1',
         ], $rst);
@@ -395,8 +407,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Modules\m1\Controllers\sub",
-            'viewpath' => "/var/www/App/Modules/m1/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' => PATH_APP_MODULES."m1".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES.'m1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
             'subc' => 'sub',
         ], $rst);
@@ -410,8 +422,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3, 'params' => 4],
             'pathsname' => ['module' => 'm1', 'controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Modules\m1\Controllers\sub",
-            'viewpath' => "/var/www/App/Modules/m1/views",
-            'module' => '/var/www/App/Modules/m1/Module.php',
+            'viewpath' => PATH_APP_MODULES."m1".DIRECTORY_SEPARATOR."views",
+            'module' => PATH_APP_MODULES.'m1'.DIRECTORY_SEPARATOR.'Module.php',
             'name' => 'm1',
             'subc' => 'sub',
         ], $rst);
@@ -425,7 +437,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 'index', 'action' => 'index'],
             'pathsname' => ['controller' => 'index', 'action' => 'index'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
         ];
         $rst = Router::analysisRoutePath('');
         $this->assertEquals($expect, $rst);
@@ -448,7 +460,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 'index'],
             'pathsname' => ['controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' =>PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c1/index', $node);
@@ -459,7 +471,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c2/a2', $node);
@@ -470,7 +482,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c2/a2', $node);
@@ -481,7 +493,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' =>PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c2/a2', $node);
@@ -492,7 +504,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c2/a2', $node);
@@ -506,7 +518,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 'index'],
             'pathsname' => ['controller' => 'c1', 'action' => 'index'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
             'subc' => 'sub',
         ], $rst);
         $node = $route->getNode($rst);
@@ -518,7 +530,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
             'subc' => 'sub',
         ], $rst);
         $node = $route->getNode($rst);
@@ -530,7 +542,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
             'subc' => 'sub',
         ], $rst);
         $node = $route->getNode($rst);
@@ -542,7 +554,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
-            'viewpath' => "/var/www/App/Http/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."views",
             'subc' => 'sub',
         ], $rst);
         $node = $route->getNode($rst);
@@ -556,7 +568,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2,],
             'pathsname' => ['controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Http\A0\m1\Controllers\sub",
-            'viewpath' => "/var/www/App/Http/A0/m1/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."A0".DIRECTORY_SEPARATOR."m1".DIRECTORY_SEPARATOR."views",
             'subm' => 'm1',
             'subc' => 'sub',
         ], $rst);
@@ -570,7 +582,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Http\A0\m1\Controllers\sub",
-            'viewpath' => "/var/www/App/Http/A0/m1/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."A0".DIRECTORY_SEPARATOR."m1".DIRECTORY_SEPARATOR."views",
             'subm' => 'm1',
             'subc' => 'sub',
         ], $rst);
@@ -583,7 +595,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c1', 'action' => 'a1'],
             'namespace' => "App\Http\A0\m1\Controllers\sub",
-            'viewpath' => "/var/www/App/Http/A0/m1/views",
+            'viewpath' => PATH_APP. "Http".DIRECTORY_SEPARATOR."A0".DIRECTORY_SEPARATOR."m1".DIRECTORY_SEPARATOR."views",
             'subm' => 'm1',
             'subc' => 'sub',
         ], $rst);
@@ -595,25 +607,25 @@ class RouterTest extends \PHPUnit\Framework\TestCase
 //        dd($rst);
         $this->assertEquals(['controller' => 'simpleRent', 'action' => 'index'], $rst['pathsname']);
         $this->assertEquals('App\Projects\city\Controllers\admin', $rst['namespace']);
-        $this->assertEquals('/var/www/App/Projects/city/views', $rst['viewpath']);
+        $this->assertEquals(PATH_APP_PROJECTS.'city'.DIRECTORY_SEPARATOR.'views', $rst['viewpath']);
 
 
         $data = Router::analysisRoutePath('/about/us', ['project' => 'city']);
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
-            'viewpath' => '/var/www/App/Projects/city/views'
+            'viewpath' => PATH_APP_PROJECTS.'city'.DIRECTORY_SEPARATOR.'views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
 
         $data = Router::analysisRoutePath('/', ['project' => 'city']);
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
-            'viewpath' => '/var/www/App/Projects/city/views'
+            'viewpath' => PATH_APP_PROJECTS.'city'.DIRECTORY_SEPARATOR.'views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
 
         $data = Router::analysisRoutePath('/auth', ['project' => 'city']);
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
-            'viewpath' => '/var/www/App/Projects/city/views'
+            'viewpath' => PATH_APP_PROJECTS.'city'.DIRECTORY_SEPARATOR.'views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
         $this->assertEquals('auth', $data['pathsname']['controller']);
 
@@ -707,11 +719,11 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'module' => 'tao1',
             'modules' => [
 //                'tao' => [ // 需要模块存在才会这里
-//                    'path' => '/var/www/App/Modules/tao1/Module.php',
+//                    'path' => PATH_APP_MODULES.'tao1/Module.php',
 //                    'className' => 'App\Modules\tao\Module',
 //                ],
                 'tao1' => [
-                    'path' => '/var/www/tao996/Phax/Mvc/Module.php',
+                    'path' => PATH_TAO996 . 'Phax/Mvc/Module.php',
                     'className' => 'Phax\Mvc\Module'
                 ]
             ]

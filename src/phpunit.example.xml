@@ -21,6 +21,6 @@
     </testsuites>
 <!-- 默认使用的配置文件 -->
     <php>
-        <env name="PATH_CONFIG" value="/var/www/tests/config.php"/>
+        <env name="PATH_CONFIG" value="tests/config.php"/>
     </php>
 </phpunit>

@@ -17,45 +17,9 @@ class MyFileSystemTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(in_array('app', $files));
     }
 
-    public function testFullpath()
+    public function testConcat()
     {
-        $rst = MyFileSystem::fullpath('/abc', 'abc.php');
+        $rst = MyFileSystem::concat('/abc', 'abc.php');
         $this->assertEquals('/abc/abc.php', $rst);
-    }
-
-    public function testFilterFilesByGitignore()
-    {
-        $ignoreContent = <<< ABC
-Bridge
-Db
-Facade
-Helper
-Support
-ABC;
-        $patterns = MyFileSystem::generateFilterPatternsByGitignore($ignoreContent);
-        $rst = MyFileSystem::filterByGitignorePatterns('Bridge/abc.txt', $patterns);
-        $this->assertTrue($rst);
-
-        $dirname = dirname(__DIR__) . '/';
-        $files = MyFileSystem::getFilesInDirectory($dirname, function ($file) use ($dirname, $patterns) {
-            return MyFileSystem::filterByGitignorePatterns($file, $patterns, $dirname);
-        });
-        $this->assertEquals(2, count($files));
-
-        $patterns = MyFileSystem::generateFilterPatternsByGitignore(
-            <<< ABC
-*
-!Utils
-ABC
-        );
-        $rst = MyFileSystem::filterByGitignorePatterns('Utils/abc.txt', $patterns);
-        $this->assertFalse($rst);
-
-        $rst = MyFileSystem::filterByGitignorePatterns('Bridge/abc.txt', $patterns);
-        $this->assertTrue($rst);
-        $files2 = MyFileSystem::getFilesInDirectory($dirname, function ($file) use ($dirname, $patterns) {
-            return MyFileSystem::filterByGitignorePatterns($file, $patterns, $dirname);
-        });
-        $this->assertEquals($files, $files2);
     }
 }

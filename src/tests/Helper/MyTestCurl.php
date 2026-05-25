@@ -158,7 +158,7 @@ class MyTestCurl
     {
         // https://stackoverflow.com/questions/17092677/how-to-get-info-on-sent-php-curl-request
         // 保存请求信息
-        $this->setting[CURLOPT_URL] = MyFileSystem::fullpath(
+        $this->setting[CURLOPT_URL] = MyFileSystem::concat(
             $this->origin,
             $this->pathPrefix . $this->pathTest($this->path)
         );
