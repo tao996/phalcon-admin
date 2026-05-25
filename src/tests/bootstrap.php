@@ -8,7 +8,10 @@ if (file_exists(__DIR__ . '/bootstrap.test.php')) {
      */
     require_once __DIR__ . '/bootstrap.test.php';
 }
-
+// 用于暂时跳过所有的 http 测试（测试内部类时可以关掉）
+if (!defined('TEST_SKIP_HTTP')) {
+    define('TEST_SKIP_HTTP', false);
+}
 require_once PATH_ROOT . 'bootstrap/app.php';
 $di = \Phax\Foundation\Application::di();
 $di->setShared('request', function () {

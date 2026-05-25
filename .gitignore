@@ -35,6 +35,7 @@ src/phar-src
 src/routes/cli.more.php
 src/routes/web.more.php
 src/tests/Helper/cookie.txt
+src/tests/bootstrap.test.php
 src/storage/app/*
 !src/storage/app/.gitkeep
 src/storage/cache/session/*

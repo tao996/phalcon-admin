@@ -25,15 +25,19 @@ class Config
     public function load(): \Phalcon\Config\Config
     {
         $global_config_file = '';
+        $configList = [
+            PATH_CONFIG . 'config.php',
+            PATH_CONFIG . 'config.demo.php'
+        ];
+        if (!empty(env('PATH_CONFIG'))) {
+            array_unshift($configList, PATH_ROOT . env('PATH_CONFIG'));
+        }
         foreach (
-            [
-                env('PATH_CONFIG'),
-                PATH_CONFIG . 'config.php',
-                PATH_CONFIG . 'config.demo.php'
-            ] as $file
+            $configList as $file
         ) {
-            if (!empty($file) && file_exists($file)) {
+            if (file_exists($file)) {
                 $global_config_file = $file;
+                break;
             }
         }
         if (empty($global_config_file)) {

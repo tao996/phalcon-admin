@@ -42,7 +42,7 @@ if (!function_exists('ddd')) {
             }, $args);
             exit();
         } else {
-            pr($var);
+            pr(func_get_args());
         }
     }
 }

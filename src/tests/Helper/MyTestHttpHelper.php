@@ -8,13 +8,21 @@ class MyTestHttpHelper
     public static string $origin = '';
     protected MyTestCurl $myCurl;
     public int $httpCode = 0;
-    public string $content =  '';
+    public string $content = '';
 
 
     public function __construct(public \PHPUnit\Framework\TestCase $tc)
     {
 //        ddd($_ENV);
-        $this->myCurl = new MyTestCurl(self::$origin ?: env('APP_NAME') . '-nginx');
+        // 只初始化一次，避免测试顺序依赖导致 origin 被后续测试覆写
+        if (self::$origin === '') {
+            if (defined('TEST_ORIGIN')) {
+                self::$origin = TEST_ORIGIN;
+            } elseif (env('APP_NAME')) {
+                self::$origin = env('APP_NAME') . '-nginx';
+            }
+        }
+        $this->myCurl = new MyTestCurl(self::$origin);
         $this->afterConstruct();
     }
 
@@ -64,12 +72,17 @@ class MyTestHttpHelper
     }
 
     /**
-     * 使用 cookie
+     * 使用 cookie（每个测试类独立文件，避免并行冲突）
      * @return $this
      */
     public function cookie(): static
     {
-        $this->myCurl->cookie(__DIR__ . '/cookie.txt');
+        $cookieFile = __DIR__ . '/cookies/' . str_replace('\\', '_', get_class($this->tc)) . '.txt';
+        $dir = dirname($cookieFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $this->myCurl->cookie($cookieFile);
         return $this;
     }
 
@@ -77,9 +90,9 @@ class MyTestHttpHelper
      * 发送请求
      * @return $this
      */
-    public function send(): static
+    public function send(bool $ddd = false): static
     {
-        list($this->content, $this->httpCode) = $this->myCurl->send();
+        list($this->content, $this->httpCode) = $this->myCurl->send($ddd);
         return $this;
     }
 
@@ -135,6 +148,7 @@ class MyTestHttpHelper
     {
         foreach ($texts as $text) {
             if (str_contains($this->content, $text)) {
+                $this->tc->assertTrue(true, 'found: ' . $text); // 计入 assertion 计数
                 return $this;
             }
         }
@@ -167,25 +181,22 @@ class MyTestHttpHelper
      */
     public function jsonResponse(): array
     {
-        if (!json_validate($this->content)) {
-            ddd('not json response', strip_tags($this->content));
-        }
+        $this->tc->assertJson($this->content, 'response is not valid json');
         return json_decode($this->content, true);
     }
 
     public function jsonResponseData(): mixed
     {
         $response = $this->jsonResponse();
-        if (!empty($response['msg'])) {
-            ddd('jsonResponse failed', $response);
-        }
+        $this->tc->assertEmpty($response['msg'] ?? '', 'jsonResponse msg should be empty');
         return $response['data'];
     }
 
     public function testJsonPaginationResponse(): array
     {
         $response = $this->jsonResponse();
-        $this->tc->assertTrue($response['data']['count'] >= 0);
+        $this->tc->assertIsArray($response['data'] ?? null, 'response data should be an array');
+        $this->tc->assertTrue(($response['data']['count'] ?? -1) >= 0);
         $this->tc->assertTrue(isset($response['data']['rows']));
         return $response;
     }

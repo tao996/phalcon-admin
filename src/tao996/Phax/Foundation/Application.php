@@ -45,7 +45,9 @@ class Application
         if (file_exists(PATH_ROOT . '.env')) {
             Env::load(PATH_ROOT . '.env');
         }
-        define('IS_DEBUG', env('APP_DEBUG', '') === 'true');
+        if (!defined('IS_DEBUG')) {
+            define('IS_DEBUG', env('APP_DEBUG', '') === 'true');
+        }
         DiService::with($di)
             ->config(function (\Phalcon\Config\Config $config) {
                 date_default_timezone_set($config->path('app.timezone'));

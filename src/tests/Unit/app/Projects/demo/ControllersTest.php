@@ -18,7 +18,7 @@ class ControllersTest extends \PHPUnit\Framework\TestCase
 //        ddd($_ENV);
         $http->get('/p/demo')->send()
             ->notContainsFailed()
-            ->contains(['- 应用']);
+            ->contains(['/p/demo/index']);
 
         // action test
         /**

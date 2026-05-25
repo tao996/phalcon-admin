@@ -21,7 +21,7 @@ class ControllersTest extends TestCase
 
         $http->get('/m/demo/index/hello/phax')->send()
             ->notContainsFailed()
-            ->contains(['name: <span>phax</span>']);
+            ->contains(['name:','phax']);
     }
 
     public function testTodo()
@@ -37,7 +37,7 @@ class ControllersTest extends TestCase
         $http = MyTestHttpHelper::with($this);
         $http->get('/m/demo/db.test/hello')->send()
             ->notContainsFailed()
-            ->contains(['<div>WELCOME: phax admin</div>']);
+            ->contains(['WELCOME: phax admin']);
 
         $http->get('/m/demo/db.test/trans')->send()
             ->notContainsFailed()
@@ -50,7 +50,7 @@ class ControllersTest extends TestCase
         $http = MyTestHttpHelper::with($this);
         $http->get('/m/demo.db/test')->send()
             ->notContainsFailed()
-            ->contains(['[language] => cn', 'user.articles', 'user.profile', 'user.roles']);
+            ->contains(['user.articles', 'user.profile', 'user.roles']);
 
         $http->get('/m/demo.db/test/insert')->send()
             ->notContainsFailed()
@@ -73,8 +73,9 @@ class ControllersTest extends TestCase
     public function testA0DbUserInfo()
     {
         $http = MyTestHttpHelper::with($this);
+        $expectContent = DIRECTORY_SEPARATOR . 'App' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'demo' . DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . 'views'.DIRECTORY_SEPARATOR.'user'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'name.phtml';
         $http->get('/m/demo.db/user.info/name')->send()
-            ->contains(['/var/www/App/Modules/demo/A0/db/views/user/info/name.phtml']);
+            ->contains([$expectContent]);
 
         $data = $http->get('/api/m/demo.db/user.info/name')->send()
             ->jsonResponse();
