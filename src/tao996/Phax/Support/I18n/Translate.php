@@ -65,12 +65,12 @@ class Translate
             foreach ($languageFiles as $file) {
                 if (str_ends_with($file, '.php')) {
                     $lang = pathinfo($file, PATHINFO_FILENAME);
-                    $this->loadLanguageFile($lang, MyFileSystem::fullpath($dir, $file));
+                    $this->loadLanguageFile($lang, MyFileSystem::concat($dir, $file));
                 }
             }
         } else {
             foreach (self::$languages as $lang) {
-                $filepath = MyFileSystem::fullpath($dir, $lang . '.php');
+                $filepath = MyFileSystem::concat($dir, $lang . '.php');
                 $this->loadLanguageFile($lang, $filepath);
             }
         }

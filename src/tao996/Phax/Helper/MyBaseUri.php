@@ -14,7 +14,9 @@ class MyBaseUri
 
     public function __construct(Di $di)
     {
-        $this->request = $di->get('request');
+        if ($di->has('request')) {
+            $this->request = $di->get('request');
+        }
         $this->config = $di->get('config');
     }
 

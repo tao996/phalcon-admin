@@ -94,8 +94,8 @@ class Router
                 'paths' => ['module' => $moduleName, 'controller' => $first_part, 'action' => $second_part],
                 'pathsname' => ['module' => $moduleName, 'controller' => $first_part, 'action' => $second_part],
                 'namespace' => 'App\Modules\\' . $moduleName . '\Controllers',
-                'viewpath' => PATH_APP . 'Modules/' . $moduleName . '/views',
-                'module' => PATH_APP . 'Modules/' . $moduleName . '/Module.php',
+                'viewpath' => PATH_APP . 'Modules' . DIRECTORY_SEPARATOR . $moduleName . DIRECTORY_SEPARATOR . 'views',
+                'module' => PATH_APP . 'Modules' . DIRECTORY_SEPARATOR . $moduleName . DIRECTORY_SEPARATOR . 'Module.php',
                 'name' => $moduleName,
             ];
 //            ddd($path,$info['path'],$urlElements,[$moduleName,$controllerName,$actionName]);
@@ -129,7 +129,7 @@ class Router
                 'pattern' => '/',
                 'paths' => ['controller' => 'index', 'action' => 'index'],
                 'namespace' => 'App\Http\Controllers',
-                'viewpath' => PATH_APP . 'Http/views',
+                'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
             ];
             if ($info['project']) {
                 if (empty($info['path'])) {
@@ -149,7 +149,7 @@ class Router
             $data['pathsname'] = ['controller' => $first_part, 'action' => $second_part];
             if (!empty($data['project'])) {
                 $data['namespace'] = 'App\Projects\\' . $data['project'] . '\Controllers';
-                $data['viewpath'] = '/var/www/App/Projects/' . $data['project'] . '/views';
+                $data['viewpath'] = PATH_APP_PROJECTS . $data['project'] . DIRECTORY_SEPARATOR . 'views';
             }
             switch (count($urlElements)) {
                 case 0:
@@ -247,8 +247,8 @@ class Router
                 $data['namespace']
             );
             $data['viewpath'] = str_replace(
-                'Http/views',
-                'Projects/' . $project . '/views',
+                'Http'.DIRECTORY_SEPARATOR.'views',
+                'Projects'.DIRECTORY_SEPARATOR . $project . DIRECTORY_SEPARATOR.'views',
                 $data['viewpath']
             );
         }
@@ -274,7 +274,7 @@ class Router
             // "App\Modules\m1.m2\Controllers" => "App\Modules\m1\A0\m2\Controllers"
             $data['namespace'] = str_replace('.', '\A0\\', $data['namespace']);
             // "/var/www/App/Modules/m1.m2/views" => "/var/www/App/Modules/m1/A0/m2/views"
-            $data['viewpath'] = str_replace('.', '/A0/', $data['viewpath']);
+            $data['viewpath'] = str_replace('.', DIRECTORY_SEPARATOR.'A0'.DIRECTORY_SEPARATOR, $data['viewpath']);
             // "/var/www/App/Modules/m1.m2/Module.php" => '/var/www/App/Modules/m1/Module.php'
             $data['module'] = str_replace($module, $m[0], $data['module']);
             $data['name'] = $m[0];
@@ -324,7 +324,7 @@ class Router
         $config = self::analysisRoutePath($requestURI, $options);
 
         if (isset($config['subc'])) { // 子目录
-            $config['pickview'] = $config['subc'] . '/' . self::formatPickView(
+            $config['pickview'] = $config['subc'] . DIRECTORY_SEPARATOR . self::formatPickView(
                     $config['pathsname']['controller'],
                     $config['pathsname']['action']
                 );
@@ -338,7 +338,7 @@ class Router
                 $config['name'] => [
                     'path' => $hasModule
                         ? $config['module']
-                        : dirname(__DIR__) . '/Mvc/Module.php',
+                        : dirname(__DIR__) . DIRECTORY_SEPARATOR.'Mvc'.DIRECTORY_SEPARATOR.'Module.php',
                     'className' => $hasModule
                         ? 'App\Modules\\' . $config['name'] . '\Module'
                         : 'Phax\Mvc\Module',
@@ -416,6 +416,6 @@ class Router
     {
         $cName = self::formatNodeName($controller);
         $aName = self::formatNodeName($action);
-        return $cName . '/' . $aName;
+        return $cName . DIRECTORY_SEPARATOR . $aName;
     }
 }

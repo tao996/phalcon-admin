@@ -2,8 +2,6 @@
 
 namespace App\Modules\tao;
 
-use App\Modules\tao\Config\Config;
-
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Db\QueryBuilder;
 
@@ -220,7 +218,12 @@ class BaseController extends BaseRbacController
      * 将 layui bool 转为 int 以保存到字符串
      * @var array
      */
-    public array $layuiBool2Int = [];
+    public array $modelBool2IntColumns = [];
+    /**
+     * 提交数据中需要转为 float 的数组
+     * @var array
+     */
+    public array $modelFloatColumns = [];
 
     /**
      * 处理保存到模型的数据，在 addAction/editAction 中被调用
@@ -229,8 +232,13 @@ class BaseController extends BaseRbacController
      */
     protected function beforeModelSaveAssign(array $data): array
     {
-        if ($this->layuiBool2Int) {
-            LayuiData::bool2Int($data, $this->layuiBool2Int);
+        if ($this->modelBool2IntColumns) {
+            LayuiData::bool2Int($data, $this->modelBool2IntColumns);
+        }
+        if ($this->modelFloatColumns){
+            foreach ($this->modelFloatColumns as $column){
+                $data[$column] = (float)$data[$column];
+            }
         }
         return $data;
     }
@@ -265,6 +273,16 @@ class BaseController extends BaseRbacController
      */
     protected function modifyActionCheckPostData(array $data)
     {
+    }
+
+    /**
+     * 在 modifyAction 保存数据之前调用
+     * @param $model
+     * @return void
+     */
+    protected function  beforeModifyActionSave($model)
+    {
+
     }
 
     /**
@@ -304,6 +322,7 @@ class BaseController extends BaseRbacController
         $model->assign([
             $post['field'] => $post['value']
         ]);
+        $this->beforeModifyActionSave($model);
         if ($model->save()) {
             $this->vv->logService()->insert($model->tableTitle(), 'modify');
             $this->afterModelChange('modify');

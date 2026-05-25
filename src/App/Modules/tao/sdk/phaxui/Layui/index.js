@@ -26,20 +26,6 @@ const admin = {
                 }
             }
         },
-        /**
-         * 处理请求
-         */
-        urlReplace: function (url) {
-            return url;
-        }
-    },
-    /**
-     * 覆盖 admin 默认配置
-     * @param {Object} option 要合并的配置对象
-     * @example admin.assign({ debug: true })
-     */
-    assign: function (option) {
-        Object.assign(admin.config, option);
     },
     /**
      * 当前是否开启调试模式
@@ -109,17 +95,22 @@ const admin = {
         /**
          * 拼接成 URL 请求参数（自动 encode）
          * @link https://layui.dev/docs/2/base.html#url
+         * @param {string} url
          * @param {Object} dict 参数键值对
          * @returns {string} 编码后的 query string，如 "name=abc&age=18"
          */
-        concatQuery: function (dict) {
+        concatQuery: function (url, dict) {
+            if (admin.util.isEmpty(dict)) {
+                return url;
+            }
             var d = [];
             for (var key in dict) {
                 if (Object.prototype.hasOwnProperty.call(dict, key)) {
                     d.push(encodeURIComponent(key) + '=' + encodeURIComponent(dict[key]));
                 }
             }
-            return d.join('&');
+            const separator = url.includes('?') ? '&' : '?';
+            return url + separator + d.join('&');
         },
         /**
          * 追加或替换 url 中的请求参数
@@ -414,7 +405,6 @@ const admin = {
             if (option.url === '') {
                 option.url = this.apiURL();
             }
-            option.url = admin.config.urlReplace(option.url);
             const loadIndex = admin.layer.loading('加载中')
             layui.jquery.ajax({
                 url: option.url,
@@ -470,8 +460,7 @@ const admin = {
             })
         },
         apiURL: function () {
-            const url = location.origin + '/api' + location.pathname + location.search
-            return admin.config.urlReplace(url);
+            return location.origin + '/api' + location.pathname + location.search
         }
     },
     /**
@@ -976,6 +965,7 @@ const admin = {
             autoApi: true,
             tableId: null, // 在 table.render 时会自动赋值
             key: 'id',
+            query: null,
             rowAction: function () {
             }
         },
@@ -998,6 +988,7 @@ const admin = {
          */
         with: function (config = {}) {
             Object.assign(this._config, {url: admin.ajax.apiURL()}, config)
+            console.log(this._config);
             return this;
         },
         getTableId: function () {
@@ -1024,7 +1015,7 @@ const admin = {
 
             const config = Object.assign({
                 elem: '#' + tableId,
-                url: this._config.url || admin.ajax.apiURL(),
+                url: admin.util.concatQuery(this._config.url, this._config.query),
                 defaultToolbar: ['filter', {
                     title: '搜索',
                     layEvent: 'search',

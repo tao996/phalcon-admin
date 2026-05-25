@@ -42,7 +42,7 @@ class LayuiForm
 
         $content = $this->wrapFormLabel($title, $required) . '
         <div class="layui-input-inline">
-            <select name="' . $name . '" ' . $this->layVerifyRequired($required) . '>
+            <select lay-filter="' . $name . '" name="' . $name . '" id="' . $name . '" ' . $this->layVerifyRequired($required) . '>
                 <option value="">请选择' . $title . '</option>' . join('', $options) . '</select>
         </div>';
         return $this->wrapFormItem($content, $formItem);
@@ -99,13 +99,14 @@ class LayuiForm
      */
     public function switch(string $title, string $name, bool $checked = false,
                            bool   $required = false,
-                           bool   $formItem = true
+                           bool   $formItem = true,
+                           string $aux = ''
     ): string
     {
         $checkedText = $checked ? ' checked' : '';
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
             <input type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . '>
-        </div>', $formItem);
+        </div>' . $this->wrapAux($aux), $formItem);
     }
 
     public function wrapFormItem(string $content, bool $formItem = true): string
@@ -126,7 +127,9 @@ class LayuiForm
 
     public function datetime(string $title, string $name, mixed $value = '',
                              bool   $required = false,
+                             bool   $range = false,
                              bool   $formItem = true,
+                             string $type = 'datetime'
     ): string
     {
         $this->footerJs[] = <<<JS
@@ -134,7 +137,8 @@ class LayuiForm
             var laydate = layui.laydate;
             laydate.render({
                 elem: '#{$name}',
-                type: 'datetime'
+                type: '{$type}',
+                range: {$range},
             });
         });
 JS;
@@ -147,7 +151,7 @@ JS;
 
     public function footer(): string
     {
-        return '<script>'. join('', $this->footerJs).'</script>';
+        return '<script>' . join('', $this->footerJs) . '</script>';
     }
 }
 

@@ -56,7 +56,7 @@ class AdController extends BaseTaoA0CmsController
         'gname'
     ];
 
-    public array $layuiBool2Int = [
+    public array $modelBool2IntColumns = [
         'at_index',
         'at_list',
         'at_page',

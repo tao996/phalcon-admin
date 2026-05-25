@@ -21,8 +21,8 @@ CliRouter::add('metadata', function () {
 CliRouter::add('migration', function () {
     if (file_exists(PATH_PHAR_SRC . 'phalcon-migrations/index.php')) {
         include_once PATH_PHAR_SRC . 'phalcon-migrations/index.php';
-    } elseif (file_exists(PATH_PHAR . 'phalcon-migrations.phar')) {
-        include_once PATH_PHAR . 'phalcon-migrations.phar';
+    } elseif (file_exists(PATH_TAO996_PHAR . 'phalcon-migrations.phar')) {
+        include_once PATH_TAO996_PHAR . 'phalcon-migrations.phar';
     } else {
         throw new \Exception('phalcon-migrations not found');
     }

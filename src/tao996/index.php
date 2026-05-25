@@ -16,21 +16,21 @@ define('IS_TASK', php_sapi_name() === 'cli' && !IS_WEB); // 命令行任务模�
 
 
 // remove after the package publish release
-const PATH_PHAR_SRC = PATH_ROOT . 'phar-src/';
+const PATH_PHAR_SRC = PATH_ROOT . 'phar-src'.DIRECTORY_SEPARATOR ;
 // 所有 PATH_XXX 都需要以 / 结尾
-const PATH_CONFIG = PATH_ROOT . 'config/';
-const PATH_APP = PATH_ROOT . 'App/';
-const PATH_PUBLIC = PATH_ROOT . 'public/';
-const PATH_STORAGE = PATH_ROOT . 'storage/';
-const PATH_STORAGE_DATA = PATH_STORAGE . 'data/';
-const PATH_APP_MODULES = PATH_ROOT . 'app/Modules/';
-const PATH_APP_PROJECTS = PATH_ROOT . 'app/Projects/';
+const PATH_CONFIG = PATH_ROOT . 'config'.DIRECTORY_SEPARATOR ;
+const PATH_APP = PATH_ROOT . 'App'.DIRECTORY_SEPARATOR ;
+const PATH_PUBLIC = PATH_ROOT . 'public'.DIRECTORY_SEPARATOR ;
+const PATH_STORAGE = PATH_ROOT . 'storage'.DIRECTORY_SEPARATOR ;
+const PATH_STORAGE_DATA = PATH_STORAGE . 'data'.DIRECTORY_SEPARATOR ;
+const PATH_APP_MODULES = PATH_ROOT . 'App'.DIRECTORY_SEPARATOR .'Modules'.DIRECTORY_SEPARATOR ;
+const PATH_APP_PROJECTS = PATH_ROOT . 'App'.DIRECTORY_SEPARATOR .'Projects'.DIRECTORY_SEPARATOR ;
 
 // 扩展类库
-const PATH_TAO996 = __DIR__ . '/';
-const PATH_PHAX = PATH_TAO996 . 'Phax/';
-const PATH_PHAR = PATH_TAO996 . 'phar/';
-require_once PATH_PHAX . 'function.php';
+const PATH_TAO996 = __DIR__ . DIRECTORY_SEPARATOR ;
+const PATH_TAO996_PHAX = PATH_TAO996 . 'Phax'.DIRECTORY_SEPARATOR ;
+const PATH_TAO996_PHAR = PATH_TAO996 . 'phar'.DIRECTORY_SEPARATOR ;
+require_once PATH_TAO996_PHAX . 'function.php';
 
 if (file_exists(PATH_ROOT . 'vendor/autoload.php')) {
     require_once PATH_ROOT . 'vendor/autoload.php';
@@ -45,12 +45,12 @@ function loader(): \Phalcon\Autoload\Loader
 
 $loader->setFiles([
 
-    PATH_PHAR . 'dotenv.phar',
+    PATH_TAO996_PHAR . 'dotenv.phar',
 ], true);
 
 $loader->setNamespaces([
     'App' => PATH_APP,
-    'Phax' => PATH_PHAX,
+    'Phax' => PATH_TAO996_PHAX,
 ], true);
 
 $loader->register();
