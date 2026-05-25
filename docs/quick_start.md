@@ -23,9 +23,7 @@ docker compose up -d # or docker-compose up -d
 
 docker 运行后，可以访问 http://localhost:8071 
 
-
-* 如果需要更好的控制全部的配置文件，请查看 [admin](admin.md) 一节；
-* 如果你想要构建自己的 phalcon image，请访问 https://github.com/tao996/phalcon-docker-images
+* 如果你想要构建自己的 phalcon image，请访问 [https://github.com/tao996/phalcon-docker-images](https://github.com/tao996/phalcon-docker-images)
 
 
 ## 本地开发

@@ -3,6 +3,10 @@ site_name: "Phalcon admin docs"
 nav:
   - 目录: "index.md"
   - 快速开始: "quick_start.md"
+  - PHPStorm:
+      - "Docker": "phpstorm/docker.md"
+      - "Unit Test": "phpstorm/unittest.md"
+      - "Xdebug": "phpstorm/xdebug.md"
   - "模板 phtml": "layui_phtml.md"
 # https://squidfunk.github.io/mkdocs-material/reference/admonitions/
 markdown_extensions:
@@ -38,7 +42,7 @@ theme:
   features:
     # - navigation.tabs
     # - navigation.sections # 重新组件目录，二级目录变顶级目录
-    # - navigation.expand # 自动展开二级目录
+    - navigation.expand # 自动展开二级目录
     - content.tabs.link # 在新标签中打开链接
     - content.code.copy # 代码块右上角复制按钮
   highlightjs: true
