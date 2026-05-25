@@ -132,13 +132,14 @@ class LayuiForm
                              string $type = 'datetime'
     ): string
     {
+        $rangeText = $range ? 'true' : 'false';
         $this->footerJs[] = <<<JS
         layui.use(['laydate'], function () {
             var laydate = layui.laydate;
             laydate.render({
                 elem: '#{$name}',
                 type: '{$type}',
-                range: {$range},
+                range: {$rangeText},
             });
         });
 JS;
@@ -147,6 +148,11 @@ JS;
                    value="' . $value . '"
                    placeholder="请选择' . $title . '">
         </div>', $formItem);
+    }
+
+    public function appendFooterJs(string $content): void
+    {
+        $this->footerJs[] = $content;
     }
 
     public function footer(): string

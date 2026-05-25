@@ -131,6 +131,7 @@ class Router
                 'namespace' => 'App\Http\Controllers',
                 'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
             ];
+
             if ($info['project']) {
                 if (empty($info['path'])) {
                     $data['project'] = $options['project'];
@@ -143,6 +144,7 @@ class Router
             if (empty($data['project']) && $options['project']) {
                 $data['project'] = $options['project'];
             }
+//            ddd($data,$info);
             $urlElements = empty($info['path']) ? [] : explode('/', $info['path']);
             $first_part = $urlElements[0] ?? 'index';
             $second_part = $urlElements[1] ?? 'index';
@@ -186,8 +188,8 @@ class Router
                             $data['namespace']
                         );
                         $data['viewpath'] = str_replace(
-                            '/views',
-                            '/A0/' . $first_part . '/views',
+                            DIRECTORY_SEPARATOR . 'views',
+                            DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR . $first_part . DIRECTORY_SEPARATOR . 'views',
                             $data['viewpath']
                         );
                         $data['subm'] = $first_part;
@@ -324,7 +326,7 @@ class Router
         $config = self::analysisRoutePath($requestURI, $options);
 
         if (isset($config['subc'])) { // 子目录
-            $config['pickview'] = $config['subc'] . DIRECTORY_SEPARATOR . self::formatPickView(
+            $config['pickview'] = $config['subc'] . '/' . self::formatPickView(
                     $config['pathsname']['controller'],
                     $config['pathsname']['action']
                 );
@@ -416,6 +418,6 @@ class Router
     {
         $cName = self::formatNodeName($controller);
         $aName = self::formatNodeName($action);
-        return $cName . DIRECTORY_SEPARATOR . $aName;
+        return $cName . '/' . $aName;
     }
 }

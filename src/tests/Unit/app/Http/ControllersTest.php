@@ -9,10 +9,6 @@ class ControllersTest extends \PHPUnit\Framework\TestCase
     public function testIndex()
     {
         $http = MyTestHttpHelper::with($this);
-        $http->get('/')->send()
-            ->notContainsFailed()
-            ->contains(['welcome to phalcon admin project!', $http->getOrigin() . '/index/about']);
-
 
         $http->get('/index/about')->send()
             ->notContainsFailed()

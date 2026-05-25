@@ -988,7 +988,7 @@ const admin = {
          */
         with: function (config = {}) {
             Object.assign(this._config, {url: admin.ajax.apiURL()}, config)
-            console.log(this._config);
+            // console.log(this._config);
             return this;
         },
         getTableId: function () {

@@ -5,6 +5,7 @@ namespace Phax\Helper;
 use Phalcon\Di\Di;
 use Phalcon\Http\RequestInterface;
 use Phax\Support\Config;
+use Phax\Utils\MyData;
 
 class MyBaseUri
 {
@@ -31,7 +32,7 @@ class MyBaseUri
                 $scheme = 'https';
             }
             $port = '';
-            $server_port = $this->request->getServer('SERVER_PORT') ?: ($_SERVER['OPEN_PORT'] || '80');
+            $server_port = $this->request->getServer('SERVER_PORT') ?: MyData::getInt($_SERVER, 'OPEN_PORT', '80');
             if ($server_port != '80' && $server_port != '443') {
                 $port = ':' . $server_port;
             }
