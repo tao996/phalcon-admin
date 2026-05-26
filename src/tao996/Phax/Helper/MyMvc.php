@@ -360,7 +360,7 @@ class MyMvc
      */
     public function console(string $path, bool $filter = true): array
     {
-        $cmd = 'php /var/www/artisan ' . $path;
+        $cmd = 'php '.PATH_ROOT.'artisan ' . $path;
 
         exec($cmd, $output, $result_code);
         if ($result_code === 0) {

@@ -114,6 +114,14 @@ class MyTestCurl
     {
     }
 
+    public function requestURL():string
+    {
+        return MyFileSystem::concat(
+            $this->origin,
+            $this->pathPrefix . $this->pathTest($this->path)
+        );
+    }
+
     // ==============================
     // 🔥 核心：curl_init 放在这里，创建即稳定
     // ==============================
@@ -122,10 +130,7 @@ class MyTestCurl
         // ✅✅✅ 最重要：发送时才创建 curl
         $this->ch = curl_init();
 
-        $url = MyFileSystem::concat(
-            $this->origin,
-            $this->pathPrefix . $this->pathTest($this->path)
-        );
+        $url = $this->requestURL();
 
         // 基础配置
         $this->setting[CURLOPT_URL] = $url;

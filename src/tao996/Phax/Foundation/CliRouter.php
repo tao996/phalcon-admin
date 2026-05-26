@@ -75,13 +75,13 @@ class CliRouter
             }
 
             $arguments['module'] = $items[1];
-            $path = PATH_APP_MODULES . $items[1] . '/Module.php';
+            $path = PATH_APP_MODULES . $items[1] .DIRECTORY_SEPARATOR. 'Module.php';
             $hasModule = file_exists($path);
 
             $arguments['modules'] = [
                 $items[1] => [
                     'path' => $hasModule ? $path
-                        : dirname(__DIR__) . '/Mvc/Module.php',
+                        : dirname(__DIR__) . DIRECTORY_SEPARATOR. 'Mvc'.DIRECTORY_SEPARATOR.'Module.php',
                     'className' => $hasModule
                         ? 'App\Modules\\' . $items[1] . '\Module'
                         : 'Phax\Mvc\Module',

@@ -199,8 +199,8 @@ class RbacAnnotation
         ];
 
         // 模块名称
-        if (file_exists($rows['path'] . '/Module.php')) {
-            if ($mInfo = self::getClassRbacDoc($rows['namespace'] . '\Module')) {
+        if (file_exists($rows['path'] . DIRECTORY_SEPARATOR.'Module.php')) {
+            if ($mInfo = self::getClassRbacDoc($rows['namespace'] .DIRECTORY_SEPARATOR. 'Module')) {
                 $rows['title'] = $mInfo['title'] ?? $rows['name'];
             }
         }
@@ -220,7 +220,7 @@ class RbacAnnotation
         $rows = [
             'name' => $name,
             'namespace' => $inProjects ? 'App\Projects\\' . $name : 'App\Http',
-            'path' => PATH_APP . 'Http' . ($inProjects ? '/Projects/' . $name : ''),
+            'path' => PATH_APP . 'Http' . ($inProjects ? DIRECTORY_SEPARATOR.'Projects'.DIRECTORY_SEPARATOR . $name : ''),
             'module' => false,
         ];
         $rows['structure'] = AppStructure::getControllerFilesInDeep($rows['path']);

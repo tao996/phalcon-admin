@@ -13,6 +13,9 @@ class ControllersTest extends \PHPUnit\Framework\TestCase
      */
     public function testIndex()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         // http test
         $http = MyTestHttpHelper::with($this);
 //        ddd($_ENV);

@@ -10,6 +10,9 @@ class IndexControllerTest extends TestCase
 {
     public function testIndex()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestTaoHttpHelper::with($this);
         $http->get('/m/tao')
             ->login()->send()

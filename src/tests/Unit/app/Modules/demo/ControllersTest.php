@@ -9,6 +9,9 @@ class ControllersTest extends TestCase
 {
     public function testIndex()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestHttpHelper::with($this);
 
         $http->get('/m/demo')->send()
@@ -26,6 +29,9 @@ class ControllersTest extends TestCase
 
     public function testTodo()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestHttpHelper::with($this);
         $http->get('/m/demo/todo/list')->send()
             ->notContainsFailed()
@@ -34,6 +40,9 @@ class ControllersTest extends TestCase
 
     public function testDbTest()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestHttpHelper::with($this);
         $http->get('/m/demo/db.test/hello')->send()
             ->notContainsFailed()
@@ -47,6 +56,9 @@ class ControllersTest extends TestCase
 
     public function testA0DbTest()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestHttpHelper::with($this);
         $http->get('/m/demo.db/test')->send()
             ->notContainsFailed()
@@ -72,6 +84,9 @@ class ControllersTest extends TestCase
 
     public function testA0DbUserInfo()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestHttpHelper::with($this);
         $expectContent = DIRECTORY_SEPARATOR . 'App' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR . 'demo' . DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR . 'db' . DIRECTORY_SEPARATOR . 'views'.DIRECTORY_SEPARATOR.'user'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'name.phtml';
         $http->get('/m/demo.db/user.info/name')->send()

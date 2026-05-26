@@ -24,7 +24,7 @@ class Route
     public array $routerOptions = [];
     /**
      * 获取当前 URL 中的组成
-     * @var array{sw:bool,language:string,api:bool,project:bool,module:bool,path:string,mapurl:string}
+     * @var array{language:string,api:bool,project:bool,module:bool,path:string,mapurl:string}
      */
     public array $urlOptions = [];
     /**
@@ -155,7 +155,7 @@ class Route
      */
     public function getViewPath(): string
     {
-        return $this->routerOptions['viewpath'] . ($this->theme ? '/' . $this->theme : '');
+        return $this->routerOptions['viewpath'] . ($this->theme ? DIRECTORY_SEPARATOR . $this->theme : '');
     }
 
     private string $pickview = '';
@@ -172,7 +172,7 @@ class Route
                 $this->routerOptions['pathsname']['action']
             );
             if (!empty($this->routerOptions['subc'])) { // 子目录
-                $this->routerOptions['pickview'] = $this->routerOptions['subc'] . '/' . $pickview;
+                $this->routerOptions['pickview'] = $this->routerOptions['subc'] . DIRECTORY_SEPARATOR . $pickview;
             } else {
                 $this->routerOptions['pickview'] = $pickview;
             }
@@ -192,7 +192,7 @@ class Route
 
         // layout view 未指定
         foreach (['.phtml', '.volt'] as $ext) {
-            $mf = $viewPath . '/index'; // 布局文件
+            $mf = $viewPath . DIRECTORY_SEPARATOR.'index'; // 布局文件
             if (file_exists($mf . $ext)) {
                 $this->routerOptions['mainView'] = $mf;
                 break;
@@ -201,14 +201,14 @@ class Route
 
         if (empty($this->routerOptions['mainView'])) {
             if (isset($this->routerOptions['module'])) {
-                $this->routerOptions['mainView'] = '/var/www/App/Modules/' . $this->mergeFileViewWithTheme(
+                $this->routerOptions['mainView'] = PATH_APP_MODULES . $this->mergeFileViewWithTheme(
                         $this->routerOptions['name']
                     ) . 'index';
             } elseif (!empty($this->routerOptions['project'])) {
-                $this->routerOptions['mainView'] = '/var/www/App/Projects/' . $this->mergeFileViewWithTheme(
+                $this->routerOptions['mainView'] = PATH_APP_PROJECTS . $this->mergeFileViewWithTheme(
                         $this->routerOptions['project']
                     ) . 'index';
-            } elseif ($index = strpos($this->routerOptions['viewpath'], '/A0/')) {
+            } elseif ($index = strpos($this->routerOptions['viewpath'], DIRECTORY_SEPARATOR.'A0'.DIRECTORY_SEPARATOR)) {
                 $this->routerOptions['mainView'] = $this->mergeFileViewWithTheme(
                         substr($this->routerOptions['viewpath'], 0, $index)
                     ) . 'index';
@@ -230,12 +230,12 @@ class Route
      */
     public function mergeFileViewWithTheme(string $pathname): string
     {
-        return $pathname . '/views/' . ($this->theme ? $this->theme . '/' : '');
+        return $pathname . DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR . ($this->theme ? $this->theme . DIRECTORY_SEPARATOR : '');
     }
 
     public function getPathViewTPL(): string
     {
-        $f = $this->getViewPath() . '/' . $this->getPickView();
+        $f = $this->getViewPath() . DIRECTORY_SEPARATOR . $this->getPickView();
         foreach (['.phtml', '.php', '.volt'] as $suf) {
             if (file_exists($f . $suf)) {
                 return $f . $suf;
@@ -246,7 +246,7 @@ class Route
 
     public function pickView(bool $boolResult = true): string
     {
-        $pickview = $this->getViewPath() . '/' . $this->getPickView();
+        $pickview = $this->getViewPath() . DIRECTORY_SEPARATOR . $this->getPickView();
         if (file_exists($pickview . '.phtml')) {
             return $pickview . '.phtml';
         } elseif (file_exists($pickview . '.volt')) {

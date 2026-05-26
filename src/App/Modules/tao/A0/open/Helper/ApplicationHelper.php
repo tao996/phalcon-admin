@@ -58,7 +58,7 @@ readonly class ApplicationHelper
             return $app;
         } catch (\Exception $e) {
             if (IS_DEBUG) {
-                ddd($e->getMessage(), $e->getTrace());
+                prettyException($e);
             }
             Logger::wrap('Tiktok 小程序配置失败:' . $app['appid'], $e);
         }
@@ -97,7 +97,7 @@ readonly class ApplicationHelper
             return $app;
         } catch (\Exception $e) {
             if (IS_DEBUG) {
-                ddd($e->getMessage(), $e->getTrace());
+                prettyException($e);
             }
             Logger::wrap('微信公众号配置失败:' . $appid, $e);
         }
@@ -182,7 +182,7 @@ readonly class ApplicationHelper
             return $app;
         } catch (\Exception $e) {
             if (IS_DEBUG) {
-                ddd($e->getMessage(), $e->getTrace());
+                prettyException($e);
             }
             Logger::wrap('微信小程序配置失败:' . $app['appid'], $e);
         }

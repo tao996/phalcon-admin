@@ -8,6 +8,9 @@ class ControllersTest extends \PHPUnit\Framework\TestCase
 {
     public function testIndex()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestHttpHelper::with($this);
 
         $http->get('/index/about')->send()
@@ -21,6 +24,9 @@ class ControllersTest extends \PHPUnit\Framework\TestCase
 
     public function testSubTest()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         $http = MyTestHttpHelper::with($this);
         $http->get('/sub.test/abc')->send()
             ->notContainsFailed()

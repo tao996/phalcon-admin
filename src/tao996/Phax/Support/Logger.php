@@ -44,7 +44,8 @@ class Logger
             }
             self::logger()->error($e->getMessage() . "\n" . print_r($info, true));
         } catch (\Exception $e) {
-            ddd('循环异常:', $e->getMessage());
+            // 循环异常
+            prettyException($e);
         }
     }
 

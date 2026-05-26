@@ -20,9 +20,6 @@ try {
     echo $e->getMessage();
     return;
 }
-if (!defined('IS_DEBUG')){
-    define("IS_DEBUG", false);
-}
 /**
  * @var $app \Phax\Foundation\Application
  */

@@ -32,7 +32,7 @@ class Application
     public function __construct(string $sourceRoot)
     {
         if (!file_exists($sourceRoot)) {
-            exit('could not find the source root path： /xxx/src => /var/www');
+            exit('could not find the sourceRoot path');
         }
     }
 
@@ -45,9 +45,8 @@ class Application
         if (file_exists(PATH_ROOT . '.env')) {
             Env::load(PATH_ROOT . '.env');
         }
-        if (!defined('IS_DEBUG')) {
-            define('IS_DEBUG', env('APP_DEBUG', '') === 'true');
-        }
+        define('IS_DEBUG', env('APP_DEBUG', '') === 'true');
+
         DiService::with($di)
             ->config(function (\Phalcon\Config\Config $config) {
                 date_default_timezone_set($config->path('app.timezone'));
@@ -103,6 +102,7 @@ class Application
 
     public function handleException(\Exception $e, Di $di = null): string
     {
+
         if (IS_DEBUG || $e->getCode() >= 500) {
             Logger::exception($e);
         }

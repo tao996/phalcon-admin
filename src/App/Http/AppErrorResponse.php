@@ -22,7 +22,11 @@ class AppErrorResponse extends Controller
                 'data' => null,
             ]);
         } else {
-            return "TODO Error : " . $e->getMessage();
+            pr(
+                'routerOptions', $this->route->routerOptions,
+                'urlOptions', $this->route->urlOptions,
+                false);
+            prettyException($e);
         }
     }
 
@@ -33,6 +37,10 @@ class AppErrorResponse extends Controller
      */
     public function notFound(\Exception $e)
     {
-        ddd($e->getMessage());
+        pr(
+            'routerOptions', $this->route->routerOptions,
+            'urlOptions', $this->route->urlOptions,
+            false);
+        prettyException($e);
     }
 }

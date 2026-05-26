@@ -725,7 +725,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
 //                    'className' => 'App\Modules\tao\Module',
 //                ],
                 'tao1' => [
-                    'path' => PATH_TAO996 . 'Phax/Mvc/Module.php',
+                    'path' => PATH_TAO996 . 'Phax'.DIRECTORY_SEPARATOR.'Mvc'.DIRECTORY_SEPARATOR.'Module.php',
                     'className' => 'Phax\Mvc\Module'
                 ]
             ]

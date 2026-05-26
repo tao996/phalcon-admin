@@ -4,7 +4,7 @@ use \Phax\Foundation\CliRouter;
 
 // php artisan test 运行测试
 CliRouter::add('test', function ($params) {
-    system('php ' . PATH_ROOT . 'vendor/bin/phpunit --configuration /var/www/phpunit.xml ' . join(' ', $params));
+    system('php ' . PATH_ROOT . 'vendor/bin/phpunit --configuration ' . PATH_ROOT . 'phpunit.xml ' . join(' ', $params));
 }, 'run phpunit test');
 
 // refresh meta-data when you update the model

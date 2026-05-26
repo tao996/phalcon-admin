@@ -81,7 +81,7 @@ return [
             ],
             'sqlite' => [
                 // https://www.php.net/manual/en/ref.pdo-sqlite.connection.php
-                'dbname' => env('DB_DATABASE', '/var/www/database.db'),
+                'dbname' => env('DB_DATABASE', PATH_STORAGE_DATA.'database.db'),
             ]
         ],
         // 是否记录 SQL 语句
