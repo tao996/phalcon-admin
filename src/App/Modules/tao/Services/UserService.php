@@ -91,8 +91,14 @@ class UserService
      */
     public function mustPassword(string $password): void
     {
-        if (strlen($password) < 6) {
-            throw new \Exception('密码最少为6位');
+        if (strlen($password) < 8) {
+            throw new \Exception('密码最少为8位');
+        }
+        if (!preg_match('/[a-zA-Z]/', $password)) {
+            throw new \Exception('密码必须包含字母');
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            throw new \Exception('密码必须包含数字');
         }
     }
 

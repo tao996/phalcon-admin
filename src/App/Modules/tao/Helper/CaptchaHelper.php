@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper;
 
 use App\Modules\tao\sdk\captcha\ImageCaptcha;
+use Phax\Support\Logger;
 
 
 /**
@@ -19,6 +20,9 @@ class CaptchaHelper
     public function __construct(public MyMvcHelper $mvc)
     {
         $this->local_test = $this->mvc->isTest() ||$this->mvc->isDemo();
+        if ($this->local_test && !IS_DEBUG) {
+            Logger::warning('验证码在非 DEBUG 模式下被跳过，请检查 isTest/isDemo 配置');
+        }
     }
 
     private function secret($text): string
@@ -59,7 +63,7 @@ class CaptchaHelper
                 throw new \Exception('验证码不存在');
             }
             $expect = $this->secret($code);
-            if ($actual != $expect) {
+            if ($actual !== $expect) {
                 throw new \Exception('验证码错误');
             }
         }

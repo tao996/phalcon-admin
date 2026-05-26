@@ -197,7 +197,7 @@ class UserController extends BaseController
                     throw new \Exception('必须提供旧密码');
                 }
                 if (!empty($user->password)) {
-                    if ($this->vv->security()->checkHash($data['old_password'], $user->password)) {
+                    if (!$this->vv->security()->checkHash($data['old_password'], $user->password)) {
                         throw new \Exception('旧密码错误');
                     }
                 }

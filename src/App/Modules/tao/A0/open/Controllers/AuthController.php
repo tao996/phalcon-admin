@@ -24,6 +24,44 @@ class AuthController extends BaseOpenMiniController
      */
     public function puidAction()
     {
+        $this->mustPostMethod();
+
+        // 增加验证码校验，防止 PUID 暴力破解
+        $captchaKey = 'open_puid_captcha';
+        if (empty($this->requestData['captcha']) || empty($this->requestData['captcha']['value'])) {
+            $a = rand(10, 50);
+            $b = rand(10, 50);
+            $c = $a + $b;
+            $rule = "{$a}+{$b}=?";
+            $this->vv->session()->set($captchaKey, [
+                'answer' => (string)$c,
+                'expire' => time() + 120,
+                'attempts' => 0,
+            ]);
+            return [
+                'rule' => $rule,
+            ];
+        } else {
+            $captchaData = $this->vv->session()->get($captchaKey);
+            if (empty($captchaData) || empty($captchaData['answer'])) {
+                throw new \Exception('验证码不存在，请重新获取');
+            }
+            if ($captchaData['expire'] < time()) {
+                $this->vv->session()->remove($captchaKey);
+                throw new \Exception('验证码已过期，请重新获取');
+            }
+            if ($captchaData['attempts'] >= 3) {
+                $this->vv->session()->remove($captchaKey);
+                throw new \Exception('验证码错误次数过多，请重新获取');
+            }
+            if ((string)$this->requestData['captcha']['value'] !== (string)$captchaData['answer']) {
+                $captchaData['attempts'] += 1;
+                $this->vv->session()->set($captchaKey, $captchaData);
+                throw new \Exception('验证码错误');
+            }
+            $this->vv->session()->remove($captchaKey);
+        }
+
         $puid = $this->requestData['puid'] ?? '';
         if (empty($puid)) {
             throw new \Exception('puid 参数不能为空');
@@ -58,37 +96,43 @@ class AuthController extends BaseOpenMiniController
             'password|密码' => 'required'
         ]);
         if (empty($this->requestData['captcha']) || empty($this->requestData['captcha']['value'])) {
-            // 输出验证码
+            // 生成服务端验证码：存储到 session，仅返回规则给客户端
             $a = rand(10, 50);
             $b = rand(10, 50);
             $c = $a + $b;
             $rule = "{$a}+{$b}=?";
-            $time = time();
-            $validAnswer = md5($time . '|a' . $rule . '|b' . $c);
+            $captchaKey = 'open_login_captcha';
+            $this->vv->session()->set($captchaKey, [
+                'answer' => (string)$c,
+                'expire' => time() + 120,
+                'attempts' => 0,
+            ]);
             return [
                 'rule' => $rule,
-                'time' => $time,
-                'valid' => $validAnswer
             ];
         } else {
-            $this->vv->validate()->check($this->requestData['captcha'], [
-                'rule' => 'required',
-                'time' => 'required',
-                'valid' => 'required',
-                'value' => 'required'
-            ]);
-            if (intval($this->requestData['captcha']['time']) + 60 < time()) {
-                throw new \Exception('验证码已过期');
+            // 校验验证码：从 session 中取出答案进行比对
+            $captchaKey = 'open_login_captcha';
+            $captchaData = $this->vv->session()->get($captchaKey);
+            if (empty($captchaData) || empty($captchaData['answer'])) {
+                throw new \Exception('验证码不存在，请重新获取');
             }
-            if (strlen($this->requestData['captcha']['valid']) != 32) {
-                throw new \Exception('(1)验证码错误');
+            if ($captchaData['expire'] < time()) {
+                $this->vv->session()->remove($captchaKey);
+                throw new \Exception('验证码已过期，请重新获取');
             }
-            $validAnswer = md5(
-                $this->requestData['captcha']['time'] . '|a' . $this->requestData['captcha']['rule'] . '|b' . $this->requestData['captcha']['value']
-            );
-            if ($validAnswer != $this->requestData['captcha']['valid']) {
-                throw new \Exception('(2)验证码错误');
+            // 错误次数检查：最多允许3次尝试
+            if ($captchaData['attempts'] >= 3) {
+                $this->vv->session()->remove($captchaKey);
+                throw new \Exception('验证码错误次数过多，请重新获取');
             }
+            if ((string)$this->requestData['captcha']['value'] !== (string)$captchaData['answer']) {
+                $captchaData['attempts'] += 1;
+                $this->vv->session()->set($captchaKey, $captchaData);
+                throw new \Exception('验证码错误');
+            }
+            // 验证通过后立即销毁
+            $this->vv->session()->remove($captchaKey);
         }
 
         $user = $this->vv->userService()->loginWithPassword(

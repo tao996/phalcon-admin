@@ -30,6 +30,15 @@ class Oauth3Controller extends BaseController
         }
         if (!$this->vv->request()->hasQuery('state')) {
             if ($redirect = $this->request->getQuery('_redirect')) {
+                // 防止开放重定向攻击：仅允许相对路径或同源绝对路径
+                $decoded = urldecode($redirect);
+                if (preg_match('/^https?:\/\//i', $decoded) || str_starts_with($decoded, '//')) {
+                    $allowedHost = $this->request->getHttpHost();
+                    $redirectHost = parse_url($decoded, PHP_URL_HOST);
+                    if ($redirectHost !== null && $redirectHost !== $allowedHost) {
+                        throw new \Exception('重定向地址不允许跨域');
+                    }
+                }
                 $this->vv->redirectHelper()->save($redirect);
             }
         }

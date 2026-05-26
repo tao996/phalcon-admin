@@ -2,6 +2,7 @@
 
 namespace App\Modules\tao\Services;
 
+use App\Modules\tao\Config\Config;
 use App\Modules\tao\Helper\MessageHelper;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemSmsCode;
@@ -124,8 +125,12 @@ class SmsCodeService
         if (empty($verCode)) {
             throw new \Exception('必须填写验证码');
         }
-        if ($code->code != $verCode) {
+        if ($code->code !== $verCode) {
             $code->num += 1;
+            // 错误次数达到上限后立即标记为已使用，防止反复尝试
+            if ($code->num >= Config::$verifyCodeMaxErrorNum) {
+                $code->status = SystemSmsCode::StatusDone;
+            }
             if ($code->save() === false) {
                 Logger::message('更新验证码错误次数失败:' . $code->id, $code->getMessages());
             }
@@ -438,7 +443,7 @@ class SmsCodeService
 
             $link = $this->mvc->urlWith('/m/tao/auth/password', [
                 'type' => 'forgot',
-                'sign' => md5($code->code . $row['id']),
+                'sign' => md5($code->code . $row['id'] . $this->mvc->config()->path('app.key', 'tao-default-secret')),
                 'id' => $code->id,
             ]);
 
@@ -479,7 +484,7 @@ HTML;
             throw new \Exception('重置密码验证码不存在或过期');
         }
 
-        if ($sign != md5($code->code . $code->user_id)) {
+        if ($sign !== md5($code->code . $code->user_id . $this->mvc->config()->path('app.key', 'tao-default-secret'))) {
             throw new \Exception('签名参数不匹配');
         }
         if ($code->user_id < 1) {

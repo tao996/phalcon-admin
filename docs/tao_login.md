@@ -106,7 +106,7 @@
 | 参数 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `account` | string | 是 | 登录账号，支持手机号或邮箱 |
-| `password` | string | 是 | 登录密码（最少 6 位） |
+| `password` | string | 是 | 登录密码（最少 8 位，需包含字母和数字） |
 | `captcha` | string | 是 | 图形验证码 |
 
 **成功响应：**
@@ -132,7 +132,6 @@
 | 验证码错误 | 图形验证码不匹配 |
 
 **特殊说明：**
-- 系统内置超级管理员 `admin/123456` 可直接登录（仅限 ID=1 的用户）
 - 登录成功后 Session 中写入 `user_id`
 - 如果用户已登录，访问此页面会自动跳转
 
@@ -235,7 +234,7 @@
 |---|---|---|---|
 | `account` | string | 是 | 手机号或邮箱 |
 | `vercode` | string | 是 | 注册验证码 |
-| `password` | string | 是 | 登录密码（最少 6 位） |
+| `password` | string | 是 | 登录密码（最少 8 位，需包含字母和数字） |
 
 **成功响应：**
 ```json
@@ -253,7 +252,9 @@
 | 不是一个合法的账号 | 账号不是有效的手机号或邮箱 |
 | 邮箱已经被占用 | 邮箱已注册且已激活 |
 | 手机号已经被占用 | 手机号已注册且已激活 |
-| 密码最少为6位 | 密码长度不足 |
+| 密码最少为8位 | 密码长度不足 |
+| 密码必须包含字母 | 密码缺少字母 |
+| 密码必须包含数字 | 密码缺少数字 |
 | 验证码不存在或者已经过期了 | 验证码已失效 |
 | 验证码错误 | 验证码不匹配 |
 
@@ -303,14 +304,14 @@
 | 参数 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `type` | string | 是 | 固定值 `forgot` |
-| `sign` | string | 是 | 签名，格式为 `md5(code + user_id)` |
+| `sign` | string | 是 | 签名，格式为 `md5(code + user_id + app_key)` |
 | `id` | int | 是 | 验证码记录 ID |
 
 **POST 请求参数（重置密码时）：**
 
 | 参数 | 类型 | 必填 | 说明 |
 |---|---|---|---|
-| `password` | string | 是 | 新密码（最少 6 位） |
+| `password` | string | 是 | 新密码（最少 8 位，需包含字母和数字） |
 
 **成功响应：**
 ```json
@@ -461,6 +462,59 @@ Content-Type: application/json
 | `openid` | string | 微信 openid |
 | `ts` | string | 登录凭证，格式为 `token-secret`，用于后续 API 请求鉴权 |
 
+**登录凭证使用方式：**
+
+登录成功后返回的 `ts` 字段需拆分为 `token` 和 `secret` 两部分，用于后续所有 API 请求的鉴权：
+
+```javascript
+// 小程序端示例：解析登录凭证
+const ts = res.data.ts; // 如 "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+const dashIndex = ts.lastIndexOf('-');
+const token = ts.substring(0, dashIndex);  // "1.app.1700000000"
+const secret = ts.substring(dashIndex + 1); // "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+
+// 存储到本地
+wx.setStorageSync('auth_token', token);
+wx.setStorageSync('auth_secret', secret);
+```
+
+**后续请求鉴权示例：**
+
+每次 API 请求需在 HTTP Header 中携带 `Authorization`：
+
+```javascript
+// 封装请求方法
+function request(options) {
+  const token = wx.getStorageSync('auth_token');
+  const secret = wx.getStorageSync('auth_secret');
+  const t = Date.now(); // 当前毫秒时间戳
+  const sign = md5(secret + t); // 计算签名: md5(secret + timestamp)
+
+  wx.request({
+    url: options.url,
+    method: options.method || 'GET',
+    data: options.data,
+    header: {
+      'Content-Type': 'application/json',
+      'Authorization': JSON.stringify({ token, t, sign })
+    },
+    success: options.success,
+    fail: options.fail
+  });
+}
+
+// 使用示例：获取用户信息
+request({
+  url: 'https://example.com/api/m/tao.open/user/info?data=jsonbody&appid=wx1234567890',
+  method: 'GET',
+  success(res) {
+    console.log(res.data);
+  }
+});
+```
+
+> 注意：`md5` 函数需自行引入小程序端 MD5 库。Token 过期时间为 7 天，过期后需重新登录获取。
+
 **登录流程：**
 
 ```
@@ -594,44 +648,47 @@ Content-Type: application/json
 | 参数 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `account` | string | 是 | 手机号或邮箱 |
-| `password` | string | 是 | 登录密码 |
+| `password` | string | 是 | 登录密码（最少 8 位，需包含字母和数字） |
 | `captcha` | object | 条件必填 | 验证码对象（首次不传） |
 
 **两步式验证码流程：**
 
+验证码采用服务端 Session 存储，答案不暴露给客户端。
+
 **第一步：不传 captcha，获取验证码规则**
 ```json
 // 请求
-{ "account": "user@example.com", "password": "123456" }
+{ "account": "user@example.com", "password": "Abc12345" }
 
 // 响应
 {
-  "rule": "23+45=?",
-  "time": 1700000000,
-  "valid": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+  "code": 0,
+  "msg": "",
+  "data": {
+    "rule": "23+45=?"
+  }
 }
 ```
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `rule` | string | 算术验证码题目 |
-| `time` | int | 时间戳 |
-| `valid` | string | 签名，用于验证答案 |
+| `rule` | string | 算术验证码题目，用户需计算答案 |
 
 **第二步：提交验证码答案**
 ```json
 // 请求
 {
   "account": "user@example.com",
-  "password": "123456",
+  "password": "Abc12345",
   "captcha": {
-    "rule": "23+45=?",
-    "time": 1700000000,
-    "valid": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
     "value": 68
   }
 }
 ```
+
+| captcha 字段 | 类型 | 说明 |
+|---|---|---|
+| `value` | int/string | 用户计算的验证码答案 |
 
 **成功响应：**
 ```json
@@ -642,7 +699,7 @@ Content-Type: application/json
     "user_id": 1,
     "nickname": "用户昵称",
     "avatar_url": "https://example.com/avatar.jpg",
-    "ts": "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0"
+    "ts": "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
   }
 }
 ```
@@ -652,11 +709,13 @@ Content-Type: application/json
 | `user_id` | int | 系统用户 ID |
 | `nickname` | string | 用户昵称 |
 | `avatar_url` | string | 用户头像 |
-| `ts` | string | 登录凭证，格式 `token-secret` |
+| `ts` | string | 登录凭证，格式 `token-secret`，用于后续 API 请求鉴权 |
 
 **验证码校验逻辑：**
-- 验证码有效期为 60 秒
-- 答案校验：`md5(time + "|a" + rule + "|b" + value)` 必须等于 `valid`
+- 验证码答案存储在服务端 Session 中，客户端仅获取算术题
+- 验证码有效期为 120 秒
+- 同一验证码最多允许 3 次错误尝试，超过后需重新获取
+- 验证通过后立即销毁，不可重复使用
 
 ---
 
@@ -671,10 +730,36 @@ Content-Type: application/json
 | 参数 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `puid` | string | 是 | 统一平台码，格式 `puid.userId` |
+| `captcha` | object | 条件必填 | 验证码对象（首次不传） |
 
-**请求示例：**
+**两步式验证码流程：**
+
+与登录接口相同，PUID 登录同样需要先获取验证码再提交。
+
+**第一步：不传 captcha，获取验证码规则**
 ```json
+// 请求
 { "puid": "AbCdEfGh.1" }
+
+// 响应
+{
+  "code": 0,
+  "msg": "",
+  "data": {
+    "rule": "17+28=?"
+  }
+}
+```
+
+**第二步：提交验证码答案**
+```json
+// 请求
+{
+  "puid": "AbCdEfGh.1",
+  "captcha": {
+    "value": 45
+  }
+}
 ```
 
 **成功响应：**
@@ -686,7 +771,7 @@ Content-Type: application/json
     "user_id": 1,
     "nickname": "用户昵称",
     "avatar_url": "https://example.com/avatar.jpg",
-    "ts": "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0"
+    "ts": "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
   }
 }
 ```
@@ -695,6 +780,7 @@ Content-Type: application/json
 - PUID 码可通过 Web 端 `/m/tao/user/index/puid` 获取
 - 格式为 `puid.id`，其中 puid 是 30 位随机字符串，id 是用户 ID
 - 用户的 `status` 必须为 1（正常状态）
+- 需要通过验证码校验，防止 PUID 暴力破解
 
 ---
 
@@ -760,6 +846,8 @@ ts = "{token}-{secret}"
 | token | `{userId}.app.{timestamp}` | `1.app.1700000000` | 登录标识，存储在 Redis 中 |
 | secret | 32 位 MD5 字符串 | `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6` | 签名密钥 |
 
+> **重要**：`ts` 中的 `-` 分隔符可能出现在 `token` 部分（如 userId 为负数时），因此拆分时必须使用 **最后一个 `-`** 作为分隔符。
+
 ### 9.2 请求鉴权
 
 后续 API 请求需在 HTTP Header 中携带 `Authorization`：
@@ -782,14 +870,162 @@ t = 1700000123
 sign = md5("a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p61700000123")
 ```
 
-### 9.3 Token 生命周期
+### 9.3 小程序端完整接入示例
+
+```javascript
+// ============ auth.js - 认证工具模块 ============
+
+const AUTH_TOKEN_KEY = 'auth_token';
+const AUTH_SECRET_KEY = 'auth_secret';
+
+/**
+ * 保存登录凭证
+ */
+function saveLoginToken(ts) {
+  const dashIndex = ts.lastIndexOf('-');
+  const token = ts.substring(0, dashIndex);
+  const secret = ts.substring(dashIndex + 1);
+  wx.setStorageSync(AUTH_TOKEN_KEY, token);
+  wx.setStorageSync(AUTH_SECRET_KEY, secret);
+}
+
+/**
+ * 获取 Authorization Header
+ */
+function getAuthHeader() {
+  const token = wx.getStorageSync(AUTH_TOKEN_KEY);
+  const secret = wx.getStorageSync(AUTH_SECRET_KEY);
+  if (!token || !secret) return null;
+
+  const t = Date.now();
+  const sign = md5(secret + t);
+  return { token, t, sign };
+}
+
+/**
+ * 封装带鉴权的请求
+ */
+function request(options) {
+  const auth = getAuthHeader();
+
+  if (!auth && !options.noAuth) {
+    // 未登录，跳转到登录页
+    wx.redirectTo({ url: '/pages/login/login' });
+    return;
+  }
+
+  const header = {
+    'Content-Type': 'application/json',
+    ...(auth ? { Authorization: JSON.stringify(auth) } : {})
+  };
+
+  wx.request({
+    url: options.url,
+    method: options.method || 'GET',
+    data: options.data,
+    header: header,
+    success(res) {
+      if (res.statusCode === 401 || res.statusCode === 403) {
+        // Token 过期，清除本地存储并跳转登录
+        wx.removeStorageSync(AUTH_TOKEN_KEY);
+        wx.removeStorageSync(AUTH_SECRET_KEY);
+        wx.redirectTo({ url: '/pages/login/login' });
+        return;
+      }
+      if (options.success) options.success(res);
+    },
+    fail: options.fail
+  });
+}
+
+/**
+ * 清除登录状态
+ */
+function logout() {
+  wx.removeStorageSync(AUTH_TOKEN_KEY);
+  wx.removeStorageSync(AUTH_SECRET_KEY);
+}
+
+module.exports = { saveLoginToken, getAuthHeader, request, logout };
+```
+
+```javascript
+// ============ 登录页调用示例 ============
+
+const auth = require('../../utils/auth');
+
+// 微信登录
+wx.login({
+  success(loginRes) {
+    wx.request({
+      url: 'https://example.com/api/m/tao.open/weixin.mini/code2session?appid=wx1234567890',
+      method: 'POST',
+      data: {
+        code: loginRes.code,
+        userInfo: { nickName: '用户', gender: 0 }
+      },
+      success(res) {
+        if (res.data.code === 0) {
+          // 保存登录凭证
+          auth.saveLoginToken(res.data.data.ts);
+          console.log('登录成功，用户ID:', res.data.data.user_id);
+        }
+      }
+    });
+  }
+});
+
+// 账号密码登录（两步式验证码）
+function loginWithPassword(account, password) {
+  // 第一步：获取验证码
+  wx.request({
+    url: 'https://example.com/api/m/tao.open/auth/login?data=jsonbody',
+    method: 'POST',
+    data: { account, password },
+    success(res) {
+      if (res.data.data && res.data.data.rule) {
+        // 展示验证码给用户输入
+        const rule = res.data.data.rule; // 如 "23+45=?"
+        showCaptchaInput(rule, function(userAnswer) {
+          // 第二步：提交验证码答案
+          wx.request({
+            url: 'https://example.com/api/m/tao.open/auth/login?data=jsonbody',
+            method: 'POST',
+            data: {
+              account, password,
+              captcha: { value: userAnswer }
+            },
+            success(res2) {
+              if (res2.data.code === 0) {
+                auth.saveLoginToken(res2.data.data.ts);
+                console.log('登录成功');
+              }
+            }
+          });
+        });
+      }
+    }
+  });
+}
+
+// 后续业务请求
+auth.request({
+  url: 'https://example.com/api/m/tao.open/user/info?data=jsonbody&appid=wx1234567890',
+  method: 'GET',
+  success(res) {
+    console.log('用户信息:', res.data);
+  }
+});
+```
+
+### 9.4 Token 生命周期
 
 | 配置项 | 值 | 说明 |
 |---|---|---|
 | 默认过期时间 | 7 天（604800 秒） | Redis key 的 TTL |
 | 自动续期 | 剩余 TTL < 2 天时 | 请求时自动续期至 7 天 |
 
-### 9.4 Token 错误处理
+### 9.5 Token 错误处理
 
 | 错误信息 | HTTP 状态码 | 说明 |
 |---|---|---|
@@ -827,10 +1063,15 @@ sign = md5("a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p61700000123")
 - 验证码每天有发送次数限制（各类型均为 3 次/天）
 - 图形验证码比对后自动销毁
 - 登录验证码比对后自动销毁
+- 验证码错误次数达到上限后立即失效（最多 3 次错误）
 - 密码使用 Phalcon Security 的 `hash()` 进行单向加密
+- 密码强度要求：最少 8 位，必须包含字母和数字
 - 修改手机号/邮箱有 30 天冷却期
 - APP Token 的签名机制防止 token 被盗用
 - 修改账号信息需验证码校验
+- 小程序端验证码答案存储在服务端 Session，不暴露给客户端
+- 重置密码链接签名包含应用密钥，防止签名被暴力破解
+- 重定向地址仅允许同域，防止开放重定向攻击
 
 ### 用户数据模型
 

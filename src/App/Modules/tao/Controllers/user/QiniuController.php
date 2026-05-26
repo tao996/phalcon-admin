@@ -16,9 +16,7 @@ class QiniuController extends BaseController
      */
     public function indexAction()
     {
-        if (!IS_DEBUG) {
-            throw new \Exception('only run in debug mode');
-        }
+
         $this->jsonResponse = true;
         $this->vv->configService()->forceCache();
 

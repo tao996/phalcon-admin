@@ -202,6 +202,16 @@ class IndexController extends BaseController
         $user = $this->loginUser();
         if ($this->request->isPost()) {
             $password = $this->getRequest('password');
+            $oldPassword = $this->getRequest('old_password');
+
+            // 已有密码时必须验证旧密码，无密码（第三方登录用户）允许直接设置
+            if (!empty($user->password)) {
+                if (empty($oldPassword)) {
+                    return $this->error('必须提供旧密码');
+                }
+                $this->vv->userService()->checkPassword($oldPassword, $user);
+            }
+
             $this->vv->userService()->newPassword($password, $user);
             if ($user->save()) {
                 return $this->success('修改密码成功');
