@@ -49,7 +49,7 @@ class LoginCookieAuthAdapter extends LoginAuthAdapter
         return null;
     }
 
-    public function saveUser(array $user): mixed
+    public function saveUser(array $user,array $info = []): mixed
     {
         $userId = MyData::getInt($user, 'id');
         $token = join(':', [$userId, 'web', time()]); // 由 3 部分组成

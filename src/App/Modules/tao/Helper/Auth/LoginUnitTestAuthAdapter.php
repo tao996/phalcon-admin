@@ -34,7 +34,7 @@ class LoginUnitTestAuthAdapter extends LoginAuthAdapter
         return null;
     }
 
-    public function saveUser(array $user): mixed
+    public function saveUser(array $user,array $info = []): mixed
     {
         $this->userId = $user['id'];
         if (!empty($this->user)) {

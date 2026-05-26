@@ -80,7 +80,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
             ->generateToken($userId, 'app'); // 已经使用了 . 号作为分割号
     }
 
-    public function saveUser(array $user): mixed
+    public function saveUser(array $user,array $info = []): mixed
     {
         $userId = MyData::getInt($user, 'id');
         if ($userId < 1) {
@@ -89,7 +89,8 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
         $token = $this->getCacheToken($userId);
         // 随机码，用于生成 sign 签名
         $sec = md5(join(',', [rand(1, 100), time() + rand(100, 9999)]));
-        $this->mvc->authRedisData()->setToken($token, $sec, ['EX' => 604800]); // 24*3600*7 = 7 天
+        $ex = MyData::getInt($info,'EX',604800);
+        $this->mvc->authRedisData()->setToken($token, $sec, ['EX' => $ex]); // 24*3600*7 = 7 天
         return join('-', [$token, $sec]);
     }
 

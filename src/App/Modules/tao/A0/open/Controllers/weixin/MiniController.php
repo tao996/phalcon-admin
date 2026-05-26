@@ -36,7 +36,10 @@ class MiniController extends BaseOpenMiniController
         $baseInfo = $this->openMvcHelper->userService()->save($app, $data, $this->requestData['userInfo'] ?? []);
         Logger::debug($data, $baseInfo);
         // token-secret
-        $baseInfo['ts'] = $this->tryGetLoginAuth()->getAdapter()->saveUser(['id' => $baseInfo['user_id']]);
+        $baseInfo['ts'] = $this->tryGetLoginAuth()->getAdapter()->saveUser(['id' => $baseInfo['user_id']],[
+            'EX'=> 604800, // 24*3600*7 = 7 天
+        ]);
+        $baseInfo['expired_at'] = time() + 604800 - 60;  // 过期时间
         return $baseInfo; // [id, user_id, nickname,avatar_url, openid, ts]
     }
 

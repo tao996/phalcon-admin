@@ -48,7 +48,7 @@ class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
         return null;
     }
 
-    public function saveUser(array $user): mixed
+    public function saveUser(array $user,array $info = []): mixed
     {
         $this->userId = $user['id'];
         return array_flip($this->users)[$this->userId] ?? '---test user not found---';
