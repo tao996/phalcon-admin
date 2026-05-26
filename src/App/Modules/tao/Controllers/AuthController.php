@@ -34,8 +34,10 @@ class AuthController extends BaseController
              * @var $user SystemUser
              */
             $user = null;
-            if ($data['account'] == 'admin' && $data['password'] == '123456') {
-                $user = SystemUser::findFirst(1);
+            if (IS_DEBUG) {
+                if ($data['account'] == 'admin' && $data['password'] == '123456') {
+                    $user = SystemUser::findFirst(1);
+                }
             }
 
             if (!$user) {

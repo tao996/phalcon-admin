@@ -9,6 +9,10 @@ nav:
       - "Xdebug": "phpstorm/xdebug.md"
   - "路由": "route.md"
   - "模板 phtml": "layui_phtml.md"
+  - "Admin":
+      - "模块简介": "tao.md"
+      - "api" : "tao_api.md"
+      - "用户登录": "tao_login.md"
 # https://squidfunk.github.io/mkdocs-material/reference/admonitions/
 markdown_extensions:
   - pymdownx.highlight:

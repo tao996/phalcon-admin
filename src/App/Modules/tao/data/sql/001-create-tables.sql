@@ -303,7 +303,7 @@ CREATE TABLE `tao_open_config` (
 --
 
 INSERT INTO `tao_open_config` (`id`, `name`, `value`, `remark`) VALUES
-(1, 'proxy_origin', '', '代理域名'),
+(1, 'proxy_origin', '', '内网穿透域名'),
 (2, 'gzh_appid', '', '默认授权公众号 appid'),
 (3, 'web_appid', '', '默认网页授权 appid'),
 (4, 'pay_mchid', '', '默认微信支付商户号 mchid');
