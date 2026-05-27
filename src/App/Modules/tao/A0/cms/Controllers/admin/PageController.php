@@ -22,7 +22,7 @@ class PageController extends BaseTaoA0CmsController
     }
 
     protected string $htmlTitle = '单页';
-    protected string|array $indexQueryColumns = ['id', 'tag', 'name', 'title', 'sort', 'status'];
+    protected string|array $modelQueryColumns = ['id', 'tag', 'name', 'title', 'sort', 'status'];
     protected array $allowModifyFields = ['sort', 'status'];
 
     protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void

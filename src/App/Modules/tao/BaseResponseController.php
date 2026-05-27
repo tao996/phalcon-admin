@@ -131,6 +131,7 @@ class BaseResponseController extends Controller
         return parent::beforeViewResponse($data);
     }
 
+
     public function error(array|string $msg, int $code = 500): array
     {
         $this->jsonResponse = true;
@@ -187,4 +188,32 @@ class BaseResponseController extends Controller
         throw new BlankException();
     }
 
+    public function beforeExecuteRoute($dispatcher)
+    {
+        if ($this->jsonBodyRequest) { // 小程序之类的，不要将错误显示出来
+
+            // 1. 获取当前准备执行的 Action 名称（例如：weatherAction）
+            $actionName = $dispatcher->getActiveMethod();
+
+            // 2. 检查方法是否存在（安全守卫）
+            if (method_exists($this, $actionName)) {
+                try {
+                    // 3. 在这里由我们自己来调用 Action，并用 try-catch 包裹
+                    // 这相当于在所有 Action 外面套了一层隐形的 try-catch
+                    $this->$actionName();
+
+                    // 4. 执行成功后，返回 false 告诉 Phalcon：
+                    // "我已经手工执行过了，你不需要再重复分发执行这个 Action 了"
+                    return false;
+
+                } catch (\Throwable $e) {
+                    // 5. 成功在这里捕获到了 Action 抛出的异常！
+                    $this->error($e->getMessage());
+
+                    // 同样返回 false，阻止 Phalcon 框架继续向上抛出异常
+                    return false;
+                }
+            }
+        }
+    }
 }

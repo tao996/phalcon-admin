@@ -13,7 +13,7 @@ use Phax\Utils\MyData;
  */
 class MchController extends BaseOpenController
 {
-    protected string|array $indexHiddenColumns = ['secret_key'];
+    protected string|array $modelHiddenColumns = ['secret_key'];
     protected array|string $superAdminActions = '*';
     protected string $htmlTitle = '商户';
 

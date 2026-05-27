@@ -60,7 +60,7 @@ class UserController extends BaseController
         ];
     }
 
-    protected string|array $indexQueryColumns = 'id,role_ids,head_img,nickname,email,email_valid,phone,phone_valid,binds,status,created_at';
+    protected string|array $modelQueryColumns = 'id,role_ids,head_img,nickname,email,email_valid,phone,phone_valid,binds,status,created_at';
 
     protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void
     {

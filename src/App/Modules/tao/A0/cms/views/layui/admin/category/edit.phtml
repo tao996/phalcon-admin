@@ -22,7 +22,7 @@ $categoryList = $vv->pick('categoryList', []);
                 $pid = $vv->pick('row.pid', 0);
                 foreach ($categoryList as $vo) { ?>
                     <option value="<?php echo $vo['id'] ?>"
-                        <?php echo $vo['id'] == $pid ? 'selected' : '' ?>
+                            <?php echo $vo['id'] == $pid ? 'selected' : '' ?>
                     ><?php echo $vo['title'] ?></option>
                 <?php } ?>
             </select>
@@ -71,9 +71,9 @@ $categoryList = $vv->pick('categoryList', []);
             <div class="layui-form-mid layui-text-em">多个标签使用空格分割</div>
         </div>
 
-        <?php $vv->layuiHtml()->upload('封面', 'cover', [
-            'type' => 'input', 'value' => $vv->pick('row.cover')
-        ]); ?>
+        <?php echo $vv->layuiHtml()->upload('封面', 'cover',
+                type: 'input', value: $vv->pick('row.cover')
+        ); ?>
 
         <div class="layui-form-item">
             <label class="layui-form-label">简介</label>
@@ -105,7 +105,7 @@ $categoryList = $vv->pick('categoryList', []);
 
 $vv->layui()->addWindowConfig([])->footer();
 
-$items = $vv->pick('row.images',[]);
+$items = $vv->pick('row.images', []);
 CmsHtmlHelper::ImageJs($items);
 ?>
 

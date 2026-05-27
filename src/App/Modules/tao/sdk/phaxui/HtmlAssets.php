@@ -70,10 +70,10 @@ class HtmlAssets
         if (str_ends_with($file, '.min.js') || str_ends_with($file, '.min.css')) {
             return $file;
         }
-        $minFile = str_replace(['.css', '.js'], ['.min.css', '.min.js'], $file);
         if (HtmlAssets::isLocal() && file_exists($file)) {
             return $file;
         }
+        $minFile = str_replace(['.css', '.js'], ['.min.css', '.min.js'], $file);
         return file_exists($minFile) ? $minFile : $file;
     }
 

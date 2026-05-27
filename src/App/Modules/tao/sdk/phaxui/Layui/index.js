@@ -429,9 +429,9 @@ const admin = {
                             admin.layer.success(res.msg);
                         }
                         if (typeof ok == 'function') {
-                            setTimeout(function () {
+                            // setTimeout(function () {
                                 ok(res);
-                            }, 500)
+                            // }, 500)
                         }
                     } else {
                         admin.layer.error(typeof no == 'string' ? no : res.msg);
@@ -798,12 +798,12 @@ const admin = {
                     const jThis = $(this);
                     const uploadExts = jThis.attr('data-upload-exts') || 'png|jpg|jpeg',
                         uploadName = jThis.attr('data-upload'),
-                        uploadNumber = jThis.attr('data-upload-number') || 'one', // 可选择图片数量
+                        uploadNumber = parseInt( jThis.attr('data-upload-number')) || 1, // 可选择图片数量
                         uploadSeparator = jThis.attr('data-upload-separator') || '|', // 分割符
                         uploadAccept = jThis.attr('data-upload-accept') || 'file',
                         uploadAcceptMime = jThis.attr('data-upload-mimetype') || '';
                     const elem = "input[name='" + uploadName + "']",
-                        multiple = uploadNumber !== 'one',
+                        multiple = uploadNumber > 1,
                         uploadElem = this;
                     const headers = admin.config.ajax.headers();
 
@@ -909,10 +909,10 @@ const admin = {
             if (uploadSelectList.length > 0) {
                 layui.jquery.each(uploadSelectList, function (i, v) {
                     const uploadName = $(this).attr('data-upload-select'),
-                        uploadNumber = $(this).attr('data-upload-number') || 'one',
+                        uploadNumber = parseInt( $(this).attr('data-upload-number')) || 1,
                         uploadSeparator = $(this).attr('data-upload-separator') || '|';
 
-                    const selectCheck = uploadNumber === 'one' ? 'radio' : 'checkbox',
+                    const selectCheck = uploadNumber > 1 ? 'checkbox' : 'radio',
                         inputElem = $("input[name='" + uploadName + "']"),
                         uploadElem = $(this).attr('id');
 
@@ -1223,7 +1223,7 @@ const admin = {
                 value: useV === true ? data : data[this.field],
             }
             if (option.value === undefined || option.value === null) {
-                return '<img style="max-width: ' + option.imageWidth + 'px; max-height: ' + option.imageHeight + 'px;" src="' + option.value + '" data-image="' + option.title + '">';
+                return '<img style="max-width: ' + option.imageWidth + 'px; max-height: ' + option.imageHeight + 'px;" data-image="' + option.title + '">';
             } else {
                 const values = option.value.split(option.imageSplit),
                     valuesHtml = [];

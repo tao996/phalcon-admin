@@ -17,7 +17,7 @@ class UploadfileController extends BaseController
     public array $enableActions = ['index', 'modify', 'add', 'delete'];
 
     protected array $allowModifyFields = ['summary'];
-    protected string|array $indexQueryColumns = [
+    protected string|array $modelQueryColumns = [
         'id',
         'upload_type',
         'summary',

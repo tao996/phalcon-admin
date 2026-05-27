@@ -113,8 +113,7 @@ $html = $vv->html();
         </div>
     </div>
 
-    <?php
-    $vv->layuiHtml()->icon(['value' => $vv->pick('icon')]); ?>
+    <?php echo $vv->layuiHtml()->icon($vv->pick('icon')); ?>
 
 
     <div class="layui-form-item">
@@ -137,7 +136,7 @@ $html = $vv->html();
 <?php
 $vv->layui()->addWindowConfig([])->footer();
 
-$vv->layuiHtml()->iconJs();
+echo $vv->layuiHtml()->iconJs();
 ?>
 <script>
     admin.form.submitFirst(() => {

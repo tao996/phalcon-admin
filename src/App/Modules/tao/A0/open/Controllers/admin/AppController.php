@@ -29,8 +29,8 @@ class AppController extends BaseOpenController
         'remark',
     ];
 
-    protected string|array $indexHiddenColumns = ['secret'];
-    protected string $indexOrder = 'sort desc,id desc';
+    protected string|array $modelHiddenColumns = ['secret'];
+    protected string $modelOrderBy = 'sort desc,id desc';
     protected array $allowModifyFields = ['status', 'sort', 'online', 'sandbox'];
 
     public function localInitialize(): void

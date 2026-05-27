@@ -89,8 +89,7 @@ class TaoHtmlHelper extends HtmlHelper
                 'wordcount'
                 // 'editimage', 没有实现
             ],
-            'toolbar' => `undo redo | styles | bold italic |
-  alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image`,
+            'toolbar' => 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
             'promotion' => false,
             'forced_root_block' => 'div',
             // 使用 div 而不是 p

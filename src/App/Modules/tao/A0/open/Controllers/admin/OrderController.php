@@ -13,7 +13,7 @@ class OrderController extends BaseOpenController
 {
     protected string $htmlTitle = '订单管理';
 
-    protected string|array $indexQueryColumns = [
+    protected string|array $modelQueryColumns = [
         'id',
         'created_at',
         'user_id',

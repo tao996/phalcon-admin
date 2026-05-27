@@ -36,8 +36,8 @@ $user = $vv->user();
         </div>
     </div>
 
-    <?php $vv->layuiHtml()->upload('用户头像', 'head_img',
-        ['value' => $user->head_img, 'class' => 'mb10']) ?>
+    <?php echo $vv->layuiHtml()->upload('用户头像', 'head_img',
+            value: $user->head_img, class: 'mb10') ?>
 
 
     <div class="layui-form-item">
@@ -149,7 +149,7 @@ $user = $vv->user();
     })
 
     admin.upload.run();
-    admin.upload.after = function (url, name){
+    admin.upload.after = function (url, name) {
         console.log(name, url)
     }
 </script>

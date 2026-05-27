@@ -65,19 +65,19 @@
     </div>
 
     <?php
-    $vv->layuiHtml()->upload('站点 Logo', 'site_logo', [
-        'value' => $vv->configService()->getWith('site.site_logo'),
-        'placeholder' => '请上传站点 Logo 图片',
-        'type' => 'text',
-    ]) ?>
+   echo $vv->layuiHtml()->upload('站点 Logo', 'site_logo',
+           type: 'text',
+           value: $vv->configService()->getWith('site.site_logo'),
+           placeholder: '请上传站点 Logo 图片',
+    ) ?>
 
     <?php
-    $vv->layuiHtml()->upload('浏览器图标 (ICO)', 'site_ico', [
-        'value' => $vv->configService()->getWith('site.site_ico'),
-        'placeholder' => '请上传浏览器图标,ico 类型',
-        'type' => 'text',
-        'ext' => 'ico'
-    ]) ?>
+   echo $vv->layuiHtml()->upload('浏览器图标 (ICO)', 'site_ico',
+           type: 'text',
+           value: $vv->configService()->getWith('site.site_ico'),
+           placeholder: '请上传浏览器图标,ico 类型',
+           ext: 'ico'
+    ) ?>
 
     <div class="layui-form-item">
         <label class="layui-form-label">版本信息</label>

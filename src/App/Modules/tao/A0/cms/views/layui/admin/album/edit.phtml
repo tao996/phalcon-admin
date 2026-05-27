@@ -15,9 +15,9 @@ CmsHtmlHelper::header();
     <div style="display: flex;flex-direction: row;">
         <div class="layui-form-item" style="width: 300px;margin-right: 10px;">
 
-            <?php $vv->layuiHtml()->upload('封面', 'cover', [
-                'value' => $vv->pick('cover'), 'tip' => '建议尺寸 620 * 300'
-            ]); ?>
+            <?php echo $vv->layuiHtml()->upload('封面', 'cover',
+                    value: $vv->pick('cover'), tip: '建议尺寸 620 * 300'
+            ); ?>
         </div>
         <div style="flex: 1;">
             <div class="layui-form-item">
@@ -63,7 +63,7 @@ CmsHtmlHelper::header();
 
 $vv->layui()->addWindowConfig([])->footer();
 
-$items = $vv->pick('images',[]);
+$items = $vv->pick('images', []);
 CmsHtmlHelper::ImageJs($items);
 ?>
 

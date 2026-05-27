@@ -21,31 +21,45 @@ class LayuiHtml
      * </pre>
      * @param string $label 标题，如 “封面”
      * @param string $name input name，如 cover
-     * @param array{value:string,type:string,number:string,ext:string,placeholder:string,tip:string,class:string,required:bool} $options 配置信息 value:默认值, number:one单张图片/other多选, ext:png|jpg|ico|jpeg, type:hidden输入框, placeholder:输入框提示文字, tip:提示文字,class:顶层div样式,required:false
-     * @return void
+     * @param string $type 类型，默认为 hidden
+     * @param string $value
+     * @param string $placeholder
+     * @param string $tip
+     * @param string $ext
+     * @param string $class
+     * @param bool $required
+     * @param bool $multiple
+     * @param bool $float
+     * @return string
      */
-    public function upload(string $label, string $name, array $options = ['value' => '', 'type' => 'hidden']): void
+    public function upload(string $label, string $name,
+                           string $type = 'hidden',
+                           string $value = '',
+                           string $placeholder = '图片地址',
+                           string $tip = '',
+                           string $ext = 'png|jpg|ico|jpeg',
+                           string $class = '', bool $required = false, bool $multiple = false, bool $float = true): string
     {
-        $options = array_merge([
-            'value' => '',
-            'number' => 'one',
-            'ext' => 'png|jpg|ico|jpeg',
-            'placeholder' => '图片地址',
-            'tip' => '',
-            'type' => 'input',
-            'class' => '',
-            'required' => false,
-            'float' => true,
-        ], $options);
+        $options = [
+            'value' => $value,
+            'ext' => $ext,
+            'placeholder' => $placeholder,
+            'tip' => $tip,
+            'type' => $type,
+            'class' => $class,
+            'required' => $required,
+            'float' => $float,
+            'number' => $multiple ? 9 : 1,
+        ];
         $requiredHTML = $options['required'] ? 'required' : '';
         // 输入提示
         $tipDivHTML = $options['tip'] ? '<div class="hint" style="margin-top: 5px;">' . $options['tip'] . '</div>' : '';
         $floatLeft = $options['float'] ? 'display:inline-block;float:left;' : '';
         // 输入框
-        $inputHTML = $options['number'] == 'one' ? '<input class="layui-input" name="' . $name . '" id="' . $name . '" type="hidden" style="margin-bottom: 10px;" value="' . $options['value'] . '" placeholder="' . $options['placeholder'] . '" />' : '';
-        $editBtnHTML = $options['number'] == 'one' && $options['type'] == 'input' ? '<a class="layui-btn layui-btn-normal data-upload-img-edit" data-name="' . $name . '"><i class="layui-icon layui-icon-edit"></i></a>' : '';
+        $inputHTML = !$multiple ? '<input class="layui-input" name="' . $name . '" id="' . $name . '" type="hidden" style="margin-bottom: 10px;" value="' . $options['value'] . '" placeholder="' . $options['placeholder'] . '" />' : '';
+        $editBtnHTML = !$multiple && $options['type'] == 'input' ? '<a class="layui-btn layui-btn-normal data-upload-img-edit" data-name="' . $name . '"><i class="layui-icon layui-icon-edit"></i></a>' : '';
 
-        echo <<<HTML
+        return <<<HTML
 <div class="btn-image-upload {$options['class']}" style="margin-bottom: 10px; {$floatLeft}">
     <label class="layui-form-label {$requiredHTML}">{$label}</label>
     <div class="layui-input-block"> {$inputHTML}
@@ -70,15 +84,15 @@ HTML;
 
     /**
      * 显示图标
-     * @param array{value:string} $options value:样式，默认 fa fa-list
-     * @return void
+     * @param string $value
+     * @return string
      */
-    public function icon(array $options = []): void
+    public function icon(string $value = 'fa fa-list'): string
     {
-        $options = array_merge([
-            'value' => 'fa fa-list',
-        ], $options);
-        echo <<<HTML
+        $options = [
+            'value' => $value,
+        ];
+        return <<<HTML
     <div class="layui-form-item">
         <label class="layui-form-label">选择图标</label>
         <div class="layui-input-inline">
@@ -106,19 +120,19 @@ HTML;
 
     /**
      * 预览 #preview 的 js
-     * @return void
+     * @return string
      */
-    public function iconJs(): void
+    public function iconJs(): string
     {
-        echo '<script>';
-        echo <<<JS
+        return join('', ['<script>',
+            <<<JS
 const preview = $('#preview');
 $('#icon').bind('change', function () {
     const v = $(this).val();
     preview.removeClass().addClass(v);
 });
-JS;
-        echo '</script>';
+JS,
+            '</script>']);
     }
 
     /**

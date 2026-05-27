@@ -9,9 +9,9 @@ $isEdit = $vv->pick('id', 0) > 0;
 <form class="layui-form">
 
     <?php
-    $vv->layuiHtml()->upload(
-        '用户头像', 'head_img',
-        ['value' => $vv->pick('head_img')]
+    echo $vv->layuiHtml()->upload(
+            '用户头像', 'head_img',
+            value: $vv->pick('head_img')
     ) ?>
 
 
@@ -46,7 +46,7 @@ $isEdit = $vv->pick('id', 0) > 0;
                 </div>
             </div>
         </div>
-    <?php
+        <?php
     } ?>
 
     <div class="layui-form-item">
@@ -68,8 +68,8 @@ $isEdit = $vv->pick('id', 0) > 0;
                 <input type="checkbox" name="phone_valid"
                        lay-skin="switch" lay-filter="switchTest"
                        title="是|否"
-                    <?php
-                    echo $html->pickCompare('phone_valid', 'checked') ?>
+                        <?php
+                        echo $html->pickCompare('phone_valid', 'checked') ?>
                 >
             </div>
 
@@ -110,8 +110,8 @@ $isEdit = $vv->pick('id', 0) > 0;
                 echo $id ?>]"
                        lay-skin="primary" title="<?php
                 echo $item['title'] ?>"
-                    <?php
-                    echo in_array($id, $roleIds) ? 'checked' : '' ?>
+                        <?php
+                        echo in_array($id, $roleIds) ? 'checked' : '' ?>
                 >
                 <?php
             } ?>

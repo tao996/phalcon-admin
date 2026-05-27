@@ -55,6 +55,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
 
                 $timestamp = intval($this->data['t']);
                 $sign = md5($secret . $timestamp);
+//                ddd($secret,$timestamp,$sign,MyData::getString($this->data, 'sign'),'aaa');
                 if ($sign !== MyData::getString($this->data, 'sign')) {
                     throw new \Exception('签名验证失败');
                 }

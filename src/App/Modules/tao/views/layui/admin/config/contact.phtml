@@ -56,10 +56,10 @@
         </div>
     </div>
 
-    <?php $vv->layuiHtml()->upload('二维码', 'wechat_qrcode', [
-        'value' => $vv->configService()->getWith('contact.wechat_qrcode', ''),
-        'class' => 'mb10',
-    ]); ?>
+    <?php echo $vv->layuiHtml()->upload('二维码', 'wechat_qrcode',
+            value: $vv->configService()->getWith('contact.wechat_qrcode', ''),
+            class: 'mb10',
+    ); ?>
     <div class="layui-form-item">
         <label class="layui-form-label">企业号客服</label>
         <div class="layui-input-block">
@@ -68,10 +68,10 @@
                    value="<?php echo $vv->configService()->getWith('contact.wework_link') ?>">
         </div>
     </div>
-    <?php $vv->layuiHtml()->upload('二维码', 'wework_qrcode', [
-        'value' => $vv->configService()->getWith('contact.wework_qrcode', ''),
-        'class' => 'mb10'
-    ]); ?>
+    <?php echo $vv->layuiHtml()->upload('二维码', 'wework_qrcode',
+            value: $vv->configService()->getWith('contact.wework_qrcode', ''),
+            class: 'mb10'
+    ); ?>
 
     <div class="layui-form-item">
         <label class="layui-form-label">Whatsapp</label>

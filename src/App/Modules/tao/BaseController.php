@@ -24,7 +24,7 @@ class BaseController extends BaseRbacController
      */
     protected array $appendModifyFields = [];
     /**
-     * 字段保存白名单
+     * 字段保存白名单，如果设置，则只有允许的字段可以修改
      * @var array
      */
     protected array $saveWhiteList = [];
@@ -54,20 +54,20 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 列表搜索字段
+     * 列表搜索结果允许显示的字段
      * @var string|array
      */
-    protected string|array $indexQueryColumns = '';
+    protected string|array $modelQueryColumns = '';
     /**
-     * 列表搜索隐藏的字段
+     * 列表搜索结果不允许显示的字段
      * @var string|array
      */
-    protected string|array $indexHiddenColumns = '';
+    protected string|array $modelHiddenColumns = '';
     /**
-     * 列表搜索条件
+     * 列表搜索时排序条伯
      * @var string
      */
-    protected string $indexOrder = 'id desc';
+    protected string $modelOrderBy = 'id desc';
 
     /**
      * @var string 設置 HTML 頁面名称
@@ -99,21 +99,21 @@ class BaseController extends BaseRbacController
      */
     protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
     {
-        if ($this->indexQueryColumns) {
-            $queryBuilder->columns($this->indexQueryColumns);
-        } elseif ($this->indexHiddenColumns) {
+        if ($this->modelQueryColumns) {
+            $queryBuilder->columns($this->modelQueryColumns);
+        } elseif ($this->modelHiddenColumns) {
             $columns = $this->vv->metadata()->getAttributes($this->model);
             $queryBuilder->columns(
                 array_diff(
                     $columns,
-                    is_array($this->indexHiddenColumns)
-                        ? $this->indexHiddenColumns
-                        : explode(',', $this->indexHiddenColumns)
+                    is_array($this->modelHiddenColumns)
+                        ? $this->modelHiddenColumns
+                        : explode(',', $this->modelHiddenColumns)
                 )
             );
         }
-        if ($this->indexOrder) {
-            $queryBuilder->orderBy($this->indexOrder);
+        if ($this->modelOrderBy) {
+            $queryBuilder->orderBy($this->modelOrderBy);
         }
         return $queryBuilder->find();
     }
@@ -121,6 +121,7 @@ class BaseController extends BaseRbacController
     /**
      * @rbac ({title:"数据列表"})
      * @throws \Exception
+     * @return mixed
      */
     public function indexAction()
     {
@@ -177,11 +178,12 @@ class BaseController extends BaseRbacController
 
     /**
      * @rbac ({title:'添加记录'})
+     * @return mixed
      */
     public function addAction()
     {
         if ($this->request->isPost()) {
-            $data = $this->request->getPost();
+            $data = empty($this->requestData) ? $this->request->getPost() : $this->requestData;
 
             if (property_exists($this->model, 'user_id')) {
                 $this->model->user_id = $this->loginUser()->id;
@@ -196,20 +198,26 @@ class BaseController extends BaseRbacController
     /**
      * @rbac ({title:'编辑记录'})
      * @throws \Exception
+     * @return mixed
      */
     public function editAction()
     {
         $id = $this->getRequestQueryInt('id');
         $this->model = $this->model::mustFindFirst($id);
         if ($this->request->isPost()) {
-            $data = $this->request->getPost();
+            $data = empty($this->requestData) ? $this->request->getPost() : $this->requestData;
             return $this->saveModelResponse($this->save($data));
         }
         $this->updateHtmlTitle('编辑');
-        return $this->afterEditAction($this->model->toArray());
+        return $this->afterEditActionView($this->model->toArray());
     }
 
-    protected function afterEditAction(array $data): array
+    /**
+     * 修改编辑操作的视图数据
+     * @param array $data
+     * @return array
+     */
+    protected function afterEditActionView(array $data): array
     {
         return $data;
     }
@@ -226,7 +234,7 @@ class BaseController extends BaseRbacController
     public array $modelFloatColumns = [];
 
     /**
-     * 处理保存到模型的数据，在 addAction/editAction 中被调用
+     * 处理保存到模型的数据，在 addAction/editAction 中，`$this->model->assign` 之前被调用
      * @param array $data 将要保存到模型中的数据
      * @return array 保存到模型中的数据
      */
@@ -243,6 +251,10 @@ class BaseController extends BaseRbacController
         return $data;
     }
 
+    /**
+     * 在模型保存到数据库之前 `$this->model->save()` 时调用
+     * @return void
+     */
     protected function beforeModelSave(): void
     {
     }
@@ -267,7 +279,7 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 检查修改参数
+     * 检查修改参数，在模型检查过后，执行 `($this->model)::mustFindFirst($post['id'])` 之前调用
      * @param array $data
      * @return void
      */
@@ -276,7 +288,7 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 在 modifyAction 保存数据之前调用
+     * 在 modifyAction 保存数据 `$model->save()` 之前调用
      * @param $model
      * @return void
      */
@@ -293,7 +305,7 @@ class BaseController extends BaseRbacController
     public function modifyAction()
     {
         $this->mustPostMethod();
-        $post = $this->request->getPost();
+        $post = empty($this->requestData) ? $this->request->getPost() : $this->requestData;
         MyData::mustHasSet($post, ['id', 'field'], ['value']);
         $rules = [
             'id|ID' => 'int',
@@ -409,8 +421,8 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 模型修改快速响应
-     * @param bool $success
+     * 在模型增删改之后进行 `success/error` 响应
+     * @param bool $success 如果为 true，则会调用 afterModelChange 方法
      * @param string $action ['add'] 操作类型
      * @return array
      */
@@ -428,6 +440,7 @@ class BaseController extends BaseRbacController
 
     /**
      * 在模型修改成功之后调用，通常在 add/edit/delete/modify 之后被调用
+     * 通过 $this->model 获取修改的模型对象
      * @param string $action add|edit|delete|modify
      * @return void
      */

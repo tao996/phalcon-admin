@@ -60,11 +60,11 @@ $data['app'] = [
     // abc 是项目名，位于 src/App/Projects/abc
     // 可查看 src/tao996/Phax/Support/Config.php
     'sites' => [
-        'demo' => ['demo1.test', 'demo2.test'],
-        'aabb' => ['a1.com', 'b1.org']
+//        'demo' => ['demo1.test', 'demo2.test'],
+//        'aabb' => ['a1.com', 'b1.org']
     ],
-    // 默认的项目
-    'default' => '', // if default=xxx, then src/App/Projects/xxx will be visited default
+    // 当访问路径为 '' 或 '/' 时，默认访问的链接
+    'default' => '',
 ];
 
 

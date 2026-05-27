@@ -20,7 +20,7 @@ class MenuController extends BaseController
     protected string $htmlTitle = '菜单';
 
     protected array $allowModifyFields = ['sort', 'status', 'roles', 'remark', 'href', 'params', 'remark'];
-    protected string|array $indexQueryColumns = [
+    protected string|array $modelQueryColumns = [
         'id',
         'pid',
         'title',
@@ -41,7 +41,7 @@ class MenuController extends BaseController
     protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
     {
         $rows = $queryBuilder->notEqual('pid', Data::HOME_PID)
-            ->columns($this->indexQueryColumns)
+            ->columns($this->modelQueryColumns)
             ->orderBy('pid asc, sort desc, id asc')
             ->disabledPagination()->find();
 

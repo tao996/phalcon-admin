@@ -20,7 +20,7 @@ class RoleController extends BaseController
         $this->model = new SystemRole();
     }
 
-    protected string|array $indexQueryColumns = 'id,name,title,sort,status,remark,created_at';
+    protected string|array $modelQueryColumns = 'id,name,title,sort,status,remark,created_at';
 
     protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void
     {
