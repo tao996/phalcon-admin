@@ -22,7 +22,7 @@ class AdController extends BaseTaoA0CmsController
         $this->model = new CmsAd();
     }
 
-    protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void
+    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
     {
         if ($this->isResetSearch()) {
             return;

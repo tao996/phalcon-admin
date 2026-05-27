@@ -38,7 +38,7 @@ class MenuController extends BaseController
         $this->model = new SystemMenu();
     }
 
-    protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
         $rows = $queryBuilder->notEqual('pid', Data::HOME_PID)
             ->columns($this->modelQueryColumns)
@@ -140,7 +140,7 @@ class MenuController extends BaseController
         return $this->vv->loginUserHelper()->getMenuTree();
     }
 
-    protected function deleteActionBefore(QueryBuilder $queryBuilder, array $ids)
+    protected function beforeDeleteQuery(QueryBuilder $queryBuilder, array $ids)
     {
         $homeId = $this->vv->menuService()->homeId();
         if (in_array($homeId, $ids)) {

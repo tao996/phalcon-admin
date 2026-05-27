@@ -31,7 +31,7 @@ class ArticleController extends BaseTaoA0CmsController
         }
     }
 
-    protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
         if ($cateId = $this->request->getQuery('cate_id', 'int', 0)) {
             $queryBuilder->int('cate_id', $cateId);
@@ -39,7 +39,7 @@ class ArticleController extends BaseTaoA0CmsController
         if ($cstatus = $this->request->getQuery('cstatus', 'int', 0)) {
             $queryBuilder->int('cstatus', $cstatus);
         }
-        $rows = parent::indexActionGetResult($count, $queryBuilder);
+        $rows = parent::buildIndexResult($count, $queryBuilder);
         $cate = array_column($this->cateOptions, 'otitle', 'id');
         foreach ($rows as $index => $row) {
             if ($row['cate_id'] > 0) {

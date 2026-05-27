@@ -33,7 +33,7 @@ class UploadfileController extends BaseController
         $this->model = new SystemUploadfile();
     }
 
-    protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void
+    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
     {
         if (!$this->vv->loginUserHelper()->isSuperAdmin()) {
             $queryBuilder->int('user_id', $this->loginUser()->id);
@@ -42,6 +42,6 @@ class UploadfileController extends BaseController
             $queryBuilder->like('summary', $keyword);
         }
 
-        parent::indexActionQueryBuilder($queryBuilder);
+        parent::beforeIndexQuery($queryBuilder);
     }
 }

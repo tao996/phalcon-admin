@@ -82,7 +82,7 @@ class BaseController extends BaseRbacController
      * @return void
      * @throws \Exception
      */
-    protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void
+    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
     {
         if ($this->isResetSearch()) {
             return;
@@ -98,7 +98,7 @@ class BaseController extends BaseRbacController
      * @param QueryBuilder $queryBuilder
      * @return array
      */
-    protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
         if ($this->modelQueryColumns) {
             $queryBuilder->columns($this->modelQueryColumns);
@@ -136,12 +136,12 @@ class BaseController extends BaseRbacController
                 }
             }
 
-            $this->indexActionQueryBuilder($queryBuilder);
+            $this->beforeIndexQuery($queryBuilder);
             $count = $queryBuilder->count();
             $rows = [];
             if ($count > 0) {
                 $this->pagination($queryBuilder);
-                $rows = $this->indexActionGetResult($count, $queryBuilder);
+                $rows = $this->buildIndexResult($count, $queryBuilder);
             }
             return $this->successPagination($count, $rows);
         }
@@ -210,15 +210,15 @@ class BaseController extends BaseRbacController
             return $this->saveModelResponse($this->save($data));
         }
         $this->updateHtmlTitle('编辑');
-        return $this->afterEditActionView($this->model->toArray());
+        return $this->beforeEditView($this->model->toArray());
     }
 
     /**
-     * 修改编辑操作的视图数据
+     * 视图渲染前修改数据
      * @param array $data
      * @return array
      */
-    protected function afterEditActionView(array $data): array
+    protected function beforeEditView(array $data): array
     {
         return $data;
     }
@@ -239,7 +239,7 @@ class BaseController extends BaseRbacController
      * @param array $data 将要保存到模型中的数据
      * @return array 保存到模型中的数据
      */
-    protected function beforeModelSaveAssign(array $data): array
+    protected function beforeModelAssign(array $data): array
     {
         if ($this->modelBool2IntColumns) {
             LayuiData::bool2Int($data, $this->modelBool2IntColumns);
@@ -267,7 +267,7 @@ class BaseController extends BaseRbacController
      */
     protected function save(array $data): bool
     {
-        $data = $this->beforeModelSaveAssign($data);
+        $data = $this->beforeModelAssign($data);
         if (!empty($data)) {
             if ($this->saveWhiteList) {
                 $this->model->assign($data, $this->saveWhiteList);
@@ -280,11 +280,12 @@ class BaseController extends BaseRbacController
     }
 
     /**
+     * 校验钩子
      * 检查修改参数，在模型检查过后，执行 `($this->model)::mustFindFirst($post['id'])` 之前调用
      * @param array $data
      * @return void
      */
-    protected function modifyActionCheckPostData(array $data)
+    protected function validateModifyData(array $data)
     {
     }
 
@@ -293,7 +294,7 @@ class BaseController extends BaseRbacController
      * @param $model
      * @return void
      */
-    protected function beforeModifyActionSave($model)
+    protected function beforeModifySave($model)
     {
 
     }
@@ -324,7 +325,7 @@ class BaseController extends BaseRbacController
         if (!property_exists($this->model, $post['field'])) {
             return $this->error('当前模型不存在此属性');
         }
-        $this->modifyActionCheckPostData($post);
+        $this->validateModifyData($post);
 
         /**
          * @var $model Model
@@ -335,7 +336,7 @@ class BaseController extends BaseRbacController
         $model->assign([
             $post['field'] => $post['value']
         ]);
-        $this->beforeModifyActionSave($model);
+        $this->beforeModifySave($model);
         if ($model->save()) {
             $this->vv->logService()->insert($model->tableTitle(), 'modify');
             $this->afterModelChange('modify');
@@ -351,16 +352,16 @@ class BaseController extends BaseRbacController
      * @param array $ids
      * @return void
      */
-    protected function deleteActionBefore(QueryBuilder $queryBuilder, array $ids)
+    protected function beforeDeleteQuery(QueryBuilder $queryBuilder, array $ids)
     {
     }
 
     /**
-     * 删除成功之后执行
+     * 删除成功之后立即执行
      * @param array $ids
      * @return void
      */
-    protected function deleteActionAfterSuccess(array $ids)
+    protected function afterDelete(array $ids)
     {
     }
 
@@ -384,9 +385,9 @@ class BaseController extends BaseRbacController
             }
         }
 
-        $this->deleteActionBefore($qb, $ids);
+        $this->beforeDeleteQuery($qb, $ids);
         if ($qb->delete()) {
-            $this->deleteActionAfterSuccess($ids);
+            $this->afterDelete($ids);
             $this->vv->logService()->insert($this->model->tableTitle(), 'delete');
             $this->afterModelChange('delete');
             return $this->success('删除成功');

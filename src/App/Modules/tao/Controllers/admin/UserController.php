@@ -62,7 +62,7 @@ class UserController extends BaseController
 
     protected string|array $modelQueryColumns = 'id,role_ids,head_img,nickname,email,email_valid,phone,phone_valid,binds,status,created_at';
 
-    protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void
+    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
     {
         $queryBuilder->int('id', $this->request->getQuery('id', 'int'))
             ->int('status', $this->request->getQuery('status', 'int'))
@@ -74,9 +74,9 @@ class UserController extends BaseController
         }
     }
 
-    protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
-        $rows = parent::indexActionGetResult($count, $queryBuilder);
+        $rows = parent::buildIndexResult($count, $queryBuilder);
         $roleIds = [];
         foreach ($rows as $index => $row) {
             $row['binds'] = json_decode($row['binds'], true);
@@ -157,14 +157,14 @@ class UserController extends BaseController
         return $data;
     }
 
-    protected function modifyActionCheckPostData(array $data): void
+    protected function validateModifyData(array $data): void
     {
         if (in_array($data['id'], $this->vv->superAdminIds()) && $data['field'] == 'status') {
             throw new \Exception('不允许修改超级管理员状态');
         }
     }
 
-    protected function deleteActionBefore($queryBuilder, array $ids)
+    protected function beforeDeleteQuery($queryBuilder, array $ids)
     {
         if (array_intersect($this->vv->superAdminIds(), $ids)) {
             throw new \Exception('不允许删除超级管理员');

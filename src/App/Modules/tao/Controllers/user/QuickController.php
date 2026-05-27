@@ -48,7 +48,7 @@ class QuickController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            $this->model->assign($this->beforeModelSaveAssign($data), $this->saveWhiteList);
+            $this->model->assign($this->beforeModelAssign($data), $this->saveWhiteList);
             $this->model->user_id = $this->loginUser()->id;
 
             return $this->saveModelResponse($this->model->create(),'add');
@@ -56,7 +56,7 @@ class QuickController extends BaseController
         return [];
     }
 
-    protected function beforeModelSaveAssign(array $data): array
+    protected function beforeModelAssign(array $data): array
     {
         $this->vv->validate()->check($data, [
             'href|链接地址' => 'require',
@@ -76,7 +76,7 @@ class QuickController extends BaseController
         $this->checkModelActionAccess($this->model);
 
         if ($this->request->isPost()) {
-            $this->model->assign($this->beforeModelSaveAssign($this->request->getPost()), $this->saveWhiteList);
+            $this->model->assign($this->beforeModelAssign($this->request->getPost()), $this->saveWhiteList);
             return $this->saveModelResponse($this->model->save());
         }
         return $this->model->toArray();

@@ -20,9 +20,9 @@ class LogController extends BaseController
         $this->model = new SystemLog();
     }
 
-    protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
-        $rows = parent::indexActionGetResult($count, $queryBuilder);
+        $rows = parent::buildIndexResult($count, $queryBuilder);
         if (empty($rows)) {
             return $rows;
         }

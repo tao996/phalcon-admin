@@ -33,7 +33,7 @@ class NodeController extends BaseController
     /**
      * @throws \Exception
      */
-    protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
         $rows = $this->getSystemNodes($queryBuilder);
         return $this->vv->nodeService()->nodeTree($rows);
@@ -127,7 +127,7 @@ class NodeController extends BaseController
                 throw $e;
             }
             $qb = SystemNode::queryBuilder($this->getDI());
-            $rows = $this->indexActionGetResult(0, $qb);
+            $rows = $this->buildIndexResult(0, $qb);
         } else {
             foreach ($rows['append'] as $row) {
                 foreach ($nodes as $index => $node) {

@@ -25,7 +25,7 @@ class CategoryController extends BaseTaoA0CmsController
         $this->model = new CmsCategory();
     }
 
-    protected function indexActionGetResult(int $count, QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
         $rows = $queryBuilder->orderBy('pid asc, sort desc, id asc')
             ->disabledPagination()->excludeColumns([

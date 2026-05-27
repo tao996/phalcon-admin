@@ -22,9 +22,9 @@ class MchController extends BaseOpenController
         $this->model = new OpenMch();
     }
 
-    protected function indexActionGetResult(int $count, \Phax\Db\QueryBuilder $queryBuilder): array
+    protected function buildIndexResult(int $count, \Phax\Db\QueryBuilder $queryBuilder): array
     {
-        $rows = parent::indexActionGetResult($count, $queryBuilder);
+        $rows = parent::buildIndexResult($count, $queryBuilder);
         foreach ($rows as $index => $row) {
             $rows[$index]['private_key'] = !empty($row['private_key']);
             $rows[$index]['pubkey'] = !empty($row['pubkey']);
@@ -33,7 +33,7 @@ class MchController extends BaseOpenController
         return $rows;
     }
 
-    protected function beforeModelSaveAssign($data): array
+    protected function beforeModelAssign($data): array
     {
         $this->vv->validate()->check($data, [
             'mchid|商户号ID' => 'required',

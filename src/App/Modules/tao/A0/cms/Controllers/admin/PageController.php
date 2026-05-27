@@ -25,7 +25,7 @@ class PageController extends BaseTaoA0CmsController
     protected string|array $modelQueryColumns = ['id', 'tag', 'name', 'title', 'sort', 'status'];
     protected array $allowModifyFields = ['sort', 'status'];
 
-    protected function indexActionQueryBuilder(QueryBuilder $queryBuilder): void
+    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
     {
         $queryBuilder->int('status', $this->request->getQuery('status', 'int', 0));
         $queryBuilder->int('tag', $this->request->getQuery('tag'));
