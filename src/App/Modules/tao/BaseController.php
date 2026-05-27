@@ -87,7 +87,7 @@ class BaseController extends BaseRbacController
         if ($this->isResetSearch()) {
             return;
         }
-        if (!$this->request->hasQuery('status') && property_exists($this->model, 'status')) {
+        if ($this->request->hasQuery('status') && property_exists($this->model, 'status')) {
             $queryBuilder->int('status', $this->request->getQuery('status', 'int', 0));
         }
     }
@@ -178,13 +178,22 @@ class BaseController extends BaseRbacController
     }
 
     /**
+     * 获取 POST 请求数据，优先使用 JSON body（小程序），否则使用表单数据
+     * @return array
+     */
+    protected function getPostData(): array
+    {
+        return empty($this->requestData) ? $this->request->getPost() : $this->requestData;
+    }
+
+    /**
      * @rbac ({title:'添加记录'})
      * @return mixed
      */
     public function addAction()
     {
         if ($this->request->isPost()) {
-            $data = empty($this->requestData) ? $this->request->getPost() : $this->requestData;
+            $data = $this->getPostData();
 
             if (property_exists($this->model, 'user_id')) {
                 $this->model->user_id = $this->loginUser()->id;
@@ -206,7 +215,7 @@ class BaseController extends BaseRbacController
         $id = $this->getRequestQueryInt('id');
         $this->model = $this->model::mustFindFirst($id);
         if ($this->request->isPost()) {
-            $data = empty($this->requestData) ? $this->request->getPost() : $this->requestData;
+            $data = $this->getPostData();
             return $this->saveModelResponse($this->save($data));
         }
         $this->updateHtmlTitle('编辑');
@@ -246,7 +255,9 @@ class BaseController extends BaseRbacController
         }
         if ($this->modelFloatColumns) {
             foreach ($this->modelFloatColumns as $column) {
-                $data[$column] = (float)$data[$column];
+                if (array_key_exists($column, $data)) {
+                    $data[$column] = (float)$data[$column];
+                }
             }
         }
         return $data;
@@ -294,7 +305,7 @@ class BaseController extends BaseRbacController
      * @param $model
      * @return void
      */
-    protected function beforeModifySave($model)
+    protected function beforeModifySave(Model $model): void
     {
 
     }
@@ -307,7 +318,7 @@ class BaseController extends BaseRbacController
     public function modifyAction()
     {
         $this->mustPostMethod();
-        $post = empty($this->requestData) ? $this->request->getPost() : $this->requestData;
+        $post = $this->getPostData();
         MyData::mustHasSet($post, ['id', 'field'], ['value']);
         $rules = [
             'id|ID' => 'int',
@@ -397,7 +408,7 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 检查用户修改记录的权限
+     * 检查用户修改记录的权限，并确保普通用户只能操作自己的记录
      * @param Model|null $model
      * @throws \Exception
      */
@@ -408,15 +419,18 @@ class BaseController extends BaseRbacController
         }
         if (property_exists($model, 'user_id')) {
             if ($this->isUserAction()) {
-                $model->user_id = $this->loginUser()->id;
+                // 普通用户：校验记录归属自己，而非强制覆盖
+                if ($model->user_id != $this->loginUser()->id) {
+                    throw new \Exception('没有修改记录的权限');
+                }
             } elseif ($this->isSuperAdminAction()) {
                 if (!$this->vv->userRecordAccess($this->loginUser()->id, $model->user_id)) {
-                    throw new \Exception('没有修改记录的权限1');
+                    throw new \Exception('没有修改记录的权限');
                 }
             } else {
                 // 检查是否有修改节点的权限
                 if (!$this->vv->loginUserHelper()->access($this->vv->route()->getNode())) {
-                    throw new \Exception('没有修改记录的权限2');
+                    throw new \Exception('没有修改记录的权限');
                 }
             }
         }
