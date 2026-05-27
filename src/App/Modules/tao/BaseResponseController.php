@@ -27,13 +27,25 @@ class BaseResponseController extends Controller
 
     public function initialize(): void
     {
-        if ($this->request->getQuery('data', 'string') === 'jsonbody') { // 小程序
+        // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 POST 请求
+        $isJsonBody = $this->request->getQuery('data', 'string') === 'jsonbody'
+            || ($this->request->isPost() && str_contains($this->request->getContentType() ?? '', 'application/json'));
+
+        if ($isJsonBody) {
             $this->jsonBodyRequest = true;
             $this->jsonResponse = true;
             $this->requestData = $this->request->getJsonRawBody(true) ?: [];
         }
         $this->vv = new MyMvcHelper($this->di);
         parent::initialize();
+    }
+
+    /**
+     * 判断数据是否已经是标准响应格式 {code, msg, data}
+     */
+    protected function isFormattedResponse(mixed $data): bool
+    {
+        return is_array($data) && isset($data['code']) && isset($data['msg']);
     }
 
     protected function executeRouteResponseData(mixed $data): bool
@@ -46,7 +58,7 @@ class BaseResponseController extends Controller
             return true;
         }
         if ($this->jsonBodyRequest) { // 小程序响应
-            if (is_array($data) && isset($data['msg']) && isset($data['code'])) {
+            if ($this->isFormattedResponse($data)) {
                 $this->doResponse(true, $data);
             } else {
                 $this->doResponse(true, $this->success('', $data));
@@ -107,7 +119,7 @@ class BaseResponseController extends Controller
 
     public function jsonResponseData(mixed $data): array
     {
-        if (is_array($data) && isset($data['code']) && isset($data['msg'])) {
+        if ($this->isFormattedResponse($data)) {
 // $data['data'] 可能为 null
             return $data;
         }
@@ -122,7 +134,7 @@ class BaseResponseController extends Controller
     protected function beforeViewResponse(mixed $data)
     {
         HtmlAssets::initWithCdn();
-        // PATH_TAO 的相关路径
+        // 渲染视图所需要用到的常量： PATH_TAO 的相关路径
         require_once __DIR__ . '/Common/common.php';
         $this->vv->route()->theme = $this->theme;
         if ($this->disabledMainLayout) {
@@ -198,19 +210,25 @@ class BaseResponseController extends Controller
             // 2. 检查方法是否存在（安全守卫）
             if (method_exists($this, $actionName)) {
                 try {
-                    // 3. 在这里由我们自己来调用 Action，并用 try-catch 包裹
-                    // 这相当于在所有 Action 外面套了一层隐形的 try-catch
-                    $this->$actionName();
+                    // 3. 手动调用 Action，捕获返回值
+                    $result = $this->$actionName();
 
-                    // 4. 执行成功后，返回 false 告诉 Phalcon：
-                    // "我已经手工执行过了，你不需要再重复分发执行这个 Action 了"
+                    // 4. 处理并发送响应（若尚未发送）
+                    if (!$this->response->isSent()) {
+                        $this->executeRouteResponseData($result);
+                    }
+
+                    // 5. 返回 false 告诉 Phalcon：已手工执行，不需要再分发
                     return false;
 
+                } catch (BlankException $e) {
+                    // BlankException 表示响应已通过 json() 发送，无需再处理
+                    return false;
                 } catch (\Throwable $e) {
-                    // 5. 成功在这里捕获到了 Action 抛出的异常！
-                    $this->error($e->getMessage());
-
-                    // 同样返回 false，阻止 Phalcon 框架继续向上抛出异常
+                    // 捕获 Action 抛出的异常，以 JSON 格式返回错误信息
+                    if (!$this->response->isSent()) {
+                        $this->doResponse(true, $this->error($e->getMessage()));
+                    }
                     return false;
                 }
             }

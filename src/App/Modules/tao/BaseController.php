@@ -3,6 +3,7 @@
 namespace App\Modules\tao;
 
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
 
 use Phax\Mvc\Model;
@@ -120,8 +121,8 @@ class BaseController extends BaseRbacController
 
     /**
      * @rbac ({title:"数据列表"})
-     * @throws \Exception
      * @return mixed
+     * @throws \Exception
      */
     public function indexAction()
     {
@@ -197,8 +198,8 @@ class BaseController extends BaseRbacController
 
     /**
      * @rbac ({title:'编辑记录'})
-     * @throws \Exception
      * @return mixed
+     * @throws \Exception
      */
     public function editAction()
     {
@@ -243,8 +244,8 @@ class BaseController extends BaseRbacController
         if ($this->modelBool2IntColumns) {
             LayuiData::bool2Int($data, $this->modelBool2IntColumns);
         }
-        if ($this->modelFloatColumns){
-            foreach ($this->modelFloatColumns as $column){
+        if ($this->modelFloatColumns) {
+            foreach ($this->modelFloatColumns as $column) {
                 $data[$column] = (float)$data[$column];
             }
         }
@@ -292,7 +293,7 @@ class BaseController extends BaseRbacController
      * @param $model
      * @return void
      */
-    protected function  beforeModifyActionSave($model)
+    protected function beforeModifyActionSave($model)
     {
 
     }
@@ -465,7 +466,7 @@ class BaseController extends BaseRbacController
      */
     public function getRequestInt(string $name, bool $notAllowEmpty = true): int
     {
-        $v = $this->getRequest($name, 0);
+        $v = $this->getRequest($name, 'int', 0);
         if ($notAllowEmpty && empty($v)) {
             throw new \Exception($name . ' is empty');
         }
@@ -484,11 +485,26 @@ class BaseController extends BaseRbacController
         return MyData::getInts($v);
     }
 
-    public function getRequest(string $name = null, string $default = null)
+    /**
+     * 获取请求参数
+     * @param string|null $name 参数名，null 时返回全部
+     * @param string|null $filters 过滤器（如 'int', 'string', 'email' 等），参见 Phalcon\Filter
+     * @param mixed $default 默认值
+     * @return mixed
+     * @throws Exception
+     */
+    public function getRequest(?string $name = null, ?string $filters = null, mixed $default = null): mixed
     {
         if ($this->jsonBodyRequest) {
-            return is_null($name) ? $this->requestData : $this->requestData[$name] ?? $default;
+            if (is_null($name)) {
+                return $this->requestData;
+            }
+            $value = $this->requestData[$name] ?? $default;
+            if ($filters !== null && $value !== null && $value !== $default) {
+                $value = $this->filter->sanitize($value, $filters);
+            }
+            return $value;
         }
-        return $this->request->get($name, null, $default);
+        return $this->request->get($name, $filters, $default);
     }
 }
