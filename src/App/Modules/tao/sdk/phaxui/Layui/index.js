@@ -1120,7 +1120,7 @@ const admin = {
                         const ids = rows.data.map(r => r.id);
                         admin.layer.confirm('确定要删除这些记录吗？', function () {
                             admin.ajax.postLimit({
-                                url: '/api' + url + '/delete', data: {id: ids.join(',')},
+                                url: url + '/delete', data: {id: ids.join(',')},
                             }, function () {
                                 layui.table.reload(tableId);
                                 admin.table._config.rowAction('batchDelete', ids.join(','));
@@ -1187,7 +1187,7 @@ const admin = {
                         }
                         admin.layer.confirm('确定要删除当前记录吗！', function () {
                             admin.ajax.postLimit({
-                                    url: '/api' + url + '/delete', data: {
+                                    url: url + '/delete', data: {
                                         [key]: keyV,
                                     },
                                 },

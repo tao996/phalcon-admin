@@ -20,8 +20,4 @@ class InfoController extends \App\Modules\tao\BaseController
         $this->model = new AppInfo();
     }
 
-    protected array $saveWhiteList = [
-        'tag', 'title', 'remark'
-    ];
-
 }

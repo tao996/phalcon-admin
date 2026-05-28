@@ -15,20 +15,6 @@ class AppController extends BaseOpenController
 {
     protected string $htmlTitle = '应用';
 
-    protected array $saveWhiteList = [
-        'platform',
-        'kind',
-        'appid',
-        'title',
-        'secret',
-        'token',
-        'enc_method',
-        'aes_key',
-        'crop_id',
-        'sandbox',
-        'remark',
-    ];
-
     protected string|array $modelHiddenColumns = ['secret'];
     protected string $modelOrderBy = 'sort desc,id desc';
     protected array $allowModifyFields = ['status', 'sort', 'online', 'sandbox'];

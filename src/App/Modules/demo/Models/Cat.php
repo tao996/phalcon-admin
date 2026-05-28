@@ -19,9 +19,4 @@ class Cat extends DemoBaseModel
     public string $title = '';
     public int $age = 0;
 
-    public function getStatusTextAttr(): string
-    {
-        return 'this is cat->status_text';
-    }
-
 }

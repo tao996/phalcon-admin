@@ -2,8 +2,6 @@
 
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
-use Phax\Utils\MyData;
-
 class LayuiData
 {
     /**
@@ -67,39 +65,6 @@ class LayuiData
     }
 
     /**
-     * 将通过 layui 提交上来的布尔数据（select/radio）转为整数
-     * @param array $data
-     * @param array $keys
-     * @return void
-     */
-    public static function bool2Int(array &$data, array $keys, bool $int = true): void
-    {
-        foreach ($keys as $key) {
-            if (isset($data[$key])) {
-                $data[$key] = MyData::getBool($data, $key);
-                if ($int) {
-                    $data[$key] = $data[$key] ? 1 : 0;
-                }
-            }
-        }
-    }
-
-    /**
-     * 將字符串日期转为时间戳
-     * @param array $data
-     * @param array $keys
-     * @return void
-     */
-    public static function dateTime2Timestamp(array &$data, array $keys): void
-    {
-        foreach ($keys as $key) {
-            if (isset($data[$key])) {
-                $data[$key] = empty($data[$key]) ? 0 : strtotime($data[$key]);
-            }
-        }
-    }
-
-    /**
      * 时间范围
      * @param string|null $dtRange 时间范围字符串，示例 2024-01-24 - 2024-02-25
      * @param bool $timestamp 是否默认为时间戳，默认 true
@@ -121,12 +86,5 @@ class LayuiData
             throw new \Exception($dt[1] . ' is not a valid end date time');
         }
         return $timestamp ? [$start, $end] : $dt;
-    }
-
-    public static function any2Int(array &$data, array $keys): void
-    {
-        foreach ($keys as $key) {
-            $data[$key] = empty($data[$key]) ? 0 : intval($data[$key]);
-        }
     }
 }

@@ -13,13 +13,13 @@
     "ext-redis": "*",
     "ext-pdo": "*",
     "ext-gd": "*",
-    "ext-intl": "*",
-    "ext-ssh2": "*"
+    "ext-intl": "*"
   },
   "require-dev": {
     "php": "^8.3",
     "phpunit/phpunit": "^11.2",
-    "mockery/mockery": "^1.6"
+    "mockery/mockery": "^1.6",
+    "phpstan/phpstan": "^2.1"
   },
   "autoload": {
     "psr-4": {

@@ -43,8 +43,6 @@ Key practices visible in the code:
 - **Relations** use Phax custom methods: `$this->hasManyPhx(Model::class)`, `$this->hasOnePhx(Model::class)`, `$this->hasManyToManyPhx(Model::class, Pivot::class)`.
 - **Soft delete**: add `use Phax\Traits\SoftDelete;` to the model. This adds `deleted_at` column handling.
 - **Auto timestamps**: set `protected string|bool $autoWriteTimestamp = 'timestamp';` to auto-manage `created_at`/`updated_at`. Set to `false` to disable.
-- **Accessors**: `getFieldNameAttr()` — return a computed value, accessed as `$model->field_name`.
-- **Mutators**: `setFieldNameAttr($value)` — transform the value before assignment (only triggers when property isn't explicitly declared).
 - **Events**: override `beforeCreate()`, `beforeSave()`, `beforeDelete()`, `afterDelete()`, etc.
 
 ### Tao Module (`App\Modules\tao\Models\`)

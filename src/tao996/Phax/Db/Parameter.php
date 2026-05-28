@@ -54,8 +54,8 @@ class Parameter
 
     public function sortDelete(Model $model): static
     {
-        if ($model->isSoftDelete()) {
-            $this->sql_soft_delete = $model->getDeleteTimeName() . ' IS NULL';
+        if ($model->supportSoftDelete()) {
+            $this->sql_soft_delete = $model->getSortDeleteColumnName() . ' IS NULL';
         }
         return $this;
     }

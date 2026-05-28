@@ -21,6 +21,10 @@ class CmsAlbum extends BaseTaoModel
     public int $status = 0;
     public int $sort = 0;
 
+    public array|null $whiteColumns = [
+        'cover', 'title', 'tag', 'summary','image_ids'
+    ];
+
     public function validation()
     {
         if (empty($this->title)) {

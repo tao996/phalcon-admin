@@ -120,16 +120,6 @@ class OpenOrder extends BaseTaoModel
         return self::CURRENCY[$current] ?? 'CNY';
     }
 
-    public function __get(string $property)
-    {
-        if ($property == 'out_refund_no') {
-            return $this->getOutRefundNo();
-        } elseif ($property == 'out_trade_no') {
-            return $this->getOutTradeNo();
-        }
-        return parent::__get($property);
-    }
-
 
     public function getMetadata(): array
     {

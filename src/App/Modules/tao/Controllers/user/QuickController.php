@@ -4,7 +4,6 @@ namespace App\Modules\tao\Controllers\user;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemQuick;
-use Phax\Mvc\Model;
 
 /**
  * @property SystemQuick $model
@@ -20,14 +19,6 @@ class QuickController extends BaseController
         'id' => 'desc',
     ];
 
-    protected array $saveWhiteList = [
-        'href',
-        'title',
-        'icon',
-        'sort',
-        'remark'
-    ];
-
     public function afterInitialize(): void
     {
         $this->model = new SystemQuick();
@@ -41,21 +32,6 @@ class QuickController extends BaseController
         'remark',
     ];
 
-    /**
-     * @throws \Exception
-     */
-    public function addAction()
-    {
-        if ($this->request->isPost()) {
-            $data = $this->request->getPost();
-            $this->model->assign($this->beforeModelAssign($data), $this->saveWhiteList);
-            $this->model->user_id = $this->loginUser()->id;
-
-            return $this->saveModelResponse($this->model->create(),'add');
-        }
-        return [];
-    }
-
     protected function beforeModelAssign(array $data): array
     {
         $this->vv->validate()->check($data, [
@@ -63,22 +39,5 @@ class QuickController extends BaseController
             'title|快捷名称' => 'require',
         ]);
         return $data;
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function editAction()
-    {
-        $id = $this->getRequestQueryInt('id');
-
-        $this->model = SystemQuick::findFirst(['id' => $id]);
-        $this->checkModelActionAccess($this->model);
-
-        if ($this->request->isPost()) {
-            $this->model->assign($this->beforeModelAssign($this->request->getPost()), $this->saveWhiteList);
-            return $this->saveModelResponse($this->model->save());
-        }
-        return $this->model->toArray();
     }
 }

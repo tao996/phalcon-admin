@@ -2,7 +2,6 @@
 
 namespace App\Modules\tao;
 
-use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
 
@@ -24,11 +23,6 @@ class BaseController extends BaseRbacController
      * @var array|string[]
      */
     protected array $appendModifyFields = [];
-    /**
-     * 字段保存白名单，如果设置，则只有允许的字段可以修改
-     * @var array
-     */
-    protected array $saveWhiteList = [];
     /**
      * 当前控制器所使用的模型（用于增删改查）
      * @var Model|null
@@ -188,7 +182,6 @@ class BaseController extends BaseRbacController
 
     /**
      * @rbac ({title:'添加记录'})
-     * @return mixed
      */
     public function addAction()
     {
@@ -196,7 +189,8 @@ class BaseController extends BaseRbacController
             $data = $this->getPostData();
 
             if (property_exists($this->model, 'user_id')) {
-                $this->model->user_id = $this->loginUser()->id;
+                // 隐式调用 Phalcon Model 的 __set 魔术方法，IDE 绝不会报错
+                $this->model->{'user_id'} = $this->loginUser()->id;
             }
 
             return $this->saveModelResponse($this->save($data), 'add');
@@ -214,6 +208,8 @@ class BaseController extends BaseRbacController
     {
         $id = $this->getRequestQueryInt('id');
         $this->model = $this->model::mustFindFirst($id);
+        $this->checkModelActionAccess($this->model);
+
         if ($this->request->isPost()) {
             $data = $this->getPostData();
             return $this->saveModelResponse($this->save($data));
@@ -233,33 +229,29 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 将 layui bool 转为 int 以保存到字符串
-     * @var array
-     */
-    public array $modelBool2IntColumns = [];
-    /**
-     * 提交数据中需要转为 float 的数组
-     * @var array
-     */
-    public array $modelFloatColumns = [];
-
-    /**
-     * 处理保存到模型的数据，在 addAction/editAction 中，`$this->model->assign` 之前被调用
+     * 处理保存到模型的数据，在 addAction/editAction 中，`$this->model->assign` 之前被调用;
+     * 此时 `$this->model` 已经被实例化，但未赋值给模型属性
      * @param array $data 将要保存到模型中的数据
      * @return array 保存到模型中的数据
      */
     protected function beforeModelAssign(array $data): array
     {
-        if ($this->modelBool2IntColumns) {
-            LayuiData::bool2Int($data, $this->modelBool2IntColumns);
-        }
-        if ($this->modelFloatColumns) {
-            foreach ($this->modelFloatColumns as $column) {
-                if (array_key_exists($column, $data)) {
-                    $data[$column] = (float)$data[$column];
-                }
+        foreach ($this->model->floatColumns as $column) {
+            if (array_key_exists($column, $data)) {
+                $data[$column] = (float)$data[$column];
             }
         }
+        foreach ($this->model->nullColumns as $column) {
+            if (array_key_exists($column, $data) && in_array($data[$column], ['', 0])) {
+                $data[$column] = null;
+            }
+        }
+        foreach ($this->model->bool2IntColumns as $column) {
+            if (array_key_exists($column, $data)) {
+                $data[$column] = MyData::getBool($data, $column) ? 1 : 0;
+            }
+        }
+
         return $data;
     }
 
@@ -273,18 +265,17 @@ class BaseController extends BaseRbacController
 
     /**
      * 在 addAction/editAction 中被调用
+     * 1. 会触发 `beforeModelAssign` 回调方法 <br>
+     * 2. 调用模型 `assign` 方法 <br>
+     * 3. 触发  `beforeModelSave` 回调方法 <br>
      * @param array $data 保存到模型中的数据
      * @return bool
      */
     protected function save(array $data): bool
     {
         $data = $this->beforeModelAssign($data);
-        if (!empty($data)) {
-            if ($this->saveWhiteList) {
-                $this->model->assign($data, $this->saveWhiteList);
-            } else {
-                $this->model->assign($data);
-            }
+        if ($data) {
+            $this->model->assign($data);
         }
         $this->beforeModelSave();
         return $this->model->save();
@@ -350,7 +341,7 @@ class BaseController extends BaseRbacController
         $this->beforeModifySave($model);
         if ($model->save()) {
             $this->vv->logService()->insert($model->tableTitle(), 'modify');
-            $this->afterModelChange('modify');
+            $this->afterModelChange('edit');
             return $this->success('保存成功');
         } else {
             return $this->error($model->getErrors());
@@ -368,11 +359,11 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 删除成功之后立即执行
+     * 批量删除成功之后立即执行
      * @param array $ids
      * @return void
      */
-    protected function afterDelete(array $ids)
+    protected function afterBatchDelete(array $ids)
     {
     }
 
@@ -388,8 +379,9 @@ class BaseController extends BaseRbacController
         if (empty($ids)) {
             return $this->error('待删除记录 ID 不能为空');
         }
-        $qb = $this->model->getQueryBuilder($this->getDI())->in('id', $ids);
 
+        // 批量删除
+        $qb = $this->model->getQueryBuilder($this->getDI())->in('id', $ids);
         if ($this->isUserAction()) {
             if (property_exists($this->model, 'user_id')) {
                 $qb->int('user_id', $this->loginUser()->id);
@@ -398,7 +390,7 @@ class BaseController extends BaseRbacController
 
         $this->beforeDeleteQuery($qb, $ids);
         if ($qb->delete()) {
-            $this->afterDelete($ids);
+            $this->afterBatchDelete($ids);
             $this->vv->logService()->insert($this->model->tableTitle(), 'delete');
             $this->afterModelChange('delete');
             return $this->success('删除成功');
@@ -439,14 +431,17 @@ class BaseController extends BaseRbacController
     /**
      * 在模型增删改之后进行 `success/error` 响应
      * @param bool $success 如果为 true，则会调用 afterModelChange 方法
-     * @param string $action ['add'] 操作类型
+     * @param string $action 操作类型
      * @return array
      */
-    protected function saveModelResponse(bool $success, string $action = 'save'): array
+    protected function saveModelResponse(bool $success, string $action = 'edit'): array
     {
-        static $actions = ['add' => '添加', 'insert' => '创建', 'save' => '保存', 'delete' => '删除', 'edit' => '修改'];
-        $text = $actions[$action] ?? $action;
-        if ($success && !empty($action)) {
+        static $actions = ['add' => '添加', 'edit' => '修改'];
+        if (!isset($actions[$action])) {
+            throw new \Exception('未知操作类型');
+        }
+        $text = $actions[$action];
+        if ($success) {
             $this->afterModelChange($action);
         }
         return $success
@@ -455,9 +450,8 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 在模型修改成功之后调用，通常在 add/edit/delete/modify 之后被调用
-     * 通过 $this->model 获取修改的模型对象
-     * @param string $action add|edit|delete|modify
+     * 在模型被 add/edit|delete 成功之后被调用；注意：删除操作(批量)只作通知用；如果需要触发删除事件，重写 afterDelete
+     * @param string $action add|edit|delete
      * @return void
      */
     protected function afterModelChange(string $action): void

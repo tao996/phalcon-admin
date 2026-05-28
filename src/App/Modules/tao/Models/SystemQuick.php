@@ -17,6 +17,13 @@ class SystemQuick extends BaseTaoModel
     public int $status = 1;
     public string $remark = '';
 
+    public array|null $whiteColumns =  [
+        'href',
+        'title',
+        'icon',
+        'sort',
+        'remark'
+    ];
     public function tableTitle(): string
     {
         return '快捷菜单';

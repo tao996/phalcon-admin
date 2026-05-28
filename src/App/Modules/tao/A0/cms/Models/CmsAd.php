@@ -36,6 +36,29 @@ class CmsAd extends BaseTaoModel
     public int $status = 0; // 状态
     public string $remark = ''; // 备注
 
+    public array|null $whiteColumns = [
+        'begin_at',
+        'end_at',
+        'cover',
+        'title',
+        'link',
+        'kind',
+        'at_index',
+        'at_list',
+        'at_page',
+        'at_banner',
+        'tag',
+        'sort',
+        'remark',
+        'gname'
+    ];
+
+    public array $bool2IntColumns =  [
+        'at_index',
+        'at_list',
+        'at_page',
+        'at_banner'
+    ];
 
     public function beforeSave()
     {

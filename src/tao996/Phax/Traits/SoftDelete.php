@@ -67,7 +67,7 @@ trait SoftDelete
         // null：默认按主键降序取第一条
         if (is_null($parameters)) {
             $parameters = [
-                'conditions' => $obj->getDeleteTimeName() . ' IS NULL',
+                'conditions' => $obj->getSortDeleteColumnName() . ' IS NULL',
                 'order' => $obj->getPrimaryKey() . ' DESC'
             ];
             if ($queryBuilder) {
@@ -84,7 +84,7 @@ trait SoftDelete
         // 数字主键 → 参数化绑定，避免 SQL 注入
         if (is_numeric($parameters)) {
             $pk = $obj->getPrimaryKey();
-            $conditions = $pk . ' = :_pk_: AND ' . $obj->getDeleteTimeName() . ' IS NULL';
+            $conditions = $pk . ' = :_pk_: AND ' . $obj->getSortDeleteColumnName() . ' IS NULL';
             $parameters = ['conditions' => $conditions, 'bind' => ['_pk_' => intval($parameters)]];
             if ($queryBuilder) {
                 $builder = (new \Phalcon\Mvc\Model\Query\Builder())
@@ -98,7 +98,7 @@ trait SoftDelete
 
         // 字符串 SQL 条件 + 软删除
         if (is_string($parameters)) {
-            $params = $parameters . ' AND ' . $obj->getDeleteTimeName() . ' IS NULL';
+            $params = $parameters . ' AND ' . $obj->getSortDeleteColumnName() . ' IS NULL';
             if ($queryBuilder) {
                 $builder = (new \Phalcon\Mvc\Model\Query\Builder())
                     ->from(static::class)->where($params);
@@ -178,7 +178,7 @@ trait SoftDelete
          * @var $obj \Phax\Mvc\Model
          */
         $obj = static::getObject();
-        return parent::query($container)->andWhere($obj->getDeleteTimeName() . ' IS NULL');
+        return parent::query($container)->andWhere($obj->getSortDeleteColumnName() . ' IS NULL');
     }
 
     public static function __callStatic(string $method, array $arguments)

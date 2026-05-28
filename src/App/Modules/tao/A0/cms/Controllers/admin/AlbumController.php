@@ -19,10 +19,6 @@ class AlbumController extends BaseTaoA0CmsController
         $this->model = new CmsAlbum();
     }
 
-    protected array $saveWhiteList = [
-        'cover', 'title', 'tag', 'summary','image_ids'
-    ];
-
     /**
      * @rbac ({title:'修改图集'})
      * @throws \Exception

@@ -98,7 +98,7 @@ class WepayOrderLogic
             if ($this->order->transaction_id) {
                 $data = $helper->queryByTransactionId($this->order->transaction_id);
             } else {
-                $data = $helper->queryByOutTradeNo($this->order->out_trade_no);
+                $data = $helper->queryByOutTradeNo($this->order->getOutTradeNo());
             }
             return $data;
         }
@@ -199,7 +199,7 @@ class WepayOrderLogic
     public function refundQuery(): array
     {
         return $this->getWechatPayHelper()
-            ->refundQuery($this->order->out_refund_no);
+            ->refundQuery($this->order->getOutRefundNo());
     }
 
     /**

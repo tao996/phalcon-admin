@@ -48,6 +48,20 @@ class LayuiForm
         return $this->wrapFormItem($content, $formItem);
     }
 
+    public function radio(string $title, string $name,
+                          array  $vtOptions = [],
+                          mixed  $value = null, bool $required = false,
+                          bool   $formItem = true): string
+    {
+        $options = [];
+        foreach ($vtOptions as $v => $t) {
+            $selected = $value == $v ? 'checked' : '';
+            $options[] = "<input lay-filter='" . $name . "' type='radio' name='{$name}' title='{$t}' value='{$v}' $selected>";
+        }
+        $content = $this->wrapFormLabel($title, $required) . '<div class="layui-input-block">' . join('', $options) . '</div>';
+        return $this->wrapFormItem($content, $formItem);
+    }
+
     /**
      * 生成一个 input
      * @param string $title
@@ -63,9 +77,10 @@ class LayuiForm
                           bool   $required = false,
                           string $type = 'text',
                           string $aux = '',
-                          bool   $formItem = true): string
+                          bool   $formItem = true, bool $block = false): string
     {
-        return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
+        $inputClass = $block ? 'layui-input-block' : 'layui-input-inline';
+        return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="'.$inputClass.'">
             <input ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input"
                    value="' . $value . '"
                    placeholder="请填写' . $title . '">
@@ -88,6 +103,11 @@ class LayuiForm
         return '<div class="layui-form-item">' . join('', $options) . '</div>';
     }
 
+    public function groups(array $items): string
+    {
+        return '<div class="layui-form-item">' . join('', $items) . '</div>';
+    }
+
     /**
      * 开关
      * @param string $title
@@ -105,7 +125,7 @@ class LayuiForm
     {
         $checkedText = $checked ? ' checked' : '';
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
-            <input type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . '>
+            <input lay-filter="' . $name . '" type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . '>
         </div>' . $this->wrapAux($aux), $formItem);
     }
 
@@ -128,8 +148,8 @@ class LayuiForm
     public function datetime(string $title, string $name, mixed $value = '',
                              bool   $required = false,
                              bool   $range = false,
+                             string $type = 'datetime',
                              bool   $formItem = true,
-                             string $type = 'datetime'
     ): string
     {
         $rangeText = $range ? 'true' : 'false';
@@ -159,5 +179,7 @@ JS;
     {
         return '<script>' . join('', $this->footerJs) . '</script>';
     }
+
+
 }
 

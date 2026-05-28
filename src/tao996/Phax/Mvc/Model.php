@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Phax\Mvc;
 
 use Phalcon\Di\DiInterface;
+use Phalcon\Mvc\Model\ResultsetInterface;
+use Phalcon\Mvc\ModelInterface;
 use Phax\Db\Layer;
 use Phax\Db\QueryBuilder;
-use Phax\Support\Facade\MyHelperFacade;
 
 
 /*
@@ -22,20 +23,11 @@ $cat = new Cat();
 $cat->title = 'HELLO'; // Cat 中没有 public title
 dd($cat->title); // hello
 
-2. 获取器使用示例
-public function getStatusTextAttr()
-{
-    return 'active';
-}
-dd($cat->status_text); // active
  */
 
 /**
  * 模型 <br>
  * 添加软删除 \Phax\Orm\SoftDelete 支持 find/findFirst/findByXx/findFirstByXx <br>
- * 添加修改器 setFieldNameAttr，只会在属性没有显示定义时被调用 <br>
- * 添加获取器 getFieldNameAttr，只会在属性没有显示定义时被调用 <br>
- * 添加搜索器 searchFieldNameAttr，在使用 withSearch 进触发 <br>
  * @method prepareSave() 在 Insert/Update 之前执行，允许进行数据管理
  * @method beforeValidation() 在数据验证之前执行
  * @method beforeValidationOnCreate()
@@ -59,8 +51,8 @@ dd($cat->status_text); // active
  * 注意：以下方法只在 SoftDelete 中存在
  * @method bool destroy(bool $force) 是否强制删除
  * @method bool restore() 恢复软删除数据
- * @method static \Phalcon\Mvc\Model\ResultsetInterface findWithTrashed($parameters = null) 查询全部的记录（含软删除）
- * @method static \Phalcon\Mvc\Model\ResultsetInterface findOnlyTrashed($parameters = null) 只查询软删除记录
+ * @method static ResultsetInterface findWithTrashed($parameters = null) 查询全部的记录（含软删除）
+ * @method static ResultsetInterface findOnlyTrashed($parameters = null) 只查询软删除记录
  */
 class Model extends \Phalcon\Mvc\Model
 {
@@ -91,6 +83,10 @@ class Model extends \Phalcon\Mvc\Model
      * @var array
      */
     protected array $allowEmptyFields = [];
+    /**
+     * @var bool 是否启用软删除
+     */
+    protected bool $enableSortDelete = false;
 
     /**
      * 模型表标题
@@ -122,7 +118,41 @@ class Model extends \Phalcon\Mvc\Model
      */
     protected string $deletedTime = 'deleted_at';
 
-    public function getDeleteTimeName(): string
+    /**
+     * @var array|null 白名单列，通常用在 assign/save 中
+     */
+    public array|null $whiteColumns = null;
+
+    /**
+     * 赋值
+     * @param array $data
+     * @param array|null $whiteList 白名单，如果要为 null, 会使用当前的 $whiteColumns
+     * @param $dataColumnMap
+     * @return ModelInterface
+     */
+    public function assign(array $data, $whiteList = null, $dataColumnMap = null): ModelInterface
+    {
+        return parent::assign($data, $whiteList ?: $this->whiteColumns, $dataColumnMap);
+    }
+
+    /**
+     * @var array 需要转换为 float 的字段
+     */
+    public array $floatColumns = [];
+    /**
+     * @var array 需要转换为 int 的字段
+     */
+    public array $intColumns = [];
+    /**
+     * @var array 需要将内容为空时自动转为 NULL 的字段
+     */
+    public array $nullColumns = [];
+    /**
+     * @var array 需要将 bool 转为 int 的字段
+     */
+    public array $bool2IntColumns = [];
+
+    public function getSortDeleteColumnName(): string
     {
         return $this->deletedTime;
     }
@@ -136,9 +166,9 @@ class Model extends \Phalcon\Mvc\Model
      * 是否启用了软删除功能，可以通过在模型中使用 use Phax\Traits\SoftDelete 开启
      * @return bool
      */
-    public function isSoftDelete(): bool
+    public function supportSoftDelete(): bool
     {
-        return property_exists($this, 'useSortDelete');
+        return $this->enableSortDelete;
     }
 
     public function initialize(): void
@@ -368,38 +398,6 @@ class Model extends \Phalcon\Mvc\Model
     }
 
     /**
-     * 为了仿 TP 中关联属性用法
-     * @param string $property
-     * @return mixed
-     */
-    public function __get(string $property)
-    {
-//dd($property,'get' . MyHelper::pascalCase($property) . 'Attr');
-        if (method_exists($this, $property)) {
-            // $user->profile 时调用 profile 中定义的模型
-            $this->{$property}();
-            // 定义获取器
-        } elseif (method_exists($this, 'get' . MyHelperFacade::pascalCase($property) . 'Attr')) {
-            $method = 'get' . MyHelperFacade::pascalCase($property) . 'Attr';
-            return $this->{$method}();
-        }
-        return parent::__get($property);
-    }
-
-    public function __set(string $property, $value)
-    {
-        // 存在修改器
-        if (method_exists($this, 'set' . ucfirst($property) . 'Attr')) {
-            call_user_func_array([
-                $this,
-                'set' . ucfirst($property) . 'Attr'
-            ], [$value]);
-            return;
-        }
-        parent::__set($property, $value);
-    }
-
-    /**
      * 获取当前实例(用于获取实例的各种原始信息)
      * 返回的是原型对象的副本，修改返回对象的属性不会影响后续调用
      * @return static
@@ -434,6 +432,7 @@ class Model extends \Phalcon\Mvc\Model
      * 获取指定列名的 PDO 类型
      * @param string $name
      * @return int 绑定类型
+     * @throws \Exception
      */
     public function getDataTypeBinds(string $name, bool $throwIfNotfound = true): int
     {
@@ -527,6 +526,7 @@ class Model extends \Phalcon\Mvc\Model
      * @param array|string $columns 待更新的列
      * @param string $primaryKeyName 主键/唯一键，默认为 id
      * @return bool
+     * @throws \Exception
      */
     public function updateColumns(array|string $columns, string $primaryKeyName = 'id'): bool
     {
@@ -571,62 +571,30 @@ class Model extends \Phalcon\Mvc\Model
         return $obj->getWriteConnection()->execute($sql);
     }
 
-    private array $toArrayColumns = [
-        'append' => [],
-        'visible' => [],
-        'hidden' => [],
-    ];
-
     /**
-     * TODO 追加获取器(关联属性）到模型中
-     * @param array $attrs
-     * @return self
+     * @var array 需要隐藏的列
      */
-    public function append(array $attrs): static
-    {
-        $this->toArrayColumns['append'] = $attrs;
-        return $this;
-    }
-
+    protected array $hiddenColumns = [];
     /**
-     * 只显示指定的列值，也可以在 toArray 时指定
-     * @param array $columns
-     * @return self
+     * @var array 允许显示的列
      */
-    public function visible(array $columns): static
-    {
-        $this->toArrayColumns['visible'] = $columns;
-        return $this;
-    }
+    protected array $visibleColumns = [];
 
     /**
-     * 隐藏指定的列值
-     * @param array $columns
-     * @return self
-     */
-    public function hidden(array $columns): static
-    {
-        $this->toArrayColumns['hidden'] = $columns;
-        return $this;
-    }
-
-    /**
-     * @param $columns
-     * @param $useGetter
+     * @param array $columns 指定需要显示的列，如果 为 null ，则会检查 $visibleColumns 和 $hiddenColumns 列
+     * @param bool $useGetter
      * @return array 不保存返回数组中 key 与 $columns 的顺序一致
      */
-    public function toArray($columns = null, $useGetter = null): array
+    public function toArray($columns = null, $useGetter = false): array
     {
         if (is_null($columns)) {
-            if (!empty($this->toArrayColumns['visible'])) {
-                $columns = $this->toArrayColumns['visible'];
+            if ($this->visibleColumns) {
+                $columns = $this->visibleColumns;
             }
-        }
-        if (!empty($this->toArrayColumns['hidden'])) {
-            if (is_null($columns)) {
-                $columns = $this->getModelsMetaData()->getAttributes($this);
+            if ($this->hiddenColumns) {
+                $columns = $columns ?: $this->getModelsMetaData()->getAttributes($this);
+                $columns = array_diff($columns, $this->hiddenColumns);
             }
-            $columns = array_diff($columns, $this->toArrayColumns['hidden']);
         }
         return parent::toArray($columns, $useGetter);
     }

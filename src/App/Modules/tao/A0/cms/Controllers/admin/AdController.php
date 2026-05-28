@@ -38,28 +38,4 @@ class AdController extends BaseTaoA0CmsController
         $queryBuilder->string('tag', $this->request->getQuery('tag'));
         $queryBuilder->int('status', $status);
     }
-
-    protected array $saveWhiteList = [
-        'begin_at',
-        'end_at',
-        'cover',
-        'title',
-        'link',
-        'kind',
-        'at_index',
-        'at_list',
-        'at_page',
-        'at_banner',
-        'tag',
-        'sort',
-        'remark',
-        'gname'
-    ];
-
-    public array $modelBool2IntColumns = [
-        'at_index',
-        'at_list',
-        'at_page',
-        'at_banner'
-    ];
 }

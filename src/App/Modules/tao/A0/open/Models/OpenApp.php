@@ -41,6 +41,20 @@ class OpenApp extends BaseTaoModel
     public int $status = 1; // 状态
     public string $remark = ''; // 备注
 
+    public array|null $whiteColumns = [
+        'platform',
+        'kind',
+        'appid',
+        'title',
+        'secret',
+        'token',
+        'enc_method',
+        'aes_key',
+        'crop_id',
+        'sandbox',
+        'remark',
+    ];
+
     public function beforeValidation()
     {
         if (empty($this->appid)) {

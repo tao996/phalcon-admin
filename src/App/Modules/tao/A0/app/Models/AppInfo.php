@@ -21,4 +21,8 @@ class AppInfo extends BaseTaoModel
             throw new \Exception('必须填写标题');
         }
     }
+
+    public array|null $whiteColumns = [
+        'tag', 'title', 'remark'
+    ];
 }
