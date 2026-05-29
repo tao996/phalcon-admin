@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f0288a742bfe1fd9ebadabf73ab60513",
+    "content-hash": "71e4eabd0c7b0ab3ad15c8429843ab72",
     "packages": [],
     "packages-dev": [
         {
@@ -1825,6 +1825,46 @@
                 }
             ],
             "time": "2024-03-03T12:36:25+00:00"
+        },
+        {
+            "name": "viest/php-ext-xlswriter-ide-helper",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/viest/php-ext-xlswriter-ide-helper.git",
+                "reference": "7c1e58b05e03c3cbf81fdebe2939b5d46172771d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/viest/php-ext-xlswriter-ide-helper/zipball/7c1e58b05e03c3cbf81fdebe2939b5d46172771d",
+                "reference": "7c1e58b05e03c3cbf81fdebe2939b5d46172771d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Vtiful\\Kernel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "viest",
+                    "email": "wjx@php.net"
+                }
+            ],
+            "description": "PHP Extension Xlswriter IDE Helper",
+            "support": {
+                "issues": "https://github.com/viest/php-ext-xlswriter-ide-helper/issues",
+                "source": "https://github.com/viest/php-ext-xlswriter-ide-helper/tree/v2.0.0"
+            },
+            "time": "2026-05-16T12:29:50+00:00"
         }
     ],
     "aliases": [],
@@ -1837,7 +1877,8 @@
         "ext-redis": "*",
         "ext-pdo": "*",
         "ext-gd": "*",
-        "ext-intl": "*"
+        "ext-intl": "*",
+        "ext-xlswriter": "*"
     },
     "platform-dev": {
         "php": "^8.3"

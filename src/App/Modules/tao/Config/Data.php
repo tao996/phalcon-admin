@@ -28,4 +28,11 @@ class Data
         self::AccessUser => '用户',
         self::AccessSuperAdmin => '超级管理员'
     ];
+
+    const int STATUS_NORMAL = 1;
+    const int STATUS_DISABLE = 0;
+    const array MAP_STATUS = [
+        self::STATUS_NORMAL => '正常',
+        self::STATUS_DISABLE => '禁用'
+    ];
 }

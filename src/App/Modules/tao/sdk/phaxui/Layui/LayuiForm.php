@@ -151,18 +151,20 @@ class LayuiForm
     public function switch(string $title, string $name, bool $checked = false,
                            bool   $required = false,
                            bool   $formItem = true,
+                           string $option = "ON|OFF",
                            string $aux = ''
     ): string
     {
         $checkedText = $checked ? ' checked' : '';
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
-            <input lay-filter="' . $name . '" type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . '>
-        </div>' . $this->wrapAux($aux), $formItem);
+            <input lay-filter="' . $name . '" type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . ' title="' . $option . '">
+        </div>' . $this->wrapAux($aux), $formItem, name: $name);
     }
 
-    public function wrapFormItem(string $content, bool $formItem = true): string
+    public function wrapFormItem(string $content, bool $formItem = true, string $name = ''): string
     {
-        return $formItem ? '<div class="layui-form-item">' . $content . '</div>' : $content;
+        $idName = $name ? ' id="layui-form-item-' . $name . '"' : '';
+        return $formItem ? '<div class="layui-form-item" ' . $idName . '>' . $content . '</div>' : $content;
     }
 
     public function wrapFormLabel(string $title, bool $required = false): string
