@@ -43,10 +43,7 @@ function loader(): \Phalcon\Autoload\Loader
     return $loader;
 }
 
-$loader->setFiles([
-
-    PATH_TAO996_PHAR . 'dotenv.phar',
-], true);
+// 使用 Phax\Support\Env 的纯 PHP 实现加载 .env，不再依赖 dotenv.phar
 
 $loader->setNamespaces([
     'App' => PATH_APP,
