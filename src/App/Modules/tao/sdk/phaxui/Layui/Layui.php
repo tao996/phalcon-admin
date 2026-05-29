@@ -11,8 +11,7 @@ use Phax\Helper\HtmlHelper;
  */
 class Layui
 {
-
-    public string $version = '2.9.18';
+    public string $version = '';
 
     private array $_config = [
         'debug' => IS_DEBUG
@@ -20,11 +19,9 @@ class Layui
     private bool $hasImportFooter = false;
     private bool $hasImportHeader = false;
 
-    public function __construct(public TaoHtmlHelper $helper)
+    public function __construct(public TaoHtmlHelper $helper, string $version = '2.13.6')
     {
-        if (HtmlAssets::$cdnLocate == 'cn') {
-            $this->version = '2.9.4'; // 只支持到 2.9.4
-        }
+        $this->version = $version;
         $this->header();
     }
 
@@ -100,7 +97,6 @@ class Layui
 
         return $this;
     }
-
 
 
     public function selectHeader(): void

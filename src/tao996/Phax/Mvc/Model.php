@@ -74,7 +74,7 @@ class Model extends \Phalcon\Mvc\Model
      */
     protected string $tablePrefix = '';
     /**
-     * @var string 设置表名,注意：不会自动添加前辍
+     * @var string 设置表名,注意：会自动添加前辍
      */
     protected string $table = '';
 

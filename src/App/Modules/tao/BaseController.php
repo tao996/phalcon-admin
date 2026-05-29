@@ -28,6 +28,18 @@ class BaseController extends BaseRbacController
      * @var Model|null
      */
     protected Model|null $model = null;
+    /**
+     * @var Model|null 用于保存被修改或被删除的模型
+     */
+    protected Model|null $oldModel = null;
+    /**
+     * @var bool 是否需要保存修改的模型，如果为 true，在 editAction 和 deleteAction 时，会保存修改的模型
+     */
+    protected bool $keepOldModel = false;
+    /**
+     * @var bool 是否支持批量删除
+     */
+    protected bool $allowBatchDelete = false;
 
 
     /**
@@ -208,6 +220,9 @@ class BaseController extends BaseRbacController
     {
         $id = $this->getRequestQueryInt('id');
         $this->model = $this->model::mustFindFirst($id);
+        if ($this->keepOldModel) {
+            $this->oldModel = clone $this->model;
+        }
         $this->checkModelActionAccess($this->model);
 
         if ($this->request->isPost()) {
@@ -249,6 +264,11 @@ class BaseController extends BaseRbacController
         foreach ($this->model->bool2IntColumns as $column) {
             if (array_key_exists($column, $data)) {
                 $data[$column] = MyData::getBool($data, $column) ? 1 : 0;
+            }
+        }
+        foreach ($this->model->intColumns as $column) {
+            if (array_key_exists($column, $data)) {
+                $data[$column] = MyData::getInt($data, $column);
             }
         }
 
@@ -329,22 +349,23 @@ class BaseController extends BaseRbacController
         }
         $this->validateModifyData($post);
 
-        /**
-         * @var $model Model
-         */
-        $model = ($this->model)::mustFindFirst($post['id']);
-        $this->checkModelActionAccess($model);
 
-        $model->assign([
+        $this->model = ($this->model)::mustFindFirst($post['id']);
+        if ($this->keepOldModel) {
+            $this->oldModel = clone $this->model;
+        }
+        $this->checkModelActionAccess($this->model);
+
+        $this->model->assign([
             $post['field'] => $post['value']
         ]);
-        $this->beforeModifySave($model);
-        if ($model->save()) {
-            $this->vv->logService()->insert($model->tableTitle(), 'modify');
+        $this->beforeModifySave($this->model);
+        if ($this->model->save()) {
+            $this->vv->logService()->insert($this->model->tableTitle(), 'modify');
             $this->afterModelChange('edit');
             return $this->success('保存成功');
         } else {
-            return $this->error($model->getErrors());
+            return $this->error($this->model->getErrors());
         }
     }
 
@@ -379,12 +400,20 @@ class BaseController extends BaseRbacController
         if (empty($ids)) {
             return $this->error('待删除记录 ID 不能为空');
         }
+        if (!$this->allowBatchDelete && count($ids) > 1) {
+            return $this->error('批量删除功能已关闭');
+        }
 
         // 批量删除
         $qb = $this->model->getQueryBuilder($this->getDI())->in('id', $ids);
         if ($this->isUserAction()) {
             if (property_exists($this->model, 'user_id')) {
                 $qb->int('user_id', $this->loginUser()->id);
+            }
+        }
+        if ($this->keepOldModel) {
+            if (count($ids) == 1) {
+                $this->oldModel = ($this->model)::mustFindFirst($ids[0]);
             }
         }
 
@@ -451,6 +480,8 @@ class BaseController extends BaseRbacController
 
     /**
      * 在模型被 add/edit|delete 成功之后被调用；注意：删除操作(批量)只作通知用；如果需要触发删除事件，重写 afterDelete
+     * 当 $keepOldModel=true 且 action=edit|delete 时，$this->oldModel 为修改/删除前的模型快照；
+     * 批量删除时 $this->oldModel 为 null（仅单条删除时可用）
      * @param string $action add|edit|delete
      * @return void
      */

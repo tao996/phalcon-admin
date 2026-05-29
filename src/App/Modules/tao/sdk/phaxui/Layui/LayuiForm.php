@@ -16,6 +16,7 @@ class LayuiForm
     }
 
     private array $footerJs = [];
+    private array $footerCss = [];
 
     /**
      * 渲染一个  select
@@ -31,6 +32,7 @@ class LayuiForm
                            array  $vtOptions = [],
                            mixed  $value = null,
                            bool   $required = false,
+                           string $aux = '',
                            bool   $formItem = true
     ): string
     {
@@ -40,12 +42,26 @@ class LayuiForm
             $options[] = "<option value='{$v}' $selected>{$t}</option>";
         }
 
-        $content = $this->wrapFormLabel($title, $required) . '
-        <div class="layui-input-inline">
-            <select lay-filter="' . $name . '" name="' . $name . '" id="' . $name . '" ' . $this->layVerifyRequired($required) . '>
-                <option value="">请选择' . $title . '</option>' . join('', $options) . '</select>
-        </div>';
-        return $this->wrapFormItem($content, $formItem);
+        return $this->extractedSelect($title, $required, $name, $options, $aux, $formItem);
+    }
+
+    public function groupSelect(string $title, string $name,
+                                array  $groupVtOptions = [], mixed $value = null,
+                                bool   $required = false,
+                                string $aux = '',
+                                bool   $formItem = true)
+    {
+        $options = [];
+        foreach ($groupVtOptions as $label => $vtOptions) {
+            $options[] = '<optgroup label="' . $label . '">';
+            foreach ($vtOptions as $v => $t) {
+                $selected = $value == $v ? 'selected' : '';
+                $options[] = "<option value='{$v}' $selected>{$t}</option>";
+            }
+            $options[] = '</optgroup>';
+        }
+
+        return $this->extractedSelect($title, $required, $name, $options, $aux, $formItem);
     }
 
     public function radio(string $title, string $name,
@@ -69,22 +85,37 @@ class LayuiForm
      * @param mixed $value
      * @param bool $required
      * @param string $type
+     * @param string $prefix 前缀内容
+     * @param string $subfix 后缀内容
      * @param string $aux 辅助文字
      * @param bool $formItem
+     * @param bool $block
      * @return string
      */
     public function input(string $title, string $name, mixed $value = '',
                           bool   $required = false,
                           string $type = 'text',
+                          string $prefix = '',
+                          string $subfix = '',
                           string $aux = '',
                           bool   $formItem = true, bool $block = false): string
     {
         $inputClass = $block ? 'layui-input-block' : 'layui-input-inline';
-        return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="'.$inputClass.'">
-            <input ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input"
+        $groupPs = $this->wrapPrefixSuffix('<input ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input"
                    value="' . $value . '"
-                   placeholder="请填写' . $title . '">
+                   placeholder="请填写' . $title . '">', $prefix, $subfix);
+        return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="' . $inputClass . '">' . $groupPs . '
         </div>' . $this->wrapAux($aux), $formItem);
+    }
+
+    private function wrapPrefixSuffix(string $content, string $prefix = '', string $suffix = ''): string
+    {
+        if ($prefix || $suffix) {
+            $prefixText = $prefix ? '<div class="llayui-input-split ayui-input-prefix">' . $prefix . '</div>' : '';
+            $suffixText = $suffix ? '<div class="layui-input-split layui-input-suffix">' . $suffix . '</div>' : '';
+            return '<div class="layui-input-group">' . $prefixText . $content . $suffixText . '</div>';
+        }
+        return $content;
     }
 
     public function inputs(InputElement ...$inputs): string
@@ -175,9 +206,33 @@ JS;
         $this->footerJs[] = $content;
     }
 
+    public function appendFooterCss(string $content): void
+    {
+        $this->footerCss[] = $content;
+    }
+
     public function footer(): string
     {
-        return '<script>' . join('', $this->footerJs) . '</script>';
+        return '<script>' . join('', $this->footerJs) . '</script>' . '<style>' . join('', $this->footerCss) . '</style>';
+    }
+
+    /**
+     * @param string $title
+     * @param bool $required
+     * @param string $name
+     * @param array $options
+     * @param string $aux
+     * @param bool $formItem
+     * @return string
+     */
+    protected function extractedSelect(string $title, bool $required, string $name, array $options, string $aux, bool $formItem): string
+    {
+        $content = $this->wrapFormLabel($title, $required) . '
+        <div class="layui-input-inline">
+            <select lay-filter="' . $name . '" name="' . $name . '" id="' . $name . '" ' . $this->layVerifyRequired($required) . '>
+                <option value="">请选择' . $title . '</option>' . join('', $options) . '</select>
+        </div>' . $this->wrapAux($aux);
+        return $this->wrapFormItem($content, $formItem);
     }
 
 
