@@ -117,24 +117,62 @@ class Config
     }
 
     /**
-     * 获取当前访问的项目
-     * @return string
+     * 获取当前访问的项目及站点配置
+     * 返回 ['name' => 'family', 'namespace' => '...', 'viewpath' => '...']
+     * 如果未匹配到项目，name 为空字符串
+     * @return array{name:string,namespace:string,viewpath:string}
      */
-    public function getProject(): string
+    public function getProjectWithConfig(): array
     {
         if (!empty($this->current_project)) {
-            return $this->current_project;
+            return $this->buildProjectConfig($this->current_project);
         }
         if ($host = $this->getHost()) {
             if ($sites = $this->globalPath('app.sites', [])?->toArray()) {
                 foreach ($sites as $project => $hosts) {
-                    if (in_array($host, $hosts)) {
-                        return $project;
+                    $domains = is_array($hosts) && isset($hosts['domains']) ? $hosts['domains'] : $hosts;
+                    if (in_array($host, (array)$domains)) {
+                        return $this->buildProjectConfig($project, $hosts);
                     }
                 }
             }
         }
-        return $this->globalPath('app.default') ?: '';
+        $default = $this->globalPath('app.default') ?: '';
+        return $default ? $this->buildProjectConfig($default) : ['name' => '', 'namespace' => '', 'viewpath' => ''];
+    }
+
+    /**
+     * 构建项目的配置
+     */
+    private function buildProjectConfig(string $project, array $entry = []): array
+    {
+        $defaultNamespace = 'App\\Projects\\' . $project . '\\Controllers';
+        $defaultViewpath = PATH_APP_PROJECTS . $project . DIRECTORY_SEPARATOR . 'views';
+
+        if (is_array($entry) && isset($entry['domains'])) {
+            // 扩展格式
+            return [
+                'name' => $project,
+                'namespace' => $entry['namespace'] ?? $defaultNamespace,
+                'viewpath' => $entry['viewpath'] ?? $defaultViewpath,
+            ];
+        }
+
+        // 简单格式或未提供 entry
+        return [
+            'name' => $project,
+            'namespace' => $defaultNamespace,
+            'viewpath' => $defaultViewpath,
+        ];
+    }
+
+    /**
+     * 获取当前访问的项目（仅名称，兼容旧代码）
+     * @return string
+     */
+    public function getProject(): string
+    {
+        return $this->getProjectWithConfig()['name'] ?? '';
     }
 
     /**

@@ -150,8 +150,10 @@ class Router
             $second_part = $urlElements[1] ?? 'index';
             $data['pathsname'] = ['controller' => $first_part, 'action' => $second_part];
             if (!empty($data['project'])) {
-                $data['namespace'] = 'App\Projects\\' . $data['project'] . '\Controllers';
-                $data['viewpath'] = PATH_APP_PROJECTS . $data['project'] . DIRECTORY_SEPARATOR . 'views';
+                $data['namespace'] = $options['projectNamespace']
+                    ?? 'App\\Projects\\' . $data['project'] . '\\Controllers';
+                $data['viewpath'] = $options['projectViewpath']
+                    ?? PATH_APP_PROJECTS . $data['project'] . DIRECTORY_SEPARATOR . 'views';
             }
             switch (count($urlElements)) {
                 case 0:
@@ -241,19 +243,7 @@ class Router
         } elseif ($gc > 2) {
             throw new \Exception('sub dir example: /c1/sub.a1/params');
         }
-
-        if ($project) {
-            $data['namespace'] = str_replace(
-                'Http\Controller',
-                'Projects\\' . $project . '\Controller',
-                $data['namespace']
-            );
-            $data['viewpath'] = str_replace(
-                'Http'.DIRECTORY_SEPARATOR.'views',
-                'Projects'.DIRECTORY_SEPARATOR . $project . DIRECTORY_SEPARATOR.'views',
-                $data['viewpath']
-            );
-        }
+        // namespace/viewpath 已在 analysisRoutePath() 中根据 $project 设置，此处不再重复处理
     }
 
     /**

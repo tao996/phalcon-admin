@@ -63,6 +63,11 @@ Application::runWeb($requestURL)
   │
   ├── routeWith($requestURL, $di)       // 路由解析与分发
   │    │
+  │    ├── Config::getProjectWithConfig()  // 一次遍历获取项目名+配置
+  │    │    ├── name → project
+  │    │    ├── namespace → projectNamespace
+  │    │    └── viewpath → projectViewpath
+  │    │
   │    ├── 读取 config app.defaultApp   // 获取默认命名空间 + 视图目录
   │    │    ├── defaultNamespace → options
   │    │    └── defaultViewpath  → options
@@ -136,8 +141,8 @@ app
 ├── demo              是否演示系统
 ├── superAdmin        超级管理员 ID 列表
 ├── test              测试环境（tokens）
-├── sites             域名 → 项目映射
-└── default           默认项目
+├── sites             域名 → 项目映射（如 `{'family':['family.test']}`）
+└── default           默认项目（`sites` 无匹配时回退到此值，空=单应用模式）
 
 session
 ├── driver            redis / stream / memcached / noop
@@ -159,6 +164,86 @@ metadata              Phalcon 模型元数据驱动
 crypt                 加密密钥
 flash                 消息提示驱动（Session）
 cookie                加密密钥
+```
+
+---
+
+## 项目（Project）机制
+
+`app.sites` 实现**多项目（Projects）**，支持通过不同域名访问不同控制器空间。
+
+### 配置示例
+
+```php
+'sites' => [
+    // 简单格式：默认命名空间 App\Projects\{name}\Controllers
+    'family' => ['family.test', 'family.com'],
+
+    // 扩展格式：自定义命名空间和视图目录
+    'factory' => [
+        'domains'   => ['factory.test', 'factory.cn'],
+        'namespace' => 'App\Projects\factory\Controllers',
+        'viewpath'  => PATH_APP . 'Projects/factory/views',
+    ],
+],
+'default' => '',            // 默认项目（无匹配时，空=单应用模式）
+```
+
+### 目录结构
+
+```
+src/App/Projects/
+  ├── family/
+  │    ├── Controllers/
+  │    │    └── IndexController.php     // 访问 family.test/ 时生效
+  │    ├── Config/config.php            // 项目级配置（merge 到全局）
+  │    ├── Console/                     // CLI 任务
+  │    └── views/                       // 视图
+  └── factory/
+       └── ...
+```
+
+### 匹配流程
+
+```
+请求 → family.test/order/list
+        │
+        ▼
+Config::getProjectWithConfig()
+  ├── 从请求头取 HTTP_HOST / X_FORWARDED_HOST
+  ├── 遍历 app.sites，匹配返回 project 完整配置
+  │    ├── 简单格式: ['name', 'namespace', 'viewpath']（默认值）
+  │    └── 扩展格式: ['name', 'namespace', 'viewpath']（自定义值）
+  └── 未匹配 → 返回 app.default（如果空则返回空项目，进入单应用模式）
+        │
+        ▼
+Application::routeWith() → $options
+  ├── project            → Router 识别 /p/ 前缀
+  ├── projectNamespace   → 替代硬编码 App\Projects\{name}\Controllers
+  └── projectViewpath    → 替代硬编码 App/Projects/{name}/views/
+        │
+        ▼
+Router::analysisRoutePath()
+  ├── project 非空 → namespace/viewpath 从 options 读取
+  ├── URL 前缀 /p/ 也可手动指定项目
+  │    └── /p/family/order/list → project=family
+  └── subAppControllerRoute() 不再重复设置 project 路径
+```
+
+### URL 两种访问方式
+
+| 方式 | URL 示例 | 说明 |
+|---|---|---|
+| 域名匹配 | `http://family.test/order/list` | 无需前缀，由 `app.sites` 自动识别 |
+| 手动前缀 | `http://localhost/p/family/order/list` | 显式指定 project 名称，绕过域名匹配 |
+
+### 不匹配时的行为
+
+当请求域名不在 `app.sites` 中且 URL 没有 `/p/` 前缀时，进入**单应用（默认首页）**路由：
+
+```
+namespace → config app.defaultApp.namespace（默认 App\Http\Controllers）
+viewpath  → config app.defaultApp.viewpath（默认 App/Http/views/）
 ```
 
 ---

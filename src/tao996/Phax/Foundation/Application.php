@@ -151,9 +151,13 @@ class Application
          */
         $config = $di->get('config');
         $defaultApp = $config->path('app.defaultApp')->toArray();
+        $project = $config->getProjectWithConfig();
+
         $options = [
             'module' => Router::$moduleKeyword,
-            'project' => $config->getProject(),
+            'project' => $project['name'],
+            'projectNamespace' => $project['namespace'] ?: null,
+            'projectViewpath' => $project['viewpath'] ?: null,
             'defaultNamespace' => $defaultApp['namespace'] ?? 'App\\Http\\Controllers',
             'defaultViewpath' => $defaultApp['viewpath'] ?? PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
         ];

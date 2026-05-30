@@ -57,6 +57,14 @@ $data['app'] = [
         ],
     ],
     // '项目'=>'域名不需要添加 www.' 如 ['abc' => ['abc.test','abc.com']]
+    // 简单格式（默认命名空间 App\Projects\{name}\Controllers）：
+    //   'family' => ['family.test', 'family.com']
+    // 扩展格式（自定义命名空间和视图目录）：
+    //   'family' => [
+    //       'domains' => ['family.test', 'family.com'],
+    //       'namespace' => 'App\Projects\family\Controllers',
+    //       'viewpath' => PATH_APP . 'Projects/family/views',
+    //   ]
     // abc 是项目名，位于 src/App/Projects/abc
     // 可查看 src/tao996/Phax/Support/Config.php
     'sites' => [
