@@ -19,33 +19,25 @@ class Logger
 
 
     /**
-     * 只记录异常主要的栈信息（文件+方法+行数）到日志
-     * @param \Exception $e
+     * 记录异常的完整调用栈到日志
+     * @param \Throwable $e
      * @return void
      */
-    public static function exception(\Exception $e): void
+    public static function exception(\Throwable $e): void
     {
-        $info = [];
-        $application = [];
-        foreach ($e->getTrace() as $item) {
-            if (isset($item['file'])) {
-                if (strrpos($item['file'], '/Foundation/Application.php')) {
-                    $application[] = sprintf('%s(%d)', $item['function'], $item['line'] ?? -1);
-                    continue;
-                }
-                if (strrpos($item['file'], 'public/index.php') === false) {
-                    $info[] = sprintf('%s | %s | %d', $item['file'], $item['function'], $item['line'] ?? -1);
-                }
-            }
-        }
         try {
-            if ($application) {
-                $info[] = 'Foundation/Application.php => ' . join(' <= ', $application);
-            }
-            self::logger()->error($e->getMessage() . "\n" . print_r($info, true));
-        } catch (\Exception $e) {
-            // 循环异常
-            prettyException($e);
+            $trace = $e->getTraceAsString();
+            $msg = sprintf(
+                "[%s] %s\n%s\n%s(%d)\n\n%s",
+                get_class($e),
+                $e->getMessage(),
+                $e->getFile(),
+                $e->getLine(),
+                $trace
+            );
+            self::logger()->error($msg);
+        } catch (\Throwable $_) {
+            // 日志异常静默处理，防止循环出错
         }
     }
 

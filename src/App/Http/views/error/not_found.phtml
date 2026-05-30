@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>页面未找到</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #f5f5f5; color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        .error-box {
+            max-width: 600px; width: 90%; margin: 40px auto;
+            background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.1);
+            overflow: hidden; text-align: center;
+        }
+        .error-icon { font-size: 64px; margin: 40px 0 0 0; color: #f0ad4e; }
+        .error-code { font-size: 72px; font-weight: 700; color: #ddd; line-height: 1; }
+        .error-title { font-size: 18px; color: #333; margin: 12px 0 24px; }
+        .error-desc { font-size: 14px; color: #999; margin-bottom: 32px; padding: 0 32px; }
+        .error-actions { padding: 24px 32px; border-top: 1px solid #eee; }
+        .error-actions a {
+            display: inline-block; padding: 8px 28px; border-radius: 4px;
+            text-decoration: none; font-size: 14px; margin: 0 6px;
+        }
+        .btn-home { background: #1e9fff; color: #fff; }
+        .btn-back { background: #f8f8f8; color: #333; border: 1px solid #ddd; }
+        .btn-home:hover { background: #0e8ae0; }
+        .btn-back:hover { background: #eee; }
+
+        <?php if (defined('IS_DEBUG') && IS_DEBUG): ?>
+        .debug-info { margin-top: 16px; padding: 12px 20px; background: #f8f8f8; border-radius: 4px; text-align: left; font-size: 13px; }
+        .debug-info .label { color: #999; margin-top: 8px; }
+        .debug-info .label:first-child { margin-top: 0; }
+        .debug-info .val { color: #666; word-break: break-all; font-family: monospace; }
+        <?php endif; ?>
+    </style>
+</head>
+<body>
+<div class="error-box">
+    <div class="error-icon">🔍</div>
+    <div class="error-code">404</div>
+    <div class="error-title">页面未找到</div>
+    <div class="error-desc">您访问的页面不存在或已被移除，请检查链接是否正确。</div>
+
+    <?php if (defined('IS_DEBUG') && IS_DEBUG): ?>
+        <div style="padding:0 32px 24px;">
+            <div class="debug-info">
+                <div class="label">请求 URL</div>
+                <div class="val"><?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                <div class="label">路由</div>
+                <div class="val"><?= htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') ?></div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <div class="error-actions">
+        <a href="/" class="btn-home">返回首页</a>
+        <a href="javascript:history.back()" class="btn-back">上一页</a>
+    </div>
+</div>
+</body>
+</html>

@@ -65,6 +65,10 @@ $data['app'] = [
     ],
     // 当访问路径为 '' 或 '/' 时，默认访问的链接
     'default' => '',
+    'defaultApp' => [
+        'namespace' => 'App\Http\Controllers',
+        'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
+    ],
 ];
 
 

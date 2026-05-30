@@ -55,27 +55,32 @@ if (!function_exists('env')) {
     }
 }
 if (!function_exists('prettyError')) {
-    function prettyError($errno, $errstr, $errfile, $errline)
+    /**
+     * 将 PHP Error / Warning / Notice 转为 ErrorException，
+     * 使其能被 try/catch 捕获并进入统一错误处理流程。
+     * 不再直接输出 HTML，避免泄露信息到页面。
+     */
+    function prettyError($errno, $errstr, $errfile, $errline): bool
     {
-        echo <<<HTML
-<style>
-    .php-error { background: #1e1e1e; color: #f8f8f2; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 14px; line-height: 1.6; }
-    .php-error b { color: #fc4a5a; }
-    .php-error .file { color: #a6e22e; }
-    .php-error .line { color: #fd971f; }
-</style>
-<div class="php-error">
-    <b>File:</b> <span class="file">$errfile</span><br>
-    <b>Line:</b> <span class="line">$errline</span><br>
-    <b>No:</b> $errno<br>
-    <b>Error:</b> <pre>$errstr</pre>
-</div>
-HTML;
-        exit;
+        // 错误级别被 error_reporting 屏蔽时忽略
+        if (!(error_reporting() & $errno)) {
+            return false;
+        }
+        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
     }
 
-    function prettyException(\Exception $e)
+    /**
+     * 输出异常详情（用于 CLI 或调试）
+     */
+    function prettyException(\Throwable $e): void
     {
-        prettyError($e->getCode(), $e->getMessage() . PHP_EOL . $e->getTraceAsString(), $e->getFile(), $e->getLine());
+        echo sprintf(
+            "%s: %s\n  %s(%d)\n  %s",
+            get_class($e),
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            str_replace("\n", "\n  ", $e->getTraceAsString())
+        );
     }
 }

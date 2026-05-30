@@ -91,8 +91,7 @@ class Application
         } catch (BlankException $e) {
             echo $e->getMessage();
             return null;
-        } catch (\Exception $e) {
-            Logger::error($requestURL);
+        } catch (\Throwable $e) {
             echo $this->handleException($e);
             exit;
         }
@@ -100,12 +99,9 @@ class Application
         return null;
     }
 
-    public function handleException(\Exception $e, Di $di = null): string
+    public function handleException(\Throwable $e, Di $di = null): string
     {
-
-        if (IS_DEBUG || $e->getCode() >= 500) {
-            Logger::exception($e);
-        }
+        Logger::exception($e);
 
         /**
          * @var Config $config
@@ -123,14 +119,14 @@ class Application
             if ($e instanceof \Phalcon\Mvc\Dispatcher\Exception) {
                 try {
                     return call_user_func_array([$errObj, 'notFound'], [$e]) ?: 'sorry ...';
-                } catch (\Exception $e) {
-                    return $e->getMessage();
+                } catch (\Throwable $_) {
+                    return '页面未找到';
                 }
             } else {
                 try {
                     return call_user_func_array([$errObj, 'exception',], [$e]) ?: 'sorry ...';
-                } catch (\Exception $e) {
-                    return $e->getMessage();
+                } catch (\Throwable $_) {
+                    return '系统繁忙，请稍后再试';
                 }
             }
         } else {
@@ -154,9 +150,12 @@ class Application
          * @var Config $config
          */
         $config = $di->get('config');
+        $defaultApp = $config->path('app.defaultApp')->toArray();
         $options = [
             'module' => Router::$moduleKeyword,
             'project' => $config->getProject(),
+            'defaultNamespace' => $defaultApp['namespace'] ?? 'App\\Http\\Controllers',
+            'defaultViewpath' => $defaultApp['viewpath'] ?? PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
         ];
         $route->routerOptions = Router::analysisWithURL($route->urlOptions['mapurl'], $options);
 //        ddd($route->urlOptions,$route->routerOptions);

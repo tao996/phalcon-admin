@@ -53,3 +53,5 @@ src/public/*
 src/App/Modules/*
 !src/App/Modules/demo
 !src/App/Modules/tao
+.codewhale/
+.deepseek/

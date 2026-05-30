@@ -128,8 +128,8 @@ class Router
             $data = [
                 'pattern' => '/',
                 'paths' => ['controller' => 'index', 'action' => 'index'],
-                'namespace' => 'App\Http\Controllers',
-                'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
+                'namespace' => $options['defaultNamespace'] ?? 'App\\Http\\Controllers',
+                'viewpath' => $options['defaultViewpath'] ?? PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
             ];
 
             if ($info['project']) {
