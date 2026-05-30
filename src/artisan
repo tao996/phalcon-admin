@@ -28,5 +28,6 @@ if (isset($argv[1]) && 'phalcon' === $argv[1]) {
  * @var $app \Phax\Foundation\Application
  */
 $app = require_once PATH_ROOT . 'bootstrap/app.php';
+// 部分命令存在 src/routes/cli.php 文件中
 $app->runCLI();
 

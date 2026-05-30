@@ -126,6 +126,21 @@ class BaseController extends BaseRbacController
     }
 
     /**
+     * 获取全部查询结果，通常用在报表中
+     * @return array
+     * @throws \Exception
+     */
+    protected function getIndexResult($callback = null): array
+    {
+        $queryBuilder = $this->model->getQueryBuilder($this->getDI());
+        $this->beforeIndexQuery($queryBuilder);
+        if (is_callable($callback)) {
+            $callback($queryBuilder);
+        }
+        return $this->buildIndexResult(1, $queryBuilder);
+    }
+
+    /**
      * @rbac ({title:"数据列表"})
      * @return mixed
      * @throws \Exception

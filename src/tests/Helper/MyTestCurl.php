@@ -149,7 +149,7 @@ class MyTestCurl
 
         $this->beforeSend();
         $content = curl_exec($this->ch);
-        $error = curl_error($this->ch);
+        $this->lastError = curl_error($this->ch);
         $this->info = curl_getinfo($this->ch);
         $httpCode = $this->info['http_code'] ?? 0;
 
@@ -157,7 +157,7 @@ class MyTestCurl
         $maxRetries = 2;
         $attempt = 0;
         while ($content === false
-            && $error !== ''
+            && $this->lastError !== ''
             && $httpCode === 0
             && ++$attempt <= $maxRetries
         ) {
@@ -167,7 +167,7 @@ class MyTestCurl
             curl_setopt_array($this->ch, $this->setting);
             $this->beforeSend();
             $content = curl_exec($this->ch);
-            $error = curl_error($this->ch);
+            $this->lastError = curl_error($this->ch);
             $this->info = curl_getinfo($this->ch);
             $httpCode = $this->info['http_code'] ?? 0;
         }
@@ -193,8 +193,10 @@ class MyTestCurl
         return $this->info['request_header'] ?? '';
     }
 
+    private string $lastError = '';
+
     public function getError()
     {
-        return curl_error($this->ch);
+        return $this->lastError;
     }
 }

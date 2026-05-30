@@ -234,12 +234,12 @@ class Request implements \Phalcon\Http\RequestInterface
 
     public function has(string $name): bool
     {
-        return $this->data[__FUNCTION__];
+        return isset($this->data[$name]);
     }
 
     public function hasFiles(): bool
     {
-        return !empty($this->data['getUploadedFiles']);
+        return !empty($this->data[__FUNCTION__]);
     }
 
     public function hasHeader(string $header): bool
@@ -294,7 +294,13 @@ class Request implements \Phalcon\Http\RequestInterface
 
     public function isMethod($methods, bool $strict = false): bool
     {
-        return in_array($methods, $this->data[__FUNCTION__]);
+        $current = strtolower($this->data['getMethod'] ?? '');
+        foreach ((array)$methods as $method) {
+            if (strtolower($method) === $current) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function isOptions(): bool
