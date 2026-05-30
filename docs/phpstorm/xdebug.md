@@ -3,11 +3,19 @@
 [xdebug]
 zend_extension = "D:/apps/laragon/bin/php/php-8.3.11-Win32-vs16-x64/ext/php_xdebug.dll"
 xdebug.mode = debug
-xdebug.start_with_request = yes
 xdebug.client_host = 127.0.0.1
-xdebug.client_port = 9003
+
+; 1. 修改为推荐的空闲端口
+xdebug.client_port = 51712
+
+; 2. 强烈建议改为 trigger（按需触发）
+; 这样只有当你开启浏览器插件或传入?XDEBUG_SESSION 时才激活调试，
+; 不会每个普通请求都去连接调试器，性能会好很多
+xdebug.start_with_request = trigger
 xdebug.idekey = xdebug
-xdebug.log = "D:\apps\laragon\tmp\xdebug\xdebug.log"
+; 调试日志（仅在排查连接问题时开启，平时注释掉）
+;xdebug.log = "D:\apps\laragon\tmp\xdebug\xdebug.log"
+;xdebug.log_level = 0
 ```
 
 
@@ -18,60 +26,32 @@ xdebug.log = "D:\apps\laragon\tmp\xdebug\xdebug.log"
 默认配置已经在 `php/php.example.ini` 中存在，不建议直接修改 `php.example.ini` 文件，可以复制一份修改名称为 `php.ini`（注意修改 `docker-compose.yaml` 中 php service 对应的配置）
 
 ```ini
-; open the xdebug setting in php/php.ini
-zend_extension=xdebug.so
 [xdebug]
-xdebug.mode = debug,develop
-xdebug.discover_client_host = 0
-xdebug.idekey = docker
-xdebug.start_with_request = yes
+; 在 authus/phalcon:5.13.0 中不需要开启
+;zend_extension=xdebug.so
+xdebug.mode=debug,develop
+xdebug.discover_client_host=0
+xdebug.idekey=docker
 xdebug.client_port = 19003
-xdebug.client_host = host.docker.internal
-
-; 注意，无特殊需求，不需要开启下面 xdebug.log，否则会打印很多额外的信息
-; 不方便阅读，而且会导致测试失败
-;xdebug.log = /dev/stdout
-;xdebug.log = /var/log/php/xdebug.log
+xdebug.client_host=host.docker.internal
+; 容器内直连宿主机 PhpStorm，无需 DBGp Proxy
+xdebug.start_with_request=trigger
+xdebug.log_level = 0
 ```
 
 如果你本地机器已经安装了 `xdebug` 那么就不能继续使用 `9003` 端口了
 
-修改 `docker-compose.yaml` 中 `php` 服务的配置
+修改 `docker-compose.yaml` 中 `php` 服务的配置（可参考 `docker-compose.example.yaml` 文件）
 
-```
-services:
-  php:
-    container_name: ${APP_NAME}-php
-    image: authus/phalcon:5.8.0-s4
-    #image: registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.8.0-s4
-    working_dir: /var/www
-    volumes:
-      - ./src:/var/www:delegated
-      - ./log/php:/var/log/php/:rw
-      ;- ./php/php.example.ini:/usr/local/etc/php/php.ini  # <-------- 修改为下面的 php.ini
-      - ./php/php.ini:/usr/local/etc/php/php.ini
-    networks:
-      - backend
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    environment:
-      PHP_IDE_CONFIG: "serverName=phalcon-admin"
-    env_file:
-      - .env 
-```
+记住以下信息
 
-记住我们将 `xdebug.client_port` 修改为 `19003`, `xdebug.idekey` 修改为 `docker`, `serverName` 修改为 `phalcon-admin`,
-我们将在下面的 `PHPStorm Setting` 中使用到这些信息。
+* `xdebug.client_port` 修改为 `19003`
+* `xdebug.idekey` 修改为 `docker` 
+* `serverName` 修改为 `phalcon-admin`,
+
+下面的 `PHPStorm Setting` 将使用到这些信息
 
 ### PHPStorm Setting
-
-* PHP > Debug > DBGp Proxy
-
-```
-IDE key: docker             ; 从上面的 xdebug.idekey 获取
-Host   : localhost
-Port   : 8071               ; .env 文件中 OPEN_PORT 网站的端口号
-```
 
 * PHP > Servers
 

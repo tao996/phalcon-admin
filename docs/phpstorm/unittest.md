@@ -24,11 +24,10 @@ docker-compose exec php sh // 也可能是 docker compose 取决于你的系统
 打开 PHPStorm Setting, 进入 `PHP > Test Frameworks`
 
 1. 添加一个新的测试框架 `PHPUnit By Remote Interpreter`
-    ![Remote Interpreter](../assets//images/unittest1.jpg)
-
+    * ![Remote Interpreter](../assets//images/unittest1.jpg)
 2. Setting
-    注意：你需要安装好 `require-dev`，填写路径 `/var/www/vendor/bin/phpunit`
-    ![配置](../assets/images/unittest2.jpg)
+    * 注意：你需要安装好 `require-dev`，填写路径 `/var/www/vendor/bin/phpunit`
+    * ![配置](../assets/images/unittest2.jpg)
 
 ## 主机开发
 
