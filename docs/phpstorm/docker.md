@@ -15,10 +15,10 @@
 
 ```
 Name                : phalcon-admin ; whatever you like
-Docker for Windows  : default ... docker_engine
+Docker for Windows  : default `npipe:////./pipe/docker_engine`
 
 Virtual machine path            Local path
-/var/www                        /xxx/xxx/YourProjectName/src
+/var/www                        /本地项目/src
 ```
 
 ![Docker](../assets/images/docker.jpg)
@@ -35,7 +35,7 @@ Virtual machine path            Local path
 
 2. `Configure Remote PHP Interpreter`
     ```
-    [selected]Docker Compose
+    选择 Docker Compose
     Server  : phalcon-admin
     Service : php
     ```
@@ -44,7 +44,9 @@ Virtual machine path            Local path
 
     点击 `OK` 按钮
 
-3. 修改名称
-    默认的名称为 `php`，将其修改为新的名称，比如 `phalcon-admin-php`
-    ![cli name](../assets/images/cli3.jpg)
+3. 修改 `CLI Interpreters` 名称
+    * 默认的名称为 `php`，将其修改为新的名称，比如 `phalcon-admin-php`;
+    * Lifecycle: 选择 `Connect to existing container`;
+    * ![cli name](../assets/images/cli3.jpg)
+    
     基本配置已经完成，现在我们可以准备配置 `Debug` 和 `PHPUnit` 了

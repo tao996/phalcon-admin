@@ -2,5 +2,26 @@
 character-set-server=utf8mb4
 collation-server=utf8mb4_0900_ai_ci
 
+# 时区对齐（与 .env 中的 TZ 一致）
+default-time-zone = '+8:00'
+
+# 严格模式，避免不合法的日期/数据写入
+sql-mode = "STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+
+# 最大导入/查询包大小（导入 SQL 文件时需要）
+max_allowed_packet = 128M
+
+# InnoDB 缓冲池（开发机 2G+ 内存时安全；生产机通常设为可用内存的 60-70%）
+innodb_buffer_pool_size = 256M
+
+# 连接数上限
+max_connections = 151
+
+# 慢查询日志（仅开发环境开启）
+slow_query_log = ON
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time = 2
+log_queries_not_using_indexes = ON
+
 [client]
 default-character-set=utf8mb4

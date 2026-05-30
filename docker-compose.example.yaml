@@ -19,13 +19,14 @@ services:
       - ./docker/log/nginx:/var/log/nginx/:rw
     networks:
       - ${NETWORKS_NAME}
-    links:
+    depends_on:
       - php
 
   php:
     container_name: ${APP_NAME}-php
     image: authus/phalcon:5.8.0-s4
     working_dir: /var/www
+    restart: on-failure
     volumes:
       - ./src:/var/www:delegated
 #     将你自己的模块代码挂载到框架的目录下
@@ -40,6 +41,9 @@ services:
       PHP_IDE_CONFIG: "serverName=phalcon-admin"
     env_file:
       - .env
+    # 首次启动时自动修正 storage 目录权限，避免手动 chmod 777
+    entrypoint: >
+      sh -c "chown -R www-data:www-data /var/www/storage 2>/dev/null; exec php-fpm"
 
   mysql:
     container_name: ${APP_NAME}-mysql
@@ -85,7 +89,6 @@ services:
     volumes:
       - ${DATA_PATH_HOST}/redis:/data
     command: "redis-server --requirepass ${REDIS_PASSWORD}  --appendonly no" # 如果需要日志，可将 no 改为 yes
-    privileged: true
     ports:
       - "${REDIS_PORT}:6379"
     restart: always
