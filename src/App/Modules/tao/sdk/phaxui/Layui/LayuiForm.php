@@ -75,7 +75,8 @@ class LayuiForm
             $options[] = "<input lay-filter='" . $name . "' type='radio' name='{$name}' title='{$t}' value='{$v}' $selected>";
         }
         $content = $this->wrapFormLabel($title, $required) . '<div class="layui-input-block">' . join('', $options) . '</div>';
-        return $this->wrapFormItem($content, $formItem);
+        return $this->wrapFormItem($content,
+            name: $name, formItem: $formItem);
     }
 
     /**
@@ -98,14 +99,18 @@ class LayuiForm
                           string $prefix = '',
                           string $subfix = '',
                           string $aux = '',
-                          bool   $formItem = true, bool $block = false): string
+                          string $class = '',
+                          bool   $block = false,
+                          bool   $formItem = true,
+    ): string
     {
         $inputClass = $block ? 'layui-input-block' : 'layui-input-inline';
-        $groupPs = $this->wrapPrefixSuffix('<input ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input"
+        $groupPs = $this->wrapPrefixSuffix('<input ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input ' . $class . '"
                    value="' . $value . '"
                    placeholder="请填写' . $title . '">', $prefix, $subfix);
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="' . $inputClass . '">' . $groupPs . '
-        </div>' . $this->wrapAux($aux), $formItem);
+        </div>' . $this->wrapAux($aux),
+            name: $name, formItem: $formItem);
     }
 
     private function wrapPrefixSuffix(string $content, string $prefix = '', string $suffix = ''): string
@@ -150,21 +155,30 @@ class LayuiForm
      */
     public function switch(string $title, string $name, bool $checked = false,
                            bool   $required = false,
-                           bool   $formItem = true,
                            string $option = "ON|OFF",
-                           string $aux = ''
+                           string $aux = '',
+                           bool   $formItem = true,
+                           string $class = '',
+                           string $style = '',
     ): string
     {
         $checkedText = $checked ? ' checked' : '';
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
             <input lay-filter="' . $name . '" type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . ' title="' . $option . '">
-        </div>' . $this->wrapAux($aux), $formItem, name: $name);
+        </div>' . $this->wrapAux($aux),
+            name: $name, formItem: $formItem, class: $class, style: $style);
     }
 
-    public function wrapFormItem(string $content, bool $formItem = true, string $name = ''): string
+    public function wrapFormItem(string $content,
+                                 string $name = '',
+                                 bool   $formItem = true,
+                                 string $class = '',
+                                 string $style = '',
+    ): string
     {
         $idName = $name ? ' id="layui-form-item-' . $name . '"' : '';
-        return $formItem ? '<div class="layui-form-item" ' . $idName . '>' . $content . '</div>' : $content;
+        $styleText = $style ? ' style="' . $style . '"' : '';
+        return $formItem ? '<div class="layui-form-item ' . $class . '" ' . $idName . $styleText . '>' . $content . '</div>' : $content;
     }
 
     public function wrapFormLabel(string $title, bool $required = false): string
@@ -200,7 +214,8 @@ JS;
             <input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
                    placeholder="请选择' . $title . '">
-        </div>', $formItem);
+        </div>',
+            name: $name, formItem: $formItem);
     }
 
     public function appendFooterJs(string $content): void
@@ -234,7 +249,8 @@ JS;
             <select lay-filter="' . $name . '" name="' . $name . '" id="' . $name . '" ' . $this->layVerifyRequired($required) . '>
                 <option value="">请选择' . $title . '</option>' . join('', $options) . '</select>
         </div>' . $this->wrapAux($aux);
-        return $this->wrapFormItem($content, $formItem);
+        return $this->wrapFormItem($content,
+            name: $name, formItem: $formItem);
     }
 
 
