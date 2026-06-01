@@ -22,6 +22,9 @@ class SystemMenu extends BaseTaoModel
     public string $remark = ''; // 备注信息（通常是关键字）
     public string $roles = ''; // 角色限制
 
+    public array $intColumns = [
+        'sort'
+    ];
 
     public function tableTitle(): string
     {

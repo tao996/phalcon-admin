@@ -15,8 +15,6 @@ class MyUrlBuilder
     private string $path = '';
     private string $language = '';
     private bool $isApi = false;
-
-    private string $mpName = '';
     private array|string $query = [];
     private string $origin = '';
 
@@ -44,21 +42,25 @@ class MyUrlBuilder
         return $this;
     }
 
-    public function withModule(string $moduleName): self
+    public function withModule(string $path): self
     {
-        $this->mpName = 'm/'.$moduleName;
+        $this->path = 'm/'.$path;
         return $this;
     }
 
-    public function withProject(string $projectName): self
+    public function withProject(string $path): self
     {
-        $this->mpName = 'p/'.$projectName;
+        $this->path = 'p/'.$path;
         return $this;
     }
 
     public function queryParams(array|string $query): self
     {
         $this->query = $query;
+        return $this;
+    }
+    public function autoRoute():self
+    {
         return $this;
     }
 
@@ -94,7 +96,6 @@ class MyUrlBuilder
         $items = [];
         if ($this->language !== '') $items[] = $this->language;
         if ($this->isApi) $items[] = 'api';
-        if ($this->mpName) $items[] = $this->mpName;
 
         $url = '/' . ltrim($this->path, '/');
         if (!empty($items)) {

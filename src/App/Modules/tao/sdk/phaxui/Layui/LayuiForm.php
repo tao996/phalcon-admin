@@ -253,6 +253,17 @@ JS;
             name: $name, formItem: $formItem);
     }
 
+    public function checkbox(string $title, string $name,
+                             bool   $checked = false,
+                             bool   $disabled = false,
+                             bool   $formItem = true): string
+    {
+        $checkedText = $checked ? ' checked' : '';
+        $disabledText = $disabled ? ' disabled' : '';
+        $content = '<input id="' . $name . '" type="checkbox" name="' . $name . '" lay-text="' . $title . '" ' . $checkedText . $disabledText . '>';
+        return $this->wrapFormItem($content, name: $name, formItem: $formItem);
+    }
+
 
 }
 

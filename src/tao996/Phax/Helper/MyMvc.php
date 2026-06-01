@@ -261,6 +261,21 @@ class MyMvc
     }
 
     /**
+     * 重新整理参数，通常用于 `admin.table.with({url: prefix, query:})` 中
+     * @return array
+     */
+    public function queryParams(): array
+    {
+        $query = [];
+        foreach ($this->request()->getQuery() as $k => $v) {
+            if ($k != '_url' && $v != '' && $v != 'null' && $v != '0' && $v != 'undefined') {
+                $query[$k] = $v;
+            }
+        }
+        return $query;
+    }
+
+    /**
      * 生成一个 project 请求链接
      * @param string $path 路径
      * @param array|bool $mixed 如果为 `true` 则表示 `api` 请求；<br>
@@ -360,7 +375,7 @@ class MyMvc
      */
     public function console(string $path, bool $filter = true): array
     {
-        $cmd = 'php '.PATH_ROOT.'artisan ' . $path;
+        $cmd = 'php ' . PATH_ROOT . 'artisan ' . $path;
 
         exec($cmd, $output, $result_code);
         if ($result_code === 0) {

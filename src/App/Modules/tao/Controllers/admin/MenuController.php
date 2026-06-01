@@ -97,6 +97,7 @@ class MenuController extends BaseController
         } else {
             $data['kind'] = 0;
         }
+        $data['sort'] = MyData::getInt($data,'sort');
         $model->assign($data, [
             'pid',
             'title',

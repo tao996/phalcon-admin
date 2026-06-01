@@ -113,9 +113,9 @@ CREATE TABLE `test_user` (
   `created_at` int UNSIGNED NOT NULL DEFAULT '0',
   `updated_at` int UNSIGNED NOT NULL DEFAULT '0',
   `deleted_at` int UNSIGNED DEFAULT NULL,
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `age` int UNSIGNED NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 ALTER TABLE `demo_article`

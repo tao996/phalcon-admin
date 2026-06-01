@@ -430,7 +430,7 @@ const admin = {
                         }
                         if (typeof ok == 'function') {
                             // setTimeout(function () {
-                                ok(res);
+                            ok(res);
                             // }, 500)
                         }
                     } else {
@@ -691,8 +691,8 @@ const admin = {
                 // const width = document.body.clientWidth, height = document.body.clientHeight;
 
                 if (width >= 1000 && height >= 600) {
-                    options.width = '1000px';
-                    options.height = '600px';
+                    options.width = (width - 40) + 'px';
+                    options.height = (height - 20) + 'px';
                 } else {
                     options.width = '100%';
                     options.height = '100%'
@@ -798,7 +798,7 @@ const admin = {
                     const jThis = $(this);
                     const uploadExts = jThis.attr('data-upload-exts') || 'png|jpg|jpeg',
                         uploadName = jThis.attr('data-upload'),
-                        uploadNumber = parseInt( jThis.attr('data-upload-number')) || 1, // 可选择图片数量
+                        uploadNumber = parseInt(jThis.attr('data-upload-number')) || 1, // 可选择图片数量
                         uploadSeparator = jThis.attr('data-upload-separator') || '|', // 分割符
                         uploadAccept = jThis.attr('data-upload-accept') || 'file',
                         uploadAcceptMime = jThis.attr('data-upload-mimetype') || '';
@@ -909,7 +909,7 @@ const admin = {
             if (uploadSelectList.length > 0) {
                 layui.jquery.each(uploadSelectList, function (i, v) {
                     const uploadName = $(this).attr('data-upload-select'),
-                        uploadNumber = parseInt( $(this).attr('data-upload-number')) || 1,
+                        uploadNumber = parseInt($(this).attr('data-upload-number')) || 1,
                         uploadSeparator = $(this).attr('data-upload-separator') || '|';
 
                     const selectCheck = uploadNumber > 1 ? 'checkbox' : 'radio',
@@ -1012,10 +1012,10 @@ const admin = {
          */
         render: function (options, additions = {}) {
             const tableId = this._config.id;
-
+            const data = form.val('form-search');
             const config = Object.assign({
                 elem: '#' + tableId,
-                url: admin.util.concatQuery(this._config.url, this._config.query),
+                url: admin.util.concatQuery(this._config.url, Object.assign(data,this._config.query)),
                 defaultToolbar: ['filter', {
                     title: '搜索',
                     layEvent: 'search',
@@ -1033,7 +1033,7 @@ const admin = {
             }, options)
             if (config.page && admin.util.isEmpty(config['limit'])) {
                 config['limit'] = 15;
-                config['limits'] = [1, 15, 30, 50];
+                config['limits'] = [1, 15, 30, 50, 100];
             }
             const adds = Object.assign({
                 search: true,

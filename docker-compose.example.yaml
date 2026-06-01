@@ -41,9 +41,9 @@ services:
       PHP_IDE_CONFIG: "serverName=phalcon-admin"
     env_file:
       - .env
-    # 首次启动时自动修正 storage 目录权限，避免手动 chmod 777
+    # 首次启动时自动修正 storage 目录权限（Linux 用 chown，Windows 用 chmod 777）
     entrypoint: >
-      sh -c "chown -R www-data:www-data /var/www/storage 2>/dev/null; exec php-fpm"
+      sh -c "chmod -R 777 /var/www/storage 2>/dev/null; exec php-fpm"
 
   mysql:
     container_name: ${APP_NAME}-mysql
