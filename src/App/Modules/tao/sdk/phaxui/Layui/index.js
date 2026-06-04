@@ -1240,7 +1240,7 @@ const admin = {
          * @example
          * ```
          * {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
-         * // 默认 selectList: {0: '禁用', 1: '启用'},tips: '开|关',
+         * // tips: '正常|禁用',
          * ```
          */
         switch: function (data) {
@@ -1251,7 +1251,7 @@ const admin = {
             const option = {
                 field: this.field,
                 value: data[this.field],
-                selectList: this.selectList || {0: '禁用', 1: '启用'},
+                // selectList: this.selectList || {0: '禁用', 1: '启用'}, // 没啥用
                 tips: this.tips || '正常|禁用',
                 filter: this.filter || this.field
             }

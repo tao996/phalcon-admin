@@ -221,6 +221,7 @@ class BaseRbacController extends BaseResponseController
         // 非公共节点都需要登录
         if (!$this->isLogin()) {
             $msg = $this->isApiRequest() ? '您还没有登录' : '您还没有登录，前往登录?';
+            // ddd( $this->vv->urlWith('/m/tao/auth/index'));
             $this->accessDenyResponse($msg, 303, $this->vv->urlWith('/m/tao/auth/index'));
             return;
         }

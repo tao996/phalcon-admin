@@ -38,7 +38,7 @@ class CmsCategory extends BaseTaoModel
     public static function mapKind(int $kind = 0)
     {
         static $kinds = [self::KindList => '文章列表'];
-        return MyData::getMapData($kinds,$kind);
+        return MyData::getMapDataByKey($kinds,$kind) ?: $kinds;
     }
 
 }

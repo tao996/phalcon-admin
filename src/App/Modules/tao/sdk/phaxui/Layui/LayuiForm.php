@@ -15,8 +15,6 @@ class LayuiForm
         return $required ? 'lay-verify="required"' : '';
     }
 
-    private array $footerJs = [];
-    private array $footerCss = [];
 
     /**
      * 渲染一个  select
@@ -200,7 +198,7 @@ class LayuiForm
     ): string
     {
         $rangeText = $range ? 'true' : 'false';
-        $this->footerJs[] = <<<JS
+        $this->mvc->layui()->appendFooterJs(<<<JS
         layui.use(['laydate'], function () {
             var laydate = layui.laydate;
             laydate.render({
@@ -209,28 +207,14 @@ class LayuiForm
                 range: {$rangeText},
             });
         });
-JS;
+JS
+        );
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
             <input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
                    placeholder="请选择' . $title . '">
         </div>',
             name: $name, formItem: $formItem);
-    }
-
-    public function appendFooterJs(string $content): void
-    {
-        $this->footerJs[] = $content;
-    }
-
-    public function appendFooterCss(string $content): void
-    {
-        $this->footerCss[] = $content;
-    }
-
-    public function footer(): string
-    {
-        return '<script>' . join('', $this->footerJs) . '</script>' . '<style>' . join('', $this->footerCss) . '</style>';
     }
 
     /**

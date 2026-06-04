@@ -469,13 +469,15 @@ class QueryBuilder
 
     /**
      * 查询符合条件的所有记录
-     * @param array|string $fields 指定要查询的字段
+     * @param array|string $fields 指定要查询的字段,默认全部
      * @param string|null $key 如果设置，则会将此字段的值提升为查询记录的 key
      * @throws \Exception
      */
-    public function findColumn(array|string $fields, string $key = null): array
+    public function findColumn(array|string $fields = [], string $key = null): array
     {
-        $this->columns($fields);
+        if (!empty($fields)) {
+            $this->columns($fields);
+        }
         $rows = $this->find();
         return $key ? MyData::columnMap($rows, $key) : $rows;
     }

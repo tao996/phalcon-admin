@@ -60,7 +60,10 @@ class MyBaseUri
                     $host = 'localhost';
                 }
             }
-//            ddd($scheme, $host, $port);
+            if (str_contains($host,':')){
+                $host = explode(':',$host)[0];
+            }
+        //    ddd($scheme, $host, $port);
 
             $this->origin = "{$scheme}://{$host}{$port}/";
         }

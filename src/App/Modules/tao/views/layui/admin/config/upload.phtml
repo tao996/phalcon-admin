@@ -21,7 +21,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
 <form class="layui-form">
     <?php
     if ($hasUploadDriver) {
-        $driverText = MyData::getMapData(OssUploadHelper::TypeMap, $ccUpload['driver']);
+        $driverText = MyData::getMapDataByKey(OssUploadHelper::TypeMap, $ccUpload['driver']);
         ?>
 
         <div class='layui-form-item'>

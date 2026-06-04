@@ -367,24 +367,29 @@ class MyData
         return preg_split('/\s+/', $content, -1, PREG_SPLIT_NO_EMPTY);
     }
 
+
     /**
-     * 通常用在 Model 中
+     * 通过值获取索引值
      * @param array $mapData [1=>'active', 2=>'disabled',...]
-     * @param int|string|null $key 用戶提交的數據
-     * @param mixed $def 默认值，默认为 null 表示没有找到则抛出异常
+     * @param string|int $value 索引值所对应的值，如 'active'
+     * @param mixed $def 默认值，默认为 null
+     * @return mixed 索引值, 如 'active' 对应的索引值为 1
+     */
+    public static function getMapDataByValue(array $mapData, int|string $value, mixed $def = null): mixed
+    {
+        return array_flip($mapData)[$value] ?? $def;
+    }
+
+    /**
+     * 通过索引值获取值
+     * @param array $mapData
+     * @param int|string $key
+     * @param mixed $def 默认为  null
      * @return mixed
      */
-    public static function getMapData(array $mapData, int|null|string $key = 0, mixed $def = null): mixed
+    public static function getMapDataByKey(array $mapData, int|string $key, mixed $def = null): mixed
     {
-        if (empty($key)) {
-            return $mapData;
-        }
-        if (isset($mapData[$key])) {
-            return $mapData[$key];
-        } elseif (is_null($def)) {
-            throw new \Exception(sprintf('key:(%s) is not found in mapData', $key));
-        }
-        return $def;
+        return $mapData[$key] ?? $def;
     }
 
 }

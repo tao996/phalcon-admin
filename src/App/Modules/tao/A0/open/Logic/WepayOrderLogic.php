@@ -185,7 +185,7 @@ class WepayOrderLogic
             throw new \Exception('当前订单正在退款中');
         }
         // 申请退款
-        if (IS_DEBUG){
+        if (IS_DEBUG) {
             Logger::info('申请退款');
         }
         $refundData = $setPostRefundData();
@@ -214,8 +214,8 @@ class WepayOrderLogic
             Logger::info('处理订单[' . $this->order->id . ']退款数据', $data);
         }
         if ($this->order->refund_time > 0) { // 已经处理过退款
-            if (IS_DEBUG){
-                Logger::info('订单[' . $this->order->id . ']已经处理过退款数据:'.$this->order->refund_time);
+            if (IS_DEBUG) {
+                Logger::info('订单[' . $this->order->id . ']已经处理过退款数据:' . $this->order->refund_time);
             }
             return false;
         }
@@ -244,7 +244,8 @@ class WepayOrderLogic
                     }
                 }
             } else {
-                $this->order->refund_status = MyData::getMapData(OpenOrder::MapText2RefundStatus, $data['status'], 0);
+                $this->order->refund_status = MyData::getMapDataByValue(
+                    OpenOrder::MapText2RefundStatus, $data['status'], def: 0);
                 $this->order->refund_id = $data['refund_id'];
                 $this->order->refund_amt = $data['amount']['payer_refund']; // 退款用户的金额
 

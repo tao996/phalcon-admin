@@ -19,6 +19,10 @@ class Layui
     private bool $hasImportFooter = false;
     private bool $hasImportHeader = false;
 
+
+    private array $footerJs = [];
+    private array $footerCss = [];
+
     public function __construct(public TaoHtmlHelper $helper, string $version = '2.13.6')
     {
         $this->version = $version;
@@ -94,8 +98,17 @@ class Layui
 
         include HtmlAssets::tryMinFile(__DIR__ . '/index.js');
         echo '</script>';
-
+        echo  '<script>' . join('', $this->footerJs) . '</script>' . '<style>' . join('', $this->footerCss) . '</style>';
         return $this;
+    }
+    public function appendFooterJs(string $content): void
+    {
+        $this->footerJs[] = $content;
+    }
+
+    public function appendFooterCss(string $content): void
+    {
+        $this->footerCss[] = $content;
     }
 
 

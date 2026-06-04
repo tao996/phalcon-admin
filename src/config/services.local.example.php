@@ -1,5 +1,6 @@
 <?php
 // 直接本机运行（不是运行在 docker 中）
+// 注意 redis 和 mysql 的密码
 const redisConfig = [
     'lifetime' => 7200,
     'host' => '127.0.0.1',
@@ -30,7 +31,7 @@ return [
                 'port' => 3306,
                 'dbname' => 'phalcon-admin',
                 'username' => 'root',
-                'password' => '123456',
+                'password' => '',
                 'charset' => 'utf8mb4',
                 'collation' => 'utf8mb4_unicode_ci',
                 'prefix' => '',

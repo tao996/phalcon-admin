@@ -48,6 +48,6 @@ class CmsArticle extends BaseTaoModel
             self::CheckStatusDeny => '不通过',
             self::CheckStatusSuccess => '通过',
         ];
-        return MyData::getMapData($data,$cStatus);
+        return MyData::getMapDataByKey($data, $cStatus) ?: $data;
     }
 }
