@@ -166,6 +166,29 @@ const admin = {
                 return '';
             }
             return layui.util.toDateString(phpTimestamp * 1000, format)
+        },
+        /**
+         * 金额友好格式化（千分位 + 可选隐藏 .00）
+         * @param {number | string} amount - 原始金额（支持数字/字符串）
+         * @param {boolean} showZeroDecimal - 是否显示末尾 .00，默认 false（隐藏）
+         * @returns {string} 格式化后的金额
+         */
+        formatMoney: function (amount, showZeroDecimal = false) {
+            // 第一步：转数字并容错处理
+            const num = parseFloat(amount)
+            if (isNaN(num)) return '0.00'
+
+            // 第二步：固定保留两位小数
+            let fixed = num.toFixed(2)
+
+            // 第三步：添加千分位逗号（正则匹配）
+            let formatted = fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+            // 第四步：如果不需要显示 .00 且小数部分是 00，则去掉
+            if (!showZeroDecimal && formatted.endsWith('.00')) {
+                formatted = formatted.slice(0, -3)
+            }
+            return formatted
         }
     },
 
@@ -694,8 +717,8 @@ const admin = {
                     options.width = (width - 40) + 'px';
                     options.height = (height - 20) + 'px';
                 } else {
-                    options.width = '100%';
-                    options.height = '100%'
+                    options.width = '90%';
+                    options.height = '90%'
                 }
                 // console.log('iframe:', width, height, '=>', options.width, options.height)
             }
@@ -1138,7 +1161,7 @@ const admin = {
                 create: function () {
                     admin.iframe.open(url + '/add', {
                         title: '添加记录',
-                        full: !$(this).attr('data-auto'),
+                        // full: !$(this).attr('data-auto'),
                         end: function () {
                             admin.iframe.hasRefresh(() => {
                                 layui.table.reload(tableId);
@@ -1217,6 +1240,10 @@ const admin = {
         icon: function (data) {
             const v = data[this.field];
             return `<i class="${v}"></i>`
+        },
+        money: function (data) {
+            const v = data[this.field];
+            return admin.util.formatMoney(v);
         },
         image: function (data, useV = false) {
             const option = {

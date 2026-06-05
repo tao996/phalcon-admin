@@ -272,6 +272,8 @@ class BaseController extends BaseRbacController
         foreach ($this->model->floatColumns as $column) {
             if (array_key_exists($column, $data)) {
                 $data[$column] = (float)$data[$column];
+            } else {
+                $data[$column] = 0;
             }
         }
         foreach ($this->model->nullColumns as $column) {
@@ -282,11 +284,15 @@ class BaseController extends BaseRbacController
         foreach ($this->model->bool2IntColumns as $column) {
             if (array_key_exists($column, $data)) {
                 $data[$column] = MyData::getBool($data, $column) ? 1 : 0;
+            } else {
+                $data[$column] = 0;
             }
         }
         foreach ($this->model->intColumns as $column) {
             if (array_key_exists($column, $data)) {
                 $data[$column] = MyData::getInt($data, $column);
+            } else {
+                $data[$column] = 0;
             }
         }
 

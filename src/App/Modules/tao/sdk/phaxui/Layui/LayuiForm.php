@@ -31,7 +31,8 @@ class LayuiForm
                            mixed  $value = null,
                            bool   $required = false,
                            string $aux = '',
-                           bool   $formItem = true
+                           bool   $formItem = true,
+                           array  $attrs = []
     ): string
     {
         $options = [];
@@ -40,7 +41,7 @@ class LayuiForm
             $options[] = "<option value='{$v}' $selected>{$t}</option>";
         }
 
-        return $this->extractedSelect($title, $required, $name, $options, $aux, $formItem);
+        return $this->extractedSelect($title, $required, $name, $options, $aux, $formItem, $attrs);
     }
 
     public function groupSelect(string $title, string $name,
@@ -224,13 +225,18 @@ JS
      * @param array $options
      * @param string $aux
      * @param bool $formItem
+     * @param array $attrs 附加到 select 标签的 HTML 属性，如 ['lay-search' => '']
      * @return string
      */
-    protected function extractedSelect(string $title, bool $required, string $name, array $options, string $aux, bool $formItem): string
+    protected function extractedSelect(string $title, bool $required, string $name, array $options, string $aux, bool $formItem, array $attrs = []): string
     {
+        $extraAttrs = '';
+        foreach ($attrs as $attrName => $attrValue) {
+            $extraAttrs .= ' ' . $attrName . ($attrValue !== '' && $attrValue !== null ? '="' . htmlspecialchars($attrValue) . '"' : '');
+        }
         $content = $this->wrapFormLabel($title, $required) . '
         <div class="layui-input-inline">
-            <select lay-filter="' . $name . '" name="' . $name . '" id="' . $name . '" ' . $this->layVerifyRequired($required) . '>
+            <select lay-filter="' . $name . '" name="' . $name . '" id="' . $name . '" ' . $this->layVerifyRequired($required) . $extraAttrs . '>
                 <option value="">请选择' . $title . '</option>' . join('', $options) . '</select>
         </div>' . $this->wrapAux($aux);
         return $this->wrapFormItem($content,
