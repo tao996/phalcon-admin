@@ -148,23 +148,26 @@ class BaseController extends BaseRbacController
     public function indexAction()
     {
         if ($this->isApiRequest()) {
-            $queryBuilder = $this->model->getQueryBuilder($this->getDI());
+            if ($this->model) {
+                $queryBuilder = $this->model->getQueryBuilder($this->getDI());
 
-
-            if ($this->isUserAction()) {
-                if (property_exists($this->model, 'user_id')) {
-                    $queryBuilder->int('user_id', $this->loginUser()->id);
+                if ($this->isUserAction()) {
+                    if (property_exists($this->model, 'user_id')) {
+                        $queryBuilder->int('user_id', $this->loginUser()->id);
+                    }
                 }
-            }
 
-            $this->beforeIndexQuery($queryBuilder);
-            $count = $queryBuilder->count();
-            $rows = [];
-            if ($count > 0) {
-                $this->pagination($queryBuilder);
-                $rows = $this->buildIndexResult($count, $queryBuilder);
+                $this->beforeIndexQuery($queryBuilder);
+                $count = $queryBuilder->count();
+                $rows = [];
+                if ($count > 0) {
+                    $this->pagination($queryBuilder);
+                    $rows = $this->buildIndexResult($count, $queryBuilder);
+                }
+                return $this->successPagination($count, $rows);
+            } else {
+                return $this->successPagination(0, []);
             }
-            return $this->successPagination($count, $rows);
         }
         $this->updateHtmlTitle('列表', false);
         return [];

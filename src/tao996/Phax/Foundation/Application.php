@@ -77,6 +77,17 @@ class Application
             ->application();
 
         $requestURL = $requestURL ?: $_SERVER['REQUEST_URI'];
+
+        // IP 白名单检查
+        $ipWhitelist = $di->get('config')->path('app.ipWhitelist', [])->toArray();
+        if (!empty($ipWhitelist)) {
+            $clientIP = $_SERVER['REMOTE_ADDR'] ?? '';
+            if (!$this->checkIpWhitelist($clientIP, $ipWhitelist)) {
+                http_response_code(403);
+                exit('您的 IP 地址 (' . $clientIP . ') 不在访问白名单中');
+            }
+        }
+
         try {
             if ($response = $this->routeWith($requestURL, $di)) {
                 if ($response->isSent()) {
@@ -326,5 +337,56 @@ class Application
         }
 
         return null;
+    }
+
+    /**
+     * 检查 IP 是否在白名单中
+     * @param string $ip 客户端 IP 地址
+     * @param array $whitelist IP 白名单列表（支持精确/CIDR/通配符）
+     * @return bool
+     */
+    private function checkIpWhitelist(string $ip, array $whitelist): bool
+    {
+        $ipLong = ip2long($ip);
+        if ($ipLong === false) {
+            return false; // 非法 IP 格式，拒绝
+        }
+
+        foreach ($whitelist as $rule) {
+            $rule = trim($rule);
+            if ($rule === '') {
+                continue;
+            }
+
+            // 1. CIDR 格式：192.168.1.0/24
+            if (str_contains($rule, '/')) {
+                [$subnet, $bits] = explode('/', $rule, 2);
+                $subnetLong = ip2long($subnet);
+                if ($subnetLong === false || !is_numeric($bits)) {
+                    continue;
+                }
+                $mask = -1 << (32 - (int)$bits);
+                if (($ipLong & $mask) === ($subnetLong & $mask)) {
+                    return true;
+                }
+                continue;
+            }
+
+            // 2. 通配符格式：192.168.* 或 192.168.*.*
+            if (str_contains($rule, '*')) {
+                $pattern = '/^' . str_replace(['.', '*'], ['\.', '\d+'], $rule) . '$/';
+                if (preg_match($pattern, $ip)) {
+                    return true;
+                }
+                continue;
+            }
+
+            // 3. 精确匹配
+            if ($ip === $rule) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -1013,14 +1013,20 @@ const admin = {
         render: function (options, additions = {}) {
             const tableId = this._config.id;
             const data = form.val('form-search');
-            const config = Object.assign({
-                elem: '#' + tableId,
-                url: admin.util.concatQuery(this._config.url, Object.assign(data,this._config.query)),
-                defaultToolbar: ['filter', {
+            const defaultToolbar = [
+                'filter', // 列筛选
+                'exports', // 导出
+                'print', // 打印
+                {
                     title: '搜索',
                     layEvent: 'search',
                     icon: 'layui-icon-search'
-                }],
+                }
+            ];
+            const config = Object.assign({
+                elem: '#' + tableId,
+                url: admin.util.concatQuery(this._config.url, Object.assign(data, this._config.query)),
+                defaultToolbar: [], // 默认不需要
                 page: true,
                 parseData: function (res) { // res 即为原始返回的数据
                     return {
