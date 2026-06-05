@@ -21,7 +21,8 @@
     "phpunit/phpunit": "^11.2",
     "mockery/mockery": "^1.6",
     "phpstan/phpstan": "^2.1",
-    "viest/php-ext-xlswriter-ide-helper": "^2.0"
+    "viest/php-ext-xlswriter-ide-helper": "^2.0",
+    "phalcon/ide-stubs": "^5.13"
   },
   "autoload": {
     "psr-4": {

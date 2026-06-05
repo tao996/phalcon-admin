@@ -74,8 +74,10 @@ $data['app'] = [
     // 当访问路径为 '' 或 '/' 时，默认访问的链接
     'default' => '',
     'defaultApp' => [
+        // 自定义时只能指向 App\Modules\xxx\Controller 或者 App\Projects\xxx\Controller
         'namespace' => 'App\Http\Controllers',
-        'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
+        // viewpath 默认会根据 namespace 进行判断
+//        'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
     ],
 ];
 

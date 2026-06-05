@@ -373,7 +373,7 @@ class BaseController extends BaseRbacController
 
         $this->model->assign([
             $post['field'] => $post['value']
-        ]);
+        ], [$post['field']]);
         $this->beforeModifySave($this->model);
         if ($this->model->save()) {
             $this->vv->logService()->insert($this->model->tableTitle(), 'modify');

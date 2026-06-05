@@ -119,14 +119,18 @@ class Application
             if ($e instanceof \Phalcon\Mvc\Dispatcher\Exception) {
                 try {
                     return call_user_func_array([$errObj, 'notFound'], [$e]) ?: 'sorry ...';
+                } catch (\Phax\Support\Exception\BlankException $e) {
+                    return ''; // JSON 响应已由 $this->json() 通过 send() 发送，无需追加内容
                 } catch (\Throwable $_) {
                     return '页面未找到';
                 }
             } else {
                 try {
                     return call_user_func_array([$errObj, 'exception',], [$e]) ?: 'sorry ...';
+                } catch (\Phax\Support\Exception\BlankException $e) {
+                    return ''; // JSON 响应已由 $this->json() 通过 send() 发送，无需追加内容
                 } catch (\Throwable $_) {
-                    return '系统繁忙，请稍后再试';
+                    return '系统繁忙，请稍后再试2';
                 }
             }
         } else {
@@ -159,8 +163,25 @@ class Application
             'projectNamespace' => $project['namespace'] ?: null,
             'projectViewpath' => $project['viewpath'] ?: null,
             'defaultNamespace' => $defaultApp['namespace'] ?? 'App\\Http\\Controllers',
-            'defaultViewpath' => $defaultApp['viewpath'] ?? PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
+            'defaultViewpath' => $defaultApp['viewpath'] ?? '',
         ];
+        if (empty($options['defaultViewpath'])) {
+            if ($options['defaultNamespace'] === 'App\\Http\\Controllers') {
+                $options['defaultViewpath'] = PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views';
+            } else {
+                if (!str_ends_with($options['defaultNamespace'], '\\Controllers')) {
+                    throw new \Exception('自定义命名空间必须以 \\Controllers 结尾');
+                }
+                if (str_starts_with($options['defaultNamespace'], 'App\\Modules\\')) {
+                    $cc = explode('\\', $options['defaultNamespace']);
+                    $options['defaultViewpath'] = PATH_APP_MODULES . $cc[2] . '/views';
+                } elseif (str_starts_with($options['defaultNamespace'], 'App\\Projects\\')) {
+                    $cc = explode('\\', $options['defaultNamespace']);
+                    $options['defaultViewpath'] = PATH_APP_PROJECTS . $cc[2] . '/views';
+                }
+
+            }
+        }
         $route->routerOptions = Router::analysisWithURL($route->urlOptions['mapurl'], $options);
 //        ddd($route->urlOptions,$route->routerOptions);
 
@@ -279,5 +300,31 @@ class Application
         } else {
             return $input;
         }
+    }
+
+    /**
+     * 从控制器命名空间中精准提取模块/项目名称
+     * * @param string $namespace 完整的命名空间或类名
+     * @return string|null 匹配成功返回名称(xxx)，匹配失败返回 null
+     */
+    private function extractNameFromNamespace(string $namespace): ?string
+    {
+        // 🚀 正则解析：
+        // ^App\\                   -> 必须以 App\ 开头
+        // (Modules|Projects)       -> 第二级必须是 Modules 或 Projects 之一
+        // \\([a-zA-Z0-9_]+)        -> 第三级 xxx 为我们要捕获的名称
+        // \\Controllers?           -> 最后一级匹配 Controller 或 Controllers
+        $pattern = '/^App\\\\(Modules|Projects)\\\\([a-zA-Z0-9_]+)\\\\Controllers?$/';
+
+        // 去掉可能传入的末尾反斜杠
+        $namespace = rtrim($namespace, '\\');
+
+        if (preg_match($pattern, $namespace, $matches)) {
+            // $matches[1] 是 Modules 或 Projects
+            // $matches[2] 就是我们需要的 xxx
+            return $matches[2];
+        }
+
+        return null;
     }
 }
