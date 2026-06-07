@@ -9,7 +9,6 @@ use Phax\Foundation\Route;
 use Phax\Support\Config;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\I18n\Translate;
-use Phax\Support\Router;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
 

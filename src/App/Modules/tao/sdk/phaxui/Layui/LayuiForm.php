@@ -69,9 +69,10 @@ class LayuiForm
                           bool   $formItem = true): string
     {
         $options = [];
+        $requiredElem = $required ? '  lay-verify="required"' : '';
         foreach ($vtOptions as $v => $t) {
             $selected = $value == $v ? 'checked' : '';
-            $options[] = "<input lay-filter='" . $name . "' type='radio' name='{$name}' title='{$t}' value='{$v}' $selected>";
+            $options[] = "<input " . $requiredElem . " lay-filter='" . $name . "' type='radio' name='{$name}' title='{$t}' value='{$v}' $selected>";
         }
         $content = $this->wrapFormLabel($title, $required) . '<div class="layui-input-block">' . join('', $options) . '</div>';
         return $this->wrapFormItem($content,
@@ -210,10 +211,11 @@ class LayuiForm
         });
 JS
         );
+        $requiredElem = $required ? '  lay-verify="required"' : '';
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
             <input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
-                   placeholder="请选择' . $title . '">
+                   placeholder="请选择' . $title . '" ' . $requiredElem . '>
         </div>',
             name: $name, formItem: $formItem);
     }

@@ -326,12 +326,12 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 校验钩子
-     * 检查修改参数，在模型检查过后，执行 `($this->model)::mustFindFirst($post['id'])` 之前调用
+     * modifyAction 校验钩子，对提交的数据进行检查
+     * 在执行 `($this->model)::mustFindFirst($post['id'])` 之前调用
      * @param array $data
      * @return void
      */
-    protected function validateModifyData(array $data)
+    protected function beforeModifyData(array $data)
     {
     }
 
@@ -340,7 +340,7 @@ class BaseController extends BaseRbacController
      * @param $model
      * @return void
      */
-    protected function beforeModifySave(Model $model): void
+    protected function beforeModelModifySave(Model $model): void
     {
 
     }
@@ -371,7 +371,7 @@ class BaseController extends BaseRbacController
         if (!property_exists($this->model, $post['field'])) {
             return $this->error('当前模型不存在此属性');
         }
-        $this->validateModifyData($post);
+        $this->beforeModifyData($post);
 
 
         $this->model = ($this->model)::mustFindFirst($post['id']);
@@ -383,7 +383,7 @@ class BaseController extends BaseRbacController
         $this->model->assign([
             $post['field'] => $post['value']
         ], [$post['field']]);
-        $this->beforeModifySave($this->model);
+        $this->beforeModelModifySave($this->model);
         if ($this->model->save()) {
             $this->vv->logService()->insert($this->model->tableTitle(), 'modify');
             $this->afterModelChange('edit');

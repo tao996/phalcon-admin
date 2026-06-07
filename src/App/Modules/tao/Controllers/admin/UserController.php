@@ -157,7 +157,7 @@ class UserController extends BaseController
         return $data;
     }
 
-    protected function validateModifyData(array $data): void
+    protected function beforeModifyData(array $data): void
     {
         if (in_array($data['id'], $this->vv->superAdminIds()) && $data['field'] == 'status') {
             throw new \Exception('不允许修改超级管理员状态');

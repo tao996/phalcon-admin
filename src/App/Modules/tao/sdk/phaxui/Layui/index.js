@@ -105,6 +105,9 @@ const admin = {
             }
             var d = [];
             for (var key in dict) {
+                if (admin.util.isEmpty(dict[key])){
+                    continue;
+                }
                 if (Object.prototype.hasOwnProperty.call(dict, key)) {
                     d.push(encodeURIComponent(key) + '=' + encodeURIComponent(dict[key]));
                 }

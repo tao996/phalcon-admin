@@ -14,7 +14,8 @@
     "ext-pdo": "*",
     "ext-gd": "*",
     "ext-intl": "*",
-    "ext-xlswriter": "*"
+    "ext-xlswriter": "*",
+    "ext-bcmath": "*"
   },
   "require-dev": {
     "php": "^8.3",
