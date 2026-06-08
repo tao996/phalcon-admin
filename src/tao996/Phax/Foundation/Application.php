@@ -295,10 +295,18 @@ class Application
         try {
             $console->handle($arguments);
         } catch (\Phalcon\Cli\Console\Exception $e) {
-            fwrite(STDERR, $e->getMessage() . PHP_EOL);
+            fwrite(STDERR, get_class($e) . ': ' . $e->getMessage() . PHP_EOL);
+            fwrite(STDERR, '  at ' . $e->getFile() . ':' . $e->getLine() . PHP_EOL);
+            if (defined('IS_DEBUG') && IS_DEBUG) {
+                fwrite(STDERR, PHP_EOL . $e->getTraceAsString() . PHP_EOL);
+            }
             exit(1);
         } catch (\Throwable $throwable) { // parent of \Exception
-            fwrite(STDERR, $throwable->getMessage() . PHP_EOL);
+            fwrite(STDERR, get_class($throwable) . ': ' . $throwable->getMessage() . PHP_EOL);
+            fwrite(STDERR, '  at ' . $throwable->getFile() . ':' . $throwable->getLine() . PHP_EOL);
+            if (defined('IS_DEBUG') && IS_DEBUG) {
+                fwrite(STDERR, PHP_EOL . $throwable->getTraceAsString() . PHP_EOL);
+            }
             exit(1);
         }
     }

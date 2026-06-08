@@ -127,14 +127,16 @@ class LoginUserHelper
      */
     public function getHomeInfo(): array
     {
-        return SystemMenu::queryBuilder($this->mvc->getDi())
+        $row = SystemMenu::queryBuilder($this->mvc->getDi())
             ->columns(['title', 'icon', 'href', 'type', 'params'])
             ->int('pid', Data::HOME_PID)
-            ->findFirstArray(function (&$row) {
-                if ($row['href']) {
-                    $row['href'] = $this->mvc->menuService()->href($row['href'], $row['type'], $row['params']);
-                }
-            });
+            ->findFirstArray();
+        if ($row){
+            if ($row['href']) {
+                $row['href'] = $this->mvc->menuService()->href($row['href'], $row['type'], $row['params']);
+            }
+        }
+        return $row;
     }
 
     /**

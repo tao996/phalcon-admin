@@ -1288,7 +1288,7 @@ const admin = {
                 field: this.field,
                 value: data[this.field],
                 // selectList: this.selectList || {0: '禁用', 1: '启用'}, // 没啥用
-                tips: this.tips || '正常|禁用',
+                tips: this.tips || '显示|隐藏',
                 filter: this.filter || this.field
             }
             const key = admin.table._config.key;

@@ -8,7 +8,7 @@ if (!defined('PATH_ROOT')) {
  * 传统 php-fpm 模式
  */
 define('IS_PHP_FPM', isset($_SERVER['HTTP_HOST']));
-const IS_WEB = IS_PHP_FPM ;
+const IS_WEB = IS_PHP_FPM;
 /**
  * 命令行任务模式
  */
@@ -16,20 +16,21 @@ define('IS_TASK', php_sapi_name() === 'cli' && !IS_WEB); // 命令行任务模�
 
 
 // remove after the package publish release
-const PATH_PHAR_SRC = PATH_ROOT . 'phar-src'.DIRECTORY_SEPARATOR ;
+const PATH_PHAR_SRC = PATH_ROOT . 'phar-src' . DIRECTORY_SEPARATOR;
 // 所有 PATH_XXX 都需要以 / 结尾
-const PATH_CONFIG = PATH_ROOT . 'config'.DIRECTORY_SEPARATOR ;
-const PATH_APP = PATH_ROOT . 'App'.DIRECTORY_SEPARATOR ;
-const PATH_PUBLIC = PATH_ROOT . 'public'.DIRECTORY_SEPARATOR ;
-const PATH_STORAGE = PATH_ROOT . 'storage'.DIRECTORY_SEPARATOR ;
-const PATH_STORAGE_DATA = PATH_STORAGE . 'data'.DIRECTORY_SEPARATOR ;
-const PATH_APP_MODULES = PATH_ROOT . 'App'.DIRECTORY_SEPARATOR .'Modules'.DIRECTORY_SEPARATOR ;
-const PATH_APP_PROJECTS = PATH_ROOT . 'App'.DIRECTORY_SEPARATOR .'Projects'.DIRECTORY_SEPARATOR ;
+const PATH_CONFIG = PATH_ROOT . 'config' . DIRECTORY_SEPARATOR;
+const PATH_APP = PATH_ROOT . 'App' . DIRECTORY_SEPARATOR;
+const PATH_PUBLIC = PATH_ROOT . 'public' . DIRECTORY_SEPARATOR;
+const PATH_PUBLIC_UPLOAD = PATH_ROOT . 'public' . DIRECTORY_SEPARATOR . 'upload' . DIRECTORY_SEPARATOR;
+const PATH_STORAGE = PATH_ROOT . 'storage' . DIRECTORY_SEPARATOR;
+const PATH_STORAGE_DATA = PATH_STORAGE . 'data' . DIRECTORY_SEPARATOR;
+const PATH_APP_MODULES = PATH_ROOT . 'App' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR;
+const PATH_APP_PROJECTS = PATH_ROOT . 'App' . DIRECTORY_SEPARATOR . 'Projects' . DIRECTORY_SEPARATOR;
 
 // 扩展类库
-const PATH_TAO996 = __DIR__ . DIRECTORY_SEPARATOR ;
-const PATH_TAO996_PHAX = PATH_TAO996 . 'Phax'.DIRECTORY_SEPARATOR ;
-const PATH_TAO996_PHAR = PATH_TAO996 . 'phar'.DIRECTORY_SEPARATOR ;
+const PATH_TAO996 = __DIR__ . DIRECTORY_SEPARATOR;
+const PATH_TAO996_PHAX = PATH_TAO996 . 'Phax' . DIRECTORY_SEPARATOR;
+const PATH_TAO996_PHAR = PATH_TAO996 . 'phar' . DIRECTORY_SEPARATOR;
 require_once PATH_TAO996_PHAX . 'function.php';
 
 if (file_exists(PATH_ROOT . 'vendor/autoload.php')) {

@@ -30,7 +30,7 @@ src/.env
 src/.phpunit.result.cache
 src/vendor
 src/phpunit.xml
-src/public/favicon.ico
+
 src/phar-src
 src/routes/cli.more.php
 src/routes/web.more.php
@@ -48,8 +48,9 @@ src/storage/logs/*
 !src/storage/logs/.gitkeep
 src/config/*
 !src/config/*.example.php
-src/public/*
-!src/public/.gitkeep
+src/public/upload
+!src/public/upload/.gitkeep
+src/public/favicon.ico
 src/App/Modules/*
 !src/App/Modules/demo
 !src/App/Modules/tao

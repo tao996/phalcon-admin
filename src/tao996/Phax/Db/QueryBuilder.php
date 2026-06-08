@@ -268,7 +268,7 @@ class QueryBuilder
      * @return int|mixed
      * @throws \Exception
      */
-    public function sum(string $filed)
+    public function sum(string $filed): mixed
     {
         $row = $this->field("sum({$filed}) as s")->findFirstArray();
         return $row['s'] ?? 0;
@@ -351,12 +351,6 @@ class QueryBuilder
         return $this;
     }
 
-    public function joins(array $joins): static
-    {
-        $this->parameter->joins($joins);
-        return $this;
-    }
-
     public function getParameter(): array
     {
         return $this->parameter->getParameter();
@@ -406,16 +400,6 @@ class QueryBuilder
     }
 
     /**
-     * 联表查询请使用 Phalcon 原生 PHQL JOIN 或手写 SQL。
-     * 此方法已移除，因为其实现是 N+1 应用层拼接而非数据库 JOIN。
-     * @deprecated
-     */
-    public function join(...$args): static
-    {
-        throw new \Exception('QueryBuilder::join() 已移除。请使用 Phalcon 原生 PHQL JOIN 或手写 SQL。');
-    }
-
-    /**
      * 查寻符合条件的所有记录
      * @return array
      */
@@ -432,12 +416,21 @@ class QueryBuilder
     }
 
     /**
+     * 查询符合条件的记录
+     * @return Model\Resultset\Simple|null
+     */
+    public function findModels(): \Phalcon\Mvc\Model\Resultset\Simple|null
+    {
+        return $this->builder()->getQuery()->execute();
+    }
+
+
+    /**
      * 查询符合条件的首行记录，默认返回数组
-     * @param callable|null $callback 回调函数
      * @param bool $toArray 如果为 false 则返回模型 不会联表查询
      * @return array|Model|null|mixed|\Phalcon\Mvc\Model\Row 注意返回的不是具体模型，可能需要再次转换
      */
-    protected function findFirst(callable $callback = null, bool $toArray = true)
+    protected function findFirst(bool $toArray = true): mixed
     {
         $this->parameter->parameter['limit'] = 1;
         $this->parameter->parameter['offset'] = 0;
@@ -445,26 +438,21 @@ class QueryBuilder
         if (is_null($record)) {
             return $toArray ? [] : null;
         }
-        $row = $toArray ? $record->toArray() : $record;
-        if ($callback && $row) {
-            $callback($row);
-        }
-        return $row;
+        return $toArray ? $record->toArray() : $record;
     }
 
     /**
      * 查询符合条件的记录模型
-     * @param callable|null $callback 回调函数
      * @return Model|null
      */
-    public function findFirstModel(callable $callback = null): mixed
+    public function findFirstModel(): mixed
     {
-        return $this->findFirst($callback, false);
+        return $this->findFirst(false);
     }
 
-    public function findFirstArray(callable $callback = null): array
+    public function findFirstArray(): array
     {
-        return $this->findFirst($callback, true);
+        return $this->findFirst(true);
     }
 
     /**
