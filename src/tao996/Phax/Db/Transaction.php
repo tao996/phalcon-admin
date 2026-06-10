@@ -20,7 +20,7 @@ class Transaction
         try {
             $handle($db);
             $db->commit();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $db->rollback();
             throw $e;
         }
@@ -34,7 +34,7 @@ class Transaction
 // MySQL, Oracle 的 DDL 语句会自动触发事务
             $handle($pdo);
             $pdo->commit();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $pdo->rollBack();
             throw $e;
         }

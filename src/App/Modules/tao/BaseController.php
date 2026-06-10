@@ -5,6 +5,7 @@ namespace App\Modules\tao;
 use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
 
+use Phax\Db\Transaction;
 use Phax\Mvc\Model;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
@@ -224,7 +225,17 @@ class BaseController extends BaseRbacController
                 $this->model->{'user_id'} = $this->loginUser()->id;
             }
 
-            return $this->saveModelResponse($this->save($data), 'add');
+            try {
+                \Phax\Db\Transaction::db($this->db, function () use ($data) {
+                    if (!$this->save($data)) {
+                        throw new \Exception($this->model->getErrors());
+                    }
+                    $this->afterModelChange('add');
+                });
+            } catch (\Throwable $e) {
+                return $this->error($e->getMessage());
+            }
+            return $this->success('添加成功', $this->model?->toArray());
         }
         $this->updateHtmlTitle('添加');
         return [];
@@ -246,7 +257,17 @@ class BaseController extends BaseRbacController
 
         if ($this->request->isPost()) {
             $data = $this->getPostData();
-            return $this->saveModelResponse($this->save($data));
+            try {
+                \Phax\Db\Transaction::db($this->db, function () use ($data) {
+                    if (!$this->save($data)) {
+                        throw new \Exception($this->model->getErrors());
+                    }
+                    $this->afterModelChange('edit');
+                });
+            } catch (\Throwable $e) {
+                return $this->error($e->getMessage());
+            }
+            return $this->success('修改成功', $this->model?->toArray());
         }
         $this->updateHtmlTitle('编辑');
         return $this->beforeEditView($this->model->toArray());
@@ -296,8 +317,8 @@ class BaseController extends BaseRbacController
                 $data[$column] = 0;
             }
         }
-        if ($this->model != null ){
-            if (property_exists($this->model, 'rules')){
+        if ($this->model != null) {
+            if (property_exists($this->model, 'rules')) {
                 $v = new Validate($this->vv);
                 $v->check($data, $this->model->rules);
             }
@@ -391,13 +412,20 @@ class BaseController extends BaseRbacController
             $post['field'] => $post['value']
         ], [$post['field']]);
         $this->beforeModelModifySave($this->model);
-        if ($this->model->save()) {
-            $this->vv->logService()->insert($this->model->tableTitle(), 'modify');
-            $this->afterModelChange('edit');
-            return $this->success('保存成功');
-        } else {
-            return $this->error($this->model->getErrors());
+
+        try {
+            Transaction::db($this->db, function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) {
+                if ($this->model->save()) {
+                    $this->afterModelChange('edit');
+                } else {
+                    throw new \Exception($this->model->getErrors());
+                }
+            });
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
         }
+        $this->vv->logService()->insert($this->model->tableTitle(), 'modify');
+        return $this->success('保存成功');
     }
 
     /**
@@ -449,14 +477,19 @@ class BaseController extends BaseRbacController
         }
 
         $this->beforeDeleteQuery($qb, $ids);
-        if ($qb->delete()) {
-            $this->afterBatchDelete($ids);
-            $this->vv->logService()->insert($this->model->tableTitle(), 'delete');
-            $this->afterModelChange('delete');
-            return $this->success('删除成功');
-        } else {
-            return $this->error('删除失败');
+        try {
+            \Phax\Db\Transaction::db($this->db, function () use ($qb, $ids) {
+                if (!$qb->delete()) {
+                    throw new \Exception('删除失败');
+                }
+                $this->afterBatchDelete($ids);
+                $this->afterModelChange('delete');
+            });
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage());
         }
+        $this->vv->logService()->insert($this->model->tableTitle(), 'delete');
+        return $this->success('删除成功');
     }
 
     /**
