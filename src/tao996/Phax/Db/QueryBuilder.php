@@ -223,6 +223,12 @@ class QueryBuilder
         return $this;
     }
 
+    public function notIn(string $name, array $values): static
+    {
+        $this->parameter->notIn($name, $values);
+        return $this;
+    }
+
     /**
      * 添加一个简单的条件操作
      * @param string $condition 简单条件，示例：id=5
@@ -249,29 +255,42 @@ class QueryBuilder
     }
 
     /**
-     * 分组并整理结果
-     * @param string $field 待分组的字段，只能指定一个字段
-     * @return array `[$fieldValue => $total]`
+     * 分组
+     * @link https://docs.phalcon.io/5.13/db-phql/#parameters_1
+     * @param string $field 待分组的字段
      */
-    public function group(string $field): array
+    public function groupBy(string $field): static
     {
         $this->parameter->group($field);
-        if ($rows = $this->field(['count(*) as total', $field])->find()) {
-            return array_column($rows, 'total', $field);
-        }
-        return [];
+//        if ($rows = $this->field(['count(*) as total', $field])->find()) {
+//            return array_column($rows, 'total', $field);
+//        }
+        return $this;
     }
 
     /**
      * 计算 sum
      * @param string $filed
-     * @return int|mixed
+     * @return int|float|array 如果分组则返回 array['sum'=>累计值,...groupBy 其它]，没有分组则直接返回 float
      * @throws \Exception
      */
     public function sum(string $filed): mixed
     {
-        $row = $this->field("sum({$filed}) as s")->findFirstArray();
-        return $row['s'] ?? 0;
+        // 分组
+        if (!empty($this->parameter->parameter['group'])) {
+            $columns = array_merge(["sum({$filed}) as sum"],
+                $this->parameter->parameter['group']);
+//            ddd($this->field($columns)->getSql());
+            return $this->field($columns)->find();
+        }
+        $row = $this->field("sum({$filed}) as sum")->findFirstArray();
+        return $row['sum'] ?? 0;
+    }
+
+    public function count(): int
+    {
+        $params = $this->getParameter();
+        return $this->model::count($params);
     }
 
     /**
@@ -376,11 +395,6 @@ class QueryBuilder
         return $this;
     }
 
-    public function count(): int
-    {
-        $params = $this->getParameter();
-        return $this->model::count($params);
-    }
 
     /**
      * @throws \Exception
@@ -397,6 +411,15 @@ class QueryBuilder
     public function notExists(): bool
     {
         return !$this->exits();
+    }
+
+    /**
+     * 临时获取生成的 SQL (注意：此时得到的是 PHQL 或者是预编译的 SQL)
+     * @return array
+     */
+    public function getSql():array
+    {
+        return $this->builder()->getQuery()->getSql();
     }
 
     /**

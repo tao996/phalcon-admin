@@ -105,7 +105,7 @@ const admin = {
             }
             var d = [];
             for (var key in dict) {
-                if (admin.util.isEmpty(dict[key])){
+                if (admin.util.isEmpty(dict[key])) {
                     continue;
                 }
                 if (Object.prototype.hasOwnProperty.call(dict, key)) {
@@ -1188,6 +1188,23 @@ const admin = {
         },
         /**
          * 监听行操作事件 lay-event，通常绑定在 table.cols.toolbar 上
+         * @example
+         * addLayEventActions({
+         *     events: function (d) {
+         *         const customerId = d.data.customer_id;
+         *         const data = form.val('form-search');
+         *         const query = '?search=1&month=' + data['month'] + '&customer_id=' + customerId;
+         *         switch (d.event) {
+         *             case 'payment':
+         *                 const url1 = 'echo $vv->urlModule("yihe/payment")' + query;
+         *                 admin.iframe.open(url1, {title: '客户付款记录'});
+         *                 break;
+         *             case 'trip':
+         *                 const url2 = 'echo $vv->urlModule("yihe/trip")' + query;
+         *                 admin.iframe.open(url2, {title: '客户出车记录'});
+         *         }
+         *     }
+         * })
          * @param {{url?:string, events?:Function, key?:string}} [config] 回调函数，obj.event 是事件名称, obj.data 是当前行数据
          * @return this
          */
@@ -1216,6 +1233,9 @@ const admin = {
                     case 'remove':
                         if (admin.table._config.rowAction('delete', obj.data) === false) {
                             return;
+                        }
+                        if (typeof config['beforeDelete'] === 'function') {
+                            // TODO 删除前
                         }
                         admin.layer.confirm('确定要删除当前记录吗！', function () {
                             admin.ajax.postLimit({

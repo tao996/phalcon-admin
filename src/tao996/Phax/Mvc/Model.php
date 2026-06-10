@@ -509,7 +509,7 @@ class Model extends \Phalcon\Mvc\Model
      * @return \Phalcon\Mvc\Model\Row|\Phalcon\Mvc\ModelInterface
      * @throws \Exception
      */
-    public static function mustFindFirst($parameters): static
+    public static function mustFindFirst(mixed $parameters): static
     {
         if ($record = static::findFirst($parameters)) {
             return $record;

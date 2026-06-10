@@ -113,6 +113,20 @@ class LayuiForm
             name: $name, formItem: $formItem);
     }
 
+    public function readonly(string $title, string $name, string $text = '',
+                             string $placeholder = '',
+                             bool   $block = false,
+                             bool   $formItem = true,): string
+    {
+        $inputClass = $block ? 'layui-input-block' : 'layui-input-inline';
+        $groupPs = $this->wrapPrefixSuffix('<input id="input-' . $name . '" style="border:none;color:777;" readonly  type="text" class="layui-input"
+                   value="' . $text . '" placeholder="' . $placeholder . '"
+                   >');
+        return $this->wrapFormItem($this->wrapFormLabel($title) . '<div class="' . $inputClass . '">' . $groupPs . '
+        </div>',
+            name: $name, formItem: $formItem);
+    }
+
     private function wrapPrefixSuffix(string $content, string $prefix = '', string $suffix = ''): string
     {
         if ($prefix || $suffix) {

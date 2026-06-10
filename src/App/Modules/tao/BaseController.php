@@ -6,6 +6,7 @@ use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
 
 use Phax\Mvc\Model;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 /**
@@ -293,6 +294,12 @@ class BaseController extends BaseRbacController
                 $data[$column] = MyData::getInt($data, $column);
             } else {
                 $data[$column] = 0;
+            }
+        }
+        if ($this->model != null ){
+            if (property_exists($this->model, 'rules')){
+                $v = new Validate($this->vv);
+                $v->check($data, $this->model->rules);
             }
         }
 

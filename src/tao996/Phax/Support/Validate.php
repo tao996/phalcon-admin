@@ -81,7 +81,7 @@ class Validate
                 return [
                     'between',
                     \Phalcon\Filter\Validation\Validator\Between::class,
-                    array_combine(['minimum', 'maximum'], $params)
+                    count($params) >= 2 ? array_combine(['minimum', 'maximum'], [$params[0], $params[1]]) : []
                 ];
             case 'boolean':
             case 'bool':
@@ -114,7 +114,7 @@ class Validate
                 return [
                     'different',
                     Validation\DifferentValidation::class,
-                    ['with' => $params[0]]
+                    ['with' => $params[0] ?? '']
                 ];
             case 'digit': // 纯数字（不包含负数和小数），height, width
             case 'number':
@@ -133,7 +133,7 @@ class Validate
                 return [
                     'expire',
                     Validation\ExpireValidation::class,
-                    array_combine(['min', 'max'], $params)
+                    count($params) >= 2 ? array_combine(['min', 'max'], [$params[0], $params[1]]) : []
                 ];
 
             case 'filemine': // 文件类型 mine:image/jpeg,image/png
@@ -254,8 +254,9 @@ class Validate
                 return [
                     'strlen',
                     \Phalcon\Filter\Validation\Validator\StringLength::class,
-                    array_combine(['min', 'max'], $params) + ['includedMaximum' => true, 'includedMinimum' => true]
+                    (count($params) >= 2 ? array_combine(['min', 'max'], [$params[0], $params[1]]) : []) + ['includedMaximum' => true, 'includedMinimum' => true]
                 ];
+            case 'max':
             case 'strlenmax':
             case 'slmax':
                 return [
@@ -263,6 +264,7 @@ class Validate
                     \Phalcon\Filter\Validation\Validator\StringLength\Max::class,
                     ['max' => $params[0], 'included' => true]
                 ];
+            case 'min':
             case 'strlenmin':
             case 'slmin':
                 return [
@@ -273,10 +275,14 @@ class Validate
             case 'uniqueness':
             case 'unique': // 模型唯一 Models\Customers
                 // https://docs.phalcon.io/5.0/en/filter-validation#uniqueness
+                $uniqueArgs = ['model' => new $params[0]];
+                if (isset($params[1])) {
+                    $uniqueArgs['attribute'] = $params[1];
+                }
                 return [
                     'unique',
                     \Phalcon\Filter\Validation\Validator\Uniqueness::class,
-                    ['model' => new $params[0], 'attribute' => $params[1]]
+                    $uniqueArgs
                 ];
             case 'url':
                 return ['url', \Phalcon\Filter\Validation\Validator\Url::class];

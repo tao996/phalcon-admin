@@ -329,6 +329,21 @@ class Parameter
         }
         return $this;
     }
+    public function notIn(string $name, array $values): static
+    {
+        if (!empty($values)) {
+            if (is_string(end($values))) {
+                $this->appendConditionSQL(
+                    $name . ' NOT IN (' . join(',', array_map(function ($v) {
+                        return '"' . $v . '"';
+                    }, $values)) . ')'
+                );
+            } else {
+                $this->appendConditionSQL($name . ' NOT IN (' . join(',', $values) . ')');
+            }
+        }
+        return $this;
+    }
 
     /**
      * 添加一个简单的条件操作
@@ -362,6 +377,7 @@ class Parameter
 
     /**
      * 分组
+     * @link https://docs.phalcon.io/5.13/db-phql/#parameters_1
      * @param array|string $fields ['id', 'name']
      * @return Parameter
      */

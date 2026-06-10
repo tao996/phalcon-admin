@@ -68,3 +68,8 @@
 .tao-flex1 {
     flex: 1;
 }
+.errorMessage {
+    color: red;
+    font-size: large;
+    font-weight: bold;
+}
