@@ -98,16 +98,6 @@ class BaseController extends BaseRbacController
         if ($this->request->hasQuery('status') && property_exists($this->model, 'status')) {
             $queryBuilder->int('status', $this->request->getQuery('status', 'int', 0));
         }
-    }
-
-    /**
-     * 处理搜索的结果，已经在 indexAction 中自动对 $count>0 作出判断
-     * @param int $count 记录总数
-     * @param QueryBuilder $queryBuilder
-     * @return array
-     */
-    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
-    {
         if ($this->modelQueryColumns) {
             $queryBuilder->columns($this->modelQueryColumns);
         } elseif ($this->modelHiddenColumns) {
@@ -124,22 +114,33 @@ class BaseController extends BaseRbacController
         if ($this->modelOrderBy) {
             $queryBuilder->orderBy($this->modelOrderBy);
         }
+    }
+
+
+    /**
+     * 处理搜索的结果，已经在 indexAction 中自动对 $count>0 作出判断
+     * @param int $count 记录总数
+     * @param QueryBuilder $queryBuilder
+     * @return array 一次性将查询结果全部取出
+     */
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
+    {
         return $queryBuilder->find();
     }
 
     /**
      * 获取全部查询结果，通常用在报表中
-     * @return array
+     * @return \Phalcon\Mvc\Model\Resultset\Simple|null
      * @throws \Exception
      */
-    protected function getIndexResult($callback = null): array
+    protected function getIndexResultset($queryBuilderCallback = null): \Phalcon\Mvc\Model\Resultset\Simple|null
     {
         $queryBuilder = $this->model->getQueryBuilder($this->getDI());
         $this->beforeIndexQuery($queryBuilder);
-        if (is_callable($callback)) {
-            $callback($queryBuilder);
+        if (is_callable($queryBuilderCallback)) {
+            $queryBuilderCallback($queryBuilder);
         }
-        return $this->buildIndexResult(1, $queryBuilder);
+        return $queryBuilder->findModels();
     }
 
     /**
@@ -610,5 +611,12 @@ class BaseController extends BaseRbacController
             return $value;
         }
         return $this->request->get($name, $filters, $default);
+    }
+
+    protected function mustHasOldModel(): void
+    {
+        if ($this->oldModel == null) {
+            throw new \Exception('原始记录模型为空');
+        }
     }
 }

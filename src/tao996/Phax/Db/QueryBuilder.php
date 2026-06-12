@@ -269,22 +269,50 @@ class QueryBuilder
     }
 
     /**
-     * 计算 sum
-     * @param string $filed
-     * @return int|float|array 如果分组则返回 array['sum'=>累计值,...groupBy 其它]，没有分组则直接返回 float
+     * 计算 sum，支持多列（逗号分隔）
+     *
+     * 单列用法：
+     *   $qb->sum('amount')           → float     （未分组直接返回数值）
+     *   $qb->groupBy(...)->sum('amount') → array  （分组返回含 sum 的完整行）
+     *
+     * 多列用法（逗号分隔）：
+     *   $qb->sum('amount,handling_fee') → ['sum_amount' => X, 'sum_handling_fee' => Y]
+     *   $qb->groupBy(...)->sum('amount,handling_fee') → [['sum_amount'=>X,'sum_handling_fee'=>Y,...], ...]
+     *
+     * @param string $filed 列名，多列用逗号分隔，如 'amount' 或 'amount,handling_fee'
+     * @return static|mixed
      * @throws \Exception
      */
-    public function sum(string $filed): mixed
+    public function sum(string $filed, bool $getResult = true): mixed
     {
-        // 分组
-        if (!empty($this->parameter->parameter['group'])) {
-            $columns = array_merge(["sum({$filed}) as sum"],
-                $this->parameter->parameter['group']);
-//            ddd($this->field($columns)->getSql());
-            return $this->field($columns)->find();
+        $multi = str_contains($filed, ',');
+        $columns = [];
+        if ($multi) {
+            foreach (explode(',', $filed) as $col) {
+                $col = trim($col);
+//                $alias = 'sum_' . $col;
+                $columns[] = "sum({$col}) as {$col}";
+            }
+        } else {
+            $columns[] = "sum({$filed}) as sum";
         }
-        $row = $this->field("sum({$filed}) as sum")->findFirstArray();
-        return $row['sum'] ?? 0;
+        // 分组
+        $hasGroup = !empty($this->parameter->parameter['group']);
+        if ($hasGroup) {
+            $columns = array_merge($columns, $this->parameter->parameter['group']);
+            $this->field($columns);
+            return $getResult ? $this->find() : $this;
+        } else {
+            $this->field($columns);
+        }
+        if ($getResult) {
+            $row = $this->findFirstArray();
+            if (!$multi) {
+                return $row['sum'] ?? 0;
+            }
+            return $row ?: [];
+        }
+        return $this;
     }
 
     public function count(): int
@@ -417,7 +445,7 @@ class QueryBuilder
      * 临时获取生成的 SQL (注意：此时得到的是 PHQL 或者是预编译的 SQL)
      * @return array
      */
-    public function getSql():array
+    public function getSql(): array
     {
         return $this->builder()->getQuery()->getSql();
     }
@@ -440,11 +468,11 @@ class QueryBuilder
 
     /**
      * 查询符合条件的记录
-     * @return Model\Resultset\Simple|null
+     * @return Model\Resultset\Simple
      */
-    public function findModels(): \Phalcon\Mvc\Model\Resultset\Simple|null
+    public function findModels(): \Phalcon\Mvc\Model\Resultset\Simple
     {
-        return $this->builder()->getQuery()->execute();
+        return $this->builder()->getQuery()->execute() ?? [];
     }
 
 

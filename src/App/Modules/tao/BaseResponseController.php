@@ -43,7 +43,7 @@ class BaseResponseController extends Controller
     /**
      * 判断数据是否已经是标准响应格式 {code, msg, data}
      */
-    protected function isFormattedResponse(mixed $data): bool
+    protected function isJsonResponseFormat(mixed $data): bool
     {
         return is_array($data) && isset($data['code']) && isset($data['msg']);
     }
@@ -58,7 +58,7 @@ class BaseResponseController extends Controller
             return true;
         }
         if ($this->jsonBodyRequest) { // 小程序响应
-            if ($this->isFormattedResponse($data)) {
+            if ($this->isJsonResponseFormat($data)) {
                 $this->doResponse(true, $data);
             } else {
                 $this->doResponse(true, $this->success('', $data));
@@ -119,7 +119,7 @@ class BaseResponseController extends Controller
 
     public function jsonResponseData(mixed $data): array
     {
-        if ($this->isFormattedResponse($data)) {
+        if ($this->isJsonResponseFormat($data)) {
 // $data['data'] 可能为 null
             return $data;
         }
@@ -143,7 +143,12 @@ class BaseResponseController extends Controller
         return parent::beforeViewResponse($data);
     }
 
-
+    /**
+     * 返回 json 格式的错误信息
+     * @param array|string $msg
+     * @param int $code
+     * @return array
+     */
     public function error(array|string $msg, int $code = 500): array
     {
         $this->jsonResponse = true;
@@ -154,9 +159,19 @@ class BaseResponseController extends Controller
         ];
     }
 
+    /**
+     * 返回 json 格式的成功信息
+     * @param string $message
+     * @param mixed|null $data
+     * @return array
+     */
     public function success(string $message, mixed $data = null): array
     {
         $this->jsonResponse = true;
+
+        if ($data instanceof \Phax\Mvc\Model || $data instanceof \Phalcon\Mvc\Model\Resultset\Simple) {
+            $data = $data->toArray();
+        }
         return [
             'code' => 0,
             'msg' => $message,
@@ -168,12 +183,16 @@ class BaseResponseController extends Controller
     /**
      * 通常用在显示列表数据
      * @param int $count
-     * @param array $rows
+     * @param mixed $rows
      * @return array
      */
-    public function successPagination(int $count, array $rows): array
+    public function successPagination(int $count, mixed $rows): array
     {
         $this->jsonResponse = true;
+
+        if ($rows instanceof \Phax\Mvc\Model || $rows instanceof  \Phalcon\Mvc\Model\Resultset\Simple){
+            $rows = $rows->toArray();
+        }
         return [
             'code' => 0,
             'msg' => '',
@@ -188,7 +207,7 @@ class BaseResponseController extends Controller
      * @return mixed
      * @throws BlankException
      */
-    public function simpleView(string $tpl, $data)
+    public function simpleView(string $tpl, $data): mixed
     {
         if (!is_array($data)) {
             throw new \Exception('simple view data must be array');

@@ -74,7 +74,7 @@ class Model extends \Phalcon\Mvc\Model
      */
     protected string $tablePrefix = '';
     /**
-     * @var string 设置表名,注意：会自动添加前辍
+     * @var string 设置表名; 可以通过 getSource() 获取最终的表名
      */
     protected string $table = '';
 

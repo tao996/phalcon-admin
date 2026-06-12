@@ -74,7 +74,8 @@ class LayuiForm
             $selected = $value == $v ? 'checked' : '';
             $options[] = "<input " . $requiredElem . " lay-filter='" . $name . "' type='radio' name='{$name}' title='{$t}' value='{$v}' $selected>";
         }
-        $content = $this->wrapFormLabel($title, $required) . '<div class="layui-input-block">' . join('', $options) . '</div>';
+        $class = $formItem ? 'layui-input-block' : 'layui-input-inline';
+        $content = $this->wrapFormLabel($title, $required) . '<div class="'.$class.'">' . join('', $options) . '</div>';
         return $this->wrapFormItem($content,
             name: $name, formItem: $formItem);
     }
@@ -96,6 +97,7 @@ class LayuiForm
     public function input(string $title, string $name, mixed $value = '',
                           bool   $required = false,
                           string $type = 'text',
+                          string $placeholder = '',
                           string $prefix = '',
                           string $subfix = '',
                           string $aux = '',
@@ -105,9 +107,10 @@ class LayuiForm
     ): string
     {
         $inputClass = $block ? 'layui-input-block' : 'layui-input-inline';
+        $placeholder = $placeholder ?:'请填写' . $title;
         $groupPs = $this->wrapPrefixSuffix('<input ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input ' . $class . '"
                    value="' . $value . '"
-                   placeholder="请填写' . $title . '">', $prefix, $subfix);
+                   placeholder="' . $placeholder . '">', $prefix, $subfix);
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="' . $inputClass . '">' . $groupPs . '
         </div>' . $this->wrapAux($aux),
             name: $name, formItem: $formItem);

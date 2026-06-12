@@ -10,7 +10,7 @@ use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
  */
 //$vv->print();
 $list = SystemMenu::queryBuilder($vv->getDi())
-    ->int('status', 1)
+//    ->int('status', 1) 允许显示隐藏的菜单（否则隐藏子菜单会丢失关联）
     ->notEqual('pid', Data::HOME_PID)
     ->columns('id,pid,title')
     ->find();

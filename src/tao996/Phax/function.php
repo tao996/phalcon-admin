@@ -84,3 +84,48 @@ if (!function_exists('prettyError')) {
         );
     }
 }
+
+if (!function_exists('__')) {
+    /*
+ // 1. 使用冒号 :name 规范
+echo __('sayHello', '你好 :name，欢迎来到:company！', ['name' => 'bibi', 'company' => '义和泥头车']);
+// 输出: 你好 bibi，欢迎来到义和泥头车！
+
+// 2. 兼容你提出来的 @name 规范
+echo __('sayHello', '你好 @name', ['name' => 'bibi']);
+// 输出: 你好 bibi
+
+// 3. 甚至兼容大括号 {name} 规范
+echo __('sayHello', '你好 {name}', ['name' => 'bibi']);
+// 输出: 你好 bibi
+
+namespace App\Modules\yihe\Controllers;
+
+class ReportController extends BaseController {
+    public function indexAction() {
+        // 🚀 传入 __NAMESPACE__，函数会自动去 yihe 模块的语言包里找 'welcome_msg'
+        // 如果语言包文件存在且有定义，就用语言包的；如果没有，就兜底输出默认中文
+        echo __('welcome_msg', '当前工地：:siteName', ['siteName' => '蛇口1号地'], __NAMESPACE__);
+    }
+}
+
+// 当未来你们要把系统卖给香港或海外客户，需要支持繁体或英文时，直接在这个文件改文字，代码完全不用动：
+// App/Modules/yihe/resources/lang/zh_CN.php
+return [
+    'welcome_msg' => '目前所在工地為：:siteName (繁體模版)',
+];
+     */
+    /**
+     * 全局国际化翻译函数
+     * @param string $key 语言包配置键名
+     * @param string $default 默认中文翻译文本（带占位符）
+     * @param array $params 需要替换的键值对参数
+     * @param string $namespace 传入 __NAMESPACE__ 或 get_class($this) 动态识别模块
+     * @return string
+     */
+    function __(string $key, string $default, array $params = [], string $namespace = ''): string
+    {
+        return '';
+//        return \App\Modules\Finance\Services\I18nService::translate($key, $default, $params, $namespace);
+    }
+}

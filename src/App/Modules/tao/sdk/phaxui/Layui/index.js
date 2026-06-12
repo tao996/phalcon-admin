@@ -176,7 +176,7 @@ const admin = {
          * @param {boolean} showZeroDecimal - 是否显示末尾 .00，默认 false（隐藏）
          * @returns {string} 格式化后的金额
          */
-        formatMoney: function (amount, showZeroDecimal = false) {
+        formatMoney: function (amount, showZeroDecimal = true) {
             // 第一步：转数字并容错处理
             const num = parseFloat(amount)
             if (isNaN(num)) return '0.00'
@@ -1266,7 +1266,7 @@ const admin = {
         },
         money: function (data) {
             const v = data[this.field];
-            return admin.util.formatMoney(v);
+            return admin.util.formatMoney(v,true);
         },
         image: function (data, useV = false) {
             const option = {
