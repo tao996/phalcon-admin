@@ -65,14 +65,14 @@
     </div>
 
     <?php
-   echo $vv->layuiHtml()->upload('站点 Logo', 'site_logo',
+   echo $vv->userHtmlHelper()->upload('站点 Logo', 'site_logo',
            type: 'text',
            value: $vv->configService()->getWith('site.site_logo'),
            placeholder: '请上传站点 Logo 图片',
     ) ?>
 
     <?php
-   echo $vv->layuiHtml()->upload('浏览器图标 (ICO)', 'site_ico',
+   echo $vv->userHtmlHelper()->upload('浏览器图标 (ICO)', 'site_ico',
            type: 'text',
            value: $vv->configService()->getWith('site.site_ico'),
            placeholder: '请上传浏览器图标,ico 类型',

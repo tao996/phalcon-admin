@@ -41,8 +41,9 @@ class IndexController extends BaseController
                 return $this->error($user->getErrors());
             }
         }
+//        ddd($user, $this->vv->roleService()->);
         return [
-            'roles' => $user->roles,
+            'roles' => $user->roles(),
         ];
     }
 

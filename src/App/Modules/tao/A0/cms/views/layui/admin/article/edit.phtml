@@ -26,7 +26,7 @@ $cateId = $vv->pick('row.cate_id', 0);
 
             <div class="layui-form-item" style="width: 300px;margin-right: 10px;">
 
-                <?php echo $vv->layuiHtml()->upload('封面', 'cover', value: $vv->pick('row.cover')
+                <?php echo $vv->userHtmlHelper()->upload('封面', 'cover', value: $vv->pick('row.cover')
                 ); ?>
 
             </div>
@@ -103,7 +103,6 @@ $items = $vv->pick('row.images', []);
             data['image_ids'] = vmImage.data.items.map(d => d.id).join(',')
             return Object.assign(data, {content: tinymce.activeEditor.getContent()})
         })
-        admin.upload.run()
     </script>
 <?php
 \App\Modules\tao\sdk\phaxui\TaoHtmlHelper::tinymce();

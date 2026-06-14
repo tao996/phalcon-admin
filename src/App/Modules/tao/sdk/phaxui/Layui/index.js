@@ -7,11 +7,6 @@ const admin = {
      */
     config: {
         debug: false,
-        // 固定的请求地址
-        url: {
-            imageSave: '/api/m/tao/user.file/save',
-            imageList: '/m/tao/user.file/index',
-        },
         ajax: {
             headers: function () {
                 if (!admin.util.isEmpty(window.CONFIG) && !admin.util.isEmpty(window.CONFIG.CSRF_TOKEN)) {
@@ -790,191 +785,8 @@ const admin = {
      * the upload.run most code is from http://layuimini.99php.cn/,
      * @link https://layui.dev/docs/2/upload/
      */
-    upload: {
-        /**
-         * 添加 圖片
-         * @param {string} url 圖片地址
-         * @param {string} name 操作來源 upload, picker
-         */
-        after: function (url, name) {
-            console.log('todo upload.after:', url, name)
-        },
-        /**
-         * 移除圖片
-         * @param url
-         */
-        remove: function (url) {
-        },
-        /**
-         * 執行上傳
-         * 接收上传图片回调 `admin.upload.run().after = function (url,name) { 你的代码 }`
-         * @return this
-         */
-        run: function () {
-            /**
-             * @var admin {Object} 配置信息
-             * @link src/public/extends/tao/layui/plugs/easy-admin/easy-admin.js upload:1363
-             */
-            const uploadList = document.querySelectorAll("[data-upload]"); // 上传
-            const uploadSelectList = document.querySelectorAll("[data-upload-select]"); // 选择
-
-            if (uploadList.length > 0) {
-                layui.jquery.each(uploadList, function (i, v) {
-                    // 上传配置
-                    const jThis = $(this);
-                    const uploadExts = jThis.attr('data-upload-exts') || 'png|jpg|jpeg',
-                        uploadName = jThis.attr('data-upload'),
-                        uploadNumber = parseInt(jThis.attr('data-upload-number')) || 1, // 可选择图片数量
-                        uploadSeparator = jThis.attr('data-upload-separator') || '|', // 分割符
-                        uploadAccept = jThis.attr('data-upload-accept') || 'file',
-                        uploadAcceptMime = jThis.attr('data-upload-mimetype') || '';
-                    const elem = "input[name='" + uploadName + "']",
-                        multiple = uploadNumber > 1,
-                        uploadElem = this;
-                    const headers = admin.config.ajax.headers();
-
-                    // 监听上传事件
-                    layui.upload.render({
-                        elem: this,
-                        url: admin.config.url.imageSave,
-                        exts: uploadExts,
-                        accept: uploadAccept,
-                        acceptMime: uploadAcceptMime,
-                        multiple: multiple,
-                        headers: headers,
-                        before: function (obj) {
-                            layui.layer.load();
-                        },
-                        done: function (res) {
-                            layui.layer.closeAll();
-                            // console.log('upload result:',res)
-                            if (res.code === 0 || res.code === 200) {
-                                let url = res.data.url;
-                                if (multiple) { // 多张上传
-                                    var oldUrl = $(elem).val();
-                                    if (oldUrl !== '') {
-                                        url = oldUrl + uploadSeparator + url;
-                                    }
-                                }
-
-                                $(elem).val(url);
-                                $(elem).trigger('input');
-                                layui.layer.msg('上传成功', {
-                                    icon: 1, time: 2000
-                                })
-                                admin.upload.after(url, 'upload');
-                            } else {
-                                admin.layer.errorAlert(res.msg);
-                            }
-                        },
-                        error: function () {
-                            setTimeout(function () {
-                                layui.layer.closeAll()
-                            }, 3000)
-                        },
-                        complete: function () {
-                            admin.config.ajax.refreshHeaders('post');
-                        }
-                    })
-
-                    // 监听上传 input 值变化;如果有值，则显示出图片
-                    $(elem).bind('blur', function () {
-                        admin.upload.after($(this).val(), 'blur');
-                    });
-                    $(elem).bind("input propertychange", function (event) {
-                        const urlString = $(this).val(),
-                            urlArray = urlString.split(uploadSeparator),
-                            uploadIcon = $(uploadElem).attr('data-upload-icon') || "file";
-
-                        $('#bing-' + uploadName).remove();
-                        if (urlString.length > 0) {
-                            const parant = $(this).parent('div');
-                            let liHtml = '';
-                            $.each(urlArray, function (i, v) {
-                                liHtml += `<li>
-<a><img src="${v}"></a>
-<small class="uploads-delete-tip bg-red badge" data-upload-delete="${uploadName}" data-upload-url="${v}" data-upload-separator="${uploadSeparator}">×</small>
-</li>`;
-                            });
-                            parant.after('<ul id="bing-' + uploadName + '" class="layui-input-block layuimini-upload-show">\n' + liHtml + '</ul>');
-                        }
-
-                    });
-
-                    // 非空初始化，图片显示
-                    if ($(elem).val() !== '') {
-                        $(elem).trigger('input')
-                    }
-                });
-
-                // 监听图片的删除事件
-                layui.jquery('body').on('click', '[data-upload-delete]', function () {
-                    const uploadName = $(this).attr('data-upload-delete'),
-                        deleteUrl = $(this).attr('data-upload-url'),
-                        sign = $(this).attr('data-upload-sign');
-
-                    layui.layer.confirm('确定要删除吗？', function (index) {
-                        const elem = "input[name='" + uploadName + "']";
-                        const currentUrl = $(elem).val();
-                        let url = '';
-                        if (currentUrl !== deleteUrl) {
-                            url = currentUrl.search(deleteUrl) === 0 ? currentUrl.replace(deleteUrl + sign, '') : currentUrl.replace(sign + deleteUrl, '');
-                            $(elem).val(url);
-                            $(elem).trigger("input");
-                        } else {
-                            $(elem).val(url);
-                            $('#bing-' + uploadName).remove();
-                        }
-                        layui.layer.close(index);
-                        admin.upload.remove(url);
-                    });
-                    return false;
-                });
-            }
-// 图片选择
-            if (uploadSelectList.length > 0) {
-                layui.jquery.each(uploadSelectList, function (i, v) {
-                    const uploadName = $(this).attr('data-upload-select'),
-                        uploadNumber = parseInt($(this).attr('data-upload-number')) || 1,
-                        uploadSeparator = $(this).attr('data-upload-separator') || '|';
-
-                    const selectCheck = uploadNumber > 1 ? 'checkbox' : 'radio',
-                        inputElem = $("input[name='" + uploadName + "']"),
-                        uploadElem = $(this).attr('id');
-
-                    $('#' + uploadElem).off('click').on('click', function () {
-                        admin.iframe.open(
-                            admin.config.url.imageList + '?type=' + selectCheck, {
-                                title: '图片选择',
-                                end: function () {
-                                    admin.storage.getArray('images', images => {
-                                        const url = images.join(uploadSeparator);
-                                        inputElem.val(url);
-                                        inputElem.trigger("input");
-                                        admin.layer.success('选择成功');
-                                        admin.upload.after(url, 'picker');
-                                    });
-                                }
-                            });
-                    });
-                });
-                layui.jquery('.data-upload-img-edit').bind('click', function () {
-                    const name = this.getAttribute('data-name');
-                    const inputEle = $('input[name=' + name + ']');
-                    layer.prompt({
-                        formType: 0,
-                        value: inputEle.val(),
-                        title: '请输入图片地址',
-                    }, function (value, index, elem) {
-                        inputEle.val(value);
-                        inputEle.trigger('input');
-                        admin.upload.after(value, 'edit');
-                        layer.close(index); // 关闭层
-                    });
-                })
-            }
-            return this;
-        }
+    upload:{
+        // 用户上传文件管理，已经移动到 src/App/Modules/tao/Helper/TaoUserHtmlHelper.php 中
     },
     /**
      * 表格数据
@@ -1266,7 +1078,7 @@ const admin = {
         },
         money: function (data) {
             const v = data[this.field];
-            return admin.util.formatMoney(v,true);
+            return admin.util.formatMoney(v, true);
         },
         image: function (data, useV = false) {
             const option = {

@@ -28,6 +28,27 @@ class RoleService
         return [];
     }
 
+    public static function getRoles(): array
+    {
+        static $roles = null;
+        if ($roles === null) {
+            $roles = SystemRole::find()->toArray();
+        }
+        return $roles;
+    }
+
+    /**
+     * 获取用户的角色
+     * @param array $roleIds
+     * @return array
+     */
+    public static function getRolesByIds(array $roleIds): array
+    {
+        return array_filter(self::getRoles(), function ($role) use ($roleIds) {
+            return in_array($role['id'], $roleIds);
+        });
+    }
+
     /**
      * 获取正常角色列表
      * @return array{array{id:int,title:string}

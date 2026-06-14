@@ -11,7 +11,7 @@
 </style>
 <div class="layui-form">
 
-    <?php echo $vv->layuiHtml()->upload('文件地址', 'head_img',
+    <?php echo $vv->userHtmlHelper()->upload('文件地址', 'head_img',
             type: 'text'); ?>
 
     <div class="layui-form-item text-center">
@@ -22,8 +22,6 @@
 
 <?php $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    admin.upload.run()
-
     admin.util.layOn({
         ok: function () {
             if (admin.util.isEmpty($('#head_img').val())) {

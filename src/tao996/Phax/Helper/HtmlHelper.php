@@ -78,7 +78,7 @@ class HtmlHelper
      * @param mixed $value
      * @return string
      */
-    public function selected(string $path, mixed $value):string
+    public function selected(string $path, mixed $value): string
     {
         $eq = $this->pick($path, is_int($value) ? 0 : '') == $value;
         return $eq ? 'selected' : '';
@@ -214,7 +214,7 @@ class HtmlHelper
     }
 
     /**
-     * 追加内容到底部
+     * 追加内容到底部，不需要添加标签对
      * @param string $content
      * @param string $type 内容类型，css 或者 js
      * @return $this
@@ -269,7 +269,11 @@ class HtmlHelper
             if ($content[0] === 'css') {
                 echo '<style type="text/css">', $content[1], '</style>';
             } elseif ('js' === $content[0]) {
-                echo '<script type="text/javascript">', $content[1], '</script>';
+                if (str_starts_with($content[1], '<script') && str_ends_with($content[1], '</script>')) {
+                    echo $content[1];
+                } else {
+                    echo '<script type="text/javascript">', $content[1], '</script>';
+                }
             }
         }
     }

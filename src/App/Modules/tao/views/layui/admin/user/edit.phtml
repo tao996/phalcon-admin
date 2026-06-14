@@ -9,7 +9,7 @@ $isEdit = $vv->pick('id', 0) > 0;
 <form class="layui-form">
 
     <?php
-    echo $vv->layuiHtml()->upload(
+    echo $vv->userHtmlHelper()->upload(
             '用户头像', 'head_img',
             value: $vv->pick('head_img')
     ) ?>
@@ -130,7 +130,6 @@ $isEdit = $vv->pick('id', 0) > 0;
 $vv->layui()->addWindowConfig([])->footer();
 ?>
 <script>
-    admin.upload.run()
     admin.form.submitFirst(function () {
         admin.iframe.closeFromParent(true)
     })

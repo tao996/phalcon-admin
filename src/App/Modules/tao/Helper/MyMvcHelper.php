@@ -48,7 +48,7 @@ class MyMvcHelper extends MyMvc
         return $this->config()->getSuperAdminIds();
     }
 
-    public function isJsonBodyRequest():bool
+    public function isJsonBodyRequest(): bool
     {
         return $this->di->get('request')->getQuery('data', 'string') === 'jsonbody';
     }
@@ -129,10 +129,15 @@ class MyMvcHelper extends MyMvc
         return $this->di->getShared('tao.layuiForm');
     }
 
+    public function userHtmlHelper(): TaoUserHtmlHelper
+    {
+        return $this->di->getShared('tao.userHtmlHelper');
+    }
+
     protected function injectServices(): void
     {
         $mvc = $this;
-        $this->di->setShared('layui', function () use($mvc) {
+        $this->di->setShared('layui', function () use ($mvc) {
             /**
              * @var $html TaoHtmlHelper
              */
@@ -196,6 +201,9 @@ class MyMvcHelper extends MyMvc
         });
         $this->di->setShared('tao.layuiForm', function () use ($mvc) {
             return new LayuiForm($mvc);
+        });
+        $this->di->setShared('tao.userHtmlHelper', function () use ($mvc) {
+            return new TaoUserHtmlHelper($mvc);
         });
         $this->di->setShared('tao.ossUploadHelper', function () use ($mvc) {
             return new OssUploadHelper($mvc);

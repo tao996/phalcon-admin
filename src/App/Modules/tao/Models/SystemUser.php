@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Models;
 
 use App\Modules\tao\BaseTaoModel;
+use App\Modules\tao\Services\RoleService;
 use Phax\Support\Facade\MyHelperFacade;
 use Phax\Traits\SoftDelete;
 
@@ -38,6 +39,15 @@ class SystemUser extends BaseTaoModel
     public function roleIds(): array
     {
         return $this->role_ids ? explode(',', $this->role_ids) : [];
+    }
+
+    /**
+     * 返回用户的角色
+     * @return array<SystemRole>
+     */
+    public function roles():array
+    {
+        return RoleService::getRolesByIds($this->roleIds());
     }
 
     public function addAccount(string $account, string $kind, int $validAt = 0)

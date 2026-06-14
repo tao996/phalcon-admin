@@ -15,7 +15,7 @@ CmsHtmlHelper::header();
     <div style="display: flex;flex-direction: row;">
         <div class="layui-form-item" style="width: 300px;margin-right: 10px;">
 
-            <?php echo $vv->layuiHtml()->upload('封面', 'cover',
+            <?php echo $vv->userHtmlHelper()->upload('封面', 'cover',
                     value: $vv->pick('cover'), tip: '建议尺寸 620 * 300'
             ); ?>
         </div>
@@ -75,7 +75,6 @@ CmsHtmlHelper::ImageJs($items);
         data['image_ids'] = vmImage.data.items.map(d => d.id).join(',');
         return data;
     })
-    admin.upload.run();
 </script>
 
 

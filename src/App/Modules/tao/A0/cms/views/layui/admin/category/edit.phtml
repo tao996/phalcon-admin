@@ -71,7 +71,7 @@ $categoryList = $vv->pick('categoryList', []);
             <div class="layui-form-mid layui-text-em">多个标签使用空格分割</div>
         </div>
 
-        <?php echo $vv->layuiHtml()->upload('封面', 'cover',
+        <?php echo $vv->userHtmlHelper()->upload('封面', 'cover',
                 type: 'input', value: $vv->pick('row.cover')
         ); ?>
 
@@ -118,10 +118,6 @@ CmsHtmlHelper::ImageJs($items);
         data['content'] = tinymce.activeEditor.getContent();
         return data;
     })
-    admin.upload.run().after = function (url) {
-
-    }
-
     // 栏目类型切换事件
     admin.form.on('kindChange', function (data) {
         console.log(data.value)

@@ -35,9 +35,9 @@ $user = $vv->user();
             </div>
         </div>
     </div>
-
-    <?php echo $vv->layuiHtml()->upload('用户头像', 'head_img',
-            value: $user->head_img, class: 'mb10') ?>
+    <?=
+    $vv->userHtmlHelper()->upload('用户头像', 'head_img');
+    ?>
 
 
     <div class="layui-form-item">
@@ -147,9 +147,4 @@ $user = $vv->user();
     admin.form.submitFirst(function (data) {
         admin.iframe.closeFromParent(true);
     })
-
-    admin.upload.run();
-    admin.upload.after = function (url, name) {
-        console.log(name, url)
-    }
 </script>
