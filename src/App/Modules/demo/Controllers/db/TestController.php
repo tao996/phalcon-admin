@@ -40,10 +40,7 @@ class TestController extends Controller
             if ($cat2->save() === false) {
                 throw new \Exception($cat2->getFirstError());
             }
-            if (mt_rand(1, 10) <= 6) {
-                throw new \Exception('随机异常，取消事务');
-            }
+            throw new \Exception('异常，取消事务');
         });
-        ddd('db 事务演示结果查询');
     }
 }
