@@ -2,7 +2,7 @@
 
 namespace Phax\Utils;
 
-class Format
+class MyFormat
 {
     /**
      * 将时间戳进行格式化
@@ -49,6 +49,16 @@ class Format
             return 0;
         }
         return $data[0] * (1024 ** $exponent);
+    }
+
+    /**
+     * 格式化金额：保留两位小数，千分位分隔
+     * @param float|int|string|null $amount
+     * @return string 如 1,234.56
+     */
+    public static function formatMoney(float|int|string|null $amount): string
+    {
+        return number_format((float)($amount ?? 0), 2, '.', ',');
     }
 
     /**

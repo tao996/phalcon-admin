@@ -11,7 +11,7 @@ use App\Modules\tao\sdk\tencent\cos\QcloudDriver;
 use OSS\Core\OssException;
 use Phalcon\Http\Request\File;
 use Phax\Support\Facade\MyHelperFacade;
-use Phax\Utils\Format;
+use Phax\Utils\MyFormat;
 
 
 /**
@@ -95,7 +95,7 @@ class FileUploadHelper
 
         $bitSize = $this->getMaxBytes();
         if ($file->getSize() > $bitSize) {
-            throw new \Exception('文件超过了' . Format::humanFileSize($bitSize));
+            throw new \Exception('文件超过了' . MyFormat::humanFileSize($bitSize));
         }
         return $this;
     }

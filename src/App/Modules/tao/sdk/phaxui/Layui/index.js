@@ -172,6 +172,9 @@ const admin = {
          * @returns {string} 格式化后的金额
          */
         formatMoney: function (amount, showZeroDecimal = true) {
+            if (amount === null || amount == undefined || amount == '' || amount == 0 || amount == '0') {
+                return showZeroDecimal ? '0.00' : '0'
+            }
             // 第一步：转数字并容错处理
             const num = parseFloat(amount)
             if (isNaN(num)) return '0.00'
@@ -785,7 +788,7 @@ const admin = {
      * the upload.run most code is from http://layuimini.99php.cn/,
      * @link https://layui.dev/docs/2/upload/
      */
-    upload:{
+    upload: {
         // 用户上传文件管理，已经移动到 src/App/Modules/tao/Helper/TaoUserHtmlHelper.php 中
     },
     /**

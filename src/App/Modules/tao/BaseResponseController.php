@@ -179,6 +179,22 @@ class BaseResponseController extends Controller
         ];
     }
 
+      public function successData($data): array
+    {
+        $this->jsonResponse = true;
+
+        if ($data instanceof \Phax\Mvc\Model || $data instanceof \Phalcon\Mvc\Model\Resultset\Simple) {
+            $data = $data->toArray();
+        }
+        return [
+            'code' => 0,
+            'msg' => '',
+            'data' => $data
+        ];
+    }
+
+
+
 
     /**
      * 通常用在显示列表数据

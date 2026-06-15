@@ -103,7 +103,6 @@ class MyData
             throw new \Exception('not a string value :' . $key);
         }
     }
-
     /**
      * 必须是一个整数值
      * @param mixed $value 待检查的值
