@@ -354,4 +354,9 @@ class HtmlHelper
     {
         return file_exists($file);
     }
+
+    public function text(mixed $text)
+    {
+        return $text;
+    }
 }

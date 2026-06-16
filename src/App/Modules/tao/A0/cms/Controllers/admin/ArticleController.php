@@ -31,14 +31,19 @@ class ArticleController extends BaseTaoA0CmsController
         }
     }
 
-    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
+    protected function actionQuery(QueryBuilder $queryBuilder): void
     {
+        parent::actionQuery($queryBuilder);
         if ($cateId = $this->request->getQuery('cate_id', 'int', 0)) {
             $queryBuilder->int('cate_id', $cateId);
         }
         if ($cstatus = $this->request->getQuery('cstatus', 'int', 0)) {
             $queryBuilder->int('cstatus', $cstatus);
         }
+    }
+
+    protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
+    {
         $rows = parent::buildIndexResult($count, $queryBuilder);
         $cate = array_column($this->cateOptions, 'otitle', 'id');
         foreach ($rows as $index => $row) {

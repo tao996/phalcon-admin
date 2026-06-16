@@ -22,9 +22,9 @@ class RoleController extends BaseController
 
     protected string|array $modelQueryColumns = 'id,name,title,sort,status,remark,created_at';
 
-    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
+    protected function actionQuery(QueryBuilder $queryBuilder): void
     {
-        $queryBuilder->int('status', $this->request->getQuery('status', 'int', 0));
+        parent::actionQuery($queryBuilder);
         $queryBuilder->like('name', $this->request->getQuery('name', 'string'));
     }
 
