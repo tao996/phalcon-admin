@@ -3,6 +3,18 @@
 use \Phax\Foundation\CliRouter;
 
 // php artisan test 运行测试
+// 测试指定文件
+// php artisan tests/Helper/MyTestCurlTest.php
+// 指定文件，指定类
+// php artisan --filter MyTestCurlTest tests/Helper/MyTestCurlTest.php
+/**
+* 测试单个方法
+ * # 只执行 MyTestCurlTest 类里的 testGetInfo 方法
+ * ./vendor/bin/phpunit --filter "MyTestCurlTest::testGetInfo"
+ *
+ * # 在指定文件内，只跑 testPostData 方法
+ * ./vendor/bin/phpunit --filter testPostData tests/Helper/MyTestCurlTest.php
+ */
 CliRouter::add('test', function ($params) {
     system('php ' . PATH_ROOT . 'vendor/bin/phpunit --configuration ' . PATH_ROOT . 'phpunit.xml ' . join(' ', $params));
 }, 'run phpunit test');

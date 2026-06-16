@@ -32,12 +32,18 @@ class Logger
                 get_class($e),
                 $e->getMessage(),
                 $e->getFile(),
+                $e->getFile(),
                 $e->getLine(),
                 $trace
             );
             self::logger()->error($msg);
-        } catch (\Throwable $_) {
-            // 日志异常静默处理，防止循环出错
+        } catch (\Throwable $inner) {
+            // 日志异常静默处理，防止循环出错；
+            // 用 error_log() 作为回退，至少让外部能感知到 logger 本身出错了
+            error_log(
+                '[Logger::exception FAILED] ' . get_class($inner) . ': ' . $inner->getMessage()
+                . ' at ' . $inner->getFile() . '(' . $inner->getLine() . ')'
+            );
         }
     }
 

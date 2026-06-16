@@ -181,10 +181,10 @@ class MyMvc
         return $this->html()->pick($path, $default);
     }
 
-    public function postData(string $name, mixed $default = '')
+    public function postData(string $name, mixed $default = '',string $filter = '')
     {
         return $this->di->getShared('request')
-            ->getPost($name, '', $default);
+            ->getPost($name, $filter, $default);
     }
 
     /**
