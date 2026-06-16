@@ -57,14 +57,14 @@ class Route
         if (isset(self::$mapRoute[$map_path])) {
             $this->urlOptions = Router::pathMatch(self::$mapRoute[$map_path]);
         }
-        $this->origin();
+        $this->appOrigin();
     }
 
     /**
      * 当前访问的域名
      * @return string http://localhost:8071/
      */
-    public function origin(): string
+    public function appOrigin(): string
     {
         if (empty($this->origin)) {
             $baseUri = new MyBaseUri($this->di);

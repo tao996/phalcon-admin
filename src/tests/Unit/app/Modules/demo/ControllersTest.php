@@ -51,7 +51,7 @@ class ControllersTest extends TestCase
         $http->get('/m/demo/db.test/trans')->send()
             ->notContainsFailed()
             ->contains(['cat 1 age+10'])
-            ->orContains(['随机异常，取消事务', 'db 事务演示结果查询']);
+            ->orContains(['异常，取消事务']);
     }
 
     public function testA0DbTest()

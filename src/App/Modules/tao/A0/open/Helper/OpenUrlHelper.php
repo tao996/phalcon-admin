@@ -13,7 +13,7 @@ readonly class  OpenUrlHelper
     public function __construct(public MyOpenMvcHelper $helper)
     {
         $this->origin = $this->helper->configService()
-            ->getWith('proxy_origin', $this->helper->mvc->route()->origin());
+            ->getWith('proxy_origin', $this->helper->mvc->route()->appOrigin());
     }
 
     /**

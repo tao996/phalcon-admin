@@ -181,7 +181,14 @@ class MyMvc
         return $this->html()->pick($path, $default);
     }
 
-    public function postData(string $name, mixed $default = '',string $filter = '')
+    /**
+     * 获取 request post 中的数据
+     * @param string $name
+     * @param mixed $default
+     * @param string $filter
+     * @return mixed
+     */
+    public function pickPost(string $name, mixed $default = '',string $filter = '')
     {
         return $this->di->getShared('request')
             ->getPost($name, $filter, $default);
@@ -216,11 +223,34 @@ class MyMvc
      */
     public function url(array $options): string
     {
-        if (MyData::getBool($options, 'origin', true)) {
-            $options['origin'] = $this->route()->origin();
+        $builder = MyUrlBuilder::new();
+
+        $builder->language($this->route()->urlOptions['language']);
+
+        if (!empty($options['api'])) {
+            $builder->asApi();
         }
-        $options['language'] = $this->route()->urlOptions['language'];
-        return MyUrl::createWith($options);
+
+        $path = MyData::getString($options, 'path');
+        if (!empty($options['module'])) {
+            $builder->withModule(ltrim($path, '/'));
+        } elseif (!empty($options['project'])) {
+            $builder->withProject(ltrim($path, '/'));
+        } else {
+            $builder->path($path);
+        }
+
+        if (!empty($options['query'])) {
+            $builder->queryParams($options['query']);
+        }
+
+        if (MyData::getBool($options, 'origin', true)) {
+            $builder->origin($this->route()->appOrigin());
+        } elseif (!empty($options['origin']) && is_string($options['origin'])) {
+            $builder->origin($options['origin']);
+        }
+
+        return $builder->build();
     }
 
     /**
@@ -242,16 +272,16 @@ class MyMvc
      * 如果为 `array`，则是请求参数
      * @return string
      */
-    public function urlModule(string $path, array|bool $mixed = []): string
+    public function urlModule(string $path, array|bool $mixed = [], bool $isApi = true,bool $origin = false): string
     {
         $options = [
             'path' => $path,
             'module' => true,
             'origin' => true,
         ];
-        if ($mixed === true) {
+        if ($mixed === true || $isApi === true) {
             $options['api'] = true;
-        } elseif ($mixed === false) {
+        } elseif ($mixed === false || $origin === false) {
             $options['origin'] = '';
         } elseif (!empty($mixed)) {
             $options['query'] = $mixed;

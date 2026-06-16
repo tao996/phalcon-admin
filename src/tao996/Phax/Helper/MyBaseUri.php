@@ -25,6 +25,10 @@ class MyBaseUri
     {
 
         if (empty($this->origin)) {
+            if ($baseUri = $this->config->path('app.origin', '')) {
+                $this->origin = $baseUri;
+                return $this->origin;
+            }
             $scheme = $this->request->hasServer('HTTPS')
             && (($this->request->getServer('HTTPS') == 'on') || ($this->request->getServer('HTTPS') == 1))
                 ? 'https' : 'http';
@@ -53,12 +57,7 @@ class MyBaseUri
                 }
             }
             if (empty($host)) {
-                if ($baseUri = $this->config->path('app.url', '')) {
-                    $this->origin = $baseUri;
-                    return $this->origin;
-                } else {
-                    $host = 'localhost';
-                }
+                $host = 'localhost';
             }
             if (str_contains($host,':')){
                 $host = explode(':',$host)[0];

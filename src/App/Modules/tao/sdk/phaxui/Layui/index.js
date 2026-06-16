@@ -1110,7 +1110,7 @@ const admin = {
          * @return string
          * @example
          * ```
-         * {field: 'status', title: '状态', width: 85, templet: admin.table.switch},
+         * {field: 'status', title: '状态', width: 95, templet: admin.table.switch},
          * // tips: '正常|禁用',
          * ```
          */

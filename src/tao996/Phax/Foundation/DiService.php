@@ -316,7 +316,7 @@ class DiService
     {
         $this->di->set('url', function () {
             return new \Phalcon\Mvc\Url();
-//            $origin = rtrim($this->getConfig()->path('app.url'), '/') . '/';
+//            $origin = rtrim($this->getConfig()->path('app.origin'), '/') . '/';
 //            $url->setBaseUri($origin);
         }, $shared);
         return $this;

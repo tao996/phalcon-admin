@@ -2,54 +2,8 @@
 
 namespace Phax\Helper;
 
-use Phax\Support\Router;
-use Phax\Utils\MyData;
-
 class MyUrl
 {
-    /**
-     * 拼接一个网站内部地址
-     * @param array{origin:string,prefix:string,language:string,api:bool, module:bool,project:bool,path:string, query:array|string} $options
-     * @return string
-     */
-    public static function createWith(array $options = []): string
-    {
-        $items = [];
-        if (!empty($options['prefix']) && is_string($options['prefix'])) {
-            $items[] = $options['prefix'];
-        }
-        if (!empty($options['language']) && is_string($options['language'])) {
-            $items[] = $options['language'];
-        }
-
-        if (!empty($options['api'])) {
-            $items[] = 'api';
-        }
-        if (!empty($options['module'])) {
-            $items[] = Router::$moduleKeyword;
-        }
-        if (!empty($options['project'])) {
-            $items[] = Router::$projectKeyword;
-        }
-        $path = MyData::getString($options, 'path');
-        if ($items) {
-            $url = '/' . join('/', $items) . '/' . ltrim($path, '/');
-        } else {
-            $url = '/' . ltrim($path, '/');
-        }
-        if (!empty($options['query'])) {
-            $q = is_array($options['query']) ? http_build_query($options['query']) : $options['query'];
-            $url = str_contains($url, '?') ? $url . '&' . $q : $url . '?' . $q;
-        }
-        $origin = '';
-        if (!empty($options['origin'])) {
-            if (!is_string($options['origin'])) {
-                throw new \Exception('options.origin must be string');
-            }
-            $origin = $options['origin'];
-        }
-        return $origin ? rtrim($origin, '/') . $url : $url;
-    }
 
     /**
      * 检查给定网址的域名，是否在指定的域名列表中
