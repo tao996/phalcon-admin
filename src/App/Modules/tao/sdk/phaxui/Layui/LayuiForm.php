@@ -212,6 +212,7 @@ class LayuiForm
     public function datetime(string $title, string $name, mixed $value = '',
                              bool   $required = false,
                              bool   $range = false,
+                             string $aux = '',
                              string $type = 'datetime',
                              bool   $formItem = true,
     ): string
@@ -229,11 +230,12 @@ class LayuiForm
 JS
         );
         $requiredElem = $required ? '  lay-verify="required"' : '';
+        $auxText = $this->wrapAux($aux);
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
             <input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
                    placeholder="请选择' . $title . '" ' . $requiredElem . '>
-        </div>',
+        </div>'.$auxText,
             name: $name, formItem: $formItem);
     }
 

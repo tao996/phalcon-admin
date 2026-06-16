@@ -854,16 +854,16 @@ const admin = {
         render: function (options, additions = {}) {
             const tableId = this._config.id;
             const data = form.val('form-search');
-            const defaultToolbar = [
-                'filter', // 列筛选
-                'exports', // 导出
-                'print', // 打印
-                {
-                    title: '搜索',
-                    layEvent: 'search',
-                    icon: 'layui-icon-search'
-                }
-            ];
+            // const defaultToolbar = [
+            //     'filter', // 列筛选
+            //     'exports', // 导出
+            //     'print', // 打印
+            //     {
+            //         title: '搜索',
+            //         layEvent: 'search',
+            //         icon: 'layui-icon-search'
+            //     }
+            // ];
             const config = Object.assign({
                 elem: '#' + tableId,
                 url: admin.util.concatQuery(this._config.url, Object.assign(data, this._config.query)),
