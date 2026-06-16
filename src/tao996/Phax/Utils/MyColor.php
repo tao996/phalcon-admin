@@ -3,7 +3,7 @@
 namespace Phax\Utils;
 
 // copy form phalcon migration
-class Color
+class MyColor
 {
     public const int FG_BLACK = 1;
     public const int FG_DARK_GRAY = 2;
@@ -139,7 +139,7 @@ class Color
 
     public static function head(string $msg): string
     {
-        return Color::colorize($msg, Color::FG_BROWN, Color::AT_BOLD);
+        return MyColor::colorize($msg, MyColor::FG_BROWN, MyColor::AT_BOLD);
     }
 
     /**
@@ -147,7 +147,7 @@ class Color
      */
     public static function error(string $msg, string $prefix = 'Error: '): string
     {
-        return self::message($prefix . $msg, Color::BG_RED);
+        return self::message($prefix . $msg, MyColor::BG_RED);
     }
 
     /**
@@ -155,7 +155,7 @@ class Color
      */
     public static function fatal(string $msg, string $prefix = 'Fatal Error: '): string
     {
-        return self::message($prefix . $msg, Color::BG_RED);
+        return self::message($prefix . $msg, MyColor::BG_RED);
     }
 
     /**
@@ -163,7 +163,7 @@ class Color
      */
     public static function success(string $msg, string $prefix = 'Success: '): string
     {
-        return self::message($prefix . $msg, Color::BG_GREEN);
+        return self::message($prefix . $msg, MyColor::BG_GREEN);
     }
 
     /**
@@ -171,17 +171,17 @@ class Color
      */
     public static function info(string $msg, string $prefix = 'Info: '): string
     {
-        return self::message($prefix . $msg, Color::BG_BLUE);
+        return self::message($prefix . $msg, MyColor::BG_BLUE);
     }
 
     public static function warning(string $msg, string $prefix = 'Warning: '): string
     {
-        return self::message($prefix . $msg, Color::BG_YELLOW);
+        return self::message($prefix . $msg, MyColor::BG_YELLOW);
     }
 
-    public static function message(string $msg, string $bg = Color::BG_BLUE): string
+    public static function message(string $msg, string $bg = MyColor::BG_BLUE): string
     {
-        return static::colorize(' ' . $msg . ' ', Color::FG_WHITE, Color::AT_BOLD, $bg);
+        return static::colorize(' ' . $msg . ' ', MyColor::FG_WHITE, MyColor::AT_BOLD, $bg);
     }
 
     /**

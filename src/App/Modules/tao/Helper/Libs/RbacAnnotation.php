@@ -4,8 +4,8 @@ namespace App\Modules\tao\Helper\Libs;
 
 use App\Modules\tao\Models\SystemNode;
 use Phax\Support\Router;
-use Phax\Utils\AnnotationDocCommentParse as Annotation;
-use Phax\Utils\ServicesJSON;
+use Phax\Utils\MyAnnotationDocCommentParse as Annotation;
+use Phax\Utils\MyJSON;
 
 /**
  * 分析模 RBAC 注解信息, 没有使用 rbac 标记的操作器或者操作不会出现在结果中 <pre>
@@ -283,7 +283,7 @@ class RbacAnnotation
     {
         $cDos = Annotation::parse($ref->getDocComment());
         if (isset($cDos['rbac'])) {
-            return ServicesJSON::decode(self::getDocContent($cDos['rbac']), ServicesJSON::GET_ARRAY);
+            return MyJSON::decode(self::getDocContent($cDos['rbac']), MyJSON::GET_ARRAY);
         }
         return false;
     }
@@ -310,7 +310,7 @@ class RbacAnnotation
                     if ($enableActions && !in_array($name, $enableActions)) {
                         continue;
                     }
-                    $dInfo = ServicesJSON::decode(self::getDocContent($mDoc['rbac']), ServicesJSON::GET_ARRAY);
+                    $dInfo = MyJSON::decode(self::getDocContent($mDoc['rbac']), MyJSON::GET_ARRAY);
                     if (is_null($dInfo)) {
                         throw new \Exception('is rbac annotation ok?' . $mDoc['rbac']);
                     } elseif (empty($dInfo)) {

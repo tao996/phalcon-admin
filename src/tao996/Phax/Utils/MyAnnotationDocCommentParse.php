@@ -8,7 +8,7 @@ namespace Phax\Utils;
  * @link https://github.com/marcioAlmada/annotations
  * 用于将注释内容转换为数组；
  */
-class AnnotationDocCommentParse
+class MyAnnotationDocCommentParse
 {
     public const TOKEN_ANNOTATION_IDENTIFIER = '@';
 

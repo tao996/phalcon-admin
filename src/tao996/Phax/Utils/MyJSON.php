@@ -9,7 +9,7 @@ use stdClass;
  * 翻译不规范（类似js格式)的 JSON 字符串
  * @link https://github.com/EFTEC/Services_JSON/blob/main/src/Services_JSON.php
  */
-class ServicesJSON
+class MyJSON
 {
     protected const SLICE = 1;
     protected const IN_STR = 2;
