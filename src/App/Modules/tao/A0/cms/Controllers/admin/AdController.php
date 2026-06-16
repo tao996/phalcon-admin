@@ -22,11 +22,8 @@ class AdController extends BaseTaoA0CmsController
         $this->model = new CmsAd();
     }
 
-    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
+    protected function actionQuery(QueryBuilder $queryBuilder): void
     {
-        if ($this->isResetSearch()) {
-            return;
-        }
         $status = $this->request->getQuery('status', 'int', 0);
         if ($beginAt = $this->request->getQuery('begin_at')) {
             $queryBuilder->opt('begin_at', '>=', $beginAt);

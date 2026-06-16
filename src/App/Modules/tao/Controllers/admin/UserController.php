@@ -4,7 +4,6 @@ namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
 
-use App\Modules\tao\Config\Config;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
@@ -62,10 +61,10 @@ class UserController extends BaseController
 
     protected string|array $modelQueryColumns = 'id,role_ids,head_img,nickname,email,email_valid,phone,phone_valid,binds,status,created_at';
 
-    protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
+    protected function actionQuery(QueryBuilder $queryBuilder): void
     {
+        parent::actionQuery($queryBuilder);
         $queryBuilder->int('id', $this->request->getQuery('id', 'int'))
-            ->int('status', $this->request->getQuery('status', 'int'))
             ->like('phone', $this->request->getQuery('phone', 'string'))
             ->like('email', $this->request->getQuery('email', 'string'));
 

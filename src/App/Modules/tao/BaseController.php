@@ -85,19 +85,13 @@ class BaseController extends BaseRbacController
 
 
     /**
-     * 处理查询语句，通常用来补充查询条件
+     * 处理查询语句，通常用来补充默认的查询条件
      * @param QueryBuilder $queryBuilder
      * @return void
      * @throws \Exception
      */
     protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
     {
-        if ($this->isResetSearch()) {
-            return;
-        }
-        if ($this->request->hasQuery('status') && property_exists($this->model, 'status')) {
-            $queryBuilder->int('status', $this->request->getQuery('status', 'int', 0));
-        }
         if ($this->modelQueryColumns) {
             $queryBuilder->columns($this->modelQueryColumns);
         } elseif ($this->modelHiddenColumns) {
@@ -114,11 +108,28 @@ class BaseController extends BaseRbacController
         if ($this->modelOrderBy) {
             $queryBuilder->orderBy($this->modelOrderBy);
         }
+        if ($this->isResetSearch()) {
+            return;
+        }
+
+        $this->actionQuery($queryBuilder);
+    }
+
+    /**
+     * 用于子类追加查询条件
+     * @param QueryBuilder $queryBuilder
+     * @return void
+     */
+    protected function actionQuery(QueryBuilder $queryBuilder):void
+    {
+        if ($this->request->hasQuery('status') && property_exists($this->model, 'status')) {
+            $queryBuilder->int('status', $this->request->getQuery('status', 'int', 0));
+        }
     }
 
 
     /**
-     * 处理搜索的结果，已经在 indexAction 中自动对 $count>0 作出判断
+     * 获取查询记录
      * @param int $count 记录总数
      * @param QueryBuilder $queryBuilder
      * @return array 一次性将查询结果全部取出
