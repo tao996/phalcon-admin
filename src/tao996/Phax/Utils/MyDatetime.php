@@ -6,7 +6,7 @@ class MyDatetime
 {
     /**
      * 万能日期解析
-     * 支持：5月22日、2026年5月22日、2026/05/22、5.22、Excel数字(46164)
+     * 支持：5月22日、2026年5月22日、2026/05/22、5.22、Excel数字(46164),5.10
      * @param mixed $date 输入日期
      * @param string $defaultYear 默认年份（如果不指定则使用当前年份）
      * @return string 标准格式 Y-m-d
@@ -14,9 +14,18 @@ class MyDatetime
     public static function parseDate(mixed $date, string $defaultYear = ''): string
     {
         // 空值直接返回
-        if (empty($date)) return '';
+        if (empty($date) && $date !== 0 && $date !== 0.0) return '';
 
-        $str = trim((string)$date);
+        // 处理数字类型：Excel 中 "6.10" 存储为 6.1，用 sprintf 恢复精度
+        if (is_float($date) || is_int($date)) {
+            $str = sprintf("%.2f", $date);
+            // 去掉末尾的 .00（纯整数月份如 6 月）
+            if (str_ends_with($str, '.00')) {
+                $str = substr($str, 0, -3);
+            }
+        } else {
+            $str = trim((string)$date);
+        }
 
         // 1. 处理 Excel 数字日期（如 46164）
         if (ctype_digit($str) && $str > 20000) {
