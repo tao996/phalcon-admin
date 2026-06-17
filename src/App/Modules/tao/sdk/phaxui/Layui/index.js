@@ -994,8 +994,8 @@ const admin = {
             return this;
         },
         /**
-         * row-action 中 lay-event 自定义事件
-         * @param action {Function} 第一个参数事件名称，第二个参数为行数据
+         * 追加 row-action 中 lay-event 自定义事件
+         * @param action {Function} 第一个参数事件名称 `obj.event`，第二个参数为行数据 `obj.data`
          */
         events: function (action) {
             const tableId = this._config.id;
@@ -1004,7 +1004,8 @@ const admin = {
             });
         },
         /**
-         * 监听行操作事件，行操作通常通过 lay-event 进行绑定，默认已经绑定了 edit/delete/remove 事件
+         * 监听行操作事件，行操作通常通过 lay-event 进行绑定，默认已经绑定了 edit/delete/remove 事件；
+         * 如果需要添加更多事件，可以使用 `admin.table.events(function(eName, data){})`
          * @example
          * html
          * <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>

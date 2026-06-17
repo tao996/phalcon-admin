@@ -31,7 +31,7 @@ class MyExcel
 
     private Excel|null $excel = null;
 
-    private function getExcel(): Excel
+    public function getExcel(): Excel
     {
         if ($this->excel == null) {
             $this->excel = new Excel($this->options);
