@@ -235,11 +235,6 @@ const admin = {
                 shadeClose: true
             }, this._createCallback_(callback))
         },
-        errorAlert: function (msg) {
-            return layui.layer.alert(msg, {
-                icon: 2, title: '出错啦', btnAlign: 'c'
-            })
-        },
         /**
          * 警告消息框
          * @public
@@ -377,7 +372,7 @@ const admin = {
         },
         // layui.debounce(fn, wait) 防抖，layui.throttle(fn, wait) 节流
         /**
-         *
+         * 防抖、节流请求
          * @param option {{url?:string,data:Object}}
          * @param {function} [ok] 返回成功回调
          * @param {function} [no] 返回错误回调
@@ -385,22 +380,31 @@ const admin = {
          * @param {function} [ex] 错误回调
          */
         postLimit: function (option, ok, no, complete, ex) {
-            if (this._isPosting) {
-                layui.layer.msg('操作过于频繁，请稍等一会');
-                return;
+            var self = this;
+            if (!this._postLimitDebounced) {
+                // 用闭包保存 option/ok/no/complete/ex，让 debounce 只用最新参数
+                this._postLimitDebounced = layui.debounce(function () {
+                    if (self._isPosting) {
+                        return;
+                    }
+                    self._isPosting = true;
+                    var args = self._postLimitArgs;
+                    self.ajax('post', args.option, args.ok, args.no, function (data) {
+                        self._isPosting = false;
+                        if (typeof args.complete == 'function') {
+                            args.complete(data);
+                        }
+                    }, function (obj) {
+                        self._isPosting = false;
+                        if (typeof args.ex === 'function') {
+                            args.ex(obj);
+                        }
+                    });
+                }, 300);
             }
-            this._isPosting = true;
-            this.ajax('post', option, ok, no, function (data) {
-                admin.ajax._isPosting = false;
-                if (typeof complete == 'function') {
-                    complete(data);
-                }
-            }, function (obj) {
-                admin.ajax._isPosting = false;
-                if (typeof ex === 'function') {
-                    ex(obj);
-                }
-            })
+            // 保存最新参数
+            this._postLimitArgs = {option: option, ok: ok, no: no, complete: complete, ex: ex};
+            this._postLimitDebounced();
         },
         /**
          * 通用 Ajax 请求
@@ -507,11 +511,15 @@ const admin = {
             })
         },
         /**
-         * lay-filter 事件 <pre>
-         *     单选框事件 form.on('radio(filter)', callback); // filter 为单选框元素对应的 lay-filter 属性值
-         *     form.on('select', function(data){console.log(data);});// 指向所有 select 组件的选择事件
-         *     form.on('select(test)', function(data){console.log(data);});// 指向元素为 `<select lay-filter="test"></select>` 的选择事件
-         * </pre>
+         * lay-filter 事件
+         * @example
+         * form.on('radio(filter)', callback);
+         * // 单选框事件 ,filter 为单选框元素对应的 lay-filter 属性值
+         * form.on('select', function(data){console.log(data);});
+         * // 指向所有 select 组件的选择事件
+         * form.on('select(test)', function(data){console.log(data);});
+         * // 指向元素为 `<select lay-filter="test"></select>` 的选择事件
+         *
          * @link https://layui.dev/docs/2/form/#on
          * @param {string} layFilterName lay-filter 对应的值
          * @param {function} action 回调函数 data.elem.value 选中的值, data.elem.checked 是否选中, data.othis jQuery对象
@@ -580,6 +588,15 @@ const admin = {
 
             }
         },
+        /**
+         * 向指定 url 发送 post 请求
+         * @param {string} url 请求地址，如果没有，则为当前地址的 api 地址
+         * @param {Object} data 请求数据
+         * @param ok
+         * @param no
+         * @param complete
+         * @param ex
+         */
         request: function (url, data, ok, no, complete, ex) {
             if (url === undefined || url === '' || url === null) {
                 url = location.origin + '/api' + location.pathname + location.search
@@ -590,21 +607,31 @@ const admin = {
                 ok(data)
             }, no, complete, ex)
         },
-
+        /**
+         * 修改表单对应名称组件的值
+         * @param {Object} kvs 修改成新的值 {name:'aaa'}
+         */
         updateValueByName: function (kvs) {
             for (const name in kvs) {
                 document.getElementsByName(name)[0].value = kvs[name];
             }
         },
-
         /**
          * 表单赋值
          * @link https://layui.dev/docs/2/form/#val
-         * @param {string} layFilterName 添加在 form 上的 lay-filter
+         * @param {string} layFilterName 添加在 form 上的 lay-filter 如 `<form class="layui-form" action="" lay-filter="demo-val-filter">`
          * @param {Object} values 赋值
          */
         patch: function (layFilterName, values) {
             layui.form.val(layFilterName, values);
+        },
+        /**
+         * 表单取值
+         * @param {string} layFilterName 添加在 form 上的 lay-filter 如 `<form class="layui-form" action="" lay-filter="demo-val-filter">`
+         * @returns {*}
+         */
+        value:function(layFilterName){
+            return layui.form.val(layFilterName);
         },
         /**
          * 点击按钮时弹出验证码窗口

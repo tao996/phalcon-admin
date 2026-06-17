@@ -30,4 +30,9 @@ class TaoHtmlHelper
         <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
     </div>';
     }
+
+    static public function captcha()
+    {
+
+    }
 }
