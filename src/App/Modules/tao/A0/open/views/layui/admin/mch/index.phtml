@@ -151,9 +151,9 @@ lay-event="discardPubkey">取消</button>` : '') + `</div>`;
             },
         })
         .addPostSwitch()
-        .addPostEditText()
-        .addLayOnActions()
-        .addLayEventActions({
+        .addCellEditAction()
+        .addToolbarActions()
+        .addRowActions({
             events: function (obj) {
                 switch (obj.event) {
                     case 'discardPrivateKey':

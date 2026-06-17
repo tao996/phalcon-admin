@@ -116,9 +116,9 @@ ${admin.table.image(d.cover, true)}
             lineStyle: '60px'
         })
         .addPostSwitch(['status', 'at_index', 'at_list', 'at_page'])
-        .addPostEditText()
-        .addLayOnActions()
-        .addLayEventActions();
+        .addCellEditAction()
+        .addToolbarActions()
+        .addRowActions();
     laydate.render({
         elem: '#begin_at',
         type: 'datetime',

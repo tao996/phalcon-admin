@@ -127,9 +127,9 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
             ]],
             lineStyle: 'height: 60px;'
         })
-        .addPostEditText()
-        .addLayEventActions()
-        .addLayOnActions();
+        .addCellEditAction()
+        .addRowActions()
+        .addToolbarActions();
 
     layui.util.on('lay-on', {
         showUrl: function () {

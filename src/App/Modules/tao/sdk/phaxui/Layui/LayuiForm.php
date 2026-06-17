@@ -75,7 +75,7 @@ class LayuiForm
             $options[] = "<input " . $requiredElem . " lay-filter='" . $name . "' type='radio' name='{$name}' title='{$t}' value='{$v}' $selected>";
         }
         $class = $formItem ? 'layui-input-block' : 'layui-input-inline';
-        $content = $this->wrapFormLabel($title, $required) . '<div class="'.$class.'">' . join('', $options) . '</div>';
+        $content = $this->wrapFormLabel($title, $required) . '<div class="' . $class . '">' . join('', $options) . '</div>';
         return $this->wrapFormItem($content,
             name: $name, formItem: $formItem);
     }
@@ -107,13 +107,28 @@ class LayuiForm
     ): string
     {
         $inputClass = $block ? 'layui-input-block' : 'layui-input-inline';
-        $placeholder = $placeholder ?:'请填写' . $title;
-        $groupPs = $this->wrapPrefixSuffix('<input ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input ' . $class . '"
+        $placeholder = $placeholder ?: '请填写' . $title;
+        $groupPs = $this->wrapPrefixSuffix('<input lay-affix="clear" ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input ' . $class . '"
                    value="' . $value . '"
                    placeholder="' . $placeholder . '">', $prefix, $subfix);
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="' . $inputClass . '">' . $groupPs . '
         </div>' . $this->wrapAux($aux),
             name: $name, formItem: $formItem);
+    }
+
+    public function textarea(string $title, string $name, string $value,
+                             bool   $required = false,
+                             string $placeholder = '',
+                             string $class = '',
+                             string $style = '',
+    ): string
+    {
+
+        $placeholder = $placeholder ?: '请填写' . $title;
+        $groupPs = $this->wrapPrefixSuffix('<textarea lay-affix="clear"  ' . $this->layVerifyRequired($required) .
+            ' name="' . $name . '" class="layui-textarea ' . $class . '" style="' . $style . '" placeholder="' . $placeholder . '">' . $value . '</textarea>');
+        return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-block">' . $groupPs . '
+        </div>', name: $name);
     }
 
     public function readonly(string $title, string $name, string $text = '',
@@ -235,7 +250,7 @@ JS
             <input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
                    placeholder="请选择' . $title . '" ' . $requiredElem . '>
-        </div>'.$auxText,
+        </div>' . $auxText,
             name: $name, formItem: $formItem);
     }
 

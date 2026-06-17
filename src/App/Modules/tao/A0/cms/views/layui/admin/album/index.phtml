@@ -93,9 +93,9 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
             lineStyle: '60px'
         })
         .addPostSwitch()
-        .addPostEditText()
-        .addLayOnActions()
-        .addLayEventActions({
+        .addCellEditAction()
+        .addToolbarActions()
+        .addRowActions({
             events: function (obj) {
                 if ('preview' === obj.event) {
                     const d = obj.data;

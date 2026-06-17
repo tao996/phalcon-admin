@@ -132,9 +132,11 @@ const admin = {
          * @link https://layui.dev/docs/2/util/#on
          * @example
          * <button class="layui-btn" lay-on="e1">事件</button>
-         * layui.util.on({ e1:function(othis){
-         *      console.log(othis.html());
-         *      console.log(this.getAttribute('data-kind'));
+         * layui.util.on({
+         *      e1:function(othis){
+         *          console.log(othis.html());
+         *          console.log(this.getAttribute('data-kind'));
+         *      }
          * });
          */
         layOn: function (binds) {
@@ -950,11 +952,11 @@ const admin = {
             return this;
         },
         /**
-         * 监听 lay-on 事件，如 工具栏的 batchDelete/create
+         * 监听表格工具栏的 batchDelete/create 事件；如果需要监听其它独立事件，使用 admin.utils.layOn
          * @param {{url?:string}} [config] 配置信息
          * @return this
          */
-        addLayOnActions: function (config = {}) {
+        addToolbarActions: function (config = {}) {
             const tableId = this._config.id;
             const url = config && config.url ? config.url : this._config.url;
             layui.util.on('lay-on', {
@@ -1002,10 +1004,13 @@ const admin = {
             });
         },
         /**
-         * 监听行操作事件 lay-event，通常绑定在 table.cols.toolbar 上
+         * 监听行操作事件，行操作通常通过 lay-event 进行绑定，默认已经绑定了 edit/delete/remove 事件
          * @example
-         * addLayEventActions({
-         *     events: function (d) {
+         * html
+         * <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+         * js
+         * addRowActions({
+         *     events: function (d) { // 处理 edit/delete/remove 的操作
          *         const customerId = d.data.customer_id;
          *         const data = form.val('form-search');
          *         const query = '?search=1&month=' + data['month'] + '&customer_id=' + customerId;
@@ -1023,7 +1028,7 @@ const admin = {
          * @param {{url?:string, events?:Function, key?:string}} [config] 回调函数，obj.event 是事件名称, obj.data 是当前行数据
          * @return this
          */
-        addLayEventActions: function (config = {}) {
+        addRowActions: function (config = {}) {
             const tableId = this._config.id;
             const url = this.getConfig(config, 'url');
             const key = this.getConfig(config, 'key', 'id');
@@ -1239,11 +1244,12 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             table.on('edit(' + tableId + ')', callback)
         },
         /**
-         * 提交 编辑单元 EditText
+         * 添加单元格编辑事件, 如 `{field:'city', title: '城市', width:80, edit: editable},`
+         * @link https://layui.dev/docs/2/table/#demo-editable
          * @param {{url?:string,ok?:Function}} [config] 配置信息
          * @return this
          */
-        addPostEditText: function (config) {
+        addCellEditAction: function (config) {
             const tableId = this._config.id;
             const url = config && config.url ? config.url : this._config.url;
 

@@ -109,8 +109,8 @@ $vv->layui()->addWindowConfig([])->footer();
         }
     })
         .addPostSwitch()
-        .addPostEditText()
-        .addLayOnActions()
+        .addCellEditAction()
+        .addToolbarActions()
 
     layui.util.on('lay-on', {
         refresh: function () {

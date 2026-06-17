@@ -107,7 +107,7 @@ $vv->layui()->addWindowConfig([])->footer();
             lineStyle: 'height: 80px;',
         })
         .addPostSwitch()
-        .addLayOnActions().addLayEventActions({
+        .addToolbarActions().addRowActions({
         events: function (obj) {
             switch (obj.event) {
                 case 'password':

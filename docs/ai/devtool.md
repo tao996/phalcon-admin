@@ -241,45 +241,46 @@ class {name}Controller extends BaseController
 参考 `src/App/Modules/tao/views/layui/admin/role/index.phtml` 的格式：
 
 ```html
+
 <fieldset class="table-search-fieldset layui-hide" id="table-search">
-    <form class="layui-form ..." lay-filter="form-search">
-        {searchFields}
-        <a class="layui-btn ..." lay-submit>搜索</a>
-        <button type="reset" ...>重置</button>
-    </form>
+  <form class="layui-form ..." lay-filter="form-search">
+    {searchFields}
+    <a class="layui-btn ..." lay-submit>搜索</a>
+    <button type="reset" ...>重置</button>
+  </form>
 </fieldset>
 
 <script type="text/html" id="toolbar">
-    <div class="layui-table-tool-temp">
-        <button lay-on="refresh">刷新</button>
-        <button lay-on="create">添加</button>
-        <button lay-on="batchDelete">删除</button>
-    </div>
+  <div class="layui-table-tool-temp">
+    <button lay-on="refresh">刷新</button>
+    <button lay-on="create">添加</button>
+    <button lay-on="batchDelete">删除</button>
+  </div>
 </script>
 
 <script type="text/html" id="row-action">
-    <a lay-event="edit">编辑</a>
-    <a lay-event="remove">删除</a>
+  <a lay-event="edit">编辑</a>
+  <a lay-event="remove">删除</a>
 </script>
 
 <table id="table"></table>
 
 <script>
-    const prefix = '...';
-    admin.table.with({url: prefix})
-        .render({
+  const prefix = '...';
+  admin.table.with({url: prefix})
+          .render({
             toolbar: '#toolbar',
             cols: [[
-                {type: 'checkbox'},
-                {field: 'id', title: 'ID', width: 50},
-                {tableColumns}
-                {actionColumn}
+              {type: 'checkbox'},
+              {field: 'id', title: 'ID', width: 50},
+              {tableColumns}
+              {actionColumn}
             ]],
-        })
-        .addPostSwitch()
-        .addPostEditText()
-        .addLayOnActions()
-        .addLayEventActions();
+          })
+          .addPostSwitch()
+          .addCellEditAction()
+          .addToolbarActions()
+          .addRowActions();
 </script>
 ```
 

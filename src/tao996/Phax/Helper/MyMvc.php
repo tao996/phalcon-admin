@@ -188,7 +188,7 @@ class MyMvc
      * @param string $filter
      * @return mixed
      */
-    public function pickPost(string $name, mixed $default = '',string $filter = '')
+    public function pickPost(string $name, mixed $default = '',string $filter = ''): mixed
     {
         return $this->di->getShared('request')
             ->getPost($name, $filter, $default);
@@ -272,16 +272,16 @@ class MyMvc
      * 如果为 `array`，则是请求参数
      * @return string
      */
-    public function urlModule(string $path, array|bool $mixed = [], bool $isApi = true,bool $origin = false): string
+    public function urlModule(string $path, array|bool $mixed = []): string
     {
         $options = [
             'path' => $path,
             'module' => true,
             'origin' => true,
         ];
-        if ($mixed === true || $isApi === true) {
+        if ($mixed === true) {
             $options['api'] = true;
-        } elseif ($mixed === false || $origin === false) {
+        } elseif ($mixed === false) {
             $options['origin'] = '';
         } elseif (!empty($mixed)) {
             $options['query'] = $mixed;

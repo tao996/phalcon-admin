@@ -88,8 +88,8 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
         url: prefix
     })
         .addPostSwitch(['status', 'navbar'])
-        .addPostEditText()
-        .addLayOnActions()
+        .addCellEditAction()
+        .addToolbarActions()
 
     layui.util.on('lay-on', {
         refresh: function () {

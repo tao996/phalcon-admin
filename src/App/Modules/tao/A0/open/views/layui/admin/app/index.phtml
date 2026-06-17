@@ -208,9 +208,9 @@ lay-on='discardBtn' data-info='{"id":${d.id},"name":"rsa_private_key"}'>取消</
                 },
             })
             .addPostSwitch(['online', 'status', 'sandbox'])
-            .addPostEditText()
-            .addLayOnActions()
-            .addLayEventActions();
+            .addCellEditAction()
+            .addToolbarActions()
+            .addRowActions();
 
     function discardCert(id, name, title) {
     }

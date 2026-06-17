@@ -78,9 +78,9 @@ $vv->layui()->addWindowConfig([])->footer();
             ]],
         })
         .addPostSwitch()
-        .addPostEditText()
-        .addLayOnActions()
-        .addLayEventActions({
+        .addCellEditAction()
+        .addToolbarActions()
+        .addRowActions({
             events: function (obj) {
                 switch (obj.event) {
                     case 'authorize':

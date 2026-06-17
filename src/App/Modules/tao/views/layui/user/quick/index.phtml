@@ -66,9 +66,9 @@
             ]]
         })
         .addPostSwitch()
-        .addPostEditText()
-        .addLayOnActions()
-        .addLayEventActions({
+        .addCellEditAction()
+        .addToolbarActions()
+        .addRowActions({
             url: prefix,
             events: function (obj) {
                 console.log(obj.event, obj.data);

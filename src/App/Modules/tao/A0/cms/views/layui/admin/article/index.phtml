@@ -132,9 +132,9 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
             lineStyle: '60px'
         })
         .addPostSwitch(['status', 'hot', 'top'])
-        .addPostEditText()
-        .addLayOnActions()
-        .addLayEventActions({
+        .addCellEditAction()
+        .addToolbarActions()
+        .addRowActions({
             events: (obj) => {
                 const article = obj.data;
                 switch (obj.event) {

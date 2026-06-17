@@ -29,30 +29,41 @@ class MyExcel
         return $this;
     }
 
-    private function _excel(): Excel
+    private Excel|null $excel = null;
+
+    private function getExcel(): Excel
     {
-        static $obj = null;
-        if ($obj === null) {
-            $excel = new Excel($this->options);
-            $obj = $excel->fileName($this->filename);
+        if ($this->excel == null) {
+            $this->excel = new Excel($this->options);
+            $this->excel = $this->excel->openFile($this->filename);
         }
-        return $obj;
+        return $this->excel;
     }
 
     /**
-     * 读取数据
+     * 打开工作表
      * @link https://xlswriter.viest.me/docs/index.html#/zh-cn/reader/set-type.md 设置列的数据类型
      * @param string|null $sheetName 默认为第 1 个工作表
      * @param array $types 列的类型, 示例 `[0=>\Vtiful\Kernel\Excel::TYPE_TIMESTAMP]`
      * @return array
      * @throws \Exception
      */
-    public function getSheetData(string|null $sheetName = null, array $types = []): array
+    public function open(string|null $sheetName = null, array $types = []): Excel
     {
-        $sheet = $this->_excel()->openSheet($sheetName);
+        if (empty($sheetName)) {
+            throw new \Exception('sheet name is empty');
+        }
+        $sheet = $this->getExcel()->openSheet($sheetName);
         if ($types) {
             $sheet = $sheet->setType($types);
         }
-        return $sheet->getSheetData();
+        return $sheet;
+    }
+
+    public function rows(): \Generator
+    {
+        while ($row = $this->getExcel()->nextRow()) {
+            yield $row;
+        }
     }
 }
