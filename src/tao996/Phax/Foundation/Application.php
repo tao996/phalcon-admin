@@ -11,7 +11,7 @@ use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\LocationException;
 use Phax\Support\Logger;
 use Phax\Support\Router;
-use Phax\Utils\Color;
+use Phax\Utils\MyColor;
 use Phax\Utils\MyData;
 
 /**
@@ -246,15 +246,15 @@ class Application
 
         if ($argc < 2 || in_array($argv[1], ['help', '-help', '--help'])) {
             $outputs = [
-                Color::head('| examples'),
+                MyColor::head('| examples'),
                 'artisan main                # run task App\Console\MainTask->indexAction()',
                 'artisan main/demo 15        # run task App\Console\MainTask->demoAction(15)',
                 'artisan p/demo/main/say 15  # run task App\Projects\demo\Console\MainTask->sayAction(15)',
                 'artisan m/demo/main/say 15  # run task App\Modules\demo\Console\MainTask->sayAction(15)',
-                Color::head('| commands in the routes/cli.php'),
+                MyColor::head('| commands in the routes/cli.php'),
             ];
             foreach (CliRouter::find() as $cmd => $desc) {
-                $outputs[] = Color::spacesPrint('artisan ' . $cmd) . '  # ' . $desc;
+                $outputs[] = MyColor::spacesPrint('artisan ' . $cmd) . '  # ' . $desc;
             }
             echo join(PHP_EOL, $outputs), PHP_EOL;
             return;

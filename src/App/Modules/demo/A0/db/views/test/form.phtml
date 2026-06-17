@@ -68,13 +68,13 @@
     <div class="form-controller">
         <label>accepted</label>
         <input type="checkbox" name="accept" value="true" <?php
-        echo $vv->postData('accept', true) ? 'checked' : '' ?>>
+        echo $vv->pickPost('accept', true) ? 'checked' : '' ?>>
         同意【服务条款】
     </div>
     <div class="form-controller">
         <label>email</label>
         <input type="email" name="email" value="<?php
-        echo $vv->postData('email', 'abc@test.com') ?>" placeholder="请填写电子邮箱">
+        echo $vv->pickPost('email', 'abc@test.com') ?>" placeholder="请填写电子邮箱">
         *
     </div>
     <div class="form-controller">

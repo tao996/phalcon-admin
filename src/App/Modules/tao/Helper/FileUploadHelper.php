@@ -132,7 +132,7 @@ class FileUploadHelper
             $sf->assign([
                 'upload_type' => $this->getUploadType(), // 文件类型
                 'summary' => $this->_file->getName(), // 原始文件名
-                'url' => '/' . $subDir . $saveName, // 本地访问链接地址(添加 config('app.url') . 可能会导致移除数据库时无法访问）
+                'url' => '/' . $subDir . $saveName, // 本地访问链接地址(添加 config('app.origin') . 可能会导致移除数据库时无法访问）
                 'width' => $width,
                 'height' => $height, // 尺寸
                 'mime_type' => $this->_file->getType(), // mime 类型

@@ -8,7 +8,7 @@ $data['database']['log']['driver'] = 'file';
 
 $data['app'] = [
     'title' => 'Phalcon Admin Dev', // 应用标题/名称
-    'url' => 'http://localhost:8071/', // 必须以 / 结尾，用于生成链接地址；默认从 $_SERVER['HTTP_HOST'] 或其它参数中获取
+    'origin' => 'http://localhost:8071/', // 必须以 / 结尾，用于生成链接地址；默认从 $_SERVER['HTTP_HOST'] 或其它参数中获取
     'https' => false, // 是否将 http 转为 https，线上的时候需要设置为 true
     'logo' => '/assets/logo.png', // 30*30
     'timezone' => env('TZ', 'UTC'),

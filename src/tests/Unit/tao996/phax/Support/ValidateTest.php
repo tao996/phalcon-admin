@@ -178,7 +178,7 @@ class ValidateTest extends \PHPUnit\Framework\TestCase
     public function testCallerValidationUnique(): void
     {
         // 无 attribute 不崩溃
-        $rst = self::$v->getCallerValidation('unique', ['App\\Modules\\yihe\\Models\\Payment']);
+        $rst = self::$v->getCallerValidation('unique', ['App\Modules\demo\Models\Article']);
         $this->assertStringContainsString('Uniqueness', $rst[1]);
         $this->assertArrayHasKey('model', $rst[2]);
         $this->assertArrayNotHasKey('attribute', $rst[2]);
