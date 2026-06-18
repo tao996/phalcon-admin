@@ -582,7 +582,7 @@ const admin = {
                             break;
                     }
                     admin.ajax.post({
-                        url, postData
+                        url: url, data: postData
                     }, function (data) {
                         ok(data)
                     }, options.no, options.complete, options.ex)
