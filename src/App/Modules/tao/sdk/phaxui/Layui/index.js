@@ -432,7 +432,7 @@ const admin = {
                 statusName: 'code',
                 statusCode: 0,
             }, option)
-            if (option.url === '') {
+            if (option.url === '' || option.url == null || option.url == undefined) {
                 option.url = this.apiURL();
             }
             const loadIndex = admin.layer.loading('加载中')
@@ -581,31 +581,15 @@ const admin = {
                             url = options.url()
                             break;
                     }
-
-                    admin.form.request(url, postData, ok, options.no, options.complete, options.ex)
+                    admin.ajax.post({
+                        url, postData
+                    }, function (data) {
+                        ok(data)
+                    }, options.no, options.complete, options.ex)
                     return false;
                 })
 
             }
-        },
-        /**
-         * 向指定 url 发送 post 请求
-         * @param {string} url 请求地址，如果没有，则为当前地址的 api 地址
-         * @param {Object} data 请求数据
-         * @param ok
-         * @param no
-         * @param complete
-         * @param ex
-         */
-        request: function (url, data, ok, no, complete, ex) {
-            if (url === undefined || url === '' || url === null) {
-                url = location.origin + '/api' + location.pathname + location.search
-            }
-            admin.ajax.post({
-                url, data
-            }, function (data) {
-                ok(data)
-            }, no, complete, ex)
         },
         /**
          * 修改表单对应名称组件的值
@@ -630,61 +614,9 @@ const admin = {
          * @param {string} layFilterName 添加在 form 上的 lay-filter 如 `<form class="layui-form" action="" lay-filter="demo-val-filter">`
          * @returns {*}
          */
-        value:function(layFilterName){
+        value: function (layFilterName) {
             return layui.form.val(layFilterName);
         },
-        /**
-         * 点击按钮时弹出验证码窗口
-         * @param success {Function} 接收一个验证码参数
-         */
-        captcha: function (success) {
-            layer.open({
-                type: 1, area: '250px', resize: false, shadeClose: true,
-                offset: Math.max(((window.innerHeight - 400) / 2), 100) + 'px',
-                title: '验证码', content: `<div class="layui-form" lay-filter="form-captcha" style="margin: 16px;">
-<div>
-<img style="width: 218px;height: 50px;" src="/m/tao/captcha" onclick="this.src='/m/tao/captcha?t='+ new Date().getTime();" id="formCaptcha">
-<div style="font-size: 0.9em;font-weight: bold" lay-on="refreshCaptcha">点击图片刷新验证码（不区分大小写）</div>
-</div>
-<div style="margin: 10px 0;">
- <input type="text" name="captcha" value="" lay-verify="required" 
- placeholder="请填写图片上的验证码" lay-reqtext="请填写验证码" maxlength="4"
- autocomplete="off" class="layui-input" lay-affix="clear">
-</div>
-<div class="layui-form-item">
-    <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="submit-captcha">确定</button>
-</div>
-</div>
-`, success: function (layero, index) {
-                    layui.form.render();
-                    layui.form.on('submit(submit-captcha)', function (data) {
-                        const captcha = data.field.captcha;
-                        layer.close(index)
-                        success(captcha)
-                        return false;
-                    });
-
-                    layui.util.on({
-                        refreshCaptcha: function () {
-                            document.getElementById('formCaptcha').src = '/m/tao/captcha?t=' + new Date().getTime();
-                        }
-                    })
-                }
-            })
-        },
-        /**
-         * 为 class=bind_date或bind_datetime 的绑定时间
-         */
-        bindDate: function () {
-            layui.laydate.render({
-                elem: '.bind_date'
-            });
-
-            layui.laydate.render({
-                elem: '.bind_datetime',
-                type: 'datetime',
-            })
-        }
     },
     /**
      * 页面处理
@@ -1268,7 +1200,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          *  field: 修改的字段, value: 修改后的值, oldValue: 修改前的值,data: 所在行的数据
          * }</pre>
          */
-        listenEditText: function (tableId, callback) {
+        listenCellEdit: function (tableId, callback) {
             table.on('edit(' + tableId + ')', callback)
         },
         /**
@@ -1281,7 +1213,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             const tableId = this._config.id;
             const url = config && config.url ? config.url : this._config.url;
 
-            admin.table.listenEditText(tableId, function (obj) {
+            admin.table.listenCellEdit(tableId, function (obj) {
                 const postData = {
                     id: obj.data.id, field: obj.field, value: obj.value,
                 }
@@ -1298,7 +1230,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             return this;
         },
         /**
-         * 移除指定的数据，并重载数据
+         * 移除符合条件的数据，并重载数据
          * @param predicate
          * @return this
          */
@@ -1399,7 +1331,10 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
         }
     },
     /**
-     * layui 缓存
+     * layui 缓存 <br>
+     * 本地存储是对 localStorage 和 sessionStorage 的友好封装，可更方便地管理本地数据。方法如下：<br>
+     * layui.data(table, settings); 即 localStorage，数据在浏览器中的持久化存储，除非物理删除。<br>
+     * layui.sessionData(table, settings); 即 sessionStorage ，数据在浏览器中的会话性存储，页面关闭后即失效。
      * @link https://layui.dev/docs/2/base.html#data
      */
     cache: {
@@ -1430,89 +1365,5 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
         clear: function () {
             localStorage.clear();
         }
-    },
-    /**
-     * 模板引擎 https://layui.dev/docs/2/laytpl/#test
-     * 分页 https://layui.dev/docs/2/laypage/
-     */
-    pagination: {
-        _cache: {},
-        /**
-         * 配置
-         * @param name {string} 名称
-         * @param options {{id?:string, groups?:number, tpl?:string,view?:string,url:string}}
-         */
-        with: function (name, options = {}) {
-            const tplName = options.tpl || name + 'Tpl';
-            const tplElem = document.getElementById(tplName);
-            if (tplElem == null) {
-                console.warn('could not find tpl for pagination:', tplName)
-                return false;
-            }
-            const viewName = options.view || name + 'View';
-            const viewElem = document.getElementById(viewName);
-            if (viewElem == null) {
-                console.warn('could not find view for pagination:', viewName)
-                return false;
-            }
-            this._cache[name] = Object.assign({
-                id: 'pag', // 绑定分页 <div class="text-center" id="pag"></div>
-                count: 0, curr: 1, rows: [], hasLoad: false,
-                groups: options.groups || 1, // 只显示1页
-                tplElem: layui.laytpl(tplElem.innerHTML),
-                viewElem: viewElem,
-            }, options);
-            return true;
-        },
-        getOption: function (name) {
-            if (admin.util.isEmpty(this._cache[name])) {
-                throw new Error('pagination option not find:' + name);
-            }
-            return this._cache[name];
-        },
-        /**
-         * 请求
-         * @param name {string} 名称
-         */
-        request: function (name) {
-            const cd = this.getOption(name);
-            admin.ajax.get({url: cd.url}, res => {
-                cd.hasLoad = true;
-                cd.count = res.count;
-                cd.rows = res.data;
-                this.render(name)
-            })
-        },
-        /**
-         * 渲染分页的模板
-         * @param name {string}
-         */
-        render: function (name) {
-            const cd = this.getOption(name)
-            layui.laypage.render({
-                elem: cd.id,
-                count: cd.count, curr: cd.curr, groups: cd.groups,
-                first: false, last: false, limit: 15,
-                layout: cd.layout || ['prev', 'page', 'next', 'count'],
-                jump: function (obj, firstRun) {
-                    // console.log(name, firstRun)
-                    if (firstRun) {
-
-                    } else {
-                        cd.url = admin.util.appendOrReplaceQueryParam(cd.url, 'page', obj.curr)
-                        cd.url = admin.util.appendOrReplaceQueryParam(cd.url, 'limit', obj.limit)
-
-                        admin.ajax.get({url: cd.url}, res => {
-                            cd.count = res.count;
-                            cd.rows = res.data;
-                        })
-                    }
-
-                    cd.tplElem.render(cd, function (content) {
-                        cd.viewElem.innerHTML = content;
-                    })
-                }
-            })
-        },
-    },
+    }
 };

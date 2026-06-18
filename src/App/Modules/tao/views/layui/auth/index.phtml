@@ -109,10 +109,11 @@ $vv->layui()->addWindowConfig()->footer(); ?>
 <script>
     <?php include __DIR__ . '/auth.js' ?>
 </script>
+<?php \App\Modules\tao\Helper\TaoHtmlHelper::jsCaptcha($vv); ?>
 <script>
     // 提交事件
     form.on('submit(submit-login)', function (data) {
-        admin.form.captcha(captcha => {
+        jsCaptcha(captcha => {
             const postData = Object.assign(data.field, {captcha});
             admin.ajax.post({
                 url: '<?php echo $vv->urlModule('tao/auth/index') ?>', data: postData,

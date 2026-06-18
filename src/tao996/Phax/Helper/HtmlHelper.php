@@ -219,9 +219,15 @@ class HtmlHelper
      * @param string $type 内容类型，css 或者 js
      * @return $this
      */
-    public function addFooterContent(string $content, string $type = 'js'): static
+    public function addFooterContent(string $content, string $type = 'js', string $name = ''): static
     {
-        $this->footerContents[] = [$type, $content];
+        if ($name) {
+            if (!isset($this->footerContents[$name])) {
+                $this->footerContents[$name] = [$type, $content];
+            }
+        } else {
+            $this->footerContents[] = [$type, $content];
+        }
         return $this;
     }
 
