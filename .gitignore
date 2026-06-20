@@ -38,6 +38,7 @@ src/tests/Helper/cookie.txt
 src/tests/bootstrap.test.php
 src/storage/app/*
 !src/storage/app/.gitkeep
+src/storage/cache/
 src/storage/cache/session/*
 !src/storage/cache/session/.gitkeep
 src/storage/cache/view/*

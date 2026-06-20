@@ -34,6 +34,70 @@ const admin = {
      */
     util: {
         /**
+         * 防抖代理(在事件停止触发后延迟一段时间执行)，函数按指定毫秒延时执行 <br>
+         * 适用于输入框搜索、窗口调整等场景。只有在事件在指定时间内没有再次触发，事件处理函数才会执行
+         * @example
+         * admin.table.with({url: prefix})
+         *    .render({
+         *        limit: 1000000, limits: [1000000],
+         *        defaultToolbar: [],
+         *        cols: cols,
+         *        success: function (res) {
+         *            allData = res.data.rows || [];
+         *            console.log('请求完成', allData.length)
+         *            if (allData.length > 0 && $('#filterBar').is(':hidden')) {
+         *                $('#filterBar').show();
+         *                layui.form.render('select');
+         *            }
+         *        }
+         *    });
+         * // 1. 防抖函数只初始化一次，放在外层，不要写在 doFilter 内部
+         * const debounceRenderTable = admin.util.debounce(function (filteredList) {
+         *    console.log(allData.length)
+         *    const tableId = admin.table.id(); // 替换成你table.render配置的id
+         *    // 直接覆盖表格缓存实现数据替换
+         *    layui.table.cache[tableId] = filteredList;
+         *    // 重绘表格
+         *    layui.table.renderData(tableId);
+         * }, 500);
+         *
+         * // 过滤主函数
+         * function doFilter() {
+         *    // allData 是原始完整数据源，全程不修改、不覆盖
+         *    var keyword = $('#filterKeyword').val().trim().toLowerCase();
+         *    var material = $('#filterMaterial').val();
+         *
+         *    // 过滤主体数据
+         *    var filtered = allData.filter(function (d) {
+         *        if (keyword && (d.customerName || '').toLowerCase().indexOf(keyword) < 0) return false;
+         *        if (material && parseInt(d.material) !== parseInt(material)) return false;
+         *        return true;
+         *    });
+         *
+         *    // 调用防抖渲染，把过滤好的数据传进去
+         *    debounceRenderTable(filtered);
+         * }
+         *
+         * // 绑定输入事件（输入时触发过滤）
+         * $('#filterKeyword, #filterMaterial').on('input change', function () {
+         *    doFilter();
+         * });
+         * @param fn
+         * @param wait
+         */
+        debounce: function (fn, wait) {
+            return layui.debounce(fn, wait);
+        },
+        /**
+         * 节流代理，限制函数在指定毫秒内不重复执行
+         * 在一定时间内多次触发事件时，只执行一次事件处理函数，适用于滚动事件、鼠标移动等高频触发场景。节流保证固定频率执行
+         * @param fn
+         * @param wait
+         */
+        throttle: function (fn, wait) {
+            return layui.throttle(fn, wait);
+        },
+        /**
          * 判断值是否为空（0/'null'/undefined/空对象/空数组 均视为空）
          * @param {*} data 待检查的值
          * @returns {boolean}
@@ -617,6 +681,20 @@ const admin = {
         value: function (layFilterName) {
             return layui.form.val(layFilterName);
         },
+        /**
+         * 监听 select
+         * @link https://layui.dev/docs/2/form/select.html#lay-append
+         * @param {string} layFilterName
+         * @param {Function} callback `var elem = data.elem; // 获得 select 原始 DOM 对象
+         *     var value = data.value; // 获得被选中的值
+         *     var othis = data.othis; // 获得 select 元素被替换后的 jQuery 对象`
+         */
+        listenSelect: function (layFilterName, callback) {
+            layui.form.on('select(' + layFilterName + ')', callback)
+        },
+        listenRadio: function (layFilterName, callback) {
+            form.on('radio(' + layFilterName + ')', callback);
+        },
     },
     /**
      * 页面处理
@@ -754,22 +832,32 @@ const admin = {
     },
     /**
      * 表格数据
+     * 对表格数据进行搜索过滤（不发送新请求），查看 admin.util 中的示例
      * @link https://layui.dev/docs/2/table/
      */
     table: {
         /**
          * table 的配置信息
+         * @link https://layui.dev/docs/2/table/#options
          * @private
          */
         _config: {
-            id: 'table',
+            id: 'table', // table 所在的 div ID
             url: '',
             autoApi: true,
-            tableId: null, // 在 table.render 时会自动赋值
-            key: 'id',
+            // https://layui.dev/docs/2/table/#table.render 表格实例
+            tableInst: null,
+            key: 'id', // 每1行数据的主键
             query: null,
             rowAction: function () {
             }
+        },
+        /**
+         * 渲染时的表格 div#
+         * @returns {string}
+         */
+        id: function () {
+            return this._config.id
         },
         /**
          * 获取配置信息
@@ -793,11 +881,27 @@ const admin = {
             // console.log(this._config);
             return this;
         },
-        getTableId: function () {
-            return this._config.tableId;
+        /**
+         * 获取表格实例
+         * <pre>
+         * // 实例对象成员
+         * inst.config; // 当前表格配置属性
+         * inst.reload(options, deep); // 对当前表格的完整重载。参数 deep 表示是否深度重载。
+         * inst.reloadData(options, deep); // 对当前表格的数据重载。参数 deep 同上。
+         * inst.resize(); // 对当前表格重新适配尺寸
+         * inst.setColsWidth() // 对当前表格重新分配列宽
+         * </pre>
+         * @returns {null}
+         */
+        getTableInst: function () {
+            return this._config.tableInst;
         },
+        /**
+         * 重新(请求)加载表格数据
+         * @link https://layui.dev/docs/2/table/#table.renderData
+         */
         reloadData: function () {
-            this._config.tableId.reloadData();
+            this._config.tableInst.reloadData();
         },
         reloadWhenIframeRefresh: function () {
             admin.iframe.hasRefresh(() => {
@@ -808,14 +912,14 @@ const admin = {
          * 表格渲染<pre>
          * lineStyle: 'height: 95px;' 多行樣式
          * </pre>
-         * @param {{toolbar?:string,url?:string,cols:Array,page?:boolean,lineStyle?:string}} options 表格 render 时配置信息
+         * @param {{toolbar?:string,url?:string,cols:Array,page?:boolean,lineStyle?:string,success?:Function}} options 表格 render 时配置信息
          * @param {{search?:boolean}} [additions] 其它配置信息
          * @return this
          */
         render: function (options, additions = {}) {
             const tableId = this._config.id;
             const data = form.val('form-search');
-            // const defaultToolbar = [
+            // const defaultToolbar = [ // 设置头部工具栏右上角工具图标，值为一个数组，图标将根据数组值的顺序排列
             //     'filter', // 列筛选
             //     'exports', // 导出
             //     'print', // 打印
@@ -826,11 +930,16 @@ const admin = {
             //     }
             // ];
             const config = Object.assign({
-                elem: '#' + tableId,
+                // id: '', 设定实例唯一索引，以便用于其他方法对 table 实例进行相关操作，默认为 id;(this._config.key)
+                elem: '#' + tableId, // 绑定原始 table div 元素
                 url: admin.util.concatQuery(this._config.url, Object.assign(data, this._config.query)),
-                defaultToolbar: [], // 默认不需要
-                page: true,
+                defaultToolbar: [], // 开启表格头部工具栏, 默认不需要
+                page: true, // 用于开启分页。
+                // 异步属性 借助 parseData 回调函数将数据解析并转换为默认规定的格式
                 parseData: function (res) { // res 即为原始返回的数据
+                    if (typeof options['success'] == 'function') {
+                        options['success'](res);
+                    }
                     return {
                         "code": res.code, // 解析接口状态
                         "msg": res.message, // 解析提示文本
@@ -846,7 +955,8 @@ const admin = {
             const adds = Object.assign({
                 search: true,
             }, additions)
-            const currentTable = layui.table.render(config);
+            // 渲染，并获得实例对象
+            const tableInst = layui.table.render(config);
 
             // 搜索框，需要指定的格式
             const tableSearchElem = $('#' + tableId + '-search');
@@ -856,7 +966,7 @@ const admin = {
                     const resetElem = tableSearchElem.find('button[type=reset]');
                     if (resetElem.length === 1) {
                         resetElem.bind('click', function () {
-                            currentTable.reloadData({
+                            tableInst.reloadData({
                                 where: {reset: 1},
                                 page: {curr: 1}
                             })
@@ -873,7 +983,7 @@ const admin = {
                             // <form className="layui-form layui-form-pane form-search"  lay-filter="form-search"></form>
                             const data = form.val('form-search');
                             // console.log(data);
-                            currentTable.reloadData({
+                            tableInst.reloadData({
                                 where: data,
                                 page: {curr: 1}
                             })
@@ -896,7 +1006,9 @@ const admin = {
                         }
                     });
                 } else {
-                    console.log('开启了条件搜索，但没有找到 <fieldset id="' + tableId + '-search">')
+                    if (admin.debug()) {
+                        console.log('开启了条件搜索，但没有找到 <fieldset id="' + tableId + '-search">')
+                    }
                 }
             }
             // 工具栏事件
@@ -907,7 +1019,7 @@ const admin = {
                     currentTable.reloadData()
                 },
             })
-            this._config.tableId = currentTable;
+            this._config.tableInst = tableInst;
             return this;
         },
         /**
