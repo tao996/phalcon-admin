@@ -4,4 +4,5 @@
 // define('TEST_ORIGIN', 'https://admin.local.test/');
 
 $data = require_once PATH_CONFIG . 'config.php';
+$data['database']['stores']['mysql']['dbname'] = 'phalcon-admin-test';
 return $data;

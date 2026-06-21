@@ -38,7 +38,7 @@ class OpenAppService
     {
         $rows = OpenApp::queryBuilder($this->helper->mvc->getDi())
             ->int('status', 1)
-            ->findColumn([], 'appid');
+            ->findColumn(key:'appid');
         if (!$this->cache->set(self::cacheKey, $rows)) {
             Logger::error('cache tao.open.app failed:' . __CLASS__);
         }

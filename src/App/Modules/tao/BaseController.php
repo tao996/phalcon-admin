@@ -85,7 +85,7 @@ class BaseController extends BaseRbacController
 
 
     /**
-     * 处理查询语句，通常用来补充默认的查询条件
+     * 处理查询语句，通常用来补充默认的查询条件(modelQueryColumns/modelHiddenColumns/modelOrderBy)
      * @param QueryBuilder $queryBuilder
      * @return void
      * @throws \Exception

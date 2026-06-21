@@ -58,6 +58,6 @@ class RoleService
     {
         return SystemRole::queryBuilder($this->mvc->getDi())
             ->int('status', 1)
-            ->findColumn(['id', 'title'], 'id');
+            ->findColumn(['id', 'title'], key:'id');
     }
 }

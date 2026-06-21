@@ -10,9 +10,14 @@
 namespace App\Modules\tao\A0\open\ExtendControllers;
 
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use Phalcon\Di\DiInterface;
 
 /**
  * @property \Phalcon\Http\Request $request
+ * @method int getUserId()
+ * @method DiInterface getDI()
+ * @method array successPagination()
+ * @method mixed getRequestQueryInt()
  */
 trait UserOrder
 {

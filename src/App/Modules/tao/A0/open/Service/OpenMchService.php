@@ -52,7 +52,7 @@ class OpenMchService
                 'secret_key',
                 'v2_secret_key',
                 'platform_cert'
-            ], 'mchid')) {
+            ], key:'mchid')) {
             if (!$this->cache->set(self::cacheKey, json_encode($cache))) {
                 Logger::error('cache pay mch failed:' . __CLASS__);
             }
