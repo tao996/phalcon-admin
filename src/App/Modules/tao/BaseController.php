@@ -238,8 +238,14 @@ class BaseController extends BaseRbacController
             }
 
             try {
+                $data = $this->beforeModelAssign($data);
+                if ($data) {
+                    $this->model->assign($data);
+                }
+                $this->beforeModelSave();
+
                 \Phax\Db\Transaction::db(function () use ($data) {
-                    if (!$this->save($data)) {
+                    if (!$this->model->save()) {
                         throw new \Exception($this->model->getErrors());
                     }
                     $this->afterModelChange('add');
@@ -270,8 +276,14 @@ class BaseController extends BaseRbacController
         if ($this->request->isPost()) {
             $data = $this->getPostData();
             try {
+                $data = $this->beforeModelAssign($data);
+                if ($data) {
+                    $this->model->assign($data);
+                }
+                $this->beforeModelSave();
+
                 \Phax\Db\Transaction::db(function () use ($data) {
-                    if (!$this->save($data)) {
+                    if (!$this->model->save()) {
                         throw new \Exception($this->model->getErrors());
                     }
                     $this->afterModelChange('edit');
@@ -345,24 +357,6 @@ class BaseController extends BaseRbacController
      */
     protected function beforeModelSave(): void
     {
-    }
-
-    /**
-     * 在 addAction/editAction 中被调用
-     * 1. 会触发 `beforeModelAssign` 回调方法 <br>
-     * 2. 调用模型 `assign` 方法 <br>
-     * 3. 触发  `beforeModelSave` 回调方法 <br>
-     * @param array $data 保存到模型中的数据
-     * @return bool
-     */
-    protected function save(array $data): bool
-    {
-        $data = $this->beforeModelAssign($data);
-        if ($data) {
-            $this->model->assign($data);
-        }
-        $this->beforeModelSave();
-        return $this->model->save();
     }
 
     /**
