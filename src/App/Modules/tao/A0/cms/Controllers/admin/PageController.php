@@ -49,7 +49,7 @@ class PageController extends BaseTaoA0CmsController
             }
 
 
-            Transaction::db($this->vv->db(), function () use ($data) {
+            Transaction::db(function () use ($data) {
                 $cc = new CmsContent();
                 $cc->content = $data['content'];
                 if ($cc->create()) {
@@ -87,7 +87,7 @@ class PageController extends BaseTaoA0CmsController
             $cc = $this->helper->contentService()->getById($this->model->content_id) ?: new CmsContent();
             $cc->content = $data['content'];
 
-            Transaction::db($this->vv->db(), function () use ($cc) {
+            Transaction::db(function () use ($cc) {
                 if (!$cc->save()) {
                     throw new \Exception('save content failed:' . $cc->getFirstError());
                 }

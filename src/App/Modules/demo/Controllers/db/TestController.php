@@ -27,7 +27,7 @@ class TestController extends Controller
     {
         $this->vv->isDemo(true);
 
-        Transaction::db($this->vv->db(), function () {
+        Transaction::db(function () {
             $cat = Cat::findFirst(1);
             pr('cat 1 age+10', $cat->toArray(), false);
             $cat->age += 10;

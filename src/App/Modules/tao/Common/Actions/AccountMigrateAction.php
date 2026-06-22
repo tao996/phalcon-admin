@@ -115,7 +115,7 @@ class AccountMigrateAction
         list($type, $condition) = $this->getAccountInfo($account);
         $codeModel = $this->smsCodeService
             ->checkCode($account, $this->user_id, $condition['kind'], $verCode);
-        Transaction::db($this->helper->db(), function () use ($account, $type, $codeModel, $successMove) {
+        Transaction::db(function () use ($account, $type, $codeModel, $successMove) {
             if ($user = $this->helper->userService()->findByAccount($account, $type)) {
                 // 已经存在，则需要迁移；
                 // 1. 将当前的应用 appid+user_id， open_user_openid/open_user_unionid 等账号迁移到新的账号 $user->id 上；

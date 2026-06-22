@@ -26,6 +26,9 @@
                     <directory>App/Modules/your-module/Tests</directory>
                 </testsuite>
         -->
+        <testsuite name="yihe">
+            <directory>App/Modules/yihe/tests</directory>
+        </testsuite>
     </testsuites>
     <!-- 默认使用的配置文件 -->
     <php>

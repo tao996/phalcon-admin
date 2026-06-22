@@ -120,7 +120,7 @@ class BaseController extends BaseRbacController
      * @param QueryBuilder $queryBuilder
      * @return void
      */
-    protected function actionQuery(QueryBuilder $queryBuilder):void
+    protected function actionQuery(QueryBuilder $queryBuilder): void
     {
         if ($this->request->hasQuery('status') && property_exists($this->model, 'status')) {
             $queryBuilder->int('status', $this->request->getQuery('status', 'int', 0));
@@ -238,7 +238,7 @@ class BaseController extends BaseRbacController
             }
 
             try {
-                \Phax\Db\Transaction::db($this->db, function () use ($data) {
+                \Phax\Db\Transaction::db(function () use ($data) {
                     if (!$this->save($data)) {
                         throw new \Exception($this->model->getErrors());
                     }
@@ -270,7 +270,7 @@ class BaseController extends BaseRbacController
         if ($this->request->isPost()) {
             $data = $this->getPostData();
             try {
-                \Phax\Db\Transaction::db($this->db, function () use ($data) {
+                \Phax\Db\Transaction::db(function () use ($data) {
                     if (!$this->save($data)) {
                         throw new \Exception($this->model->getErrors());
                     }
@@ -426,7 +426,7 @@ class BaseController extends BaseRbacController
         $this->beforeModelModifySave($this->model);
 
         try {
-            Transaction::db($this->db, function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) {
+            Transaction::db(function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) {
                 if ($this->model->save()) {
                     $this->afterModelChange('edit');
                 } else {
@@ -490,7 +490,7 @@ class BaseController extends BaseRbacController
 
         $this->beforeDeleteQuery($qb, $ids);
         try {
-            \Phax\Db\Transaction::db($this->db, function () use ($qb, $ids) {
+            \Phax\Db\Transaction::db(function () use ($qb, $ids) {
                 if (!$qb->delete()) {
                     throw new \Exception('删除失败');
                 }

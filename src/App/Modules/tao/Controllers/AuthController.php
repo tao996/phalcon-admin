@@ -126,7 +126,7 @@ class AuthController extends BaseController
             $code = $this->vv->smsCodeService()->checkRegisterCode($data['account'], $data['vercode']);
 
             // 账号注册
-            Transaction::db($this->vv->db(), function () use ($data, $code) {
+            Transaction::db(function () use ($data, $code) {
                 $user = new SystemUser();
                 $this->vv->userService()->newPassword($data['password'], $user);
                 $this->vv->userService()->newAccount($data['account'], $user);

@@ -128,7 +128,7 @@ class ArticleController extends BaseTaoA0CmsController
         $keys = ['cate_id', 'cover', 'title', 'keywords', 'summary', 'author', 'hits', 'image_ids'];
         $this->model->assign($data, $keys);
 
-        Transaction::db($this->vv->db(), function () use ($data) {
+        Transaction::db(function () use ($data) {
             if (isset($data['content']) || $this->model->content_id > 0) {
                 $cc1 = $this->helper->contentService()->saveContentDataById($this->model->content_id, $data['content']);
                 $this->model->content_id = $cc1->id;

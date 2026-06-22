@@ -85,7 +85,7 @@ $vv->layui();
                 if ($vv->isDemo()) { ?>
                     <li class="layui-nav-item" lay-unselect>
                         <a href="javascript:void;" style="color: orangered" title="警告：当前处于演示模式">
-                            admin/123456
+                            db:<?php echo $vv->config()->path('database.stores.mysql.dbname','NONE') ?>
                         </a>
                     </li>
                 <?php

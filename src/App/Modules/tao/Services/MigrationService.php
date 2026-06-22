@@ -37,7 +37,7 @@ class MigrationService
                 $summary
             ];
 
-            Transaction::pdo($this->mvc->pdo(), function (\PDO $db) use ($tableName, $params, $handle) {
+            Transaction::pdo(function (\PDO $db) use ($tableName, $params, $handle) {
                 $stmt = $db->prepare('INSERT INTO ' . $tableName . ' (created_at,version,summary) values(?,?,?)');
                 if (!$stmt->execute($params)) {
                     Logger::message('insert migration record failed', $db->errorInfo());

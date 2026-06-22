@@ -129,7 +129,7 @@ class CategoryController extends BaseTaoA0CmsController
             }
         }
 
-        Transaction::db($this->vv->db(), function () use ($data) {
+        Transaction::db(function () use ($data) {
             if ($this->model->kind == CmsCategory::KindList) {
                 if (!empty($data['content']) || $this->model->content_id > 0) {
                     $cc1 = $this->helper->contentService()->saveContentDataById(

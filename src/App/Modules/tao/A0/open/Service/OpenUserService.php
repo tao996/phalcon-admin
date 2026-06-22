@@ -166,7 +166,7 @@ readonly class OpenUserService
         OpenUserOpenid $openidRecord,
         OpenUserUnionid|null $unionidRecord = null,
     ): void {
-        Transaction::db($this->helper->mvc->db(), function () use ($user, $openidRecord, $unionidRecord) {
+        Transaction::db(function () use ($user, $openidRecord, $unionidRecord) {
             $this->helper->mvc->userService()->create($user);
 
             $openidRecord->user_id = $user->id;

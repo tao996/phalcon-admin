@@ -74,7 +74,7 @@ class IndexController extends BaseController
             );
 
             $user = $this->loginUser();
-            Transaction::db($this->vv->db(), function () use ($user, $data, $code) {
+            Transaction::db(function () use ($user, $data, $code) {
                 $user->phone = $data['phone'];
                 $user->phone_at = time();
                 $user->phone_valid = 1;
@@ -133,7 +133,7 @@ class IndexController extends BaseController
             );
 
             $user = $this->loginUser();
-            Transaction::db($this->vv->db(), function () use ($user, $data, $code) {
+            Transaction::db(function () use ($user, $data, $code) {
                 $user->email = $data['email'];
                 $user->email_at = time();
                 $user->email_valid = 1;

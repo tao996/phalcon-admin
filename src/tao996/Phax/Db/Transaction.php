@@ -3,19 +3,24 @@
 namespace Phax\Db;
 
 
+use Phax\Foundation\Application;
+
 class Transaction
 {
 
     /**
      * 事务执行 （Phalcon Model Db 会执行触发事件）
      * @link https://docs.phalcon.io/3.4/en/db-models-transactions 模型事务
-     * @param \Phalcon\Db\Adapter\Pdo\AbstractPdo $db 数据库连接
+     * @param \Phalcon\Db\Adapter\Pdo\AbstractPdo|null $db 数据库连接，如果不提供，则自动从 di 中获取
      * @param callable (\Phalcon\Db\Adapter\Pdo\AbstractPdo):void $handle 处理函数，接收参数
      * @return void
      * @throws \Exception
      */
-    public static function db(\Phalcon\Db\Adapter\Pdo\AbstractPdo $db, callable $handle): void
+    public static function db( callable $handle,\Phalcon\Db\Adapter\Pdo\AbstractPdo|null $db = null): void
     {
+        if ($db == null){
+            $db = Application::di()->get('db');
+        }
         $db->begin();
         try {
             $handle($db);
@@ -26,8 +31,18 @@ class Transaction
         }
     }
 
-    public static function pdo(\PDO $pdo, callable $handle): void
+    /**
+     * 使用原生的 PDO 创建事务
+     * @param callable $handle
+     * @param \PDO|null $pdo 如果不提供，则自动从 di 中获取
+     * @return void
+     * @throws \Throwable
+     */
+    public static function pdo( callable $handle,\PDO|null $pdo = null): void
     {
+        if ($pdo == null){
+            $pdo = Application::di()->get('pdo');
+        }
         $pdo->beginTransaction();
         try {
 // https://www.php.net/manual/zh/pdo.transactions.php#110483

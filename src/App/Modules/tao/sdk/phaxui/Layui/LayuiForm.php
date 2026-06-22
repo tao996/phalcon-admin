@@ -187,7 +187,7 @@ class LayuiForm
      */
     public function switch(string $title, string $name, bool $checked = false,
                            bool   $required = false,
-                           string $option = "ON|OFF",
+                           string $tips = "ON|OFF",
                            string $aux = '',
                            bool   $formItem = true,
                            string $class = '',
@@ -196,7 +196,7 @@ class LayuiForm
     {
         $checkedText = $checked ? ' checked' : '';
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
-            <input lay-filter="' . $name . '" type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . ' title="' . $option . '">
+            <input lay-filter="' . $name . '" type="checkbox" name="' . $name . '" lay-skin="switch" ' . $checkedText . ' title="' . $tips . '">
         </div>' . $this->wrapAux($aux),
             name: $name, formItem: $formItem, class: $class, style: $style);
     }

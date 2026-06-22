@@ -173,7 +173,7 @@ readonly class Layer
                 $fields
             ) : $fields) . ' ) VALUES ( ' . rtrim(str_repeat('?,', count(end($rows))), ',') . ' )';
         if ($transaction) {
-            Transaction::pdo($pdo, function () use ($sql, $rows, $pdo) {
+            Transaction::pdo(function () use ($sql, $rows, $pdo) {
                 $this->insertWith($sql, $rows, $pdo);
             });
         } else {
