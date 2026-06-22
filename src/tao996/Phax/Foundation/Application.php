@@ -12,7 +12,6 @@ use Phax\Support\Exception\LocationException;
 use Phax\Support\Logger;
 use Phax\Support\Router;
 use Phax\Utils\MyColor;
-use Phax\Utils\MyData;
 
 /**
  * 记录每个应用的 di/config 等信息

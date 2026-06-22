@@ -18,8 +18,16 @@
         <testsuite name="phax - Unit Test">
             <directory>./tests/Unit</directory>
         </testsuite>
+        <testsuite name="test-module">
+            <directory>App/Modules/demo/Tests</directory>
+        </testsuite>
+        <!-- 对你自己的模块进行测试
+                <testsuite name="your-module">
+                    <directory>App/Modules/your-module/Tests</directory>
+                </testsuite>
+        -->
     </testsuites>
-<!-- 默认使用的配置文件 -->
+    <!-- 默认使用的配置文件 -->
     <php>
         <env name="PATH_CONFIG" value="tests/config.php"/>
     </php>
