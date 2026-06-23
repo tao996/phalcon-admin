@@ -229,11 +229,14 @@ class LayuiForm
                              bool   $range = false,
                              string $aux = '',
                              string $type = 'datetime',
+                             bool   $preNext = false,
                              bool   $formItem = true,
     ): string
     {
         $rangeText = $range ? 'true' : 'false';
-        $this->mvc->layui()->appendFooterJs(<<<JS
+        $hasPreNext = $preNext && !$range;
+
+        $laydateJs = <<<JS
         layui.use(['laydate'], function () {
             var laydate = layui.laydate;
             laydate.render({
@@ -242,15 +245,62 @@ class LayuiForm
                 range: {$rangeText},
             });
         });
-JS
-        );
+JS;
+
+        if ($hasPreNext) {
+            $laydateJs .= <<<JS
+
+        document.getElementById('{$name}-prev').onclick = function () {
+            var input = document.getElementById('{$name}');
+            var parts = input.value.split(/[- :]/);
+            var d = new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1, parts[3] || 0, parts[4] || 0, parts[5] || 0);
+            if (!isNaN(d.getTime())) {
+                d.setDate(d.getDate() - 1);
+                input.value = laydateToStr(d, '{$type}');
+            }
+        };
+        document.getElementById('{$name}-next').onclick = function () {
+            var input = document.getElementById('{$name}');
+            var parts = input.value.split(/[- :]/);
+            var d = new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1, parts[3] || 0, parts[4] || 0, parts[5] || 0);
+            if (!isNaN(d.getTime())) {
+                d.setDate(d.getDate() + 1);
+                input.value = laydateToStr(d, '{$type}');
+            }
+        };
+        function laydateToStr(d, type) {
+            var y = d.getFullYear();
+            var m = ('0' + (d.getMonth() + 1)).slice(-2);
+            var day = ('0' + d.getDate()).slice(-2);
+            if (type === 'date') return y + '-' + m + '-' + day;
+            var h = ('0' + d.getHours()).slice(-2);
+            var i = ('0' + d.getMinutes()).slice(-2);
+            var s = ('0' + d.getSeconds()).slice(-2);
+            if (type === 'time') return h + ':' + i + ':' + s;
+            if (type === 'month') return y + '-' + m;
+            if (type === 'year') return '' + y;
+            return y + '-' + m + '-' + day + ' ' + h + ':' + i + ':' + s;
+        }
+JS;
+        }
+
+        $this->mvc->layui()->appendFooterJs($laydateJs);
+
         $requiredElem = $required ? '  lay-verify="required"' : '';
         $auxText = $this->wrapAux($aux);
-        return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="layui-input-inline">
-            <input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
+        $style = $hasPreNext ? 'style="margin-right: 0px;"' : '';
+        $inputHtml = '<div class="layui-input-inline" ' . $style . '><input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
-                   placeholder="请选择' . $title . '" ' . $requiredElem . '>
-        </div>' . $auxText,
+                   placeholder="请选择' . $title . '" ' . $requiredElem . '></div>';
+        $content = $this->wrapFormLabel($title, $required) . $inputHtml;
+
+        if ($hasPreNext) {
+            $content = '
+                <button type="button" class="layui-form-label layui-btn " id="' . $name . '-prev" style="color: black;border-right: none;width: 40px;">- 1</button>'
+                . $content . '<button type="button" class="layui-btn layui-form-label"  style="color: black;border-left: none;width:40px; margin-right: 10px;" id="' . $name . '-next">+ 1</button>';
+        }
+
+        return $this->wrapFormItem($content . $auxText,
             name: $name, formItem: $formItem);
     }
 

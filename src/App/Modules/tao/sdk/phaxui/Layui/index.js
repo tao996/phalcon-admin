@@ -295,7 +295,7 @@ const admin = {
             return layui.layer.msg(msg, {
                 icon: 2,
                 scrollbar: false,
-                time: 3000,
+                // time: 3000,
                 shadeClose: true
             }, this._createCallback_(callback))
         },
@@ -528,8 +528,9 @@ const admin = {
                             // }, 500)
                         }
                     } else {
-                        admin.layer.error(typeof no == 'string' ? no : res.msg);
-                        typeof no == 'function' && no(res);
+                        admin.layer.alert(typeof no == 'string' ? no : res.msg, function () {
+                            typeof no == 'function' && no(res);
+                        }, {title: '出错啦', shadeClose: true, icon: 2, maxWidth: 360});
                     }
                 },
                 error: function (xhr, textstatus, thrown) {
@@ -951,6 +952,16 @@ const admin = {
             if (config.page && admin.util.isEmpty(config['limit'])) {
                 config['limit'] = 15;
                 config['limits'] = [1, 15, 30, 50, 100];
+            }
+
+            if (typeof config['done'] == 'undefined') {
+                config['done'] = function (res, curr, count, origin) {
+                    if (count === 0) {
+                        if (!admin.util.isEmpty(res['msg'])) {
+                            $('.layui-none').text(res['msg']);
+                        }
+                    }
+                }
             }
             const adds = Object.assign({
                 search: true,
