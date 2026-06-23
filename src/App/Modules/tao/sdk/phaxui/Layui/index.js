@@ -405,6 +405,55 @@ const admin = {
                     admin.layer.close(index);
                 }
             };
+        },
+        /**
+         * 弹出一个单选选择框
+         * @param {string} title 标题
+         * @param {Object} kvMap 选项
+         * @param {Function} success `(index, value)` 选项选中后的回调，接收选中的值，注意关闭层
+         * @example
+         * // success 回调接收两个参数 (index,value)
+         * admin.ajax.postLimit({
+         *    url: prefix + '/batchChange',
+         *    data: {id: ids, type: 'material', value: value}
+         * }, function (res) {
+         *    layer.close(index);
+         *    layer.msg('已更新 ' + (res.data || res.count || '') + ' 条记录', {
+         *        icon: 1,
+         *        time: 1500
+         *    }, function () {
+         *        admin.table.reloadData();
+         *    });
+         * });
+         */
+        radiosDialog: function (title, kvMap, success) {
+            var content = '';
+            $.each(kvMap, function (val, label) {
+                content += '<input type="radio" name="toValue" value="' + val + '" title="' + label + '">';
+            });
+
+            layer.open({
+                type: 1,
+                title: title,
+                area: ['400px', '300px'],
+                content: '<div style="padding: 30px 20px;">'
+                    + '<div class="layui-form" style="text-align: left;">'
+                    + content
+                    + '</div>'
+                    + '</div>',
+                success: function (layero) {
+                    layui.form.render('radio');
+                },
+                btn: ['确定', '取消'],
+                yes: function (index) {
+                    var value = $('input[name="toValue"]:checked').val();
+                    if (!value) {
+                        layui.layer.msg('请选择' + title, {icon: 2});
+                        return;
+                    }
+                    success(index, value);
+                }
+            });
         }
     },
     /**
