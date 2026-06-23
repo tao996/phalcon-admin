@@ -347,8 +347,18 @@ class BaseController extends BaseRbacController
                 $v->check($data, $this->model->rules);
             }
         }
-
+        $this->validateModelAssign($data);
         return $data;
+    }
+
+    /**
+     * 对 addAction|editAction 的模型数据进行验证
+     * @param array $data
+     * @return void
+     */
+    protected function validateModelAssign(array $data): void
+    {
+
     }
 
     /**
@@ -485,8 +495,18 @@ class BaseController extends BaseRbacController
         $this->beforeDeleteQuery($qb, $ids);
         try {
             \Phax\Db\Transaction::db(function () use ($qb, $ids) {
-                if (!$qb->delete()) {
-                    throw new \Exception('删除失败');
+                if ($this->model->supportSoftDelete()) {
+                    // 软删除：设置 deleted_at 时间戳
+                    $deletedColumn = $this->model->getSortDeleteColumnName();
+                    $deletedValue = \Phax\Events\Model::printTimestampFormat($this->model->autoWriteTimestamp);
+                    if (!$qb->update([$deletedColumn => $deletedValue])) {
+                        throw new \Exception('删除失败');
+                    }
+                } else {
+                    // 硬删除：直接删除记录
+                    if (!$qb->delete()) {
+                        throw new \Exception('删除失败');
+                    }
                 }
                 $this->afterBatchDelete($ids);
                 $this->afterModelChange('delete');

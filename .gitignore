@@ -4,6 +4,7 @@
 .deepseek/
 .reasonix/
 DirectoryV3.xml
+reasonix.toml
 
 # docker 运行环境配置
 .env

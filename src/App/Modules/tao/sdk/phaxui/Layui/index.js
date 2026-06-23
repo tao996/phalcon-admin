@@ -1022,6 +1022,9 @@ const admin = {
             this._config.tableInst = tableInst;
             return this;
         },
+        getCheckedRows: function () {
+            return table.checkStatus(this._config.id).data;
+        },
         /**
          * 监听表格工具栏的 batchDelete/create 事件；如果需要监听其它独立事件，使用 admin.utils.layOn
          * @param {{url?:string}} [config] 配置信息

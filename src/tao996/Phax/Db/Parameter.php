@@ -184,6 +184,20 @@ class Parameter
         return $this;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function or(array $names, mixed $v): static
+    {
+        if (!empty($v)) {
+            $condition = join(' OR ', array_map(function ($name) {
+                return $name . ' = :' . $name . ': ';
+            }, $names));
+            $this->placeholderCondition($condition, $v);
+        }
+        return $this;
+    }
+
     public function between(string $name, mixed $min, mixed $max, int $type = \PDO::PARAM_INT): static
     {
         if (!empty($min)) {
@@ -329,6 +343,7 @@ class Parameter
         }
         return $this;
     }
+
     public function notIn(string $name, array $values): static
     {
         if (!empty($values)) {

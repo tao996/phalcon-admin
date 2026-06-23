@@ -132,6 +132,12 @@ class QueryBuilder
         return $this;
     }
 
+    public function or(array $names, mixed $v): static
+    {
+        $this->parameter->or($names, $v);
+        return $this;
+    }
+
     public function between(string $name, mixed $min, mixed $max, int $type = \PDO::PARAM_INT): static
     {
         $this->parameter->between($name, $min, $max, $type);
