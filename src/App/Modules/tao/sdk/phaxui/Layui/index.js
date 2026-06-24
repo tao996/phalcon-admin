@@ -937,6 +937,9 @@ const admin = {
             tableInst: null,
             key: 'id', // 每1行数据的主键
             query: null,
+            /**
+             * 回调，通常在执行 lay-on 之后调用
+             */
             rowAction: function () {
             }
         },
@@ -1163,6 +1166,30 @@ const admin = {
                     })
                 },
             })
+            return this;
+        },
+        /**
+         * 添加自定义事件
+         * @param {string} name lay-on 绑定的事件名称
+         * @param {string} title 打开页面的标题
+         * @param {string} url URL
+         * @returns {admin.table}
+         */
+        addLayon: function (name, title, url) {
+            const tableId = this._config.id;
+            layui.util.on('lay-on', {
+                [name]: function () {
+                    admin.iframe.open(url, {
+                        title: title,
+                        end: function () {
+                            admin.iframe.hasRefresh(() => {
+                                layui.table.reload(tableId);
+                                admin.table._config.rowAction(name);
+                            })
+                        }
+                    })
+                }
+            });
             return this;
         },
         /**

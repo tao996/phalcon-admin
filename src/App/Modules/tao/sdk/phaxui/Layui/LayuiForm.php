@@ -120,7 +120,7 @@ class LayuiForm
                              bool   $required = false,
                              string $placeholder = '',
                              string $class = '',
-                             string $style = '',
+                             string $style = 'width:600px;',
     ): string
     {
 
