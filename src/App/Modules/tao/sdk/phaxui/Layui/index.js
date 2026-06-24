@@ -839,21 +839,59 @@ const admin = {
 
         },
         /**
-         * 从父窗口中移除
+         * 从父窗口中移除自身
+         * @param {boolean} parentRefresh 是否需要通知父窗口刷新
+         * @example
+         * admin.form.submitFirst(() => {
+         *    admin.iframe.close(true);
+         * })
          */
-        closeFromParent: function (refresh = false) {
+        close: function (parentRefresh = false) {
             const index = parent.layer.getFrameIndex(window.name);
             parent.layer.close(index);
-            if (refresh) {
+            if (parentRefresh) {
                 localStorage.setItem('tao.refresh', "yes");
             }
+
         },
+        /**
+         * 设置传递数据
+         * @param data
+         * @returns {this}
+         */
+        setData: function (data) {
+            admin.cache.save('__last__', data);
+            return admin.iframe;
+        },
+        /**
+         * 读取子窗口中设置的数据
+         */
+        readData: function (success) {
+            const d = admin.cache.read('__last__', null);
+            if (d != null) {
+                admin.cache.remove('__last__');
+                success(d);
+            }
+        },
+        /**
+         * 是否需要刷新页面，跟 admin.iframe.close 配合使用
+         * @param action
+         * @example
+         * admin.iframe.open(prefix + '/add?pid=' + id, { // 打开子窗口
+         *    title: '添加下级栏目',
+         *    end: function () {
+         *        admin.iframe.hasRefresh(() => { // 检查是否需要刷新页面
+         *            inst.reloadData();
+         *        })
+         *    }
+         * })
+         */
         hasRefresh: function (action) {
             if (localStorage.getItem('tao.refresh') === 'yes') {
+                localStorage.removeItem('tao.refresh');
                 if (typeof action === 'function') {
                     action();
                 }
-                localStorage.removeItem('tao.refresh');
             }
         },
         // 更新父菜单
@@ -1513,14 +1551,14 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
      * @link https://layui.dev/docs/2/base.html#data
      */
     cache: {
-        table: 'phax',
+        dbIndex: '__phax__',
         /**
          * 读取缓存
          * @param {string} key
          * @param {any} defV 默认值
          */
         read: function (key, defV) {
-            const local = layui.data(this.table);
+            const local = layui.sessionData(this.dbIndex);
             const v = local[key];
             if (admin.util.isEmpty(v)) {
                 return defV;
@@ -1528,17 +1566,18 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             return JSON.parse(v);
         },
         save: function (key, data) {
-            layui.data(this.table, {
+            layui.sessionData(this.dbIndex, {
                 key: key, value: JSON.stringify(data),
             })
         },
         remove: function (key) {
-            layui.data(this.table, {
+            layui.sessionData(this.dbIndex, {
                 key: key, remove: true,
             })
         },
         clear: function () {
-            localStorage.clear();
-        }
+            layui.sessionData(this.dbIndex).clear();
+        },
+
     }
 };

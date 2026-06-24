@@ -52,7 +52,7 @@ $vv->layui()->addWindowConfig([])->footer();
     })
 
     admin.form.submitFirst(function () {
-        admin.iframe.closeFromParent(true);
+        admin.iframe.close(true);
     }, function (data) {
         // https://layui.dev/docs/2/tree/
         const rows = layui.tree.getChecked(treeId);

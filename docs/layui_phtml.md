@@ -624,12 +624,14 @@ admin.iframe.open(prefix + '/edit?id=' + id, {title: '编辑记录'});
 
 // 弹窗中提交后关闭并刷新父页面
 admin.form.submitFirst(function () {
-    admin.iframe.closeFromParent(true);  // true = 需要父页面刷新
+    admin.iframe.close(true);  // true = 需要父页面刷新
 });
 
 // 自定义提交 URL
 admin.form.submitFirst(
-    function () { admin.iframe.closeFromParent(true); },
+    function () {
+        admin.iframe.close(true);
+    },
     function (data) {
         // 提交前修改 data 的时机
         data.extra_field = 'xxx';

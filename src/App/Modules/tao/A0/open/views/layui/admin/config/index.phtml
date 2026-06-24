@@ -50,7 +50,7 @@
 
 <script>
     admin.form.submitFirst(() => {
-        admin.iframe.closeFromParent(true);
+        admin.iframe.close(true);
     }, function (data) {
         return Object.assign(data, {})
     })

@@ -112,7 +112,7 @@ CmsHtmlHelper::ImageJs($items);
 <script>
     // 提交事件
     admin.form.submitFirst(() => {
-        admin.iframe.closeFromParent(true);
+        admin.iframe.close(true);
     }, data => {
         data['image_ids'] = vmImage.data.items.map(d => d.id).join(','); // 保存图片 id
         data['content'] = tinymce.activeEditor.getContent();

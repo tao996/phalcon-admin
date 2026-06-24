@@ -98,7 +98,7 @@ $items = $vv->pick('row.images', []);
 ?>
     <script>
         admin.form.submitFirst(() => {
-            admin.iframe.closeFromParent(true);
+            admin.iframe.close(true);
         }, function (data) {
             data['image_ids'] = vmImage.data.items.map(d => d.id).join(',')
             return Object.assign(data, {content: tinymce.activeEditor.getContent()})

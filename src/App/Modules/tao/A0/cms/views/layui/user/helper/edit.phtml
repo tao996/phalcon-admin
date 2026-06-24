@@ -41,6 +41,6 @@ $vv->layui()->addWindowConfig()->footer(); ?>
     admin.form.submitFirst(function (data) {
         const res = admin.util.pick(data.data, 'id', 'summary', 'url')
         admin.storage.save('images', res);
-        admin.iframe.closeFromParent(true);
+        admin.iframe.close(true);
     })
 </script>

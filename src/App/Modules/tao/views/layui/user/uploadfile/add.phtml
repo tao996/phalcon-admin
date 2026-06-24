@@ -27,11 +27,11 @@
             if (admin.util.isEmpty($('#head_img').val())) {
                 admin.layer.error('请选择文件')
             } else {
-                admin.iframe.closeFromParent(true);
+                admin.iframe.close(true);
             }
         },
         cancel: function () {
-            admin.iframe.closeFromParent(false);
+            admin.iframe.close(false);
         }
     })
 </script>
