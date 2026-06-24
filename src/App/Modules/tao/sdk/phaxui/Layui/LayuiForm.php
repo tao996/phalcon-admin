@@ -224,12 +224,17 @@ class LayuiForm
         return $aux ? '<div class="layui-form-mid layui-word-aux">' . $aux . '</div>' : '';
     }
 
+    /**
+     * 日期（范围）选择
+     * @return string
+     */
     public function datesPicker(string $title,
                                 string $name = '',
                                 string $startName = '',
                                 string $endName = '',
                                 string $startValue = '',
-                                string $endValue = ''): string
+                                string $type = 'date',
+                                string $endValue = '',bool $formItem = true): string
     {
         if ($name){
             if ($startName == ''){
@@ -244,9 +249,11 @@ class LayuiForm
             var laydate = layui.laydate;
             var startPicker = laydate.render({
                 elem: '#{$startName}',
+                type: '{$type}',
             });
             var endPicker = laydate.render({
                 elem: '#{$endName}',
+                type: '{$type}',
             });
         });
 JS
@@ -256,20 +263,17 @@ JS
                    value="' . $startValue . '" placeholder="开始日期"></div>
             <div class="layui-form-mid">-</div>
             <div class="layui-input-inline"><input type="text" name="' . $endName . '" class="layui-input" id="' . $endName . '"
-                   value="' . $endValue . '" placeholder="结束日期"></div>');
+                   value="' . $endValue . '" placeholder="结束日期"></div>',formItem: $formItem);
     }
 
     public function datetime(string $title, string $name, mixed $value = '',
                              bool   $required = false,
-                             bool   $range = false,
                              string $aux = '',
                              string $type = 'datetime',
                              bool   $preNext = false,
                              bool   $formItem = true,
     ): string
     {
-        $rangeText = $range ? 'true' : 'false';
-        $hasPreNext = $preNext && !$range;
 
         $laydateJs = <<<JS
         layui.use(['laydate'], function () {
@@ -277,12 +281,11 @@ JS
             laydate.render({
                 elem: '#{$name}',
                 type: '{$type}',
-                range: {$rangeText},
             });
         });
 JS;
 
-        if ($hasPreNext) {
+        if ($preNext) {
             $laydateJs .= <<<JS
 
         document.getElementById('{$name}-prev').onclick = function () {
@@ -323,13 +326,13 @@ JS;
 
         $requiredElem = $required ? '  lay-verify="required"' : '';
         $auxText = $this->wrapAux($aux);
-        $style = $hasPreNext ? 'style="margin-right: 0px;"' : '';
+        $style = $preNext ? 'style="margin-right: 0px;"' : '';
         $inputHtml = '<div class="layui-input-inline" ' . $style . '><input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
                    placeholder="请选择' . $title . '" ' . $requiredElem . '></div>';
         $content = $this->wrapFormLabel($title, $required) . $inputHtml;
 
-        if ($hasPreNext) {
+        if ($preNext) {
             $content = '
                 <button type="button" class="layui-form-label layui-btn " id="' . $name . '-prev" style="color: black;border-right: none;width: 40px;">- 1</button>'
                 . $content . '<button type="button" class="layui-btn layui-form-label"  style="color: black;border-left: none;width:40px; margin-right: 10px;" id="' . $name . '-next">+ 1</button>';

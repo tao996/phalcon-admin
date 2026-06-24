@@ -1255,7 +1255,6 @@ const admin = {
                             return;
                         }
                         admin.iframe.open(url + '/edit?' + key + '=' + keyV, {
-                            full: true,
                             title: '编辑记录', end: function () {
                                 admin.iframe.hasRefresh(() => {
                                     layui.table.reloadData(tableId);
