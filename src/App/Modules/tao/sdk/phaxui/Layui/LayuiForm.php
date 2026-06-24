@@ -224,6 +224,41 @@ class LayuiForm
         return $aux ? '<div class="layui-form-mid layui-word-aux">' . $aux . '</div>' : '';
     }
 
+    public function datesPicker(string $title,
+                                string $name = '',
+                                string $startName = '',
+                                string $endName = '',
+                                string $startValue = '',
+                                string $endValue = ''): string
+    {
+        if ($name){
+            if ($startName == ''){
+                $startName = $name . '_start';
+            }
+            if ($endName == ''){
+                $endName = $name . '_end';
+            }
+        }
+        $this->mvc->layui()->appendFooterJs(<<<JS
+        layui.use(['laydate'], function () {
+            var laydate = layui.laydate;
+            var startPicker = laydate.render({
+                elem: '#{$startName}',
+            });
+            var endPicker = laydate.render({
+                elem: '#{$endName}',
+            });
+        });
+JS
+        );
+        return $this->wrapFormItem($this->wrapFormLabel($title) . '
+            <div class="layui-input-inline"><input type="text" name="' . $startName . '" class="layui-input" id="' . $startName . '"
+                   value="' . $startValue . '" placeholder="开始日期"></div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline"><input type="text" name="' . $endName . '" class="layui-input" id="' . $endName . '"
+                   value="' . $endValue . '" placeholder="结束日期"></div>');
+    }
+
     public function datetime(string $title, string $name, mixed $value = '',
                              bool   $required = false,
                              bool   $range = false,

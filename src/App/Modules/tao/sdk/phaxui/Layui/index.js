@@ -672,18 +672,25 @@ const admin = {
                     filter = 'save_form_1';
                     f.attr('lay-filter', filter);
                 }
+                let submitting = false;
                 layui.form.on('submit(' + filter + ')', function (data) {
+                    if (submitting) {
+                        return false;
+                    }
+                    submitting = true;
                     let postData = data.field;
                     if (typeof postDataCallback == "function") {
                         try {
                             postData = postDataCallback(postData);
                         } catch (e) {
                             console.error(e);
+                            submitting = false;
                             return false;
                         }
                     }
                     if (postData === false || null === postData) {
                         console.warn('取消了表单提交');
+                        submitting = false;
                         return false;
                     }
                     let url = '';
@@ -695,6 +702,13 @@ const admin = {
                             url = options.url()
                             break;
                     }
+                    var origComplete = options.complete;
+                    options.complete = function () {
+                        submitting = false;
+                        if (typeof origComplete === 'function') {
+                            origComplete.apply(this, arguments);
+                        }
+                    };
                     admin.ajax.post({
                         url: url, data: postData
                     }, function (data) {
@@ -1444,7 +1458,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             table.on('edit(' + tableId + ')', callback)
         },
         /**
-         * 添加单元格编辑事件, 如 `{field:'city', title: '城市', width:80, edit: editable},`
+         * 添加单元格编辑事件, 如 `{field:'city', title: '城市', width:80, edit: true},`
          * @link https://layui.dev/docs/2/table/#demo-editable
          * @param {{url?:string,ok?:Function}} [config] 配置信息
          * @return this
