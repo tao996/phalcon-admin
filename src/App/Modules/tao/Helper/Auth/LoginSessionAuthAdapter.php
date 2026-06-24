@@ -25,6 +25,18 @@ class LoginSessionAuthAdapter extends LoginAuthAdapter
                 // 写入一个标记触发 session adapter 的 write()，由其内部机制刷新 TTL
                 $this->mvc->session()->set('_touch', time());
             }
+            // 同步刷新 cookie 过期时间，防止 cookie 先于会话过期
+            $lifetime = (int)$this->mvc->config()->path('session.cookie_lifetime', 86400);
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                session_id(),
+                time() + $lifetime,
+                $params['path'],
+                $params['domain'],
+                $params['secure'] ?? false,
+                $params['httponly'] ?? true
+            );
             return SystemUser::findFirst($userId);
         }
         return null;
