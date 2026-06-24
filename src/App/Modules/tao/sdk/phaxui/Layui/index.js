@@ -965,6 +965,13 @@ const admin = {
             return this._config.id
         },
         /**
+         * 获取表格数据
+         * @return {Array}
+         */
+        data: function () {
+            return layui.table.cache[this._config.id] || [];
+        },
+        /**
          * 获取配置信息
          * @param config {Object} 配置值
          * @param key {string}
@@ -1137,6 +1144,10 @@ const admin = {
             this._config.tableInst = tableInst;
             return this;
         },
+        /**
+         * 获取选中记录的行
+         * @returns {*}
+         */
         getCheckedRows: function () {
             return table.checkStatus(this._config.id).data;
         },
