@@ -258,6 +258,14 @@ class BaseController extends BaseRbacController
         $this->updateHtmlTitle('添加');
         return [];
     }
+    /**
+     * 从请求参数 ?id=xxx 获取模型
+     */
+    protected function mustGetModel($key = 'id'):void
+    {
+        $id = $this->getRequestQueryInt($key);
+        $this->model = $this->model::mustFindFirst($id);
+    }
 
     /**
      * @rbac ({title:'编辑记录'})
@@ -266,8 +274,7 @@ class BaseController extends BaseRbacController
      */
     public function editAction()
     {
-        $id = $this->getRequestQueryInt('id');
-        $this->model = $this->model::mustFindFirst($id);
+        $this->mustGetModel();
         if ($this->keepOldModel) {
             $this->oldModel = clone $this->model;
         }
