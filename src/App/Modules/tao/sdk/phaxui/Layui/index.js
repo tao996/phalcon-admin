@@ -989,6 +989,7 @@ const admin = {
          * 表格渲染<pre>
          * lineStyle: 'height: 95px;' 多行樣式
          * </pre>
+         * https://layui.dev/docs/2/table/#options
          * @param {{toolbar?:string,url?:string,cols:Array,page?:boolean,lineStyle?:string,success?:Function}} options 表格 render 时配置信息
          * @param {{search?:boolean}} [additions] 其它配置信息
          * @return this
