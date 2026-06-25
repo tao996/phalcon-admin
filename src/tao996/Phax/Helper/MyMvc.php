@@ -188,7 +188,7 @@ class MyMvc
      * @param string $filter
      * @return mixed
      */
-    public function pickPost(string $name, mixed $default = '',string $filter = ''): mixed
+    public function pickPost(string $name, mixed $default = '', string $filter = ''): mixed
     {
         return $this->di->getShared('request')
             ->getPost($name, $filter, $default);
@@ -284,6 +284,11 @@ class MyMvc
         } elseif ($mixed === false) {
             $options['origin'] = '';
         } elseif (!empty($mixed)) {
+            if (is_array($mixed)) {
+                $mixed = array_filter($mixed, function ($v) {
+                    return $v != '' && $v != 'null' && $v != '0' && $v != 'undefined';
+                });
+            }
             $options['query'] = $mixed;
         }
         return $this->url($options);
