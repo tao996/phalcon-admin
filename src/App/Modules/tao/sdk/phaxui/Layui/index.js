@@ -464,36 +464,29 @@ const admin = {
         /**
          * 请求方法
          * @param option {{url?: string}}
-         * @param {function} [ok] 返回成功回调
-         * @param {function} [no] 返回错误回调
-         * @param {function} [complete] 完成回调
-         * @param {function} [ex] 错误回调味
+         * @param {function} [success] 返回成功回调
          */
-        get: function (option, ok, no, complete, ex) {
-            this.ajax('get', option, ok, no, complete, ex)
+        get: function (option, success) {
+            this.ajax('get', option, success);
         },
         /**
          * 请求方法
          * @param option {{url?:string,data:Object}}
-         * @param {function} [ok] 返回成功回调
-         * @param {function} [no] 返回错误回调
-         * @param {function} [complete] 完成回调
-         * @param {function} [ex] 错误回调
+         * @param {function} [success] 返回成功回调
          */
-        post: function (option, ok, no, complete, ex) {
-            this.ajax('post', option, ok, no, complete, ex)
+        post: function (option, success) {
+            this.ajax('post', option, success)
         },
         // layui.debounce(fn, wait) 防抖，layui.throttle(fn, wait) 节流
         /**
          * 防抖、节流请求
          * @param option {{url?:string,data:Object}}
-         * @param {function} [ok] 返回成功回调
-         * @param {function} [no] 返回错误回调
-         * @param {function} [complete] 完成回调
-         * @param {function} [ex] 错误回调
+         * @param {function} [success] 返回业务逻辑成功回调
+         * @param {function} [failed] 返回业务逻辑错误回调
+         * @param {function} [complete] 完成请求回调
          */
-        postLimit: function (option, ok, no, complete, ex) {
-            var self = this;
+        postLimit: function (option, success, failed, complete) {
+            let self = this;
             if (!this._postLimitDebounced) {
                 // 用闭包保存 option/ok/no/complete/ex，让 debounce 只用最新参数
                 this._postLimitDebounced = layui.debounce(function () {
@@ -501,41 +494,35 @@ const admin = {
                         return;
                     }
                     self._isPosting = true;
-                    var args = self._postLimitArgs;
-                    self.ajax('post', args.option, args.ok, args.no, function (data) {
+                    let args = self._postLimitArgs;
+                    self.ajax('post', args.option, args.success, args.failed, function (data) {
                         self._isPosting = false;
                         if (typeof args.complete == 'function') {
                             args.complete(data);
-                        }
-                    }, function (obj) {
-                        self._isPosting = false;
-                        if (typeof args.ex === 'function') {
-                            args.ex(obj);
                         }
                     });
                 }, 300);
             }
             // 保存最新参数
-            this._postLimitArgs = {option: option, ok: ok, no: no, complete: complete, ex: ex};
+            this._postLimitArgs = {option: option, success: success, failed: failed, complete: complete};
             this._postLimitDebounced();
         },
         /**
-         * 通用 Ajax 请求
-         * @param {string} type 请求方法：get|post|put|delete
-         * @param {{url?:string, data:Object, dataType?:string, contentType?:string, timeout?:number, statusName?:string, statusCode?:number}} option
-         *    - url {string} 接口地址，为空则自动从当前 location 拼接
-         *    - data {Object} 请求参数
-         *    - dataType {string} 响应类型，默认 'json'
-         *    - contentType {string} Content-Type，默认 'application/x-www-form-urlencoded; charset=UTF-8'
-         *    - timeout {number} 超时毫秒数，默认 60000
-         *    - statusName {string} 响应中标识状态码的字段名，默认 'code'
-         *    - statusCode {number} 期望的成功状态码，默认 0
-         * @param {function|string} [ok] 成功回调（function）或成功提示文本（string）；当为字符串时自动弹出成功消息
-         * @param {function|string} [no] 失败回调或失败提示文本
-         * @param {function} [complete] 请求完成回调，接收 data 参数
-         * @param {function} [ex] 错误回调，接收 {xhr, textstatus, thrown} 对象
+         * 通用 Ajax 请求封装
+         * @param {string} type 请求请求方式：get / post / put / delete，不区分大小写
+         * @param {Object} option 请求配置对象
+         * @param {string} [option.url] 接口请求地址，不传时自动基于当前页面 location 拼接接口路径
+         * @param {Object} option.data 接口请求提交参数
+         * @param {string} [option.dataType='json'] 服务端响应数据解析类型，默认 json
+         * @param {string} [option.contentType='application/x-www-form-urlencoded; charset=UTF-8'] 请求头 Content-Type
+         * @param {number} [option.timeout=60000] 请求超时时间，单位毫秒，默认60秒
+         * @param {string} [option.statusName='code'] 后端返回体中代表业务状态码的字段名，默认 code
+         * @param {number} [option.statusCode=0] 判定业务请求成功的状态码，默认 0
+         * @param {Function|string|null} success 业务成功回调；传函数则执行回调，传字符串自动弹出成功提示文案，传 null 不处理
+         * @param {Function|string|null} error 业务失败回调；传函数执行失败回调，传字符串自动弹出错误提示文案，传 null 不处理
+         * @param {Function|null} complete 请求完成统一回调（成功/失败都会执行），回调参数为接口完整返回数据 data
          */
-        ajax: function (type, option, ok, no, complete, ex) {
+        ajax: function (type, option, success, error = null, complete = null) {
             option = Object.assign({
                 url: '',
                 data: {},
@@ -558,47 +545,41 @@ const admin = {
                 timeout: option.timeout,
                 headers: admin.config.ajax.headers(),
                 success: function (res) {
-                    if ([0, 200].includes(res[option.statusName])) {
-                        if (typeof ok === 'string') {
-                            admin.layer.success(ok);
+                    if ([0, 200].includes(res[option.statusName])) { // 成功
+                        if (typeof success === 'string') { // 字符串，直接显示成功信息
+                            admin.layer.success(success);
                         } else if (res.msg) {
-                            if (typeof ok == 'function') {
+                            if (typeof success == 'function') { // 回调函数
                                 admin.layer.success(res.msg, () => {
-                                    ok(res);
+                                    success(res);
                                 });
                                 return;
-
                             }
                             admin.layer.success(res.msg);
                         }
-                        if (typeof ok == 'function') {
-                            // setTimeout(function () {
-                            ok(res);
-                            // }, 500)
+                        if (typeof success == 'function') {
+                            success(res);
                         }
-                    } else {
-                        admin.layer.alert(typeof no == 'string' ? no : res.msg, function () {
-                            typeof no == 'function' && no(res);
+                    } else { // 业务逻辑失败
+                        admin.layer.alert(typeof error == 'string' ? error : res.msg, function () {
+                            typeof error == 'function' && error(res);
                         }, {title: '出错啦', shadeClose: true, icon: 2, maxWidth: 360});
                     }
                 },
                 error: function (xhr, textstatus, thrown) {
-                    admin.layer.error('Status:' + xhr.status + '，' + xhr.statusText + '，请稍后再试！', function () {
-                        if (typeof ex === 'function') {
-                            ex({xhr: xhr, textstatus: textstatus, thrown: thrown});
-                        }
-                    });
+                    admin.layer.error('Status:' + xhr.status + '，' + xhr.statusText + '，请稍后再试！');
                 },
                 complete: function (xhr) {
                     admin.layer.close(loadIndex);
                     admin.config.ajax.refreshHeaders(option.type);
+                    let data = null;
                     try {
-                        const data = JSON.parse(xhr.responseText).data;
-                        if (typeof complete === 'function') {
-                            complete(data);
-                        }
+                        data = JSON.parse(xhr.responseText).data;
                     } catch (e) {
                         console.error('响应结果不符合规范:', option.url);
+                    }
+                    if (typeof complete === 'function') {
+                        complete(data);
                     }
                 }
             })
@@ -652,12 +633,12 @@ const admin = {
         },
         /**
          * 绑定第一个 lay-submit 按钮，以提交第一个表单
-         * @param {function|string} ok
+         * @param {function|string} success
          * @param {function} [postDataCallback] 如果返回 false 则取消表单提交；否则返回提交的数据
-         * @param {{url:string|Function,no?:function,complete?:function,ex?:function}} [options]
+         * @param {{url:string|Function}} [options]
          * @returns {boolean}
          */
-        submitFirst: function (ok, postDataCallback, options = {url: ''}) {
+        submitFirst: function (success, postDataCallback, options = {url: ''}) {
             const formList = document.querySelectorAll("[lay-submit]");
             if (formList.length > 0) {
                 const f = layui.jquery(formList[0]);
@@ -672,25 +653,18 @@ const admin = {
                     filter = 'save_form_1';
                     f.attr('lay-filter', filter);
                 }
-                let submitting = false;
                 layui.form.on('submit(' + filter + ')', function (data) {
-                    if (submitting) {
-                        return false;
-                    }
-                    submitting = true;
-                    let postData = data.field;
+                    let postData = data.field; // 请求的字段
                     if (typeof postDataCallback == "function") {
                         try {
                             postData = postDataCallback(postData);
                         } catch (e) {
                             console.error(e);
-                            submitting = false;
                             return false;
                         }
                     }
                     if (postData === false || null === postData) {
                         console.warn('取消了表单提交');
-                        submitting = false;
                         return false;
                     }
                     let url = '';
@@ -702,18 +676,7 @@ const admin = {
                             url = options.url()
                             break;
                     }
-                    var origComplete = options.complete;
-                    options.complete = function () {
-                        submitting = false;
-                        if (typeof origComplete === 'function') {
-                            origComplete.apply(this, arguments);
-                        }
-                    };
-                    admin.ajax.post({
-                        url: url, data: postData
-                    }, function (data) {
-                        ok(data)
-                    }, options.no, options.complete, options.ex)
+                    admin.ajax.postLimit({url:url,data:postData},success);
                     return false;
                 })
 
@@ -810,10 +773,15 @@ const admin = {
         /**
          * @link https://layui.dev/docs/2/layer/#options
          * @param {string} url
-         * @param {{title?:string,width?:string,height?:string,full?:boolean,end?:Function,resize?:boolean}} options
+         * @param {{title?:string, area?:array,width?:string,height?:string,full?:boolean,end?:Function,resize?:boolean}} options
+         * @example
+         * admin.iframe.open(url,{title:'新窗口标题', area:['500px','400px']});
          */
         open: function (url, options = {}) {
-            if (admin.util.isEmpty(options.width) && admin.util.isEmpty(options.height)) {
+            if (typeof options.area !== "undefined") {
+                options.width = options.area[0];
+                options.height = options.area[1]
+            } else if (admin.util.isEmpty(options.width) && admin.util.isEmpty(options.height)) {
                 const width = window.innerWidth, height = window.innerHeight;
                 // const width = document.body.clientWidth, height = document.body.clientHeight;
 
@@ -825,8 +793,7 @@ const admin = {
                     options.height = '90%'
                 }
                 // console.log('iframe:', width, height, '=>', options.width, options.height)
-            }
-            if (options.full === true) {
+            } else if (options.full === true) {
                 options.width = '100%';
                 options.height = '100%';
             }
@@ -889,16 +856,17 @@ const admin = {
         },
         /**
          * 是否需要刷新页面，跟 admin.iframe.close 配合使用
-         * @param action
+         * @param {Function} action 刷新时回调函数
          * @example
          * admin.iframe.open(prefix + '/add?pid=' + id, { // 打开子窗口
          *    title: '添加下级栏目',
          *    end: function () {
          *        admin.iframe.hasRefresh(() => { // 检查是否需要刷新页面
-         *            inst.reloadData();
+         *            admin.table.reloadData();
          *        })
          *    }
          * })
+         * @return {boolean}
          */
         hasRefresh: function (action) {
             if (localStorage.getItem('tao.refresh') === 'yes') {
@@ -906,7 +874,9 @@ const admin = {
                 if (typeof action === 'function') {
                     action();
                 }
+                return true;
             }
+            return false;
         },
         // 更新父菜单
         updateParentMenu: function () {
@@ -984,7 +954,7 @@ const admin = {
             return this._config[key] || defV;
         },
         /**
-         * 初始化 id: 表格 ID，url 请求接口, rowAction:修改行数据时回调函数
+         * 初始化表格配置
          * @param {{id?:string, url?:string, rowAction?:function,query?:array}} [config]
          * @return this
          */
@@ -1014,11 +984,6 @@ const admin = {
          */
         reloadData: function () {
             this._config.tableInst.reloadData();
-        },
-        reloadWhenIframeRefresh: function () {
-            admin.iframe.hasRefresh(() => {
-                admin.table.reloadData()
-            })
         },
         /**
          * 表格渲染<pre>

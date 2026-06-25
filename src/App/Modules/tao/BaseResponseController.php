@@ -27,14 +27,20 @@ class BaseResponseController extends Controller
 
     public function initialize(): void
     {
-        // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 POST 请求
+        // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 请求
         $isJsonBody = $this->request->getQuery('data', 'string') === 'jsonbody'
-            || ($this->request->isPost() && str_contains($this->request->getContentType() ?? '', 'application/json'));
+            || (str_contains($this->request->getContentType() ?? '', 'application/json'));
 
         if ($isJsonBody) {
             $this->jsonBodyRequest = true;
             $this->jsonResponse = true;
             $this->requestData = $this->request->getJsonRawBody(true) ?: [];
+        } elseif ($this->request->isPost()){
+            $this->requestData = $this->request->getPost() ?: [];
+        } elseif ($this->request->isGet()){
+            $this->requestData = $this->request->getQuery() ?: [];
+        } elseif ($this->request->isPut()){
+            $this->requestData = $this->request->getPut() ?: [];
         }
         $this->vv = new MyMvcHelper($this->di);
         parent::initialize();
