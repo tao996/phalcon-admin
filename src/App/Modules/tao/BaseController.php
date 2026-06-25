@@ -361,9 +361,8 @@ class BaseController extends BaseRbacController
     /**
      * 对 addAction|editAction 的模型数据进行验证
      * @param array $data
-     * @return void
      */
-    protected function validateModelAssign(array $data): void
+    protected function validateModelAssign(array $data)
     {
 
     }

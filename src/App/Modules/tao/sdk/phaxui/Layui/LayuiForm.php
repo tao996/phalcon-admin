@@ -234,13 +234,13 @@ class LayuiForm
                                 string $endName = '',
                                 string $startValue = '',
                                 string $type = 'date',
-                                string $endValue = '',bool $formItem = true): string
+                                string $endValue = '', bool $formItem = true): string
     {
-        if ($name){
-            if ($startName == ''){
+        if ($name) {
+            if ($startName == '') {
                 $startName = $name . '_start';
             }
-            if ($endName == ''){
+            if ($endName == '') {
                 $endName = $name . '_end';
             }
         }
@@ -263,7 +263,7 @@ JS
                    value="' . $startValue . '" placeholder="开始日期"></div>
             <div class="layui-form-mid">-</div>
             <div class="layui-input-inline"><input type="text" name="' . $endName . '" class="layui-input" id="' . $endName . '"
-                   value="' . $endValue . '" placeholder="结束日期"></div>',formItem: $formItem);
+                   value="' . $endValue . '" placeholder="结束日期"></div>', formItem: $formItem);
     }
 
     public function datetime(string $title, string $name, mixed $value = '',
