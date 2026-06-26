@@ -28,10 +28,17 @@ class DemoController extends BaseController
         $data = [];
         if ($this->request->isPost()) {
             $data = $this->_doData();
+
+            // PRG: 将结果存入 flash session，然后重定向到 GET 页面
+//            if ($data['code'] == 0){
+//                $this->flashSession->success($data['msg']);
+//            } else {
+//                $this->flashSession->error($data['msg']);
+//            }
+//            $this->response->redirect('/m/tao/demo/form');
+//            $this->view->disable();
+//            return [];
         }
-        // GET 请求时生成 CSRF 令牌传给视图
-        $this->view->setVar('csrfToken', $this->security->getToken());
-        $this->view->setVar('csrfKey', $this->security->getTokenKey());
         return $data;
     }
 

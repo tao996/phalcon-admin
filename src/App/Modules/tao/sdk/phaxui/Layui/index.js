@@ -8,14 +8,22 @@ const admin = {
     config: {
         debug: false,
         ajax: {
+            csrf: false, // 是否启用 csrf-token
             headers: function () {
-                if (!admin.util.isEmpty(window.CONFIG) && !admin.util.isEmpty(window.CONFIG.CSRF_TOKEN)) {
-                    return {'X-CSRF-TOKEN': window.CONFIG.CSRF_TOKEN}
+                if (this.csrf) {
+                    if (!admin.util.isEmpty(window.CONFIG) && !admin.util.isEmpty(window.CONFIG.CSRF_TOKEN)) {
+                        return {'X-CSRF-TOKEN': window.CONFIG.CSRF_TOKEN}
+                    }
                 }
                 return {};
             },
-            refreshHeaders: function (method = 'get') {
-                if (['post', 'put', 'delete'].includes(method)) {
+            /**
+             * 刷新 CSRF-TOKEN
+             * @param {string} method
+             * @param {string} url
+             */
+            refreshHeaders: function (method, url) {
+                if (this.csrf && ['post', 'put', 'delete'].includes(method.toLowerCase())) {
                     console.log('try to refresh csrf-token');
                     // @todo 刷新 csrf-token
                 }
@@ -513,6 +521,7 @@ const admin = {
          * @param {Object} option 请求配置对象
          * @param {string} [option.url] 接口请求地址，不传时自动基于当前页面 location 拼接接口路径
          * @param {Object} option.data 接口请求提交参数
+         * @param {Object} [option.headers={}] 自定义请求头，会与 admin.config.ajax.headers() 进行合并
          * @param {string} [option.dataType='json'] 服务端响应数据解析类型，默认 json
          * @param {string} [option.contentType='application/x-www-form-urlencoded; charset=UTF-8'] 请求头 Content-Type
          * @param {number} [option.timeout=60000] 请求超时时间，单位毫秒，默认60秒
@@ -543,7 +552,7 @@ const admin = {
                 dataType: option.dataType,
                 contentType: option.contentType,
                 timeout: option.timeout,
-                headers: admin.config.ajax.headers(),
+                headers: Object.assign({}, admin.config.ajax.headers(), option.headers || {}),
                 success: function (res) {
                     if ([0, 200].includes(res[option.statusName])) { // 成功
                         if (typeof success === 'string') { // 字符串，直接显示成功信息
@@ -562,16 +571,17 @@ const admin = {
                         }
                     } else { // 业务逻辑失败
                         admin.layer.alert(typeof error == 'string' ? error : res.msg, function () {
+                            admin.config.ajax.refreshHeaders(option.type, option.url);
                             typeof error == 'function' && error(res);
                         }, {title: '出错啦', shadeClose: true, icon: 2, maxWidth: 360});
                     }
                 },
                 error: function (xhr, textstatus, thrown) {
+                    admin.config.ajax.refreshHeaders(option.type, option.url);
                     admin.layer.error('Status:' + xhr.status + '，' + xhr.statusText + '，请稍后再试！');
                 },
                 complete: function (xhr) {
                     admin.layer.close(loadIndex);
-                    admin.config.ajax.refreshHeaders(option.type);
                     let data = null;
                     try {
                         data = JSON.parse(xhr.responseText).data;
@@ -676,7 +686,7 @@ const admin = {
                             url = options.url()
                             break;
                     }
-                    admin.ajax.postLimit({url:url,data:postData},success);
+                    admin.ajax.postLimit({url: url, data: postData}, success);
                     return false;
                 })
 

@@ -378,6 +378,13 @@ JS;
         return $this->wrapFormItem($content, name: $name, formItem: $formItem);
     }
 
+    // CSRF 令牌
+    public function csrf(): string
+    {
+        $csrfKey = $this->mvc->security()->getTokenKey();
+        $csrfToken = $this->mvc->security()->getToken();
+        return '<input type="hidden" name="' . $csrfKey . '" value="' . $csrfToken . '">';
+    }
 
 }
 

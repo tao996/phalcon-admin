@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+
+?>
+
+<form class="layui-form">
+
+    <?php
+    echo $vv->layuiForm()->input('数字', 'num',
+            value: $vv->pick('num', ''),
+            placeholder: '请输入一个整数',
+            aux: '偶数 → 成功；奇数 → 错误')
+    ?>
+
+
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+</form>
+
+<?php
+$vv->layui()->addWindowConfig([])->footer();;
+echo $vv->layuiHtml()->iconJs();
+?>
+<script>
+    admin.form.submitFirst(() => {
+        console.log('提交成功');
+    })
+</script>

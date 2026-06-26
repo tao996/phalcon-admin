@@ -2,6 +2,8 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+$csrfToken = $vv->security()->getToken();
+$csrfKey = $vv->security()->getTokenKey();
 ?>
 <blockquote class="layui-elem-quote">
     Demo 表单测试 — 提交后验证数字是否为偶数
@@ -9,13 +11,13 @@
 
 <form class="layui-form" method="POST">
     <?php
-    // CSRF 令牌
-    echo '<input type="hidden" name="' . $csrfKey . '" value="' . $csrfToken . '">';
+    // CSRF 令牌：每次渲染时从 session 获取最新值，避免第一次提交失败后 token 失效
+    echo $vv->layuiForm()->csrf();
 
     echo $vv->layuiForm()->input('数字', 'num',
-        value: $vv->pick('num', ''),
-        placeholder: '请输入一个整数',
-        aux: '偶数 → 成功；奇数 → 错误')
+            value: $vv->pick('num', ''),
+            placeholder: '请输入一个整数',
+            aux: '偶数 → 成功；奇数 → 错误')
     ?>
 
     <div class="hr-line"></div>
