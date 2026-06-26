@@ -1,83 +1,165 @@
 <?php
 /**
  * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
- * @var string $msg 错误提示信息
- * @var string $url 点击 “确定” 按钮后跳转的网址
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ *
+ * --- 传入参数 ---
+ * @var string $msg  提示信息（必填）
+ * @var string $url  跳转目标 URL（可选；为空则返回上一页）
+ * @var int    $icon 图标类型：1=成功, 2=错误, 3=询问, 4=锁定, 5=不开心, 6=笑脸, 7=感叹号（默认 2）
+ * @var int    $wait 倒计时秒数（默认 5）
  */
 
-use App\Modules\tao\sdk\phaxui\HtmlAssets;
-
-HtmlAssets::initWithCdn();
 $vv->layui();
-$title = $title ?? '错误';
-// 1 正确, 2 错误(X), 3 询问，4 锁定, 5 不开心, 6 开心(笑脸) 7 感叹号
 $icon = $icon ?? 2;
+$wait = $wait ?? 5;
+$title = $title ?? ($icon == 1 ? '成功' : '提示');
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title><?php
-        echo $title ?></title>
+    <title><?= $vv->html()->text($title) ?></title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <!--[if lt IE 9]>
-    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
-    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-    <?php
-    $vv->html()->outputHeaders(); ?>
+    <?php $vv->html()->outputHeaders(); ?>
+    <style>
+        body {
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .redirect-box {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            text-align: center;
+            padding: 50px 60px;
+            max-width: 420px;
+            width: 90%;
+        }
+        .redirect-box .layui-icon {
+            font-size: 64px;
+        }
+        .redirect-box .icon-success { color: #5fb878; }
+        .redirect-box .icon-error   { color: #f56c6c; }
+        .redirect-box .icon-warn    { color: #ffb800; }
+        .redirect-box .icon-info    { color: #1e9fff; }
+        .redirect-box .msg {
+            font-size: 18px;
+            color: #333;
+            margin: 18px 0 10px;
+            line-height: 1.5;
+        }
+        .redirect-box .countdown {
+            font-size: 14px;
+            color: #999;
+        }
+        .redirect-box .countdown b {
+            color: #1e9fff;
+            font-size: 20px;
+        }
+        .redirect-box .btn-group {
+            margin-top: 24px;
+        }
+        .redirect-box .btn-group a {
+            display: inline-block;
+            padding: 8px 30px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 6px;
+            transition: all 0.2s;
+        }
+        .redirect-box .btn-primary {
+            background: #1e9fff;
+            color: #fff;
+        }
+        .redirect-box .btn-primary:hover {
+            background: #0c7fd4;
+        }
+        .redirect-box .btn-default {
+            background: #f6f6f6;
+            color: #555;
+            border: 1px solid #e6e6e6;
+        }
+        .redirect-box .btn-default:hover {
+            background: #eee;
+        }
+    </style>
 </head>
 <body>
-</body>
+<div class="redirect-box">
+    <?php
+    $iconClass = match ($icon) {
+        1, 6 => 'layui-icon-face-smile icon-success',
+        3, 7 => 'layui-icon-about icon-warn',
+        4    => 'layui-icon-lock icon-info',
+        default => 'layui-icon-circle-close icon-error',
+    };
+    ?>
+    <i class="layui-icon <?= $iconClass ?>"></i>
+    <div class="msg"><?= $vv->html()->text($msg) ?></div>
+    <div class="countdown">
+        <span id="countdownNum"><?= $wait ?></span> 秒后自动跳转
+    </div>
+    <div class="btn-group">
+        <a class="btn-primary" href="javascript:;" id="btnConfirm">立即跳转</a>
+        <a class="btn-default" href="javascript:;" id="btnCancel">返回上一页</a>
+    </div>
+</div>
+
 <?php
 $vv->html()->outputFooters();
 $vv->layui()->footer();
 ?>
 <script>
-    const _redirect = encodeURIComponent(location.href);
-    <?php if (empty($url)){?>
-    layui.layer.alert('<?php echo $msg ?>', {icon: <?php echo $icon ?>}, function (index) {
-        layer.close(index);
-        history.back();
-    });
-    <?php } else {?>
-    const _href = '<?php echo $url ?>';
-    layui.layer.confirm('<?php echo $msg ?>',
-        {
-            icon: <?php echo $icon ?>,
-            title: '<?php echo $title ?>'
-        },
-        function (index) {
-            layer.close(index)
-            if (_href === 'close') {
-                admin.cache.remove('tabs') // 移除当前 tabs
-            } else {
-                location.href = _href.includes('?')
-                    ? _href + '&_redirect=' + _redirect
-                    : _href + '?_redirect=' + _redirect;
+    (function () {
+        var countdown = <?= (int)$wait ?>;
+        var url = '<?= isset($url) ? addslashes($url) : '' ?>';
+        var timer = setInterval(function () {
+            countdown--;
+            document.getElementById('countdownNum').textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                doRedirect();
             }
-        }, function (index) {
-            layer.close(index);
-            historyBackWFallback('/')
-        })
+        }, 1000);
 
-    function historyBackWFallback(fallbackUrl) {
-        fallbackUrl = fallbackUrl || '/';
-        var prevPage = window.location.href;
-
-        window.history.go(-1);
-
-        setTimeout(function () {
-            if (window.location.href == prevPage) {
-                window.location.href = fallbackUrl;
+        function doRedirect() {
+            if (!url) {
+                history.back();
+                return;
             }
-        }, 500);
-    }
-    <?php } ?>
+            if (url === 'close') {
+                admin.cache.remove('tabs');
+                return;
+            }
+            var redirect = encodeURIComponent(location.href);
+            location.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_redirect=' + redirect;
+        }
+
+        document.getElementById('btnConfirm').onclick = function () {
+            clearInterval(timer);
+            doRedirect();
+        };
+
+        document.getElementById('btnCancel').onclick = function () {
+            clearInterval(timer);
+            var prev = location.href;
+            history.back();
+            setTimeout(function () {
+                if (location.href === prev) {
+                    location.href = '/';
+                }
+            }, 500);
+        };
+    })();
 </script>
+</body>
 </html>
-
-

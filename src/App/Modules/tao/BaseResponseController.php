@@ -249,6 +249,29 @@ class BaseResponseController extends Controller
         throw new BlankException();
     }
 
+    /**
+     * 跳转到提示页面（带倒计时 + 自动跳转）
+     * @param string $msg  提示信息
+     * @param string $url  跳转目标 URL（空则返回上一页）
+     * @param int    $icon 图标：1=成功, 2=错误, 3=询问, 6=笑脸（默认 2）
+     * @param int    $wait 倒计时秒数（默认 5）
+     * @param string $title 弹窗标题（默认根据 icon 自动选择）
+     * @return never
+     * @throws BlankException
+     */
+    public function redirect(string $msg = '', string $url = '', int $icon = 2, int $wait = 5, string $title = ''): never
+    {
+        // 如果需要直接跳转，使用 throw new \Phax\Support\Exception\LocationException 即可
+        $this->simpleView(self::getTaoViewDir('redirect.phtml'), [
+            'msg'   => $msg,
+            'url'   => $url,
+            'icon'  => $icon,
+            'wait'  => $wait,
+            'title' => $title,
+        ]);
+        exit;
+    }
+
     public function beforeExecuteRoute($dispatcher)
     {
         if ($this->jsonBodyRequest) { // 小程序之类的，不要将错误显示出来

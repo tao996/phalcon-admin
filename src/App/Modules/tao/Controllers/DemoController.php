@@ -13,7 +13,7 @@ use Phax\Utils\MyData;
  */
 class DemoController extends BaseController
 {
-    public array $enableActions = ['index', 'form'];
+    public array $enableActions = ['index', 'form', 'redirect'];
 
     public function indexAction(): array
     {
@@ -53,5 +53,10 @@ class DemoController extends BaseController
             return $this->success('成功啦');
         }
         return $this->error('错误啦', data: ['num' => MyData::getInt($this->requestData, 'num')]);
+    }
+
+    public function redirectAction(): void
+    {
+        $this->redirect('操作成功', url: 'https://www.baidu.com', wait: 100);
     }
 }
