@@ -8,6 +8,7 @@ use Phax\Mvc\Controller;
 use Phax\Support\Config;
 use Phax\Support\Env;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
 use Phax\Support\Logger;
 use Phax\Support\Router;
@@ -70,12 +71,15 @@ class Application
      */
     public function runWeb(string|null $requestURL = null): ?\Phalcon\Http\ResponseInterface
     {
+        $requestURL = $requestURL ?: $_SERVER['REQUEST_URI'];
+        if ($requestURL == '/favicon.ico'){
+            die('/favicon.ico');
+        }
         $di = self::di();
         DiService::with($di)->db()->pdo()->redis()->cache()->flash()->flashSession()
             ->session()->cookies()->url()->router()->view()
             ->application();
 
-        $requestURL = $requestURL ?: $_SERVER['REQUEST_URI'];
 
         // IP 白名单检查
         $ipWhitelist = $di->get('config')->path('app.ipWhitelist', [])->toArray();
@@ -111,7 +115,11 @@ class Application
 
     public function handleException(\Throwable $e, Di $di = null): string
     {
-        Logger::exception($e);
+        // BusinessException 为普通业务异常（如验证失败、业务规则冲突），
+        // 属于预期行为，不记录错误日志，减少日志噪音
+        if (!($e instanceof BusinessException)) {
+            Logger::exception($e);
+        }
 
         /**
          * @var Config $config

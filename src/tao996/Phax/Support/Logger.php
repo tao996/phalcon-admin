@@ -19,21 +19,35 @@ class Logger
 
 
     /**
-     * 记录异常的完整调用栈到日志
+     * 记录异常的完整调用栈到日志（单行紧凑格式）
+     *
+     * 格式：`[异常类] 消息 → 文件:行号 | METHOD URI | 请求参数 | 调用栈`
+     * 每行均有统一的 `[%date%][%type%]` 前缀，兼容各类日志查看器
+     *
      * @param \Throwable $e
      * @return void
      */
     public static function exception(\Throwable $e): void
     {
         try {
-            $trace = $e->getTraceAsString();
+            // 请求上下文
+            $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '-';
+            $requestUri = $_SERVER['REQUEST_URI'] ?? '-';
+            $requestCtx = sprintf('%s %s', $requestMethod, $requestUri);
+            if ($requestMethod === 'POST' && !empty($_POST)) {
+                $requestCtx .= ' | params=' . json_encode($_POST, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+
+            // 调用栈合并为一行
+            $trace = str_replace("\n", ' → ', $e->getTraceAsString());
+
             $msg = sprintf(
-                "[%s] %s\n%s\n%s(%d)\n\n%s",
+                '[%s] %s → %s(%d) | %s | %s',
                 get_class($e),
                 $e->getMessage(),
                 $e->getFile(),
-                $e->getFile(),
                 $e->getLine(),
+                $requestCtx,
                 $trace
             );
             self::logger()->error($msg);
