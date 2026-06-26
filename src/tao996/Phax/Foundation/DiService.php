@@ -88,6 +88,7 @@ class DiService
                         $path = str_replace($matches[0], date($matches[1]), $path);
                     }
                     $adapter = new \Phalcon\Logger\Adapter\Stream($path);
+                    $adapter->setFormatter(new \Phax\Support\Logger\JsonFormatter());
                     break;
                 case 'syslog':
                     $adapter = new \Phalcon\Logger\Adapter\Syslog(

@@ -19,10 +19,15 @@ class Logger
 
 
     /**
-     * 记录异常的完整调用栈到日志（单行紧凑格式）
+     * 记录异常的完整调用栈到日志（JSON Lines 格式）
+     * 安装 https://github.com/jqlang/jq/releases 工具查看
+     * windows 安装 git bash 然后使用 `tail -f app.log | jq`  实时查看日志
      *
-     * 格式：`[异常类] 消息 → 文件:行号 | METHOD URI | 请求参数 | 调用栈`
-     * 每行均有统一的 `[%date%][%type%]` 前缀，兼容各类日志查看器
+     * 输出示例（紧凑为一行）：
+     * {"time":"...","level":"ERROR","type":"exception","class":"RuntimeException",
+     *  "message":"数据库连接失败","file":"/app.php","line":42,
+     *  "request":{"method":"GET","uri":"/api/users"},
+     *  "trace":["#0 /vendor/file.php(123)","#1 /src/main.php(45)"]}
      *
      * @param \Throwable $e
      * @return void
@@ -33,24 +38,25 @@ class Logger
             // 请求上下文
             $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '-';
             $requestUri = $_SERVER['REQUEST_URI'] ?? '-';
-            $requestCtx = sprintf('%s %s', $requestMethod, $requestUri);
+            $request = [
+                'method' => $requestMethod,
+                'uri' => $requestUri,
+            ];
             if ($requestMethod === 'POST' && !empty($_POST)) {
-                $requestCtx .= ' | params=' . json_encode($_POST, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $request['params'] = $_POST;
             }
 
-            // 调用栈合并为一行
-            $trace = str_replace("\n", ' → ', $e->getTraceAsString());
-
-            $msg = sprintf(
-                '[%s] %s → %s(%d) | %s | %s',
-                get_class($e),
-                $e->getMessage(),
-                $e->getFile(),
-                $e->getLine(),
-                $requestCtx,
-                $trace
-            );
-            self::logger()->error($msg);
+            $data = [
+                'type' => 'exception',
+                'class' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'request' => $request,
+                'trace' => explode("\n", $e->getTraceAsString()),
+            ];
+            // JsonFormatter 会自动注入 time 和 level 字段
+            self::logger()->error(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         } catch (\Throwable $inner) {
             // 日志异常静默处理，防止循环出错；
             // 用 error_log() 作为回退，至少让外部能感知到 logger 本身出错了
