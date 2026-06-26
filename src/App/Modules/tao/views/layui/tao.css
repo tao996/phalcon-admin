@@ -68,8 +68,45 @@
 .tao-flex1 {
     flex: 1;
 }
+
 .errorMessage {
-    color: red;
-    font-size: large;
-    font-weight: bold;
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    border: 1px solid #f56c6c;
+    border-radius: 4px;
+    background: #fef0f0;
+    color: #f56c6c;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.successMessage {
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    border: 1px solid #5fb878;
+    border-radius: 4px;
+    background: #f0faf0;
+    color: #5fb878;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.warningMessage {
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    border: 1px solid #ffb800;
+    border-radius: 4px;
+    background: #fffdf0;
+    color: #b8860b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.noticeMessage {
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    border: 1px solid #1e9fff;
+    border-radius: 4px;
+    background: #f0f8ff;
+    color: #1e9fff;
+    font-size: 14px;
+    line-height: 1.6;
 }

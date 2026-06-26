@@ -334,6 +334,17 @@ class DiService
         return $this;
     }
 
+    public function flashSession(bool $shared = true): static
+    {
+        $this->di->set('flashSession', function () {
+            $escaper = new \Phalcon\Html\Escaper();
+            $flash = new \Phalcon\Flash\Session($escaper);
+            $flash->setImplicitFlush(false);
+            return $flash;
+        }, $shared);
+        return $this;
+    }
+
     public function router(bool $shared = true): static
     {
         $this->di->set('router', function () {

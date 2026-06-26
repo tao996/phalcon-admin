@@ -1,0 +1,30 @@
+<?php
+/**
+ * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ */
+?>
+<blockquote class="layui-elem-quote">
+    Demo 表单测试 — 提交后验证数字是否为偶数
+</blockquote>
+
+<form class="layui-form" method="POST">
+    <?php
+    // CSRF 令牌
+    echo '<input type="hidden" name="' . $csrfKey . '" value="' . $csrfToken . '">';
+
+    echo $vv->layuiForm()->input('数字', 'num',
+        value: $vv->pick('num', ''),
+        placeholder: '请输入一个整数',
+        aux: '偶数 → 成功；奇数 → 错误')
+    ?>
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm">
+            <i class="layui-icon layui-icon-ok"></i> 提交测试
+        </button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+</form>
+
+<?php $vv->layui()->addWindowConfig([])->footer(); ?>

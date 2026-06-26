@@ -71,7 +71,7 @@ class Application
     public function runWeb(string|null $requestURL = null): ?\Phalcon\Http\ResponseInterface
     {
         $di = self::di();
-        DiService::with($di)->db()->pdo()->redis()->cache()->flash()
+        DiService::with($di)->db()->pdo()->redis()->cache()->flash()->flashSession()
             ->session()->cookies()->url()->router()->view()
             ->application();
 

@@ -18,7 +18,11 @@ class BaseResponseController extends Controller
      * 禁用主布局 views/index.phtml
      */
     protected bool $disabledMainLayout = false;
-
+    /**
+     * @var bool 小程序之类的请求
+     * https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html
+     * 只要成功接收到服务器返回，无论 statusCode 是多少，都会进入 success 回调。开发者根据业务逻辑对返回值进行判断。
+     */
     protected bool $jsonBodyRequest = false;
     /**
      * @var array 前端请求数据
@@ -28,18 +32,15 @@ class BaseResponseController extends Controller
     public function initialize(): void
     {
         // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 请求
-        $isJsonBody = $this->request->getQuery('data', 'string') === 'jsonbody'
-            || (str_contains($this->request->getContentType() ?? '', 'application/json'));
-
-        if ($isJsonBody) {
-            $this->jsonBodyRequest = true;
+        $this->jsonBodyRequest = $this->request->getQuery('data', 'string') === 'jsonbody';
+        if ($this->jsonBodyRequest || str_contains($this->request->getContentType() ?? '', 'application/json')) {
             $this->jsonResponse = true;
             $this->requestData = $this->request->getJsonRawBody(true) ?: [];
-        } elseif ($this->request->isPost()){
+        } elseif ($this->request->isPost()) {
             $this->requestData = $this->request->getPost() ?: [];
-        } elseif ($this->request->isGet()){
+        } elseif ($this->request->isGet()) {
             $this->requestData = $this->request->getQuery() ?: [];
-        } elseif ($this->request->isPut()){
+        } elseif ($this->request->isPut()) {
             $this->requestData = $this->request->getPut() ?: [];
         }
         $this->vv = new MyMvcHelper($this->di);
@@ -63,7 +64,7 @@ class BaseResponseController extends Controller
                 ->send();
             return true;
         }
-        if ($this->jsonBodyRequest) { // 小程序响应
+        if ($this->jsonResponse) {
             if ($this->isJsonResponseFormat($data)) {
                 $this->doResponse(true, $data);
             } else {
@@ -71,6 +72,7 @@ class BaseResponseController extends Controller
             }
             return true;
         }
+        // 为页面准备数据：然后跳转到方法：beforeViewResponse
         return parent::executeRouteResponseData($data);
     }
 
@@ -146,6 +148,17 @@ class BaseResponseController extends Controller
         if ($this->disabledMainLayout) {
             $this->view->disableLevel(\Phalcon\Mvc\View::LEVEL_MAIN_LAYOUT);
         }
+        // 如果数据是一个 api 格式，需要进行二次处理
+        if ($this->isJsonResponseFormat($data)) {
+            if (!empty($data['msg'])) {
+                if (in_array($data['code'], [0, 200])) {
+                    $this->flash->success($data['msg']);
+                } else {
+                    $this->flash->error($data['msg']);
+                }
+            }
+            $data = $data['data'] ?? [];
+        }
         return parent::beforeViewResponse($data);
     }
 
@@ -153,15 +166,15 @@ class BaseResponseController extends Controller
      * 返回 json 格式的错误信息
      * @param array|string $msg
      * @param int $code
+     * @param mixed $data 错误数据
      * @return array
      */
-    public function error(array|string $msg, int $code = 500): array
+    public function error(array|string $msg, int $code = 500, mixed $data = null): array
     {
-        $this->jsonResponse = true;
         return [
             'code' => $code,
             'msg' => is_array($msg) ? join('<br>', $msg) : $msg,
-            'data' => [],
+            'data' => $data,
         ];
     }
 
@@ -173,7 +186,6 @@ class BaseResponseController extends Controller
      */
     public function success(string $message, mixed $data = null): array
     {
-        $this->jsonResponse = true;
 
         if ($data instanceof \Phax\Mvc\Model || $data instanceof \Phalcon\Mvc\Model\Resultset\Simple) {
             $data = $data->toArray();
@@ -185,9 +197,8 @@ class BaseResponseController extends Controller
         ];
     }
 
-      public function successData($data): array
+    public function successData($data): array
     {
-        $this->jsonResponse = true;
 
         if ($data instanceof \Phax\Mvc\Model || $data instanceof \Phalcon\Mvc\Model\Resultset\Simple) {
             $data = $data->toArray();
@@ -200,8 +211,6 @@ class BaseResponseController extends Controller
     }
 
 
-
-
     /**
      * 通常用在显示列表数据
      * @param int $count
@@ -210,9 +219,8 @@ class BaseResponseController extends Controller
      */
     public function successPagination(int $count, mixed $rows): array
     {
-        $this->jsonResponse = true;
 
-        if ($rows instanceof \Phax\Mvc\Model || $rows instanceof  \Phalcon\Mvc\Model\Resultset\Simple){
+        if ($rows instanceof \Phax\Mvc\Model || $rows instanceof \Phalcon\Mvc\Model\Resultset\Simple) {
             $rows = $rows->toArray();
         }
         return [
@@ -244,6 +252,9 @@ class BaseResponseController extends Controller
     public function beforeExecuteRoute($dispatcher)
     {
         if ($this->jsonBodyRequest) { // 小程序之类的，不要将错误显示出来
+            // https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html
+            // 只要成功接收到服务器返回，无论 statusCode 是多少，都会进入 success 回调。
+            // 开发者根据业务逻辑对返回值进行判断，所以需要将全部错误进行包装
 
             // 1. 获取当前准备执行的 Action 名称（例如：weatherAction）
             $actionName = $dispatcher->getActiveMethod();
