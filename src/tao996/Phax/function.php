@@ -125,7 +125,6 @@ return [
      */
     function __(string $key, string $default, array $params = [], string $namespace = ''): string
     {
-        return '';
-//        return \App\Modules\Finance\Services\I18nService::translate($key, $default, $params, $namespace);
+        return \Phax\Support\I18nService::translate($key, $default, $params, $namespace);
     }
 }

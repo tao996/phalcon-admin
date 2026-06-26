@@ -1,6 +1,6 @@
 <?php
 
-namespace Phax\Support\I18n;
+namespace Phax\Support;
 
 class I18nService
 {
@@ -52,10 +52,15 @@ class I18nService
      */
     private static function extractModule(string $namespace): ?string
     {
+        if ($namespace === '') {
+            return null;
+        }
         if (!isset(self::$namespaceCache[$namespace])) {
             $pattern = '/^App\\\\(Modules|Projects)\\\\([a-zA-Z0-9_]+)/';
             if (preg_match($pattern, $namespace, $matches)) {
                 self::$namespaceCache[$namespace] = $matches[2]; // 返回 yihe 等
+            } else {
+                self::$namespaceCache[$namespace] = null; // 记录未命中，防止重复尝试
             }
         }
         return self::$namespaceCache[$namespace];

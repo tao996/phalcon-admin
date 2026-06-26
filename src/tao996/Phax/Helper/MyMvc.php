@@ -8,22 +8,16 @@ use Phalcon\Mvc\View;
 use Phax\Foundation\Route;
 use Phax\Support\Config;
 use Phax\Support\Exception\BlankException;
-use Phax\Support\I18n\Translate;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 class MyMvc
 {
-
-    private Translate $translate;
     private HtmlHelper|null $_html = null;
 
     protected string $html_helper_class = HtmlHelper::class;
 
-    public function __construct(public \Phalcon\Di\Di $di)
-    {
-        $this->translate = new Translate();
-    }
+    public function __construct(public \Phalcon\Di\Di $di){}
 
     public function getDi(): \Phalcon\Di\Di
     {
@@ -70,11 +64,6 @@ class MyMvc
     public function view(): View
     {
         return $this->di->getShared('view');
-    }
-
-    public function translate(): Translate
-    {
-        return $this->translate;
     }
 
     public function route(): Route
@@ -355,24 +344,6 @@ class MyMvc
     function dispatcher(): \Phalcon\Dispatcher\AbstractDispatcher
     {
         return $this->di->getShared('dispatcher');
-    }
-
-
-    /**
-     * @param string $key
-     * @param array $placeholders
-     * @param string $defMessage
-     * @return string
-     * @throws \Exception
-     */
-    public function __(string $key, array $placeholders = [], string $defMessage = ''): string
-    {
-        static $load = null;
-        if (is_null($load)) { // 首次使用，自动加载
-            $load = true;
-            $this->translate()->load();
-        }
-        return Translate::get($this->getLanguage(), $key, $placeholders, $defMessage);
     }
 
     public function getLanguage()
