@@ -27,6 +27,15 @@ const appElement = $('#LAY_app');
 admin.util.layOn({
     // 侧边收缩
     flexible: function () {
+        // 移动端（≤992px）：滑出侧边栏覆盖层
+        if (window.innerWidth <= 992) {
+            const isSpread = appElement.hasClass('layadmin-side-spread-sm');
+            appElement.toggleClass('layadmin-side-spread-sm');
+            flexibleElement
+                .removeClass(isSpread ? 'layui-icon-spread-left' : 'layui-icon-shrink-right')
+                .addClass(isSpread ? 'layui-icon-shrink-right' : 'layui-icon-spread-left');
+            return;
+        }
         const isRight = flexibleElement.hasClass('layui-icon-shrink-right');
         flexibleElement
             .removeClass(isRight ? 'layui-icon-shrink-right' : 'layui-icon-spread-left')
@@ -79,6 +88,7 @@ const tabsCache = {
         admin.cache.remove(this._key);
     }
 };
+// iframe tabs
 // iframe tabs
 const tabs = {
     menuId: 0, // 当前激活菜单所属的 sidebar id
@@ -279,6 +289,12 @@ layui.util.on('layadmin-event', {
     rightPage: function () {
         tabs.activeRight();
     },
+    shade: function () {
+        appElement.removeClass('layadmin-side-spread-sm');
+        flexibleElement
+            .removeClass('layui-icon-spread-left')
+            .addClass('layui-icon-shrink-right');
+    },
     // 关闭当前标签页
     closeThisTabs: function () {
         tabs.removeCurrent();
@@ -300,11 +316,41 @@ function bindPageEvents() {
         const title = this.getAttribute('data-tips'); // 标题
         const id = this.getAttribute('data-id');
         tabs.append({id, href, title});
+        // 移动端点击菜单后自动关闭侧边栏
+        if (window.innerWidth <= 992) {
+            appElement.removeClass('layadmin-side-spread-sm');
+            flexibleElement
+                .removeClass('layui-icon-spread-left')
+                .addClass('layui-icon-shrink-right');
+        }
     });
 }
 
 bindPageEvents();
 tabs.recoverFromCache();
+
+// 移动端 Tab 滑动防误触：捕获阶段拦截 click
+(function () {
+    var tabTouch = {startX: 0, moved: false};
+    $('.layadmin-pagetabs .layui-tab').on('touchstart', function (e) {
+        var touch = e.originalEvent.touches[0];
+        tabTouch.startX = touch.pageX;
+        tabTouch.moved = false;
+    }).on('touchmove', function (e) {
+        var touch = e.originalEvent.touches[0];
+        if (Math.abs(touch.pageX - tabTouch.startX) > 10) {
+            tabTouch.moved = true;
+        }
+    }).on('touchend', function () {
+        setTimeout(function () { tabTouch.moved = false; }, 300);
+    });
+    document.getElementById('LAY_app_tabsheader').addEventListener('click', function (e) {
+        if (tabTouch.moved) {
+            tabTouch.moved = false;
+            e.stopPropagation();
+        }
+    }, true);
+})();
 
 /**
  * 添加一个 TAB, 在子页中使用 parent.appendTab() 调用

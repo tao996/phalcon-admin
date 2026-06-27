@@ -42,6 +42,70 @@ $vv->layui();
             left: 20px;
             margin-top: -8px
         }
+
+        /* 移动端头部优化：左导航保留汉堡图标，右导航紧凑 */
+        @media screen and (max-width: 992px) {
+            .mobile-sidebar-switch-wrap {
+                display: block !important;
+                position: absolute;
+                top: 50px;
+                left: 0;
+                right: 0;
+                z-index: 1003;
+                padding: 10px 15px;
+                background: #20222a;
+                border-bottom: 1px solid rgba(255,255,255,.1);
+            }
+            #mobileSidebarSwitch {
+                width: 100%;
+                height: 34px;
+                line-height: 34px;
+                border: 1px solid rgba(255,255,255,.2);
+                background: rgba(255,255,255,.12);
+                padding: 0 8px;
+                border-radius: 4px;
+                font-size: 14px;
+                color: #fff;
+                outline: none;
+            }
+            #mobileSidebarSwitch option {
+                color: #333;
+                background: #fff;
+            }
+            .layui-side-scroll {
+                padding-top: 55px;
+            }
+
+            .layui-layout-right li[lay-header-event="menuRight"] {
+                display: none;
+            }
+            .layui-layout-right .layui-nav-item > a {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            .layui-layout-right .layui-nav-item cite {
+                margin-right: 8px;
+            }
+
+            /* 标签页支持水平滑动 */
+            .layadmin-pagetabs .layui-tab {
+                overflow-x: auto;
+                overflow-y: hidden;
+                touch-action: pan-x;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .layadmin-pagetabs .layui-tab::-webkit-scrollbar {
+                display: none;
+            }
+            #LAY_app_tabsheader {
+                white-space: nowrap;
+            }
+            #LAY_app_tabsheader li {
+                float: none;
+                display: inline-block;
+            }
+        }
     </style>
 </head>
 <body class="layui-layout-body" id="LAY_home_iframe">
@@ -107,7 +171,7 @@ $vv->layui();
                         <i class="fa fa-trash-o"></i>
                     </a>
                 </li>
-                <li class="layui-nav-item" lay-unselect>
+                <li id="userInfo" class="layui-nav-item" lay-unselect>
                     <a href="javascript:;">
                         <?php
                         if ($user->head_img) { ?>
@@ -150,6 +214,13 @@ $vv->layui();
 
         <!-- 侧边菜单 -->
         <div class="layui-side layui-side-menu">
+            <div class="mobile-sidebar-switch-wrap layui-hide">
+                <select id="mobileSidebarSwitch" class="mobile-sidebar-switch">
+                    <?php foreach ($menuTree as $index => $menu) { ?>
+                        <option value="<?php echo $menu['id'] ?>" <?php echo $index == 0 ? 'selected' : '' ?>><?php echo $menu['title'] ?></option>
+                    <?php } ?>
+                </select>
+            </div>
             <div class="layui-side-scroll">
                 <div class="layui-logo" lay-href="<?php
                 echo $vv->urlModule('tao') ?>">
@@ -303,5 +374,11 @@ $vv->layui()->footer();
             })
         }
     })
+    // 移动端：select 切换 sidebar
+    $('#mobileSidebarSwitch').on('change', function () {
+        var id = $(this).val();
+        tabs.activeSidebar(id, true);
+        tabs.tmpMenuId = id;
+    });
 </script>
 </html>
