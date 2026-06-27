@@ -100,31 +100,6 @@ class BaseResponseController extends Controller
     }
 
     /**
-     * 检测是否为移动端访问
-     * 支持 UA 检测和 ?mobile=1 参数覆盖
-     * @return bool
-     */
-    protected function isMobile(): bool
-    {
-        // 允许通过 URL 参数强制指定
-        $mobileParam = $this->request->getQuery('mobile', 'int', -1);
-        if ($mobileParam >= 0) {
-            return (bool)$mobileParam;
-        }
-        // UA 检测
-        $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        if ($ua) {
-            $keywords = ['Mobile', 'Android', 'iPhone', 'iPad', 'iPod', 'Windows Phone', 'Opera Mini', 'IEMobile'];
-            foreach ($keywords as $kw) {
-                if (str_contains($ua, $kw)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * 当前默认主题，如果设置，则使用 views/$theme 下的模板
      */
     public string $theme = 'layui';

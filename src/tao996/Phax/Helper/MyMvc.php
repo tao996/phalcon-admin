@@ -17,7 +17,9 @@ class MyMvc
 
     protected string $html_helper_class = HtmlHelper::class;
 
-    public function __construct(public \Phalcon\Di\Di $di){}
+    public function __construct(public \Phalcon\Di\Di $di)
+    {
+    }
 
     public function getDi(): \Phalcon\Di\Di
     {
@@ -390,4 +392,28 @@ class MyMvc
         }
     }
 
+    /**
+     * 检测是否为移动端访问
+     * 支持 UA 检测和 ?mobile=1 参数覆盖
+     * @return bool
+     */
+    public function isMobile(): bool
+    {
+        // 允许通过 URL 参数强制指定
+        $mobileParam = $this->request()->getQuery('mobile', 'int', -1);
+        if ($mobileParam >= 0) {
+            return (bool)$mobileParam;
+        }
+        // UA 检测
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        if ($ua) {
+            $keywords = ['Mobile', 'Android', 'iPhone', 'iPad', 'iPod', 'Windows Phone', 'Opera Mini', 'IEMobile'];
+            foreach ($keywords as $kw) {
+                if (str_contains($ua, $kw)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
