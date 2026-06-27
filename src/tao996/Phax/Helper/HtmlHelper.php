@@ -147,17 +147,8 @@ class HtmlHelper
      */
     public function doneViewResponse(): void
     {
-        $this->mvc->route()->doneView();
-        if ($pickview = $this->mvc->route()->pickView(false)) {
-            if (!file_exists($pickview)) {
-                if (IS_DEBUG) {
-                    throw new \Exception('Pick view not exist:' . $pickview . '.[phtml|volt]');
-                } else {
-                    Logger::error('Pick view not exist:' . $pickview);
-                    throw new \Exception('Pick view not exist');
-                }
-            }
-        }
+        $route = $this->mvc->route();
+        $route->doneView();
     }
 
 

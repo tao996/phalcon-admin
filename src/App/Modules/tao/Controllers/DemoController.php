@@ -20,6 +20,9 @@ class DemoController extends BaseController
         if ($this->isApiRequest()) {
             return $this->_doData();
         }
+        if ($this->request->hasQuery('mobile')){
+            $this->route->changePickView('demo/mobile');
+        }
         return [];
     }
 

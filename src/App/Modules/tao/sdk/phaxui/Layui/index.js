@@ -1585,7 +1585,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          * @param {any} defV 默认值
          */
         read: function (key, defV) {
-            const local = layui.sessionData(this.dbIndex);
+            const local = layui.data(this.dbIndex);
             const v = local[key];
             if (admin.util.isEmpty(v)) {
                 return defV;
@@ -1593,17 +1593,17 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             return JSON.parse(v);
         },
         save: function (key, data) {
-            layui.sessionData(this.dbIndex, {
+            layui.data(this.dbIndex, {
                 key: key, value: JSON.stringify(data),
             })
         },
         remove: function (key) {
-            layui.sessionData(this.dbIndex, {
+            layui.data(this.dbIndex, {
                 key: key, remove: true,
             })
         },
         clear: function () {
-            layui.sessionData(this.dbIndex).clear();
+            localStorage.clear();
         },
 
     }

@@ -107,7 +107,7 @@ class Controller extends \Phalcon\Mvc\Controller
             $this->vv->html()
                 ->setVar('language', $this->vv->getLanguage())
                 ->setResponseVar($data)
-                ->doneViewResponse();
+                ->doneViewResponse(); // 渲染视图
         }
     }
 
