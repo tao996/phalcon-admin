@@ -2,11 +2,13 @@
 
 namespace App\Modules\tao;
 
+use App\Modules\tao\Helper\Libs\RBAC;
 use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
 
 use Phax\Db\Transaction;
 use Phax\Mvc\Model;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
@@ -88,7 +90,6 @@ class BaseController extends BaseRbacController
      * 处理查询语句，通常用来补充默认的查询条件(modelQueryColumns/modelHiddenColumns/modelOrderBy)
      * @param QueryBuilder $queryBuilder
      * @return void
-     * @throws \Exception
      */
     protected function beforeIndexQuery(QueryBuilder $queryBuilder): void
     {
@@ -142,7 +143,6 @@ class BaseController extends BaseRbacController
     /**
      * 获取全部查询结果，通常用在报表中
      * @return \Phalcon\Mvc\Model\Resultset\Simple|null
-     * @throws \Exception
      */
     protected function getIndexResultset($queryBuilderCallback = null): \Phalcon\Mvc\Model\Resultset\Simple|null
     {
@@ -155,10 +155,9 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * @rbac ({title:"数据列表"})
      * @return mixed
-     * @throws \Exception
      */
+    #[RBAC(title: '数据列表')]
     public function indexAction()
     {
         if ($this->isApiRequest()) {
@@ -224,9 +223,7 @@ class BaseController extends BaseRbacController
         return empty($this->requestData) ? $this->request->getPost() : $this->requestData;
     }
 
-    /**
-     * @rbac ({title:'添加记录'})
-     */
+    #[RBAC(title: '添加记录')]
     public function addAction()
     {
         if ($this->request->isPost()) {
@@ -268,10 +265,10 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * @rbac ({title:'编辑记录'})
      * @return mixed
      * @throws \Exception
      */
+    #[RBAC(title: '编辑记录')]
     public function editAction()
     {
         $this->mustGetModel();
@@ -397,9 +394,9 @@ class BaseController extends BaseRbacController
 
     /**
      * 注意：并未判断 user_id
-     * @rbac ({title:"属性快捷修改"})
      * @throws \Exception
      */
+    #[RBAC(title: '属性快捷修改')]
     public function modifyAction()
     {
         $this->mustPostMethod();
@@ -473,6 +470,7 @@ class BaseController extends BaseRbacController
      * @rbac ({title:"删除记录"})
      * @throws \Exception
      */
+    #[RBAC(title: '删除记录')]
     public function deleteAction()
     {
         $this->mustPostMethod();
@@ -532,22 +530,22 @@ class BaseController extends BaseRbacController
     protected function checkModelActionAccess(Model|null $model): void
     {
         if (empty($model)) {
-            throw new \Exception('记录不存在');
+            throw new BusinessException('记录不存在');
         }
         if (property_exists($model, 'user_id')) {
             if ($this->isUserAction()) {
                 // 普通用户：校验记录归属自己，而非强制覆盖
                 if ($model->user_id != $this->loginUser()->id) {
-                    throw new \Exception('没有修改记录的权限');
+                    throw new BusinessException('没有修改记录的权限');
                 }
             } elseif ($this->isSuperAdminAction()) {
                 if (!$this->vv->userRecordAccess($this->loginUser()->id, $model->user_id)) {
-                    throw new \Exception('没有修改记录的权限');
+                    throw new BusinessException('没有修改记录的权限');
                 }
             } else {
                 // 检查是否有修改节点的权限
                 if (!$this->vv->loginUserHelper()->access($this->vv->route()->getNode())) {
-                    throw new \Exception('没有修改记录的权限');
+                    throw new BusinessException('没有修改记录的权限');
                 }
             }
         }
@@ -585,38 +583,29 @@ class BaseController extends BaseRbacController
     {
     }
 
-    /**
-     * @throws \Exception
-     */
     protected function getRequestQueryInt(string $name, bool $notAllowEmpty = true)
     {
         $v = $this->request->getQuery($name, 'int', 0, $notAllowEmpty);
         if ($notAllowEmpty && empty($v)) {
-            throw new \Exception($name . ' is empty');
+            throw new BusinessException($name . ' is empty');
         }
         return $v;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getRequestInt(string $name, bool $notAllowEmpty = true): int
     {
         $v = $this->getRequest($name, 'int', 0);
         if ($notAllowEmpty && empty($v)) {
-            throw new \Exception($name . ' is empty');
+            throw new BusinessException($name . ' is empty');
         }
         return intval($v);
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getRequestInts(string $name, bool $notAllowEmpty = true): array
     {
         $v = $this->getRequest($name);
         if ($notAllowEmpty && empty($v)) {
-            throw new \Exception($name . ' is empty');
+            throw new BusinessException($name . ' is empty');
         }
         return MyData::getInts($v);
     }
@@ -647,7 +636,7 @@ class BaseController extends BaseRbacController
     protected function mustHasOldModel(): void
     {
         if ($this->oldModel == null) {
-            throw new \Exception('原始记录模型为空');
+            throw new BusinessException('原始记录模型为空');
         }
     }
 }

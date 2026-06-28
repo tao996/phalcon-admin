@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Mvc\Controller;
 
-/**
- * @rbac ({title:'Home',close:1})
- */
+#[RBAC(title:'Home', close: 1)]
 class IndexController extends Controller
 {
-    /**
-     * @rbac ({title:'Index'})
-     */
+    #[RBAC(title:'Index')]
     public function indexAction()
     {
     }

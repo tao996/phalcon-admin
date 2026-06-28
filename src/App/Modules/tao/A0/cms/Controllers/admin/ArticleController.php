@@ -5,14 +5,15 @@ namespace App\Modules\tao\A0\cms\Controllers\admin;
 
 use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsArticle;
+use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Utils\MyData;
 
 /**
  * @property CmsArticle $model
- * @rbac ({title:'文章管理'})
  */
+#[RBAC(title: '文章管理')]
 class ArticleController extends BaseTaoA0CmsController
 {
     protected array $cateOptions = [];
@@ -54,9 +55,7 @@ class ArticleController extends BaseTaoA0CmsController
         return $rows;
     }
 
-    /**
-     * @rbac ({title:'文章列表'})
-     */
+    #[RBAC(title: '文章列表')]
     public function indexAction()
     {
         if (!$this->isApiRequest()) {
@@ -65,9 +64,7 @@ class ArticleController extends BaseTaoA0CmsController
         return parent::indexAction();
     }
 
-    /**
-     * @rbac ({title:'添加文章'})
-     */
+    #[RBAC(title: '添加文章')]
     public function addAction()
     {
         if ($this->request->isPost()) {
@@ -98,10 +95,7 @@ class ArticleController extends BaseTaoA0CmsController
         ];
     }
 
-    /**
-     * @rbac ({title:'编辑文章'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '编辑文章')]
     public function editAction()
     {
         $id = $this->getRequestInt('id');
@@ -141,9 +135,8 @@ class ArticleController extends BaseTaoA0CmsController
         return true;
     }
 
-    /**
-     * @rbac ({title:'文章审核'})
-     */
+
+    #[RBAC(title: '文章审核')]
     public function cstatusAction()
     {
         $this->mustPostMethod();
@@ -164,10 +157,7 @@ class ArticleController extends BaseTaoA0CmsController
         return $this->saveModelResponse($this->model->save());
     }
 
-    /**
-     * @rbac ({title:'文章预览'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '文章预览')]
     public function previewAction()
     {
         $id = $this->getRequestInt('id');

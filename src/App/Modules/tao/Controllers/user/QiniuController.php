@@ -8,6 +8,7 @@ use App\Modules\tao\sdk\qiniu\QiniuDriver;
 class QiniuController extends BaseController
 {
     protected array|string $userActions = '*';
+    public array $enableActions = ['index'];
 
     /**
      * 生成客户端上传凭证，如何需要使用，请重新生成

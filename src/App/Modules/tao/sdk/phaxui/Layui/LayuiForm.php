@@ -261,7 +261,7 @@ JS
         return $this->wrapFormItem($this->wrapFormLabel($title) . '
             <div class="layui-input-inline"><input type="text" name="' . $startName . '" class="layui-input" id="' . $startName . '"
                    value="' . $startValue . '" placeholder="开始日期"></div>
-            <div class="layui-form-mid">-</div>
+            <div class="layui-form-mid layui-hide-xs">-</div>
             <div class="layui-input-inline"><input type="text" name="' . $endName . '" class="layui-input" id="' . $endName . '"
                    value="' . $endValue . '" placeholder="结束日期"></div>', formItem: $formItem);
     }
@@ -367,14 +367,17 @@ JS;
             name: $name, formItem: $formItem);
     }
 
-    public function checkbox(string $title, string $name,
+    public function checkbox(string $title, string $name, string $aux = '',
                              bool   $checked = false,
                              bool   $disabled = false,
                              bool   $formItem = true): string
     {
         $checkedText = $checked ? ' checked' : '';
         $disabledText = $disabled ? ' disabled' : '';
-        $content = '<input id="' . $name . '" type="checkbox" name="' . $name . '" lay-text="' . $title . '" ' . $checkedText . $disabledText . '>';
+        if ($aux) {
+            $aux = '<span class="layui-form-mid layui-word-aux">' . $aux . '</span>';
+        }
+        $content = '<input id="' . $name . '" type="checkbox" name="' . $name . '" lay-text="' . $title . '" ' . $checkedText . $disabledText . '>' . $aux;
         return $this->wrapFormItem($content, name: $name, formItem: $formItem);
     }
 

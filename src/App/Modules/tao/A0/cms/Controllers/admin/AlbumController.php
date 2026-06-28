@@ -4,11 +4,12 @@ namespace App\Modules\tao\A0\cms\Controllers\admin;
 
 use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsAlbum;
+use App\Modules\tao\Helper\Libs\RBAC;
 
 /**
  * @property CmsAlbum $model
- * @rbac ({title:'图集管理'})
  */
+#[RBAC(title: '图集管理')]
 class AlbumController extends BaseTaoA0CmsController
 {
     protected string $htmlTitle = '图集';
@@ -19,10 +20,7 @@ class AlbumController extends BaseTaoA0CmsController
         $this->model = new CmsAlbum();
     }
 
-    /**
-     * @rbac ({title:'修改图集'})
-     * @throws \Exception
-     */
+    #[RBAC(title:'修改图集')]
     public function editAction()
     {
 
@@ -37,9 +35,7 @@ class AlbumController extends BaseTaoA0CmsController
         return $row;
     }
 
-    /**
-     * @rbac ({title:'图集预览'})
-     */
+    #[RBAC(title:'图集预览')]
     public function previewAction()
     {
         return $this->editAction();

@@ -3,6 +3,8 @@
 namespace Phax\Utils;
 
 
+use Phax\Support\Exception\BusinessException;
+
 /**
  * 数据格式化
  * @link https://www.php.net/manual/zh/ref.array.php
@@ -66,7 +68,7 @@ class MyData
                 if ($skipUnsetKey) {
                     continue;
                 }
-                throw new \Exception($key . ' is not exits in the data when columnMap');
+                throw new BusinessException($key . ' is not exits in the data when columnMap');
             }
             $rows[$item[$key]] = (array)$item;
         }
@@ -100,7 +102,7 @@ class MyData
         } elseif (is_string($data[$key])) {
             return $data[$key];
         } else {
-            throw new \Exception('not a string value :' . $key);
+            throw new BusinessException('not a string value :' . $key);
         }
     }
     /**
@@ -112,7 +114,7 @@ class MyData
     public function mustInt(mixed $value): int
     {
         if (!filter_var($value, FILTER_VALIDATE_INT)) {
-            throw new \Exception($value . ' is not an integer');
+            throw new BusinessException($value . ' is not an integer');
         }
         return intval($value);
     }
@@ -130,14 +132,14 @@ class MyData
         } elseif (is_string($data)) {
             $data = explode(',', $data);
         } elseif (!is_array($data)) {
-            throw new \Exception('data is not supported type for mustIntS');
+            throw new BusinessException('data is not supported type for mustIntS');
         }
 
         foreach ($data as $k => $v) {
             if (is_int($v)) {
                 $data[$k] = intval($v);
             } else {
-                throw new \Exception($v . ' is not an integer');
+                throw new BusinessException($v . ' is not an integer');
             }
         }
         return $data;
@@ -199,7 +201,7 @@ class MyData
             if (filter_var($item, \FILTER_VALIDATE_INT)) {
                 $rows[] = intval($item);
             } else {
-                throw new \Exception($item . ' is not a int value');
+                throw new BusinessException($item . ' is not a int value');
             }
         }
         return $rows;
@@ -245,7 +247,6 @@ class MyData
      * @param array $data 待检查的数组
      * @param array $keys 数组中的值键，不能为空值
      * @param array $allowEmpty 允许空值的键，默认为空，表示全部不允许为空值；会合并到 $keys 中
-     * @throws \Exception
      */
     public static function mustHasSet(array $data, array $keys, array $allowEmpty = []): void
     {
@@ -257,14 +258,14 @@ class MyData
         }
         foreach ($keys as $key) {
             if (!array_key_exists($key, $data)) {
-                throw new \Exception($key . ' is not exits in the data when mustHasSet');
+                throw new BusinessException($key . ' is not exits in the data when mustHasSet');
             }
             if ($allYes) {
                 if (empty($data[$key])) {
-                    throw new \Exception($key . ' is not allow empty when mustHasSet');
+                    throw new BusinessException($key . ' is not allow empty when mustHasSet');
                 }
             } elseif (!in_array($key, $allowEmpty) && empty($data[$key])) {
-                throw new \Exception($key . ' is not allow empty when mustHasSet');
+                throw new BusinessException($key . ' is not allow empty when mustHasSet');
             }
         }
     }

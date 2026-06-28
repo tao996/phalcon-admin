@@ -11,7 +11,6 @@ namespace App\Modules\tao\A0\open\Controllers;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\Models\SystemUser;
-use Phax\Utils\MyData;
 
 class AuthController extends BaseOpenMiniController
 {

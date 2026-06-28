@@ -6,14 +6,15 @@ namespace App\Modules\tao\A0\cms\Controllers\admin;
 use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsContent;
 use App\Modules\tao\A0\cms\Models\CmsPage;
+use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Utils\MyData;
 
 /**
- * @rbac ({title:'单页管理'})
  * @property CmsPage $model
  */
+#[RBAC(title: '单页管理')]
 class PageController extends BaseTaoA0CmsController
 {
     public function localInitialize(): void
@@ -31,9 +32,7 @@ class PageController extends BaseTaoA0CmsController
         $queryBuilder->int('tag', $this->request->getQuery('tag'));
     }
 
-    /**
-     * @rbac ({title:'添加单页'})
-     */
+    #[RBAC(title: '添加单页')]
     public function addAction()
     {
         if ($this->request->isPost()) {
@@ -67,10 +66,7 @@ class PageController extends BaseTaoA0CmsController
         return [];
     }
 
-    /**
-     * @rbac ({title:'编辑单页'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '编辑单页')]
     public function editAction()
     {
         $id = $this->getRequestQueryInt('id');

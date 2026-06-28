@@ -5,12 +5,13 @@ namespace App\Modules\tao\A0\open\Controllers\admin;
 
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenApp;
+use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Utils\MyData;
 
 /**
  * @property OpenApp $model
- * @rbac ({title:'开放平台应用管理'})
  */
+#[RBAC(title: '开放平台应用管理')]
 class AppController extends BaseOpenController
 {
     protected string $htmlTitle = '应用';
@@ -61,10 +62,7 @@ class AppController extends BaseOpenController
         }
     }
 
-    /**
-     * @rbac ({title:'修改证书'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '修改证书')]
     public function certAction()
     {
         $this->mustPostMethod();

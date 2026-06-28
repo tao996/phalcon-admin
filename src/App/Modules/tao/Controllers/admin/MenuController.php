@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Config\Data;
+use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
@@ -12,12 +13,13 @@ use Phax\Utils\MyData;
 use Phax\Db\QueryBuilder;
 
 /**
- * @rbac ({title:'菜单管理'})
  * @property SystemMenu $model
  */
+#[RBAC(title: '菜单管理')]
 class MenuController extends BaseController
 {
     protected string $htmlTitle = '菜单';
+    protected array|string $userActions = ['user'];
 
     protected array $allowModifyFields = ['sort', 'status', 'roles', 'remark', 'href', 'params', 'remark'];
     protected string|array $modelQueryColumns = [
@@ -54,10 +56,7 @@ class MenuController extends BaseController
         return LayuiData::treeTable($rows);
     }
 
-    /**
-     * @rbac ({title:'添加菜单'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '添加菜单')]
     public function addAction()
     {
         $pid = $this->getRequestInt('pid', false);
@@ -97,7 +96,7 @@ class MenuController extends BaseController
         } else {
             $data['kind'] = 0;
         }
-        $data['sort'] = MyData::getInt($data,'sort');
+        $data['sort'] = MyData::getInt($data, 'sort');
         $model->assign($data, [
             'pid',
             'title',
@@ -110,10 +109,7 @@ class MenuController extends BaseController
         ]);
     }
 
-    /**
-     * @rbac ({title:'编辑菜单'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '编辑菜单')]
     public function editAction()
     {
         $id = $this->getRequestQueryInt('id');

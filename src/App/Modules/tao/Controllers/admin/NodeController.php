@@ -4,15 +4,16 @@ namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RbacAnnotation;
+use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\Models\SystemRoleNode;
 use Phax\Db\QueryBuilder;
 use Phax\Utils\MyFileSystem;
 
 /**
- * @rbac ({title:'节点管理'})
  * @property SystemNode $model
  */
+#[RBAC(title:'节点管理')]
 class NodeController extends BaseController
 {
     public array $enableActions = [
@@ -51,10 +52,10 @@ class NodeController extends BaseController
     }
 
     /**
-     * @rbac({title:'更新节点'})
      * @throws \ReflectionException
      * @throws \Exception
      */
+    #[RBAC(title:'更新节点')]
     public function reloadAction($todb = false)
     {
         $nodes = [];

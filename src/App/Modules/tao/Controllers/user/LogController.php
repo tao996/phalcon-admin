@@ -13,6 +13,7 @@ use Phax\Db\QueryBuilder;
 class LogController extends BaseController
 {
     protected array|string $userActions = '*';
+    public array $enableActions = ['index'];
     protected string $htmlTitle = '日志';
 
     public function afterInitialize(): void

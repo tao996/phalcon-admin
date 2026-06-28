@@ -281,11 +281,7 @@ class RbacAnnotation
      */
     private static function getRefClassRbacDoc(\ReflectionClass $ref): mixed
     {
-        $cDos = Annotation::parse($ref->getDocComment());
-        if (isset($cDos['rbac'])) {
-            return MyJSON::decode(self::getDocContent($cDos['rbac']), MyJSON::GET_ARRAY);
-        }
-        return false;
+        return self::getRBAC($ref);
     }
 
     /**
@@ -301,8 +297,8 @@ class RbacAnnotation
         $methods = [];
         foreach ($ref->getMethods() as $method) {
             if ($method->isPublic() && str_ends_with($method->getName(), 'Action')) {
-                $mDoc = Annotation::parse($method->getDocComment());
-                if (isset($mDoc['rbac'])) {
+                $mInfo = self::getRBAC($method);
+                if ($mInfo !== false) {
                     $name = substr($method->getName(), 0, -6); // Action 名称
                     if ($disableActions && in_array($name, $disableActions)) {
                         continue;
@@ -310,17 +306,51 @@ class RbacAnnotation
                     if ($enableActions && !in_array($name, $enableActions)) {
                         continue;
                     }
-                    $dInfo = MyJSON::decode(self::getDocContent($mDoc['rbac']), MyJSON::GET_ARRAY);
-                    if (is_null($dInfo)) {
-                        throw new \Exception('is rbac annotation ok?' . $mDoc['rbac']);
-                    } elseif (empty($dInfo)) {
-                        $dInfo['title'] = Router::formatNodeName($name);
+                    if (empty($mInfo)) {
+                        $mInfo['title'] = Router::formatNodeName($name);
                     }
-                    $methods[$name] = $dInfo;
+                    $methods[$name] = $mInfo;
                 }
             }
         }
         return $methods;
+    }
+
+    /**
+     * 统一获取 RBAC 信息：优先读 PHP 8 Attributes，无则回退到 PHPDoc @rbac
+     *
+     * @param \ReflectionClass|\ReflectionMethod $ref
+     * @return array|false 成功返回 ['title'=>..., 'close'=>..., 'scope'=>...]，无标记返回 false
+     */
+    private static function getRBAC(\ReflectionClass|\ReflectionMethod $ref): array|false
+    {
+        // 优先：PHP 8 Attributes
+        $attrs = $ref->getAttributes(RBAC::class);
+        if (!empty($attrs)) {
+            $rbac = $attrs[0]->newInstance();
+            $result = [];
+            if ($rbac->title !== '') {
+                $result['title'] = $rbac->title;
+            }
+            if ($rbac->close !== 0) {
+                $result['close'] = $rbac->close;
+            }
+            if ($rbac->scope !== 0) {
+                $result['scope'] = $rbac->scope;
+            }
+            return $result;
+        }
+
+        // 回退：PHPDoc @rbac 注解
+        $cDos = Annotation::parse($ref->getDocComment());
+        if (isset($cDos['rbac'])) {
+            $parsed = MyJSON::decode(self::getDocContent($cDos['rbac']), MyJSON::GET_ARRAY);
+            if (is_null($parsed)) {
+                throw new \Exception('is rbac annotation ok?' . $cDos['rbac']);
+            }
+            return $parsed;
+        }
+        return false;
     }
 
     /**

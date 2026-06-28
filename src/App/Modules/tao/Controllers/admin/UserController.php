@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
 
+use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
@@ -11,9 +12,9 @@ use Phax\Db\QueryBuilder;
 use Phax\Utils\MyData;
 
 /**
- * @rbac ({title:'用户管理'})
  * @property SystemUser $model
  */
+#[RBAC(title: '用户管理')]
 class UserController extends BaseController
 {
     protected string $htmlTitle = '用户管理';
@@ -23,10 +24,7 @@ class UserController extends BaseController
         $this->model = new SystemUser();
     }
 
-    /**
-     * @rbac ({title:"添加用户"})
-     * @throws \Exception
-     */
+    #[RBAC(title: '添加用户')]
     public function addAction()
     {
         if ($this->request->isPost()) {
@@ -106,10 +104,7 @@ class UserController extends BaseController
         return $rows;
     }
 
-    /**
-     * @rbac ({title:"编辑用户"})
-     * @throws \Exception
-     */
+    #[RBAC(title: '编辑用户')]
     public function editAction()
     {
         $id = $this->getRequestQueryInt('id');
@@ -170,10 +165,7 @@ class UserController extends BaseController
         }
     }
 
-    /**
-     * @rbac ({title:'修改用户密码'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '修改用户密码')]
     public function passwordAction()
     {
         $id = $this->getRequestInt('id'); // 用户 ID

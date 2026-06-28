@@ -5,12 +5,13 @@ namespace App\Modules\tao\A0\open\Controllers\admin;
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
 use App\Modules\tao\A0\open\Models\OpenMch;
+use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Utils\MyData;
 
 /**
- * @rbac ({title:'商户应用'})
  * @property OpenMch $model
  */
+#[RBAC(title: '商户应用')]
 class MchController extends BaseOpenController
 {
     protected string|array $modelHiddenColumns = ['secret_key'];
@@ -45,9 +46,9 @@ class MchController extends BaseOpenController
 
     /**
      * 2024 年 Q3，微信支付官方开启了「微信支付公钥」平替「平台证书」方案
-     * @rbac ({title:'上传证书'})
      * @throws \Exception
      */
+    #[RBAC(title: '上传证书')]
     public function certAction()
     {
         $this->mustPostMethod();

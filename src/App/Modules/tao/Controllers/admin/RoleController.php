@@ -3,14 +3,15 @@
 namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
+use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemRoleNode;
 use Phax\Db\QueryBuilder;
 
 /**
- * @rbac ({title:'角色管理'})
  * @property SystemRole $model
  */
+#[RBAC(title: '角色管理')]
 class RoleController extends BaseController
 {
     protected string $htmlTitle = '角色';
@@ -29,9 +30,9 @@ class RoleController extends BaseController
     }
 
     /**
-     * @rbac ({title:'编辑角色'})
      * @throws \Exception
      */
+    #[RBAC(title: '编辑角色')]
     public function editAction()
     {
         $id = $this->getRequestQueryInt('id');
@@ -51,9 +52,7 @@ class RoleController extends BaseController
         return $this->model->toArray();
     }
 
-    /**
-     * @rbac ({title:'添加角色'})
-     */
+    #[RBAC(title: '添加角色')]
     public function addAction()
     {
         if ($this->request->isPost()) {
@@ -64,10 +63,7 @@ class RoleController extends BaseController
         return [];
     }
 
-    /**
-     * @rbac ({title:'角色授权'})
-     * @throws \Exception
-     */
+    #[RBAC(title: '角色授权')]
     public function authorizeAction()
     {
         $id = $this->getRequestQueryInt('id'); // 角色 ID

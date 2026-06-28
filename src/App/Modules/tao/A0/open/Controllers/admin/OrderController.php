@@ -4,11 +4,9 @@ namespace App\Modules\tao\A0\open\Controllers\admin;
 
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use App\Modules\tao\Helper\Libs\RBAC;
 
-
-/**
- * @rbac ({title:'订单管理')
- */
+#[RBAC(title: '订单管理')]
 class OrderController extends BaseOpenController
 {
     protected string $htmlTitle = '订单管理';

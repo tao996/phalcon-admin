@@ -3,13 +3,10 @@
 namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
+use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemConfig;
 
-
-/**
- * @rbac ({title:'配置管理'})
- * @property SystemConfig $model
- */
+#[RBAC(title: '配置管理')]
 class ConfigController extends BaseController
 {
     protected string $htmlTitle = '系统配置';
@@ -26,10 +23,10 @@ class ConfigController extends BaseController
     }
 
     /**
-     * @rbac ({title:'保存配置'})
      * @param string $gname 配置组名称
      */
-    public function saveAction($gname)
+    #[RBAC(title: '保存配置')]
+    public function saveAction(string $gname): array
     {
         $this->mustPostMethod();
         $gnames = $this->vv->configService()->findGname();
@@ -55,10 +52,8 @@ class ConfigController extends BaseController
         return $this->success('更新成功');
     }
 
-    /**
-     * @rbac ({title:'重载缓存'})
-     */
-    public function reloadAction()
+    #[RBAC(title: '重载缓存')]
+    public function reloadAction(): array
     {
         $this->vv->configService()->forceCache();
         return $this->success('更新配置成功');

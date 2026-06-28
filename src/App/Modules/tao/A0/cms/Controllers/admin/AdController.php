@@ -4,13 +4,14 @@ namespace App\Modules\tao\A0\cms\Controllers\admin;
 
 use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsAd;
+use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Utils\MyData;
 
 /**
  * @property CmsAd $model
- * @rbac ({title:'广告管理'})
  */
+#[RBAC(title: '广告管理')]
 class AdController extends BaseTaoA0CmsController
 {
 
