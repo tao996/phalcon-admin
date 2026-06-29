@@ -44,6 +44,11 @@ class BaseController extends BaseRbacController
      * @var bool 是否支持批量删除
      */
     protected bool $allowBatchDelete = false;
+    /**
+     * 为 action 设置移动版模板
+     * @var array 示例 `['index'=>'index/index_mobile.phtml']`
+     */
+    protected array $mobileTemplate = [];
 
 
     /**
@@ -183,7 +188,21 @@ class BaseController extends BaseRbacController
             }
         }
         $this->updateHtmlTitle('列表', false);
+        $this->checkMobileActionTemplate('index');
+
         return [];
+    }
+
+    /**
+     * 检查是否为 action 设置了移动模板
+     * @param string $action
+     * @return void
+     */
+    protected function checkMobileActionTemplate(string $action):void
+    {
+        if ($this->vv->isMobile() && isset($this->mobileTemplate[$action])) {
+            $this->vv->route()->changePickView($this->mobileTemplate[$action]);
+        }
     }
 
     /**
@@ -252,13 +271,15 @@ class BaseController extends BaseRbacController
             }
             return $this->success('添加成功', $this->model?->toArray());
         }
+        $this->checkMobileActionTemplate('add');
         $this->updateHtmlTitle('添加');
         return [];
     }
+
     /**
      * 从请求参数 ?id=xxx 获取模型
      */
-    protected function mustGetModel($key = 'id'):void
+    protected function mustGetModel($key = 'id'): void
     {
         $id = $this->getRequestQueryInt($key);
         $this->model = $this->model::mustFindFirst($id);
@@ -297,6 +318,7 @@ class BaseController extends BaseRbacController
             }
             return $this->success('修改成功', $this->model?->toArray());
         }
+        $this->checkMobileActionTemplate('edit');
         $this->updateHtmlTitle('编辑');
         return $this->beforeEditView($this->model->toArray());
     }

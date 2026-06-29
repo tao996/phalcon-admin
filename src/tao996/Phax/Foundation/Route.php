@@ -228,7 +228,8 @@ class Route
                 ddd(['routerOptions' => $this->routerOptions,
                     '视图目录' => $this->view()->getViewsDir(),
                     '布局文件' => $this->view()->getMainView(),
-                    '模板不存在' => $pickView
+                    '模板名称' => $pickView,
+                    '模板路径' => $pickViewPath.'.phtml|volt'
                 ]);
             } else {
                 throw new \Exception('Pick view not exist');

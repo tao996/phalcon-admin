@@ -46,7 +46,7 @@
 $vv->layui()->addWindowConfig([])->footer();
 ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao/admin.menu",false) ?>';
+    const prefix = '<?php echo $vv->urlModule("tao/admin.menu", false) ?>';
 
     const inst = admin.treeTable.render({
         tree: {
@@ -81,14 +81,10 @@ $vv->layui()->addWindowConfig([])->footer();
                     if (d.pid === 99999999) {
                         return '<span class="layui-badge layui-bg-blue">首页</span>';
                     }
-                    let color = '';
-                    if (d.type === <?php echo \App\Modules\tao\Models\SystemNode::KIND_MODULE ?>) {
-                        color = 'layui-bg-green'
-                    } else if (d.type === <?php echo \App\Modules\tao\Models\SystemNode::KIND_PROJECT ?>) {
-                        color = 'layui-bg-blue';
-                    } else {
+                    if (d.href == '') {
+                        return '<span class="layui-badge layui-bg-green">菜单</span>';
                     }
-                    return '<span class="layui-badge-rim ' + color + '">菜单</span>';
+                    return '<span class="layui-badge-rim">节点</span>';
 
 
                 }
@@ -103,9 +99,13 @@ $vv->layui()->addWindowConfig([])->footer();
         ]],
     })
     admin.table.with({
-        url: prefix, rowAction: function (name, data) {
-            // console.log(name,data);
-            triggerUpdateMenu();
+        url: prefix,
+        rowAction: function (name, data) {
+            if (name == 'modify') {
+                // 修改其它一些属性
+            } else {
+                triggerUpdateMenu();
+            }
         }
     })
         .addPostSwitch()
@@ -157,6 +157,9 @@ $vv->layui()->addWindowConfig([])->footer();
         }
     })
 
+    /**
+     * 更新父级菜单
+     */
     function triggerUpdateMenu() {
         admin.iframe.updateParentMenu();
     }

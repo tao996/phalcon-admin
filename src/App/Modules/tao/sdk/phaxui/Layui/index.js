@@ -1606,5 +1606,123 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             localStorage.clear();
         },
 
+    },
+    /**
+     * 移动端滚动加载（Infinite Scroll）
+     * 统一管理分页/加载状态/滚动检测
+     * @example
+     * admin.mobilePage.init({
+     *     url: '/yihe/customer',
+     *     getSearchData: function() { return {keyword: 'xxx'}; },
+     *     renderCards: function(rows) { return '<div>...</div>'; },
+     *     onData: function(rows, append) {// 更新底部汇总等
+     * });
+     */
+    mobilePage: {
+        opts: null,
+        currentPage: 1,
+        totalPages: 1,
+        isLoading: false,
+        hasMore: true,
+
+        /**
+         * 初始化移动端列表页面
+         * @param {object} opts
+         * @param {string} opts.url        - API URL
+         * @param {function} [opts.getSearchData] - 返回搜索参数字典
+         * @param {function} [opts.renderCards]   - 接收 rows 数组，返回卡片 HTML
+         * @param {function} [opts.onData]        - 每次加载完成回调(rows, append)
+         */
+        init: function (opts) {
+            var self = this;
+            self.opts = opts;
+            self.currentPage = 1;
+            self.totalPages = 1;
+            self.isLoading = false;
+            self.hasMore = true;
+
+            // 首次加载
+            self.load(false);
+
+            // 搜索表单提交与重置
+            layui.use('form', function () {
+                var form = layui.form;
+                form.on('submit', function () {
+                    self.load(false);
+                    return false;
+                });
+                $('button[type="reset"]').on('click', function () {
+                    setTimeout(function () { self.load(false); }, 50);
+                });
+            });
+
+            // 滚动加载：距底部 50px 时自动加载下一页
+            $(window).on('scroll', function () {
+                if (!self.hasMore || self.isLoading) return;
+                var scrollBottom = $(document).height() - $(window).height() - $(window).scrollTop();
+                if (scrollBottom < 50) {
+                    self.load(true);
+                }
+            });
+        },
+
+        /**
+         * 加载数据
+         * @param {boolean} append - true=追加到尾部，false=重新加载
+         */
+        load: function (append) {
+            var self = this;
+            var opts = self.opts;
+            if (self.isLoading) return;
+            self.isLoading = true;
+            if (!append) {
+                self.currentPage = 1;
+                self.totalPages = 1;
+                self.hasMore = true;
+                $('#cardList').html('');
+            }
+            $('#loading').show();
+
+            var data = opts.getSearchData ? opts.getSearchData() : {};
+            data.page = self.currentPage;
+            data.limit = 20;
+
+            $.get(opts.url, data, function (res) {
+                self.isLoading = false;
+                $('#loading').hide();
+                if (res.code !== 0) {
+                    if (!append) $('#cardList').html('<div class="empty-state">请求失败：' + (res.msg || '未知错误') + '</div>');
+                    return;
+                }
+                var rows = res.data.rows || [];
+                var count = res.data.count || 0;
+                self.totalPages = Math.max(1, Math.ceil(count / 20));
+                self.hasMore = self.currentPage < self.totalPages;
+                if (rows.length === 0 && !append) {
+                    $('#cardList').html('<div class="empty-state">📭 暂无数据</div>');
+                    return;
+                }
+                var html = '';
+                if (opts.renderCards) {
+                    html = opts.renderCards(rows);
+                }
+                if (!self.hasMore && rows.length > 0) {
+                    html += '<div style="text-align:center;padding:16px;color:#999;font-size:13px;">— 已加载全部 —</div>';
+                }
+                if (append) {
+                    $('#cardList').append(html);
+                } else {
+                    $('#cardList').html(html);
+                }
+                if (opts.onData) {
+                    opts.onData(rows, append);
+                }
+                self.currentPage++;
+            }, 'json').fail(function () {
+                self.isLoading = false;
+                $('#loading').hide();
+                if (!append) $('#cardList').html('<div class="empty-state">❌ 网络请求失败</div>');
+            });
+        }
     }
 };

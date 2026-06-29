@@ -114,3 +114,79 @@
     font-size: 14px;
     line-height: 1.6;
 }
+
+/* ========== 移动端通用样式 (mobile) ========== */
+/* 卡片 */
+.card {
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+    overflow: hidden;
+}
+.card .hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #393d49;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+.card .hd .name { font-weight: 600; }
+.card .bd {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #555;
+    line-height: 2;
+}
+.card .bd .l { color: #999; }
+.card .bd .v { font-weight: 500; color: #333; }
+.card .bd .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+.card .ft {
+    background: #fafafa;
+    padding: 6px 12px;
+    border-top: 1px solid #f0f0f0;
+    font-size: 12px;
+    color: #999;
+    display: flex;
+    gap: 10px;
+}
+.card .ft a { color: #009688; }
+.card .ft a:active { opacity: .7; }
+
+/* 分页 */
+.pager {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 0 8px;
+    flex-wrap: wrap;
+}
+.pager span, .pager a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    color: #555;
+    text-decoration: none;
+    cursor: pointer;
+}
+.pager a.on { background: #009688; color: #fff; border-color: #009688; }
+.pager .off { color: #ccc; border-color: #eee; cursor: default; }
+.pager .info { border: none; color: #999; min-width: auto; }
+
+/* 其它 */
+.empty-state { text-align: center; padding: 60px 20px; color: #999; }
+#loading { text-align: center; padding: 40px; color: #999; }
