@@ -66,6 +66,7 @@ class LayuiForm
     public function radio(string $title, string $name,
                           array  $vtOptions = [],
                           mixed  $value = null, bool $required = false,
+                          string $aux = '',
                           bool   $formItem = true): string
     {
         $options = [];
@@ -75,9 +76,10 @@ class LayuiForm
             $options[] = "<input " . $requiredElem . " lay-filter='" . $name . "' type='radio' name='{$name}' title='{$t}' value='{$v}' $selected>";
         }
         $class = $formItem ? 'layui-input-block' : 'layui-input-inline';
+
         $content = $this->wrapFormLabel($title, $required) . '<div class="' . $class . '">' . join('', $options) . '</div>';
-        return $this->wrapFormItem($content,
-            name: $name, formItem: $formItem);
+        return '<div class="tao-form-radio">'.$this->wrapFormItem($content,
+            name: $name, formItem: $formItem).$this->wrapAux($aux).'</div>';
     }
 
     /**

@@ -97,7 +97,7 @@ class LoginUserHelper
             return true;
         }
 
-        return in_array($node, $this->getNodeList());
+        return in_array($node, $this->getNodeList()) || in_array($node . '/index', $this->nodeList);
     }
 
     /**
@@ -107,9 +107,9 @@ class LoginUserHelper
     public function getNodeList(): array
     {
         if (is_null($this->nodeList)) {
-            $this->nodeList = $this->mvc->nodeService()->findNodeListByRoleIds($this->user->role_ids);
+            $this->nodeList = $this->mvc->nodeService()->findNodeListByRoleIds($this->user->role_ids) ?: [];
         }
-        return $this->nodeList ?: [];
+        return $this->nodeList;
     }
 
     /**

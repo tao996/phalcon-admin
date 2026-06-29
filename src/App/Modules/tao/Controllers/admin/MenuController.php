@@ -52,7 +52,6 @@ class MenuController extends BaseController
                 $rows[$index]['href'] = $this->vv->menuService()->href($item['href'], $item['type'], $item['params']);
             }
         }
-
         return LayuiData::treeTable($rows);
     }
 

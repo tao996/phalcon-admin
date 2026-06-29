@@ -18,7 +18,7 @@ class SystemMenu extends BaseTaoModel
     public int $sort = 0; // 菜单排序
     public int $status = 1; // 状态 0 禁用 1 启用
 
-    public int $type = 1; // 多模块，默认为是
+    public int $type = 1; // 1:Model ， 2: Project（只是简单标记，无特殊用途）
     public string $remark = ''; // 备注信息（通常是关键字）
     public string $roles = ''; // 角色限制
 

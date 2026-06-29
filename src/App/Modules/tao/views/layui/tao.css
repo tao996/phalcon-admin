@@ -68,6 +68,10 @@
 .tao-flex1 {
     flex: 1;
 }
+.tao-form-radio {
+    display: flex;
+}
+
 
 .errorMessage {
     padding: 10px 16px;

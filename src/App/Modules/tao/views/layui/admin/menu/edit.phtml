@@ -11,16 +11,16 @@ use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 //$vv->print();
 $list = SystemMenu::queryBuilder($vv->getDi())
 //    ->int('status', 1) 允许显示隐藏的菜单（否则隐藏子菜单会丢失关联）
-    ->notEqual('pid', Data::HOME_PID)
-    ->columns('id,pid,title')
-    ->find();
+        ->notEqual('pid', Data::HOME_PID)
+        ->columns('id,pid,title')
+        ->find();
 $optionList = LayuiData::selectOptions(0, $list);
 $menuList = array_merge([
-    [
-        'id' => 0,
-        'pid' => 0,
-        'title' => '顶级菜单'
-    ]
+        [
+                'id' => 0,
+                'pid' => 0,
+                'title' => '顶级菜单'
+        ]
 ], $optionList);
 $pid = $vv->pick('pid', $vv->request()->getQuery('pid', 0));
 $id = $vv->pick('id', 0);
@@ -37,81 +37,41 @@ $html = $vv->html();
                 foreach ($menuList as $vo) { ?>
                     <option value="<?php
                     echo $vo['id'] ?>"
-                        <?php
-                        echo $pid == $vo['id'] ? 'selected' : '' ?>
+                            <?php
+                            echo $pid == $vo['id'] ? 'selected' : '' ?>
                     ><?php
                         echo $vo['title'] ?></option>
                     <?php
                 } ?>
             </select>
         </div>
-
-        <label class="layui-form-label required">菜单名称</label>
-        <div class="layui-input-inline">
-            <input type="text" name="title" class="layui-input"
-                   lay-verify="required" lay-reqtext="请输入菜单名称"
-                   lay-affix="clear"
-                   placeholder="请输入菜单名称" value="<?php
-            echo $vv->pick('title') ?>">
-        </div>
-
     </div>
 
+    <?php echo $vv->layuiForm()->input('菜单名称', 'title', value: $vv->pick('title'), required: true,
+            aux: '通常为中文名称，用户可见') ?>
     <div class="layui-form-item">
-        <label class="layui-form-label">访问角色</label>
-        <div class="layui-input-inline">
-            <input type="text" class="layui-input" id="inputRoles" name="roles"
-                   value="<?php
-                   echo $vv->pick('roles') ?>"
-                   placeholder="不填则表示手动授权"
-            >
-        </div>
+        <?= $vv->layuiForm()->input('访问角色', 'roles', value: $vv->pick('roles'), formItem: false) ?>
 
         <div class="layui-input-inline" style="width: 300px;padding-top: 4px;">
             <a class="layui-btn layui-btn-sm layui-btn-warm" onclick="inputRoles('')">清空</a>
             <?php
-            foreach (array_keys(Data::MapAccess) as $role) { ?>
+            foreach (Data::MapAccess as $v => $text) { ?>
                 <a class="layui-btn layui-btn-sm"
-                   onclick="inputRoles('<?php
-                   echo $role ?>')"><?php
-                    echo $role ?></a>
+                   onclick="inputRoles('<?= $v ?>')"><?= $text ?></a>
                 <?php
             } ?>
         </div>
     </div>
+    <?=
+    $vv->layuiForm()->input('链接地址', 'href', value: $vv->pick('href'),aux: '格式：模块名/控制器/方法，不要省略方法 index');
+    ?>
+    <?php echo
+    $vv->layuiForm()->radio('地址前缀', 'type', vtOptions: [
+            0 => '无',
+            SystemNode::KIND_MODULE => 'M 模块',
+            SystemNode::KIND_PROJECT => 'P 项目'
+    ], value: $vv->pick('type', 0), aux:'选择 `M 模块` 自动为链接补充前缀 /m/，选择 `P 项目` 则补充前缀 /p/' ) ?>
 
-    <div class="layui-form-item">
-        <label class="layui-form-label">链接地址</label>
-        <div class="layui-input-inline">
-            <input type="text" name="href" id="href" class="layui-input"
-                   lay-affix="clear"
-                   placeholder="请输入菜单链接"
-                   value="<?php
-                   echo $vv->pick('href') ?>">
-        </div>
-
-        <label class="layui-form-label">地址前缀</label>
-        <div class="layui-input-inline" style="width: 300px;">
-            <?php
-            foreach (
-                [
-                    0 => '无',
-                    SystemNode::KIND_MODULE => 'Module',
-                    SystemNode::KIND_PROJECT => 'Project'
-                ] as $v => $t
-            ) { ?>
-                <input type="radio" name="type" value="<?php
-                echo $v ?>"
-                       title="<?php
-                       echo $t ?>" <?php
-                echo $html->pickCompare('type', 'checked', $v) ?>>
-                <?php
-            } ?>
-
-            <div class="layui-form-mid layui-text-em">选择 Module 自动为链接补充前缀 /m/，选择 Project 则补充前缀 /p/
-            </div>
-        </div>
-    </div>
 
     <?php echo $vv->layuiHtml()->icon($vv->pick('icon')); ?>
 
