@@ -562,6 +562,14 @@ class QueryBuilder
             return $this->model::find($params)->delete();
         }
 
+        // Parameter 使用 ?0, ?1 等 Phalcon 风格占位符，
+        // 但 $connection->delete() 底层走 PDO，只认 ?（不带数字后缀）
+        $conditions = preg_replace('/\?(\d+)/', '?', $conditions);
+        if (!array_is_list($bind)) {
+            $bind = array_values($bind);
+            $bindTypes = array_values($bindTypes);
+        }
+
         return $connection->delete($source, $conditions, $bind, $bindTypes);
     }
 

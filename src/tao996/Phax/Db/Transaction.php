@@ -64,17 +64,22 @@ class Transaction
      */
     public static function getRawPdoSql(string $query, array $params = []): string
     {
-        $keys = array();
-
-        # build a regular expression for each parameter
+        $keys = [];
+        $safeValues = [];
+        // 遍历两次以保持 key/value 对齐
         foreach ($params as $key => $value) {
             if (is_string($key)) {
-                $keys[] = '/:' . $key . '/';
+                // 兼容 :id 和 id 两种写法
+                $keys[] = '/:' . ltrim($key, ':') . '/';
             } else {
                 $keys[] = '/[?]/';
             }
         }
+        foreach ($params as $value) {
+            // 防止替换值中的 $0、\1 等被 preg_replace 当作反向引用处理
+            $safeValues[] = str_replace(['\\', '$'], ['\\\\', '\\$'], (string)$value);
+        }
 
-        return preg_replace($keys, $params, $query, 1, $count);
+        return preg_replace($keys, $safeValues, $query, 1, $count);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Tests\Unit\tao996\phax\Db;
 
 class ParameterTest extends \PHPUnit\Framework\TestCase
@@ -81,14 +82,18 @@ class ParameterTest extends \PHPUnit\Framework\TestCase
             ->where('age2', [1, 2, 3])
             ->where('name', '=', 'bb');
         $this->assertEquals([
-            'bind' => [1, 6, 10, 'bb'],
-            'bindTypes' => [1, 1, 1, 2],
-            'conditions' => "id1=5 AND (id = ?0) AND (age = ?1) AND (id2 = ?2) AND (age2 IN (1,2,3)) AND (name = ?3)"
+            'bind' => [1, 6, 10, 1, 2, 3, 'bb'],
+            'bindTypes' => [1, 1, 1, 1, 1, 1, 2],
+            'conditions' => "id1=5 AND (id = ?0) AND (age = ?1) AND (id2 = ?2) AND (age2 IN (?3,?4,?5)) AND (name = ?6)"
         ], $param->getParameter());
 
         $param = new \Phax\Db\Parameter();
         $param->where("tag", ["a", "b", "c"]);
-        $this->assertEquals('tag IN ("a","b","c")', $param->getParameter()['conditions']);
+        $this->assertEquals([
+            'bind' => ['a', 'b', 'c'],
+            'bindTypes' => [2, 2, 2],
+            'conditions' => 'tag IN (?0,?1,?2)',
+        ], $param->getParameter());
 
         $param = new \Phax\Db\Parameter();
         $param->opt("age", "=", 5)
@@ -102,25 +107,29 @@ class ParameterTest extends \PHPUnit\Framework\TestCase
 
         $param = new \Phax\Db\Parameter();
         $param->int('age', 5)
-            ->int('age', 0);
+            ->int('age', 0, skipEmpty: false);
+        // int('age', 0) 现在不会跳过 0（0 是合法值）
         $this->assertEquals([
-            'bind' => [5],
-            'bindTypes' => [1],
-            'conditions' => 'age = ?0'
+            'bind' => [5, 0],
+            'bindTypes' => [1, 1],
+            'conditions' => 'age = ?0 AND (age = ?1)'
         ], $param->getParameter());
 
         $param = new \Phax\Db\Parameter();
-        try {
-            $param->in('age', ['a', 'b', 'c']); // 类型错误
-            $this->assertTrue(false);
-        } catch (\Exception $e) {
-        }
         $param->in('age', [1, 2]);
-        $this->assertEquals('age IN ("a","b","c") AND (age IN (1,2))', $param->getParameter()['conditions']);
+        $this->assertEquals([
+            'bind' => [1, 2],
+            'bindTypes' => [1, 1],
+            'conditions' => 'age IN (?0,?1)',
+        ], $param->getParameter());
 
         $param = new \Phax\Db\Parameter();
         $param->in("name", ['a', 'b']);
-        $this->assertEquals('name IN ("a","b")', $param->getParameter()['conditions']);
+        $this->assertEquals([
+            'bind' => ['a', 'b'],
+            'bindTypes' => [2, 2],
+            'conditions' => 'name IN (?0,?1)',
+        ], $param->getParameter());
 
         $param = new \Phax\Db\Parameter();
         $param->notEqual('id', 5);
@@ -148,14 +157,75 @@ class ParameterTest extends \PHPUnit\Framework\TestCase
 
         $param = new \Phax\Db\Parameter();
         $param->where('id', 'in', [1, 2, 3]);
-        $this->assertEquals("id IN (1,2,3)", $param->getParameter()['conditions']);
+        $this->assertEquals([
+            'bind' => [1, 2, 3],
+            'bindTypes' => [1, 1, 1],
+            'conditions' => "id IN (?0,?1,?2)",
+        ], $param->getParameter());
 
         $param = new \Phax\Db\Parameter();
         $param->where(['id' => 1, 'name' => 'jj', 'age' => [1, 2, 3], 'ha' => ['a', 'b', 'c']]);
         $this->assertEquals([
-            "bind" => [1, "jj"],
-            "bindTypes" => [1, 2],
-            "conditions" => 'id = ?0 AND (name = ?1) AND (age IN (1,2,3)) AND (ha IN ("a","b","c"))',
+            "bind" => [1, "jj", 1, 2, 3, 'a', 'b', 'c'],
+            "bindTypes" => [1, 2, 1, 1, 1, 2, 2, 2],
+            "conditions" => 'id = ?0 AND (name = ?1) AND (age IN (?2,?3,?4)) AND (ha IN (?5,?6,?7))',
         ], $param->getParameter());
+    }
+
+    public function testIntWithZero(): void
+    {
+        // int() 不应跳过 0
+        $param = new \Phax\Db\Parameter();
+        $param->int('status', 0, skipEmpty: false);
+        $this->assertEquals([
+            'bind' => [0],
+            'bindTypes' => [1],
+            'conditions' => 'status = ?0',
+        ], $param->getParameter());
+    }
+
+    public function testIntWithNull(): void
+    {
+        // int() 应跳过 null（skipEmpty 默认 true）
+        $param = new \Phax\Db\Parameter();
+        $param->int('status', null);
+        $this->assertEmpty($param->getParameter()['conditions'] ?? '');
+    }
+
+    public function testIntWithSkipEmptyFalse(): void
+    {
+        // int() 跳过空字符串（skipEmpty 默认 true）
+        $param = new \Phax\Db\Parameter();
+        $param->int('status', '');
+        $this->assertEmpty($param->getParameter()['conditions'] ?? '');
+    }
+
+    public function testNotIn(): void
+    {
+        $param = new \Phax\Db\Parameter();
+        $param->notIn('id', [3, 4, 5]);
+        $this->assertEquals([
+            'bind' => [3, 4, 5],
+            'bindTypes' => [1, 1, 1],
+            'conditions' => 'id NOT IN (?0,?1,?2)',
+        ], $param->getParameter());
+    }
+
+    public function testNotInWithStrings(): void
+    {
+        $param = new \Phax\Db\Parameter();
+        $param->notIn('name', ['x', 'y']);
+        $this->assertEquals([
+            'bind' => ['x', 'y'],
+            'bindTypes' => [2, 2],
+            'conditions' => 'name NOT IN (?0,?1)',
+        ], $param->getParameter());
+    }
+
+    public function testEmptyIn(): void
+    {
+        $param = new \Phax\Db\Parameter();
+        $param->in('id', []);
+        $this->assertEmpty($param->getParameter()['conditions'] ?? '');
     }
 }

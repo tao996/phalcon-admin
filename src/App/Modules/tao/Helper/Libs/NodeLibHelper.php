@@ -88,7 +88,7 @@ class NodeLibHelper
                     if ($actionNode['kind'] == $node['kind']
                         && $actionNode['type'] == SystemNode::TYPE_ACTION
                         && $actionNode['module'] == $node['module']
-                        && str_starts_with($actionNode['node'], $ctrlNode['node'])
+                        && str_starts_with($actionNode['node'], $ctrlNode['node'] . '/')
                     ) {
                         $actionNode['pid'] = $ctrlNode['id'] ?? 0;
                         $ctrlNode['children'][] = $actionNode;

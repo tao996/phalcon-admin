@@ -67,7 +67,7 @@ class NodeService
                 $hasModuleSpread = false;
 
                 foreach ($nodeList as $vc) {// 控制器
-                    if ($vc['type'] == SystemNode::TYPE_CONTROLLER && str_starts_with($vc['node'], $vm['node'])) {
+                    if ($vc['type'] == SystemNode::TYPE_CONTROLLER && str_starts_with($vc['node'], $vm['node'] . '/')) {
                         $vc = array_merge($vc, ['field' => 'node']);
                         $vc['checked'] = false;
                         $vc['title'] = "{$vc['title']}【{$vc['node']}】";
@@ -75,7 +75,7 @@ class NodeService
 
                         $children = [];
                         foreach ($nodeList as $v) {// 操作
-                            if ($v['type'] == SystemNode::TYPE_ACTION && str_starts_with($v['node'], $vc['node'])) {
+                            if ($v['type'] == SystemNode::TYPE_ACTION && str_starts_with($v['node'], $vc['node'] . '/')) {
                                 $v = array_merge($v, ['field' => 'node', 'spread' => false]);
                                 $v['checked'] = in_array($v['id'], $bindNodeIds);
                                 if ($v['checked']) {

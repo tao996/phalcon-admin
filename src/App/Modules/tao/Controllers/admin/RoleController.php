@@ -77,8 +77,7 @@ class RoleController extends BaseController
             } elseif ($this->request->isPost()) {
                 $nodes = $this->getRequestInts('node', false); // 授权节点
                 // 移除原来的绑定
-                SystemRoleNode::queryBuilder($this->getDI())
-                    ->int('role_id', $id)->delete();
+                SystemRoleNode::queryBuilder()->int('role_id', $id)->delete();
                 if ($nodes) {
                     $rows = [];
                     foreach ($nodes as $nodeId) {

@@ -12,6 +12,14 @@ trait SoftDelete
     public $useSortDelete = true;
 
     /**
+     * 告知 QueryBuilder 该模型启用了软删除
+     */
+    public function supportSoftDelete(): bool
+    {
+        return true;
+    }
+
+    /**
      * 删除
      * @param $force bool 是否强制删除记录
      * @return bool
@@ -201,12 +209,12 @@ trait SoftDelete
 
     /**
      * 拼接条件
-     * @param $parameters mixed
+     * @param $parameters mixed|null
      * @param $softDelete int -1 只要软删除；0 忽视；1 不要软删除
      * @return string|array
      * @throws \Exception
      */
-    private static function mergeParameters($parameters = null, $softDelete = 0)
+    private static function mergeParameters(mixed $parameters = null, int $softDelete = 0): array|string
     {
         $obj = static::getObject();
         if (is_null($parameters)) {

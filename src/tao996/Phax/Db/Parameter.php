@@ -319,8 +319,11 @@ class Parameter
      */
     public function int(string $name, string|int|null $value, bool $skipEmpty = true): static
     {
+        if ($value === '' || $value === null) {
+            return $this;
+        }
         $v = intval($value);
-        if (empty($v) && $skipEmpty) {
+        if ($v == 0 && $skipEmpty) {
             return $this;
         }
 
@@ -331,15 +334,8 @@ class Parameter
     public function in(string $name, array $values): static
     {
         if (!empty($values)) {
-            if (is_string(end($values))) {
-                $this->appendConditionSQL(
-                    $name . ' IN (' . join(',', array_map(function ($v) {
-                        return '"' . $v . '"';
-                    }, $values)) . ')'
-                );
-            } else {
-                $this->appendConditionSQL($name . ' IN (' . join(',', $values) . ')');
-            }
+            $placeholders = $this->getArr($values);
+            $this->appendConditionSQL($name . ' IN (' . join(',', $placeholders) . ')');
         }
         return $this;
     }
@@ -347,15 +343,8 @@ class Parameter
     public function notIn(string $name, array $values): static
     {
         if (!empty($values)) {
-            if (is_string(end($values))) {
-                $this->appendConditionSQL(
-                    $name . ' NOT IN (' . join(',', array_map(function ($v) {
-                        return '"' . $v . '"';
-                    }, $values)) . ')'
-                );
-            } else {
-                $this->appendConditionSQL($name . ' NOT IN (' . join(',', $values) . ')');
-            }
+            $placeholders = $this->getArr($values);
+            $this->appendConditionSQL($name . ' NOT IN (' . join(',', $placeholders) . ')');
         }
         return $this;
     }
@@ -554,6 +543,23 @@ class Parameter
             'bind' => $pp['bind'],
             'bindTypes' => $pp['bindTypes']
         ];
+    }
+
+    /**
+     * @param array $values
+     * @return array
+     */
+    private function getArr(array $values): array
+    {
+        $placeholders = [];
+        foreach ($values as $v) {
+            $ph = $this->numPlaceholder ? '?' . $this->numberLen : '?';
+            $this->numberLen++;
+            $placeholders[] = $ph;
+            $this->parameter['bind'][] = $v;
+            $this->parameter['bindTypes'][] = is_string($v) ? \PDO::PARAM_STR : \PDO::PARAM_INT;
+        }
+        return $placeholders;
     }
 
 }

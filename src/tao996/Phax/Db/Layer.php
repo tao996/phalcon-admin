@@ -140,7 +140,7 @@ readonly class Layer
      * @param true $replaceTableName
      * @return bool
      */
-    public function execute(string $sql, true $replaceTableName = true): bool
+    public function execute(string $sql, bool $replaceTableName = true): bool
     {
         $sql = $replaceTableName ? $this->replaceTableName($sql) : $sql;
         return $this->connection->execute($sql);
