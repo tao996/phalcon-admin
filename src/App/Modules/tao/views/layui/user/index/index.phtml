@@ -26,10 +26,10 @@ $user = $vv->user();
                 <?php
                 if ($roles = $vv->pick('roles', [])) {
                     foreach ($roles as $id => $role) {
-                        echo '<span style="margin-right: 15px;">', $role, '</span>';
+                        echo '<span style="margin-right: 15px;">', $role['title'], '</span>';
                     }
                 } else {
-                    echo '------';
+                    echo '暂未分配角色';
                 }
                 ?>
             </div>

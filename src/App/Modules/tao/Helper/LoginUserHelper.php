@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper;
 
 use App\Modules\tao\Config\Data;
+use App\Modules\tao\Helper\Libs\MenuLibHelper;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemUser;
 
@@ -11,7 +12,15 @@ use App\Modules\tao\Models\SystemUser;
  */
 class LoginUserHelper
 {
+    /**
+     * 当前用户
+     * @var SystemUser|null
+     */
     private SystemUser|null $user = null;
+    /**
+     * 当前用户能够访问的节点列表
+     * @var array|null
+     */
     private array|null $nodeList = null;
 
     public function __construct(public MyMvcHelper $mvc)
@@ -29,7 +38,7 @@ class LoginUserHelper
 
     public function user(): SystemUser
     {
-        if (empty($this->user)){
+        if (empty($this->user)) {
             throw new \Exception('could not get user before you set user data');
         }
         return $this->user;
@@ -92,7 +101,7 @@ class LoginUserHelper
     }
 
     /**
-     * 当前用户角色所能访问的节点列表
+     * 当前用户角色所能访问的节点列表，不包含用户节点
      * @return array ['ca1', 'ca2', 'ca3', ...]
      */
     public function getNodeList(): array
@@ -131,7 +140,7 @@ class LoginUserHelper
             ->columns(['title', 'icon', 'href', 'type', 'params'])
             ->int('pid', Data::HOME_PID)
             ->findFirstArray();
-        if ($row){
+        if ($row) {
             if ($row['href']) {
                 $row['href'] = $this->mvc->menuService()->href($row['href'], $row['type'], $row['params']);
             }
@@ -146,58 +155,35 @@ class LoginUserHelper
      */
     public function getMenuTree(): array
     {
-        // 节点的数据来自 tao_system_node
-        $userNodes = $this->getNodeList();
-        // 系统菜单来自用户自定义,可能带有 /m/, /p/
-        $systemMenus = SystemMenu::queryBuilder($this->mvc->getDi())
+        // 第一遍：纯树构建（不查权限）
+        $systemMenus = SystemMenu::queryBuilder()
             ->int('status', 1)
             ->notEqual('pid', Data::HOME_PID)
-            ->orderBy('sort desc, id asc')
+            ->orderBy('pid asc, sort desc, id asc')
             ->findColumn('id, pid, title, icon, href, type, roles,params');
-        $menus = $this->buildMenuChild(0, $systemMenus, $userNodes, '');
-        // 过滤掉空节点的一级菜单
-        return array_values(array_filter($menus, function ($menu) {
-            return $menu['pid'] == 0 && !empty($menu['child']);
-        }));
+        $tree = MenuLibHelper::getSystemMenuTree(0, $systemMenus);
+        // 第二遍：权限剪枝
+        // 超级管理员不受节点权限限制
+        $isSuperAdmin = in_array($this->user->id, $this->mvc->superAdminIds());
+        $userNodes = $isSuperAdmin ? [] : $this->getNodeList();
+        $userTree = MenuLibHelper::filterMenuTree($tree, $userNodes, $isSuperAdmin);
+        // 处理 href（需要 MenuService，由调用方处理）
+        return array_values(array_map(function ($menu) {
+            return $this->processMenuHref($menu);
+        }, $userTree));
     }
 
-
-    private function buildMenuChild(int $pid, array $menuList, array $nodes, string $defRole = ''): array
+    /**
+     * 递归处理菜单 href
+     */
+    private function processMenuHref(array $menu): array
     {
-        $treeList = [];
-        foreach ($menuList as $v) {
-            if ($pid != $v['pid']) {
-                continue;
-            }
-            $check = false;
-            while (true) {
-                if (in_array($this->user->id, $this->mvc->superAdminIds())) {
-                    $check = true;
-                    break;
-                }
-                if (empty($v['roles'])) {
-                    $v['roles'] = $defRole;
-                }
-                if ($v['roles']) {
-                    if (Data::AccessUser == $v['roles']) {
-                        $check = true;
-                    }
-                    break;
-                }
-
-                $check = empty($v['href']) || in_array($v['href'], $nodes);
-                break;
-            }
-
-            if (!$check) {
-                continue;
-            }
-            $v['href'] = $this->mvc->menuService()->href($v['href'], $v['type'], $v['params']);
-
-            $node = $v;
-            $node['child'] = $this->buildMenuChild($v['id'], $menuList, $nodes, $v['roles']);
-            $treeList[] = $node;
+        if ($menu['href']) {
+            $menu['href'] = $this->mvc->menuService()->href($menu['href'], $menu['type'], $menu['params']);
         }
-        return $treeList;
+        if (!empty($menu['child'])) {
+            $menu['child'] = array_map(fn($c) => $this->processMenuHref($c), $menu['child']);
+        }
+        return $menu;
     }
 }
