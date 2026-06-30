@@ -6,7 +6,6 @@ use Phalcon\Di\Di;
 use Phalcon\Http\ResponseInterface;
 use Phax\Mvc\Controller;
 use Phax\Support\Config;
-use Phax\Support\Env;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
@@ -42,10 +41,6 @@ class Application
         if (empty($di)) {
             $di = self::di();
         }
-        if (file_exists(PATH_ROOT . '.env')) {
-            Env::load(PATH_ROOT . '.env');
-        }
-        define('IS_DEBUG', env('APP_DEBUG', '') === 'true');
 
         DiService::with($di)
             ->config(function (\Phalcon\Config\Config $config) {

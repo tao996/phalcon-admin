@@ -1,9 +1,8 @@
 <?php
 
 //phpinfo();exit;
-/**
- * @const IS_DEBUG 是否 debug 状态
- */
+
+
 define('PATH_ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
 
 // if you want to debug with phalcon (too many compatible between cphalcon:5.8 and [phalcon](https://github.com/phalcon/phalcon))

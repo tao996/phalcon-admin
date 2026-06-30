@@ -41,19 +41,6 @@ if (!function_exists('ddd')) {
     }
 }
 
-
-if (!function_exists('env')) {
-    /**
-     * 读取环境变量
-     * @param $key
-     * @param $default
-     * @return array|false|mixed|string|null
-     */
-    function env($key, $default = null)
-    {
-        return \Phax\Support\Env::find($key, $default);
-    }
-}
 if (!function_exists('prettyError')) {
     /**
      * 将 PHP Error / Warning / Notice 转为 ErrorException，

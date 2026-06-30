@@ -1,9 +1,10 @@
 <?php
-require_once PATH_ROOT . 'tao996/index.php';
 
+require_once PATH_ROOT . 'env_loader.php';
+require_once PATH_ROOT . 'tao996/index.php';
 $app = new \Phax\Foundation\Application(PATH_ROOT);
 $app->autoloadServices();
-if (defined('IS_DEBUG') && IS_DEBUG) {
+if (IS_DEBUG) {
     // 1. 强制开启错误显示（防止本地 php.ini 误关）
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
