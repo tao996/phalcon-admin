@@ -2,9 +2,9 @@
 
 namespace App\Modules\tao\A0\open;
 
-use App\Modules\tao\A0\open\Data\Config;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\BaseController;
+use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Helper\MyMvcHelper;
 
 /**
@@ -87,10 +87,10 @@ class BaseOpenMiniController extends BaseController
         switch ($pl) {
             case 'tt':
             case 'tiktok':
-                return Config::Tiktok;
+                return UserBindPlatform::PlatformTiktok;
             case 'weapp':
             case 'wechat':
-                return Config::Wechat;
+                return UserBindPlatform::PlatformWechat;
         }
         throw new \Exception('could not find platform from query');
     }

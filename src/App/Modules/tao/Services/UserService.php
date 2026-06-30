@@ -2,11 +2,11 @@
 
 namespace App\Modules\tao\Services;
 
-use App\Modules\tao\Config\Config;
-use App\Modules\tao\Config\Data;
+use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Models\SystemUserBind;
 use Phax\Support\Logger;
 
 class UserService
@@ -341,23 +341,27 @@ class UserService
     /**
      * 添加绑定
      * @param SystemUser $user
-     * @param string $bind Data::Xxx = gmail|tiktokMini|wechatMini|wechatOfficial
+     * @param string $bind UserBindPlatform::Xxx = gmail|tiktokMini|wechatMini|wechatOfficial
+     * @param array $extra 额外信息（open_id, union_id, nickname, avatar, raw_data）
      * @return void
      * @throws \Exception
      */
-    public function addBinds(SystemUser $user, string $bind): void
+    public function addBinds(SystemUser $user, string $bind, array $extra = []): void
     {
-        if (!in_array($bind, array_keys(Data::MapBinds))) {
+        if (!UserBindPlatform::isValid($bind)) {
             throw new \Exception('不支持绑定类型:' . $bind);
         }
-        if (empty($user->binds)) {
-            $user->binds = json_encode([$bind]);
-        } else {
-            $binds = json_decode($user->binds, true);
-            if (!in_array($bind, $binds)) {
-                $binds[] = $bind;
-            }
-            $user->binds = json_encode($binds);
+        // 写入独立表
+        $bindModel = new SystemUserBind();
+        $bindModel->user_id = $user->id;
+        $bindModel->platform = $bind;
+        $bindModel->open_id = $extra['open_id'] ?? '';
+        $bindModel->union_id = $extra['union_id'] ?? '';
+        $bindModel->nickname = $extra['nickname'] ?? '';
+        $bindModel->avatar = $extra['avatar'] ?? '';
+        $bindModel->raw_data = isset($extra['raw_data']) ? json_encode($extra['raw_data']) : null;
+        if (!$bindModel->save()) {
+            throw new \Exception('绑定失败：' . json_encode($bindModel->getMessages()));
         }
     }
 
@@ -414,7 +418,7 @@ class UserService
         }
         $user->head_img = $profile->photoURL;
         $user->nickname = $profile->displayName;
-        $this->addBinds($user, Data::Gmail);
+        $this->addBinds($user, UserBindPlatform::Gmail);
 
         if ($user->save()) {
             return $user;

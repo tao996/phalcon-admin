@@ -2,10 +2,10 @@
 
 namespace App\Modules\tao\A0\open\Service;
 
-use App\Modules\tao\A0\open\Data\Config;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenUserOpenid;
 use App\Modules\tao\A0\open\Models\OpenUserUnionid;
+use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Models\SystemUser;
 use Phax\Db\Transaction;
 use Phax\Utils\MyData;
@@ -225,7 +225,7 @@ readonly class OpenUserService
         } */
         return $this->save([
             'app_id' => $appid,
-            'platform' => Config::Wechat,
+            'platform' => UserBindPlatform::PlatformWechat,
             'kind' => 'official'
         ], $data, []);
     }

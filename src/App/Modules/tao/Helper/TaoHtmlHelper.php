@@ -13,10 +13,11 @@ class TaoHtmlHelper
      * @param MyMvcHelper $vv
      * @return string
      */
-    static public function status(\App\Modules\tao\Helper\MyMvcHelper $vv): string
+    static public function status(\App\Modules\tao\Helper\MyMvcHelper $vv, int $status = 0, bool $formItem = true): string
     {
-        return $vv->layuiForm()->select('状态', 'status', vtOptions: Data::MAP_STATUS,
-            value: $vv->pick('status', 1));
+        return $vv->layuiForm()->select('状态', 'status',
+            vtOptions: Data::MAP_STATUS,
+            value: $vv->pick('status', $status), formItem: $formItem);
     }
 
     /**

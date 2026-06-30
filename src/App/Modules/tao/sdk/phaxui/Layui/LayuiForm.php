@@ -3,6 +3,7 @@
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\Helper\MyMvcHelper;
+use App\Modules\tao\Helper\TaoHtmlHelper;
 
 class LayuiForm
 {
@@ -78,8 +79,8 @@ class LayuiForm
         $class = $formItem ? 'layui-input-block' : 'layui-input-inline';
 
         $content = $this->wrapFormLabel($title, $required) . '<div class="' . $class . '">' . join('', $options) . '</div>';
-        return '<div class="tao-form-radio">'.$this->wrapFormItem($content,
-            name: $name, formItem: $formItem).$this->wrapAux($aux).'</div>';
+        return '<div class="tao-form-radio">' . $this->wrapFormItem($content,
+                name: $name, formItem: $formItem) . $this->wrapAux($aux) . '</div>';
     }
 
     /**
@@ -389,6 +390,11 @@ JS;
         $csrfKey = $this->mvc->security()->getTokenKey();
         $csrfToken = $this->mvc->security()->getToken();
         return '<input type="hidden" name="' . $csrfKey . '" value="' . $csrfToken . '">';
+    }
+
+    public function status(int $status = 0, bool $formItem = true): string
+    {
+        return TaoHtmlHelper::status($this->mvc, status: $status, formItem: $formItem);
     }
 
 }

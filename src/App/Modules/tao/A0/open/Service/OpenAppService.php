@@ -7,6 +7,7 @@ use App\Modules\tao\A0\open\Helper\Libs\CertSecretHelper;
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenApp;
+use App\Modules\tao\Data\UserBindPlatform;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -126,10 +127,10 @@ class OpenAppService
         MyData::mustHasSet($app, ['platform', 'kind']);
         $bind = '';
         switch ($app['platform']) {
-            case \App\Modules\tao\A0\open\Data\Config::Wechat:
+            case UserBindPlatform::PlatformWechat:
                 $bind = 'wechat';
                 break;
-            case \App\Modules\tao\A0\open\Data\Config::Tiktok:
+            case UserBindPlatform::PlatformTiktok:
                 $bind = 'tiktok';
                 break;
         }

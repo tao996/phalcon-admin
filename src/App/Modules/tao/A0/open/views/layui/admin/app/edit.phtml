@@ -1,126 +1,62 @@
 <?php
 
-use App\Modules\tao\A0\open\Data\Config;
-
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 $html = $vv->html();
 ?>
 <form class="layui-form">
-    <div class="layui-form-item">
-        <label class="layui-form-label required">应用名称</label>
-        <div class="layui-input-inline">
-            <input type="text" name="title" class="layui-input"
-                   placeholder="请输入应用名称"
-                   lay-verify="required" lay-reqtext="请输入应用名称"
-                   value="<?php
-                   echo $vv->pick('title') ?>">
-        </div>
-        <?php
-        $platform = $vv->pick('platform', 0) ?>
-        <label class="layui-form-label required">平台</label>
-        <div class="layui-input-inline">
-            <select class="layui-select" name="platform">
-                <?php
-                foreach (Config::MapPlatform as $v => $t) { ?>
-                    <option value="<?php
-                    echo $v ?>" <?php
-                    echo $platform == $v ? 'selected' : '' ?>><?php
-                        echo $t ?></option>
-                    <?php
-                } ?>
-            </select>
-        </div>
+    <?php
+    echo $vv->layuiForm()->groups([
+            $vv->layuiForm()->input('应用名称', 'title',
+                    value: $vv->pick('title', ''),
+                    required: true, formItem: false),
+            $vv->layuiForm()->checkbox('沙盒', 'sandbox',
+                    checked: $vv->html()->pickBoolean('sandbox'), formItem: false)
 
-        <?php
-        $kind = $vv->pick('kind', 'mini'); ?>
-        <label class="layui-form-label required">应用类型</label>
-        <div class="layui-input-inline">
-            <select class="layui-select" name="kind">
-                <?php
-                foreach (Config::MapKinds as $v => $t) { ?>
-                    <option value="<?php
-                    echo $v ?>" <?php
-                    echo $kind == $v ? 'selected' : '' ?>><?php
-                        echo $t ?></option>
-                    <?php
-                } ?>
-            </select>
-        </div>
+    ]);
+    echo $vv->layuiForm()->groups([
+            $vv->layuiForm()->select('平台', 'platform',
+                    vtOptions: \App\Modules\tao\Data\UserBindPlatform::MapPlatform,
+                    value: $vv->pick('platform', 0), required: true, formItem: false),
+            $vv->layuiForm()->select('类型', 'kind',
+                    vtOptions: \App\Modules\tao\Data\UserBindPlatform::MapAppKinds,
+                    value: $vv->pick('kind', ''), required: true, formItem: false),
+    ]);
 
-    </div>
+    echo $vv->layuiForm()->groups([
+            $vv->layuiForm()->input('Appid', 'appid', value: $vv->pick('appid', ''),
+                    required: true, formItem: false),
+            $vv->layuiForm()->input('Secret', 'secret', value: $vv->pick('secret', ''),
+                    required: true, formItem: false),
+    ]);
+    ?>
 
-    <div class="layui-form-item">
-        <label class="layui-form-label required">Appid</label>
-        <div class="layui-input-inline">
-            <input type="text" name="appid" class="layui-input"
-                   placeholder="请输入 Appid"
-                   lay-verify="required"
-                   value="<?php
-                   echo $vv->pick('appid') ?>">
-        </div>
-
-        <label class="layui-form-label required">Secret</label>
-        <div class="layui-input-inline">
-            <input type="text" name="secret" class="layui-input"
-                   placeholder="请输入 Secret"
-                   lay-verify="required"
-                   value="<?php
-                   echo $vv->pick('secret') ?>">
-        </div>
-
-    </div>
     <!-- 微信 -->
     <div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">CropId</label>
-            <div class="layui-input-inline">
-                <input type="text" name="crop_id" class="layui-input" placeholder="企业微信 cropId"
-                       value="<?php
-                       echo $vv->pick('crop_id') ?>">
-            </div>
-            <label class="layui-form-label">Token</label>
-            <div class="layui-input-inline">
-                <input type="text" name="token" class="layui-input" placeholder="token"
-                       value="<?php
-                       echo $vv->pick('token') ?>">
-            </div>
-        </div>
+        <?php
+        echo $vv->layuiForm()->groups([
+                $vv->layuiForm()->input('CropId', 'crop_id',
+                        value: $vv->pick('crop_id', ''),
+                        placeholder: '企业微信 cropId',
+                        formItem: false),
+                $vv->layuiForm()->input('Token', 'token',
+                        value: $vv->pick('token', ''),
+                        formItem: false)
+        ]);
 
-        <div class="layui-form-item">
-            <label class="layui-form-label">EncMethod</label>
-            <div class="layui-input-inline">
-                <input type="text" name="enc_method" class="layui-input" placeholder="加密方式"
-                       value="<?php
-                       echo $vv->pick('enc_method') ?>">
-            </div>
-            <label class="layui-form-label">AesKey</label>
-            <div class="layui-input-inline">
-                <input type="text" name="aes_key" class="layui-input" placeholder="消息加密密钥"
-                       value="<?php
-                       echo $vv->pick('aes_key') ?>">
-            </div>
-        </div>
+        echo $vv->layuiForm()->groups([
+                $vv->layuiForm()->input('encMethod', 'enc_method',
+                        value: $vv->pick('enc_method', ''),
+                        placeholder: '消息加解密方式', formItem: false),
+                $vv->layuiForm()->input('aesKey', 'aes_key',
+                        value: $vv->pick('aes_key', ''),
+                        placeholder: '消息加解密密钥', formItem: false)
+        ]);
+        ?>
     </div>
 
-    <div class="layui-form-item">
-        <label class="layui-form-label">沙盒</label>
-        <div class="layui-input-inline">
-            <input type="checkbox" name="sandbox" title="是" <?php
-            echo $html->pickCompare('sandbox', 'checked') ?>>
-        </div>
-    </div>
-
-
-    <div class="layui-form-item">
-        <label class="layui-form-label">备注</label>
-        <div class="layui-input-block">
-            <input type="text" name="remark" class="layui-input" placeholder=""
-                   value="<?php
-                   echo $vv->pick('remark') ?>">
-        </div>
-    </div>
+    <?php echo $vv->layuiForm()->textarea('备注','remark',value: $vv->pick('remark')) ?>
 
 
     <div class="hr-line"></div>

@@ -72,6 +72,12 @@ class HtmlHelper
         return $eq ? $text : $defValue;
     }
 
+    public function pickBoolean(string $path, mixed $compareValue = 1): bool
+    {
+        $defValue = is_int($compareValue) ? 0 : '';
+        return $this->pick($path, $defValue) == $compareValue;
+    }
+
     /**
      * 用于 select option 中显示
      * @param string $path

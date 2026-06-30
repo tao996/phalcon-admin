@@ -874,6 +874,29 @@ CREATE TABLE `tao_system_user` (
   `puid` char(30) NOT NULL DEFAULT '' COMMENT '多平台 UID'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统用户表' ROW_FORMAT=COMPACT;
 
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `tao_system_user_bind`
+--
+
+CREATE TABLE `tao_system_user_bind` (
+  `id`          bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`     bigint UNSIGNED NOT NULL DEFAULT '0' COMMENT '用户 ID',
+  `platform`    varchar(30)  NOT NULL DEFAULT '' COMMENT '平台类型: gmail/wechatMini/wechatOfficial/tiktokMini',
+  `open_id`     varchar(100) NOT NULL DEFAULT '' COMMENT '第三方 open_id',
+  `union_id`    varchar(100) NOT NULL DEFAULT '' COMMENT '第三方 union_id',
+  `nickname`    varchar(100) NOT NULL DEFAULT '' COMMENT '第三方昵称',
+  `avatar`      varchar(255) NOT NULL DEFAULT '' COMMENT '第三方头像',
+  `raw_data`    text COMMENT '原始返回数据（JSON）',
+  `created_at`  int UNSIGNED NOT NULL DEFAULT '0',
+  `updated_at`  int UNSIGNED NOT NULL DEFAULT '0',
+  `deleted_at`  int UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `user_id` (`user_id`),
+  INDEX `platform_open_id` (`platform`, `open_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户第三方绑定表';
+
 --
 -- 转存表中的数据 `tao_system_user`
 --

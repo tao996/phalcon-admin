@@ -2,8 +2,8 @@
 
 namespace App\Modules\tao\A0\open\Models;
 
-use App\Modules\tao\A0\open\Data\Config;
 use App\Modules\tao\BaseTaoModel;
+use App\Modules\tao\Data\UserBindPlatform;
 use Phax\Traits\SoftDelete;
 
 class OpenApp extends BaseTaoModel
@@ -63,13 +63,13 @@ class OpenApp extends BaseTaoModel
         if (empty($this->secret)) {
             throw new \Exception('secret 不能为空');
         }
-        if (!in_array($this->kind, array_keys(Config::MapKinds))) {
+        if (!in_array($this->kind, array_keys(UserBindPlatform::MapAppKinds))) {
             throw new \Exception('不支持的抖音应用类型');
         }
         switch ($this->platform) {
-            case Config::Tiktok;
+            case UserBindPlatform::PlatformTiktok;
                 break;
-            case Config::Wechat;
+            case UserBindPlatform::PlatformWechat;
                 if ('work' == $this->kind && empty($this->crop_id)) {
                     throw new \Exception('企业微信必须填写 cropId');
                 }

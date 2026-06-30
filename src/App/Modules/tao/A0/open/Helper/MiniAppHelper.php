@@ -2,8 +2,7 @@
 
 namespace App\Modules\tao\A0\open\Helper;
 
-
-use App\Modules\tao\A0\open\Data\Config;
+use App\Modules\tao\Data\UserBindPlatform;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -28,7 +27,7 @@ class MiniAppHelper
         MyData::mustHasSet($app, ['appid', 'secret', 'kind', 'platform']);
 
         switch ($app['platform']) {
-            case Config::Tiktok:
+            case UserBindPlatform::PlatformTiktok:
                 $application = $this->helper->application()->getTiktok($app);
                 $response = $application->getClient()
                     ->postJson('api/apps/v2/jscode2session', [
@@ -38,7 +37,7 @@ class MiniAppHelper
                     ]);
                 $data = $this->helper->tiktokHelper()->openAPIResponseResult($response);
                 break;
-            case Config::Wechat:
+            case UserBindPlatform::PlatformWechat:
                 $application = $this->helper->application()->getMini($app);
                 $data = $application->getUtils()->codeToSession($code);
                 break;

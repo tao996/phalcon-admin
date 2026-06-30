@@ -1,6 +1,4 @@
 <?php
-use \App\Modules\tao\A0\open\Data\Config;
-
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
@@ -8,35 +6,15 @@ use \App\Modules\tao\A0\open\Data\Config;
 ?>
 
 
-<fieldset class="table-search-fieldset layui-hide" id="table-search">
+<fieldset class="table-search-fieldset" id="table-search">
     <legend>条件搜索</legend>
     <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
         <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">平台</label>
-            <div class="layui-input-inline">
-                <select name="platform">
-                    <option value="">全部</option>
-                    <?php
-                    foreach (Config::MapPlatform as $v => $t) { ?>
-                        <option value="<?php
-                        echo $v ?>"><?php
-                            echo $t ?></option>
-                    <?php
-                    } ?>
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">状态</label>
-            <div class="layui-input-inline">
-                <select name="status">
-                    <option value="">全部</option>
-                    <option value="1">启用</option>
-                    <option value="2">禁用</option>
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item layui-inline">
+            <?php
+            echo $vv->layuiForm()->select('平台', 'platform', vtOptions: \App\Modules\tao\Data\UserBindPlatform::MapPlatform, formItem: false);
+            echo $vv->layuiForm()->status(formItem: false);
+            ?>
+
             <div class="layui-form-item layui-inline">
                 <a class="layui-btn layui-btn-normal layui-btn-sm"
                    lay-submit>搜索</a>
@@ -80,8 +58,8 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
         rsa_public_key: '应用公钥',
         rsa_private_key: '应用私钥'
     };
-    const mapKind = <?php echo json_encode(Config::MapKinds)?>;
-    const mapPlatform = <?php echo json_encode(Config::MapPlatform) ?>
+    const mapKind = <?php echo json_encode(\App\Modules\tao\Data\UserBindPlatform::MapAppKinds)?>;
+    const mapPlatform = <?php echo json_encode(\App\Modules\tao\Data\UserBindPlatform::MapPlatform) ?>
 
         admin.table.with({url: prefix})
             .render({
@@ -96,9 +74,9 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
                             return mapPlatform[d.platform] + mapKind[d.kind];
                         }
                     },
-                    {field: 'status', title: '状态', width: 95, templet: admin.table.switch},
-                    {field: 'online', title: '线上', width: 85, templet: admin.table.switch},
-                    {field: 'sandbox', title: '沙盒', width: 85, templet: admin.table.switch},
+                    {field: 'status', title: '状态', width: 110, templet: admin.table.switch},
+                    {field: 'online', title: '线上', width: 110, templet: admin.table.switch},
+                    {field: 'sandbox', title: '沙盒', width: 110, templet: admin.table.switch},
                     {
                         field: 'appid', title: '应用名称/appid', width: 250, templet: function (d) {
                             return `<div>${d.title}</div><div>${d.appid}</div>` + (d.platform == 1 && d.kind == 'work' ? `<div>cropID: ${d.crop_id}</div>` : '');

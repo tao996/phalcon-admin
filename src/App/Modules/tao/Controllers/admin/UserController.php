@@ -7,6 +7,7 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Models\SystemUserBind;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Db\QueryBuilder;
 use Phax\Utils\MyData;
@@ -57,7 +58,7 @@ class UserController extends BaseController
         ];
     }
 
-    protected string|array $modelQueryColumns = 'id,role_ids,head_img,nickname,email,email_valid,phone,phone_valid,binds,status,created_at';
+    protected string|array $modelQueryColumns = 'id,role_ids,head_img,nickname,email,email_valid,phone,phone_valid,status,created_at';
 
     protected function actionQuery(QueryBuilder $queryBuilder): void
     {
@@ -74,9 +75,20 @@ class UserController extends BaseController
     protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
         $rows = parent::buildIndexResult($count, $queryBuilder);
+        // 批量查询绑定信息
+        $userIds = array_column($rows, 'id');
+        $bindsMap = [];
+        if ($userIds) {
+            $bindRows = SystemUserBind::queryBuilder()
+                ->in('user_id', $userIds)
+                ->findColumn('user_id, platform');
+            foreach ($bindRows as $br) {
+                $bindsMap[$br['user_id']][] = $br['platform'];
+            }
+        }
         $roleIds = [];
         foreach ($rows as $index => $row) {
-            $row['binds'] = json_decode($row['binds'], true);
+            $row['binds'] = $bindsMap[$row['id']] ?? [];
             $row['role_ids'] = $row['role_ids'] ? explode(',', $row['role_ids']) : [];
             if (!empty($row['role_ids'])) {
                 $roleIds = array_merge($roleIds, $row['role_ids']);
