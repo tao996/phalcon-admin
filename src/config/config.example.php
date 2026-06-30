@@ -1,6 +1,6 @@
 <?php
 
-$data = include __DIR__ . '/services.example.php';
+$data = include __DIR__ . '/services.docker.example.php';
 $data['crypt']['key'] = '123456'; // 只能修改一次，否则加密的账号信息解密失败
 // only for dev
 $data['metadata']['driver'] = 'memory';
