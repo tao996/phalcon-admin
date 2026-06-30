@@ -902,9 +902,9 @@ CREATE TABLE `tao_system_user_bind` (
 --
 
 INSERT INTO `tao_system_user` (`id`, `created_at`, `updated_at`, `deleted_at`, `status`, `role_ids`, `seed`, `password`, `email`, `email_at`, `email_valid`, `phone`, `phone_at`, `phone_valid`, `nickname`, `head_img`, `signature`, `binds`, `puid`) VALUES
-(1, 1627357963, 1733495342, NULL, 1, '', '670039', '$2y$10$HC8xtGpZ61JJcvu/jCnjku2wEzHmDgKO5/LQ.SP.dxhFhMbktjCKe', 'admin@test.com', 0, 1, '13445678901', 1726839409, 1, 'admin996', '', 'HELLO WORLD', '[]', 'ec081a98dca9ee0396ba00c676131f'),
-(1000, 1733495319, 1733495319, NULL, 1, '', '123456', '$2y$10$f/RevlQzln1D6vkQZvMI2.DEQEXKj1.LG0D8hlL2IWJzCxRIfgl3y', 'phax-1000@unit.test', 0, 1, '17334953190', 0, 1, '', '', 'unit test account', '[]', '87e1026f3d69798ea69c22788d11ed'),
-(1001, 1733495337, 1733495339, 1733495339, 1, '', 'nFu1aDaQ', '$2y$10$6cEW.57mj3i8czSuor63/.TDuddoFx0//nmd79/kBp8.XEdYUHvMG', '1733495336@test.com', 0, 1, '', 0, 0, 'test-1733495336', '', 'mysign.1733495337', '[]', '290a49db6422a3c39df8ecfcc68fb2');
+(1, 1627357963, 1733495342, NULL, 1, '', '670039', '$2y$10$HC8xtGpZ61JJcvu/jCnjku2wEzHmDgKO5/LQ.SP.dxhFhMbktjCKe', 'admin@test.com', 0, 1, '13445678901', 1726839409, 1, 'admin996', '', 'HELLO WORLD', '[]', ''),
+(1000, 1733495319, 1733495319, NULL, 1, '', '123456', '$2y$10$f/RevlQzln1D6vkQZvMI2.DEQEXKj1.LG0D8hlL2IWJzCxRIfgl3y', 'phax-1000@unit.test', 0, 1, '17334953190', 0, 1, '', '', 'unit test account', '[]', ''),
+(1001, 1733495337, 1733495339, 1733495339, 1, '', 'nFu1aDaQ', '$2y$10$6cEW.57mj3i8czSuor63/.TDuddoFx0//nmd79/kBp8.XEdYUHvMG', '1733495336@test.com', 0, 1, '', 0, 0, 'test-1733495336', '', 'mysign.1733495337', '[]', '');
 
 -- --------------------------------------------------------
 

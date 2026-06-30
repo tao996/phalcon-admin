@@ -9,6 +9,7 @@ use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
 /**
@@ -96,7 +97,7 @@ class CategoryController extends BaseTaoA0CmsController
 
         $this->model->kind = intval($data['kind']);
         if (!in_array($this->model->kind, array_keys(CmsCategory::mapKind()))) {
-            throw new \Exception('暂不支持的栏目类型');
+            throw new BusinessException('暂不支持的栏目类型');
         }
 
         $this->model->assign($data, [
@@ -137,7 +138,7 @@ class CategoryController extends BaseTaoA0CmsController
                 }
             }
             if (!$this->model->save()) {
-                throw new \Exception('保存栏目信息错误:' . $this->model->getFirstError());
+                throw new BusinessException('保存栏目信息错误:' . $this->model->getFirstError());
             }
         });
         return true;

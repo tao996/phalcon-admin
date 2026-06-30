@@ -32,9 +32,6 @@ class CmsCategory extends BaseTaoModel
     public int $content_id = 0;
     public string $image_ids = ''; // 图片 ID
 
-    /**
-     * @throws \Exception
-     */
     public static function mapKind(int $kind = 0)
     {
         static $kinds = [self::KindList => '文章列表'];

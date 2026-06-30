@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\cms\Models;
 
 use App\Modules\tao\BaseTaoModel;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * 友情链接
@@ -18,10 +19,10 @@ class CmsLink extends BaseTaoModel
     public function beforeSave()
     {
         if (empty($this->title)){
-            throw new \Exception('必须填写链接标题');
+            throw new BusinessException('必须填写链接标题');
         }
         if (empty($this->href)){
-            throw new \Exception('必须填写链接地址');
+            throw new BusinessException('必须填写链接地址');
         }
     }
 }

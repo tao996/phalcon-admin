@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\cms\Models;
 
 use App\Modules\tao\BaseTaoModel;
+use Phax\Support\Exception\BusinessException;
 use Phax\Traits\SoftDelete;
 
 /**
@@ -63,10 +64,10 @@ class CmsAd extends BaseTaoModel
     public function beforeSave()
     {
         if (empty($this->title) && empty($this->cover)) {
-            throw new \Exception('广告标题和图片不能同时为空');
+            throw new BusinessException('广告标题和图片不能同时为空');
         }
         if (empty($this->link)) {
-            throw new \Exception('必须填写链接或路径');
+            throw new BusinessException('必须填写链接或路径');
         }
     }
 

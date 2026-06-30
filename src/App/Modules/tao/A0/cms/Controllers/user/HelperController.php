@@ -21,7 +21,6 @@ class HelperController extends BaseTaoA0CmsController
 
     /**
      * @rbac ({title:'图集图片修改'})
-     * @throws \Exception
      */
     public function editAction()
     {

@@ -9,6 +9,7 @@ use App\Modules\tao\A0\cms\Models\CmsPage;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
 /**
@@ -54,10 +55,10 @@ class PageController extends BaseTaoA0CmsController
                 if ($cc->create()) {
                     $this->model->content_id = $cc->id;
                     if ($this->model->create() === false) {
-                        throw new \Exception('save page failed:' . $this->model->getFirstError());
+                        throw new BusinessException('保存单页失败:' . $this->model->getFirstError());
                     }
                 } else {
-                    throw new \Exception('save content failed:' . $cc->getFirstError());
+                    throw new BusinessException('保存内容失败:' . $cc->getFirstError());
                 }
             });
 
@@ -85,11 +86,11 @@ class PageController extends BaseTaoA0CmsController
 
             Transaction::db(function () use ($cc) {
                 if (!$cc->save()) {
-                    throw new \Exception('save content failed:' . $cc->getFirstError());
+                    throw new BusinessException('保存内容失败:' . $cc->getFirstError());
                 }
                 $this->model->content_id = $cc->id;
                 if (!$this->model->save()) {
-                    throw new \Exception('save page failed:' . $this->model->getFirstError());
+                    throw new BusinessException('保存单页制作:' . $this->model->getFirstError());
                 }
             });
             return $this->saveModelResponse(true);

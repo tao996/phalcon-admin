@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\cms\Models;
 
 use App\Modules\tao\BaseTaoModel;
+use Phax\Support\Exception\BusinessException;
 use Phax\Traits\SoftDelete;
 
 /**
@@ -28,10 +29,10 @@ class CmsAlbum extends BaseTaoModel
     public function validation()
     {
         if (empty($this->title)) {
-            throw new \Exception('必须填写标题');
+            throw new BusinessException('必须填写标题');
         }
         if (empty($this->cover)){
-            throw new \Exception('必须设置封面');
+            throw new BusinessException('必须设置封面');
         }
     }
 }

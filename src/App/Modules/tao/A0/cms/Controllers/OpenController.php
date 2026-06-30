@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\cms\Controllers;
 
 use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
+use Phax\Support\Exception\BusinessException;
 
 
 class OpenController extends BaseTaoA0CmsController
@@ -18,12 +19,12 @@ class OpenController extends BaseTaoA0CmsController
     public function pageAction(string $name)
     {
         if (empty($name)) {
-            throw new \Exception('page name is empty');
+            throw new BusinessException('页面名称不能为空');
         }
         $tag = $this->request->getQuery('tag', 'string', $this->vv->route()->getProject());
         $page = $this->helper->pageService()->findFirst($tag, $name);
         if (empty($page)) {
-            throw new \Exception('page not found for ' . $name);
+            throw new BusinessException('找不到指定的页面信息:' . $name);
         }
         return $page;
     }
