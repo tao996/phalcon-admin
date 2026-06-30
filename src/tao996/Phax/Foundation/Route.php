@@ -5,6 +5,7 @@ namespace Phax\Foundation;
 use Phalcon\Di\Di;
 use Phax\Helper\MyBaseUri;
 use Phax\Support\Config;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
 
 require_once PATH_ROOT . 'routes/web.php';
@@ -32,7 +33,6 @@ class Route
      * @var string
      */
     public string $theme = '';
-    public \Phalcon\Mvc\View $view;
     /**
      * 当前访问的域名
      * @var string
@@ -43,6 +43,10 @@ class Route
      * @var string
      */
     private string $project = '';
+    /**
+     * 模板扩展名后缀
+     */
+    public const string TEMPLATE_SUFFIX = '.phtml';
 
     /**
      * @param string $requestURI
@@ -75,12 +79,13 @@ class Route
 
     public function view(): \Phalcon\Mvc\View
     {
-        if (empty($this->view)) {
-            $this->view = $this->di->get('view');
-        }
-        return $this->view;
+        return $this->di->get('view');
     }
 
+    /**
+     * 当前操作器名称
+     * @return string 示例 `index`
+     */
     public function getAction(): string
     {
         if (!empty($this->routerOptions['paths']['action'])) {
@@ -150,15 +155,28 @@ class Route
 
 
     /**
-     * 视图文件所在目录
+     * 获取默认视图文件所在目录（包含主题）
      * @return string
      */
-    public function getViewPath(): string
+    public function getViewDIR(): string
     {
         return $this->routerOptions['viewpath'] . ($this->theme ? DIRECTORY_SEPARATOR . $this->theme : '');
     }
 
-    private string $pickview = '';
+    /**
+     * 合成视图文件所在目录（包含主题）
+     * @param string $pathname 待合成的目录名称或者路径
+     * @return string 返回 pathname/views/ 或者 pathname/views/theme/
+     */
+    public function getViewDIRFor(string $pathname): string
+    {
+        return $pathname . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . ($this->theme ? $this->theme . DIRECTORY_SEPARATOR : '');
+    }
+
+    /**
+     * @var string 当前渲染用的模板，如 index/index
+     */
+    private string $pickView = '';
 
     /**
      * 返回当前渲染的模板的名称
@@ -166,7 +184,7 @@ class Route
      */
     public function getPickView(): string
     {
-        if (empty($this->pickview)) {
+        if (empty($this->pickView)) {
             $pickview = Router::formatPickView(
                 $this->routerOptions['pathsname']['controller'],
                 $this->routerOptions['pathsname']['action']
@@ -176,9 +194,32 @@ class Route
             } else {
                 $this->routerOptions['pickview'] = $pickview;
             }
-            $this->pickview = $this->routerOptions['pickview'];
+            $this->pickView = $this->routerOptions['pickview'];
         }
-        return $this->pickview;
+        return $this->pickView;
+    }
+
+
+    /**
+     * 渲染指定的模板（必须存在 self::$options['viewpath'] 目录下），不会修改当前路由的 action 名称
+     * @param string $pickViewName 模板名称 index/index_mobile
+     * @return void
+     */
+    public function setPickView(string $pickViewName): void
+    {
+        $this->routerOptions['pickview'] = $pickViewName;
+        $this->view()->pick($this->routerOptions['pickview']);
+        $this->pickView = $pickViewName;
+    }
+
+
+    /**
+     * 获取渲染模板绝对路径(不含扩展名 .phtml)（不检查模板是否存在）
+     * @return string
+     */
+    public function getPathOfRenderViewTemplate(): string
+    {
+        return $this->getViewDIR() . DIRECTORY_SEPARATOR . $this->getPickView();
     }
 
 
@@ -188,40 +229,38 @@ class Route
      */
     public function doneView(): void
     {
-        $viewPath = $this->getViewPath();
+        $viewPath = $this->getViewDIR();
         $this->view()->setViewsDir($viewPath); // 设置视图目录
 
-        // layout view 未指定
-        foreach (['.phtml', '.volt'] as $ext) {
-            $mf = $viewPath . DIRECTORY_SEPARATOR . 'index'; // 布局文件
-            if (file_exists($mf . $ext)) {
-                $this->routerOptions['mainView'] = $mf;
-                break;
-            }
-        }
-
-        if (empty($this->routerOptions['mainView'])) {
+        // 布局文件
+        $layoutViewPath = $viewPath . DIRECTORY_SEPARATOR . 'index';
+        if (file_exists($layoutViewPath . self::TEMPLATE_SUFFIX)) {
+            $this->routerOptions['mainView'] = $layoutViewPath;
+        } elseif (empty($this->routerOptions['mainView'])) {
+            // 模块布局文件
             if (isset($this->routerOptions['module'])) {
-                $this->routerOptions['mainView'] = PATH_APP_MODULES . $this->mergeFileViewWithTheme(
+                $this->routerOptions['mainView'] = PATH_APP_MODULES . $this->getViewDIRFor(
                         $this->routerOptions['name']
                     ) . 'index';
+                // 项目布局文件
             } elseif (!empty($this->routerOptions['project'])) {
-                $this->routerOptions['mainView'] = PATH_APP_PROJECTS . $this->mergeFileViewWithTheme(
+                $this->routerOptions['mainView'] = PATH_APP_PROJECTS . $this->getViewDIRFor(
                         $this->routerOptions['project']
                     ) . 'index';
             } elseif ($index = strpos($this->routerOptions['viewpath'], DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR)) {
-                $this->routerOptions['mainView'] = $this->mergeFileViewWithTheme(
+                $this->routerOptions['mainView'] = $this->getViewDIRFor(
                         substr($this->routerOptions['viewpath'], 0, $index)
                     ) . 'index';
             }
         }
+        // 如果存在布局文件
         if (!empty($this->routerOptions['mainView'])) {
             $this->view()->setMainView($this->routerOptions['mainView']);
         }
-
+        // 检查渲染文件
         $pickView = $this->getPickView();
-        $pickViewPath = $viewPath . DIRECTORY_SEPARATOR . $this->getPickView();
-        if (file_exists($pickViewPath . '.phtml') || file_exists($pickViewPath . '.volt')) {
+        $pickViewPath = $this->getPathOfRenderViewTemplate();
+        if (file_exists($pickViewPath . self::TEMPLATE_SUFFIX)) {
             $this->view()->pick($pickView); // 你可以在控制器中随机修改
         } else {
             if (IS_DEBUG) {
@@ -229,47 +268,14 @@ class Route
                     '视图目录' => $this->view()->getViewsDir(),
                     '布局文件' => $this->view()->getMainView(),
                     '模板名称' => $pickView,
-                    '模板路径' => $pickViewPath.'.phtml|volt'
+                    '模板路径' => $pickViewPath . self::TEMPLATE_SUFFIX
                 ]);
             } else {
-                throw new \Exception('Pick view not exist');
+                throw new BusinessException('待渲染的模板不存在');
             }
         }
     }
 
-    /**
-     * 指向模板目录
-     * @param string $pathname 待合成的目录名称或者路径
-     * @return string 返回 pathname/views/ 或者 pathname/views/theme/
-     */
-    public function mergeFileViewWithTheme(string $pathname): string
-    {
-        return $pathname . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . ($this->theme ? $this->theme . DIRECTORY_SEPARATOR : '');
-    }
-
-    public function getPathViewTPL(): string
-    {
-        $f = $this->getViewPath() . DIRECTORY_SEPARATOR . $this->getPickView();
-        foreach (['.phtml', '.php', '.volt'] as $suf) {
-            if (file_exists($f . $suf)) {
-                return $f . $suf;
-            }
-        }
-        return '';
-    }
-
-
-    /**
-     * 渲染指定的模板（必须存在 self::$options['viewpath'] 目录下），不会修改当前路由的 action 名称
-     * @param string $pathname 模板名称
-     * @return void
-     */
-    public function changePickView(string $pathname): void
-    {
-        $this->routerOptions['pickview'] = $pathname;
-        $this->view()->pick($this->routerOptions['pickview']);
-        $this->pickview = $pathname;
-    }
 
     public function getLanguage(): string
     {

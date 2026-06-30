@@ -21,7 +21,7 @@ class DemoController extends BaseController
             return $this->_doData();
         }
         if ($this->vv->isMobile()){
-            $this->route->changePickView('demo/mobile');
+            $this->route->setPickView('demo/mobile');
         }
         return [];
     }

@@ -83,11 +83,6 @@ class MyMvcHelper extends MyMvc
         return $this->html()->includeAssetsFile($pathFile);
     }
 
-    public function taoViewIndex(string $suffix = '.phtml'): string
-    {
-        return $this->route()->mergeFileViewWithTheme(dirname(__DIR__)) . 'index' . $suffix;
-    }
-
     /**
      * 如果当前模板下存在着同名 js 文件，则引入它；比如你的模板为 add.phtml，如果存在 add.js 则会引入它
      * @return bool
@@ -99,8 +94,8 @@ class MyMvcHelper extends MyMvc
         $jsFile = join(
                 '/',
                 $theme
-                    ? [$this->route()->getViewPath(), $theme, $pickName]
-                    : [$this->route()->getViewPath(), $pickName]
+                    ? [$this->route()->getViewDIR(), $theme, $pickName]
+                    : [$this->route()->getViewDIR(), $pickName]
             ) . '.js';
         return $this->html()->includeAssetsFile($jsFile, 'js');
     }

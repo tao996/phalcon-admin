@@ -29,6 +29,12 @@ class BaseResponseController extends Controller
      */
     public array $requestData = [];
 
+    /**
+     * 为 action 设置移动版模板
+     * @var array 示例 `['index'=>'index/index_mobile.phtml']`
+     */
+    protected array $mobileTemplate = [];
+
     public function initialize(): void
     {
         // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 请求
@@ -159,6 +165,14 @@ class BaseResponseController extends Controller
             }
             $data = $data['data'] ?? [];
         }
+        $action = $this->router->getActionName();
+        if('add' == $action){
+            // TODO 除非 add 模板存在，否则使用 edit 模板
+        }
+        // 如果定义了移动版模板
+        if (isset($this->mobileTemplate[$action]) && $this->vv->isMobile()) {
+            $this->vv->route()->setPickView($this->mobileTemplate[$action]);
+        }
         return parent::beforeViewResponse($data);
     }
 
@@ -251,10 +265,10 @@ class BaseResponseController extends Controller
 
     /**
      * 跳转到提示页面（带倒计时 + 自动跳转）
-     * @param string $msg  提示信息
-     * @param string $url  跳转目标 URL（空则返回上一页）
-     * @param int    $icon 图标：1=成功, 2=错误, 3=询问, 6=笑脸（默认 2）
-     * @param int    $wait 倒计时秒数（默认 5）
+     * @param string $msg 提示信息
+     * @param string $url 跳转目标 URL（空则返回上一页）
+     * @param int $icon 图标：1=成功, 2=错误, 3=询问, 6=笑脸（默认 2）
+     * @param int $wait 倒计时秒数（默认 5）
      * @param string $title 弹窗标题（默认根据 icon 自动选择）
      * @return never
      * @throws BlankException
@@ -263,10 +277,10 @@ class BaseResponseController extends Controller
     {
         // 如果需要直接跳转，使用 throw new \Phax\Support\Exception\LocationException 即可
         $this->simpleView(self::getTaoViewDir('redirect.phtml'), [
-            'msg'   => $msg,
-            'url'   => $url,
-            'icon'  => $icon,
-            'wait'  => $wait,
+            'msg' => $msg,
+            'url' => $url,
+            'icon' => $icon,
+            'wait' => $wait,
             'title' => $title,
         ]);
         exit;

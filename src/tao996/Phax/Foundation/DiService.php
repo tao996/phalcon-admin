@@ -364,24 +364,10 @@ class DiService
             $view = new \Phalcon\Mvc\View();
             $view->registerEngines([
                 ".phtml" => \Phalcon\Mvc\View\Engine\Php::class,
-                '.volt' => 'volt'
             ]);
             return $view;
         }, $share);
 
-        $di->set('volt', function () use ($di) {
-            $volt = new \Phalcon\Mvc\View\Engine\Volt($di->get('view'), $di);
-
-            $volt->setOptions([
-//                    'always'    => true,
-                'extension' => '.php',
-                'separator' => '_',
-//                    'stat'      => true,
-                'path' => $this->getConfig()->path('view.pathDir'),
-//                    'prefix'    => '-prefix-',
-            ]);
-            return $volt;
-        }, $share);
         return $this;
     }
 
