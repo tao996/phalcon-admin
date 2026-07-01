@@ -79,6 +79,10 @@ class BaseRbacController extends BaseResponseController
             $this->loginAdapter = $authAdapter;
         }
     }
+    public function getLoginAdapter(): LoginAuthAdapter
+    {
+        return $this->tryGetLoginAuth()->getAdapter();
+    }
 
     /**
      * @throws \Exception
