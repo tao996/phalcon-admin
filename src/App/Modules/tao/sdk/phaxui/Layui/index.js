@@ -50,6 +50,7 @@ const admin = {
          *        limit: 1000000, limits: [1000000],
          *        defaultToolbar: [],
          *        cols: cols,
+         *    },{
          *        success: function (res) {
          *            allData = res.data.rows || [];
          *            console.log('请求完成', allData.length)
@@ -1003,28 +1004,47 @@ const admin = {
          * lineStyle: 'height: 95px;' 多行樣式
          * </pre>
          * https://layui.dev/docs/2/table/#options
-         * @param {{toolbar?:string,url?:string,cols:Array,page?:boolean,lineStyle?:string,success?:Function}} options 表格 render 时配置信息
-         * @param additions
-         * @param {boolean} [additions.search] 是否搜索
+         * @param options 表格 render 时配置信息
+         * @param {string} [options.url] 发送异步请求的 URL。
+         * @param {boolean|Object} [options.page] 用于开启分页
+         * @param {number} [options.limit] 每页显示的条数。值需对应 limits 参数的选项。优先级低于 page 属性中的 limit 属性。
+         * @param {Array} [options.limits] 每页条数的选择项。示例 [10,…,90]
+         * @param {string} [options.lineStyle] 用于定义表格的多行样式，如每行的高度等。该参数一旦设置，单元格将会开启多行模式，且鼠标 hover 时会通过显示滚动条的方式查看到更多内容。 请按实际场景使用。示例：lineStyle: 'height: 95px;'
+         * @param {string} [options.className] 用于给表格主容器追加 css 类名，以便更好地扩展表格样式
+         * @param {string} [options.css] 用于给当前表格主容器直接设定 css 样式，样式值只会对所在容器有效，不会影响其他表格实例。如：css: '.layui-table-page{text-align: right;}'
+         * @param {string|boolean} [options.toolbar] 开启表格头部工具栏。支持多咱写法，如 toolbar: '#template-id' 自定义工具栏模板选择
+         * @param {Array|boolean} [options.defaultToolbar] 设置头部工具栏右上角工具图标，值为一个数组，图标将根据数组值的顺序排列。如果为 true，则使用默认
+         * @param {Array} [options.cols] 表头属性集，通过二维数组定义多级表头。方法渲染时必填。
+         * @param {boolean} [options.page] 是否分页
+         * @param {Object} [options.where] 请求的其他参数。如：where: {token: 'sasasas', id: 123}
+         * @param {Object} [options.headers] 请求的数据头参数。如：headers: {token: 'sasasas'}
+         * @param additions 其它附加功能
+         * @param {boolean} [additions.search] 是否开启表格搜索功能，如果是，则页面需要存在 '#' + tableId + '-search' 的元素
+         * @param {Function} [additions.success] 成功请求数据响应
          * @param {function} [additions.onSummary] 有统计数据时回调(summary)，数据来自 appendToSuccessPaginationData
+         * @param {string} [additions.summaryQueryName] 用于表示当前查询是否开启了统计功能，默认为 indexSummary
+         * @param {string} [additions.summaryFieldName] 用表表示统计数据在返回数据中的字段名，默认为 summary
          * @return this
          */
         render: function (options, additions = {}) {
+            // 表格 ID
             const tableId = this._config.id;
-            const summaryName = additions['summary'] || 'summary'
-            // const defaultToolbar = [ // 设置头部工具栏右上角工具图标，值为一个数组，图标将根据数组值的顺序排列
-            //     'filter', // 列筛选
-            //     'exports', // 导出
-            //     'print', // 打印
-            //     {
-            //         title: '搜索',
-            //         layEvent: 'search',
-            //         icon: 'layui-icon-search'
-            //     }
-            // ];
+            // 其它功能
             const adds = Object.assign({
                 search: true,
             }, additions)
+            // 是否设置为统计数据回调
+            const hasOnSummary = typeof adds.onSummary == 'function';
+            const summaryFieldName = additions['summary'] || 'summary'; // 统计数据名称
+            const summaryQueryName = additions['summaryQueryName'] || 'indexSummary';
+
+            if (options['defaultToolbar'] === true) {
+                options['defaultToolbar'] = [ // 默认开启
+                    'filter', // 列筛选
+                    'exports', // 导出
+                    'print', // 打印
+                ];
+            }
 
             const config = Object.assign({
                 // id: '', 设定实例唯一索引，以便用于其他方法对 table 实例进行相关操作，默认为 id;(this._config.key)
@@ -1039,14 +1059,16 @@ const admin = {
                         dataType: origOptions.dataType,
                     })
                         .done(function (data) {
-                            const hasIndexSummary = origOptions.data.hasOwnProperty('indexSummary') && typeof adds.onSummary == 'function';
-                            const isFirstPage = origOptions.data.page == 1;
-                            if (hasIndexSummary) { // 使用了统计功能
-                                if (isFirstPage) {
-                                    adds.onSummary(data.data[summaryName]);
-                                } // 不是首页时，不更新统计数据
-                            } else {
-                                adds.onSummary(null); // 清空统计数据
+                            if (hasOnSummary) {
+                                const hasIndexSummary = origOptions.data.hasOwnProperty(summaryQueryName) && [1, 'on', true].includes(origOptions.data[summaryQueryName]);
+                                const isFirstPage = origOptions.data.page == 1 || options['page'] == false; // 必须是首页
+                                if (hasIndexSummary) { // 使用了统计功能
+                                    if (isFirstPage) {
+                                        adds.onSummary(data.data[summaryFieldName]);
+                                    } // 不是首页时，不更新统计数据
+                                } else {
+                                    adds.onSummary(null); // 清空统计数据
+                                }
                             }
                             // 调用原始的 success 回调
                             origOptions.success(data);
@@ -1064,8 +1086,8 @@ const admin = {
                 },
                 // 异步属性 借助 parseData 回调函数将数据解析并转换为默认规定的格式
                 parseData: function (res) { // res 即为原始返回的数据
-                    if (typeof options['success'] == 'function') {
-                        options['success'](res);
+                    if (typeof additions['success'] == 'function') {
+                        additions['success'](res);
                     }
 
                     return {
@@ -1081,15 +1103,6 @@ const admin = {
                 config['limits'] = [1, 15, 30, 50, 100];
             }
 
-            if (typeof config['done'] == 'undefined') {
-                config['done'] = function (res, curr, count, origin) {
-                    if (count === 0) {
-                        if (!admin.util.isEmpty(res['msg'])) {
-                            $('.layui-none').text(res['msg']);
-                        }
-                    }
-                }
-            }
             // 渲染，并获得实例对象
             const tableInst = layui.table.render(config);
 
