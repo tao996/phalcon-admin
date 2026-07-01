@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * 微信下单服务
@@ -18,7 +19,7 @@ class Prepay extends AbstractWepay
     {
         $this->openid = $this->helper->userService()->getOpenidByUserId($this->appid, $userId);
         if (empty($this->openid)) {
-            throw new \Exception('没有找到用户的 openid');
+            throw new BusinessException('没有找到用户的 openid');
         }
         return $this;
     }
@@ -40,12 +41,11 @@ class Prepay extends AbstractWepay
      * @param int $amount
      * @param array $metadata
      * @return OpenOrder
-     * @throws \Exception
      */
     public function createOrder(int $amount, array $metadata): OpenOrder
     {
         if (empty($this->openid)) {
-            throw new \Exception('user openid is empty');
+            throw new BusinessException('user openid is empty');
         }
         $order = new OpenOrder();
         $order->appid = $this->appid;

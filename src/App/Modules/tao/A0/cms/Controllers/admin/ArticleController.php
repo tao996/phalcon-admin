@@ -8,6 +8,7 @@ use App\Modules\tao\A0\cms\Models\CmsArticle;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
 /**
@@ -20,9 +21,6 @@ class ArticleController extends BaseTaoA0CmsController
     protected array $appendModifyFields = ['top'];
     protected string $htmlTitle = '文章';
 
-    /**
-     * @throws \Exception
-     */
     public function localInitialize(): void
     {
         $this->model = new CmsArticle();
@@ -129,7 +127,7 @@ class ArticleController extends BaseTaoA0CmsController
             }
 
             if (!$this->model->save()) {
-                throw new \Exception('添加文章失败:' . $this->model->getFirstError());
+                throw new BusinessException('添加文章失败:' . $this->model->getFirstError());
             }
         });
         return true;

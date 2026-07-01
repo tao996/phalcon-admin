@@ -30,20 +30,14 @@ class BaseAuthController extends Controller
         parent::initialize();
     }
 
-
-    /**
-     * @throws \Exception
-     */
     protected function isLogin(): bool
     {
         return $this->tryGetLoginAuth()->isLogin();
     }
 
-
     /**
      * 尝试获取登录用户的信息
      * @return LoginAuthHelper
-     * @throws \Exception
      */
     public function tryGetLoginAuth(): LoginAuthHelper
     {

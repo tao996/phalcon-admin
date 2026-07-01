@@ -38,9 +38,6 @@ class CmsArticle extends BaseTaoModel
     public int $top = 0; // 置顶
     public int $hits = 0; // 点击次数
 
-    /**
-     * @throws \Exception
-     */
     public static function mapCheckStatus(int $cStatus = 0): array|string
     {
         static $data = [

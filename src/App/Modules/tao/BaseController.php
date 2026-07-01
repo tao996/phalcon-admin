@@ -9,6 +9,7 @@ use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Mvc\Model;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
@@ -45,10 +46,6 @@ class BaseController extends BaseRbacController
      */
     protected bool $allowBatchDelete = false;
 
-
-    /**
-     * @throws \Exception
-     */
     public function initialize(): void
     {
         parent::initialize();
@@ -514,12 +511,16 @@ class BaseController extends BaseRbacController
                     $deletedColumn = $this->model->getSortDeleteColumnName();
                     $deletedValue = \Phax\Events\Model::printTimestampFormat($this->model->autoWriteTimestamp);
                     if (!$qb->update([$deletedColumn => $deletedValue])) {
-                        throw new \Exception('删除失败');
+                        throw new LogException('删除失败',[
+                            $qb->getSql(),
+                        ]);
                     }
                 } else {
                     // 硬删除：直接删除记录
                     if (!$qb->delete()) {
-                        throw new \Exception('删除失败');
+                        throw new LogException('删除失败',[
+                            $qb->getSql()
+                        ]);
                     }
                 }
                 $this->afterBatchDelete($ids);
@@ -535,7 +536,6 @@ class BaseController extends BaseRbacController
     /**
      * 检查用户修改记录的权限，并确保普通用户只能操作自己的记录
      * @param Model|null $model
-     * @throws \Exception
      */
     protected function checkModelActionAccess(Model|null $model): void
     {
@@ -571,7 +571,7 @@ class BaseController extends BaseRbacController
     {
         static $actions = ['add' => '添加', 'edit' => '修改'];
         if (!isset($actions[$action])) {
-            throw new \Exception('未知操作类型');
+            throw new BusinessException('未知操作类型');
         }
         $text = $actions[$action];
         if ($success) {

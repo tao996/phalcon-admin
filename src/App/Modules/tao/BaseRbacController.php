@@ -6,6 +6,7 @@ use App\Modules\tao\Helper\Auth\LoginAuthAdapter;
 use App\Modules\tao\Helper\LoginAuthHelper;
 use App\Modules\tao\Models\SystemUser;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
 
 /**
@@ -84,9 +85,6 @@ class BaseRbacController extends BaseResponseController
         return $this->tryGetLoginAuth()->getAdapter();
     }
 
-    /**
-     * @throws \Exception
-     */
     protected function isLogin(): bool
     {
         try {
@@ -100,7 +98,6 @@ class BaseRbacController extends BaseResponseController
     /**
      * 尝试获取登录用户的信息
      * @return LoginAuthHelper
-     * @throws \Exception
      */
     public function tryGetLoginAuth(): LoginAuthHelper
     {
@@ -114,7 +111,7 @@ class BaseRbacController extends BaseResponseController
     }
 
     /**
-     * @throws \Exception
+     * 获取当前登录用户模型
      */
     public function loginUser(): SystemUser
     {
@@ -197,10 +194,10 @@ class BaseRbacController extends BaseResponseController
             return;
         }
         if ($this->disableActions && in_array($this->action, $this->disableActions)) {
-            throw new \Exception('in not allow disableActions');
+            throw new BusinessException('不允许访问的操作列表中');
         }
         if ($this->enableActions && !in_array($this->action, $this->enableActions)) {
-            throw new \Exception('not in allow enableActions');
+            throw new BusinessException('不在允许访问的操作列表中');
         }
         // 开放接口
         if ($this->openActions == '*') {
@@ -208,7 +205,7 @@ class BaseRbacController extends BaseResponseController
                 $this->disableUpdateActions = true;
             }
             if ($this->disableUpdateActions && in_array($this->action, $this->updateActions)) {
-                throw new \Exception('not allow disableUpdateActions in open access');
+                throw new BusinessException('not allow disableUpdateActions in open access');
             }
             return;
         } elseif (in_array(
@@ -219,7 +216,7 @@ class BaseRbacController extends BaseResponseController
         }
 
         if ($this->disableUpdateActions && in_array($this->action, $this->updateActions)) {
-            throw new \Exception('not allow disableUpdateActions');
+            throw new BusinessException('not allow disableUpdateActions');
         }
 
         // 非公共节点都需要登录
@@ -269,9 +266,6 @@ class BaseRbacController extends BaseResponseController
         }
     }
 
-    /**
-     * @throws \Exception
-     */
     protected function beforeViewResponse(mixed $data)
     {
         $this->tryGetLoginAuth();
@@ -282,7 +276,7 @@ class BaseRbacController extends BaseResponseController
     public function mustPostMethod(): void
     {
         if (!$this->request->isPost()) {
-            throw new \Exception('only support POST method');
+            throw new BusinessException('only support POST method');
         }
     }
 
@@ -291,12 +285,11 @@ class BaseRbacController extends BaseResponseController
      * 限制请求方法
      * @param array $methods 默认为 [post]，使用小写
      * @return void
-     * @throws \Exception
      */
     public function mustRequestMethods(array $methods = ['post']): void
     {
         if (!in_array(strtolower($this->request->getMethod()), $methods)) {
-            throw new \Exception('only support request method');
+            throw new BusinessException('only support request method');
         }
     }
 }

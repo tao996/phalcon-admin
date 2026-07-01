@@ -7,6 +7,7 @@ use App\Modules\tao\sdk\phaxui\HtmlAssets;
 use Phax\Db\QueryBuilder;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * 定义各种响应格式
@@ -264,9 +265,9 @@ class BaseResponseController extends Controller
     public function simpleView(string $tpl, $data): mixed
     {
         if (!is_array($data)) {
-            throw new \Exception('simple view data must be array');
+            throw new BusinessException('simple view data must be array');
         } elseif (isset($data['vv'])) {
-            throw new \Exception('simple view data must not have vv');
+            throw new BusinessException('simple view data must not have vv');
         }
         $data['vv'] = $this->vv;
         echo $this->vv->responseHelper()->simpleView($tpl, $data);

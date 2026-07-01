@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\app\Models;
 
 use App\Modules\tao\BaseTaoModel;
+use Phax\Support\Exception\BusinessException;
 use Phax\Traits\SoftDelete;
 
 class AppInfo extends BaseTaoModel
@@ -18,7 +19,7 @@ class AppInfo extends BaseTaoModel
     public function beforeSave()
     {
         if (empty($this->title)) {
-            throw new \Exception('必须填写标题');
+            throw new BusinessException('必须填写标题');
         }
     }
 

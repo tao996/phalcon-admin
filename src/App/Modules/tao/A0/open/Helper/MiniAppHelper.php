@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Helper;
 
 
 use App\Modules\tao\A0\open\Data\Config;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -21,7 +22,6 @@ class MiniAppHelper
      * @param array $app 应用配置信息
      * @param string $code 小程序 code
      * @return array{openid:string,session_key:string,unionid:string}
-     * @throws \Exception
      */
     public function code2Session(array $app, string $code): array
     {
@@ -43,7 +43,7 @@ class MiniAppHelper
                 $data = $application->getUtils()->codeToSession($code);
                 break;
             default:
-                throw new \Exception('code2Session app platform is invalid');
+                throw new BusinessException('code2Session app platform is invalid');
         }
         return $data;
     }

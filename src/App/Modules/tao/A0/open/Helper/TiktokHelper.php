@@ -2,6 +2,8 @@
 
 namespace App\Modules\tao\A0\open\Helper;
 
+use Phax\Support\Exception\BusinessException;
+
 class TiktokHelper
 {
     public function __construct(private MyOpenMvcHelper $helper)
@@ -16,7 +18,7 @@ class TiktokHelper
     {
         $data = $response->toArray(true);
         if ($data['err_tips'] != "success") {
-            throw new \Exception($data['err_tips']);
+            throw new BusinessException($data['err_tips']);
         }
         return $data['data'];
     }

@@ -5,6 +5,7 @@ namespace App\Modules\tao\A0\cms\Services;
 use App\Modules\tao\A0\cms\Helper\MyCmsMvcHelper;
 use App\Modules\tao\A0\cms\Models\CmsCategory;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use Phax\Support\Exception\BusinessException;
 
 class CmsCategoryService
 {
@@ -15,7 +16,6 @@ class CmsCategoryService
     /**
      * 栏目列表，供文章发布时使用
      * @return array
-     * @throws \Exception
      */
     public function options(): array
     {
@@ -35,19 +35,18 @@ class CmsCategoryService
      * @param array $columns 待查询的列，默认全部
      * @param bool $mustGet 记录是否必须存在，默认为 true
      * @return array
-     * @throws \Exception
      */
     public function getRecord(int $id, array $columns = [], bool $mustGet = true): array
     {
         if ($id < 1) {
-            throw new \Exception('待查询的栏目 ID 不能为空');
+            throw new BusinessException('待查询的栏目 ID 不能为空');
         }
         $row = CmsCategory::queryBuilder($this->cms->mvc->getDi())
             ->int('id', $id)
             ->columns($columns)
             ->findFirstArray();
         if (empty($row) && $mustGet) {
-            throw new \Exception('找不到符合要求的栏目记录');
+            throw new BusinessException('找不到符合要求的栏目记录');
         }
         return $row;
     }
