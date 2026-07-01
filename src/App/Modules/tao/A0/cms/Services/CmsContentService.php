@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\cms\Services;
 
 use App\Modules\tao\A0\cms\Helper\MyCmsMvcHelper;
 use App\Modules\tao\A0\cms\Models\CmsContent;
+use Phax\Support\Exception\BusinessException;
 
 
 class CmsContentService
@@ -17,7 +18,6 @@ class CmsContentService
      * @param int $id
      * @param bool $createIfNull 如果没有找到，是否直接创建一个模型
      * @return null|CmsContent
-     * @throws \Exception
      */
     public function getById(int $id, bool $createIfNull = false): ?CmsContent
     {
@@ -63,7 +63,7 @@ class CmsContentService
         $cc = $this->getById($id, true);
         $cc->content = json_encode($content);
         if (!$cc->save()) {
-            throw new \Exception('保存图集错误:' . $cc->getFirstError());
+            throw new BusinessException('保存图集错误:' . $cc->getFirstError());
         }
         return $cc;
     }
@@ -89,14 +89,13 @@ class CmsContentService
      * @param int $id 原 content_id
      * @param string|array $content 新的内容
      * @return CmsContent
-     * @throws \Exception
      */
     public function saveContentDataById(int $id, string|array $content): CmsContent
     {
         $cc = $this->getById($id, true);
         $cc->content = is_array($content) ? json_encode($content) : $content;
         if (!$cc->save()) {
-            throw new \Exception('保存内容失败:' . $cc->getFirstError());
+            throw new BusinessException('保存内容失败:' . $cc->getFirstError());
         }
         return $cc;
     }

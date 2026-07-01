@@ -19,12 +19,12 @@ class OpenController extends BaseTaoA0CmsController
     public function pageAction(string $name)
     {
         if (empty($name)) {
-            throw new BusinessException('页面名称不能为空');
+            throw new BusinessException('page name is empty');
         }
         $tag = $this->request->getQuery('tag', 'string', $this->vv->route()->getProject());
         $page = $this->helper->pageService()->findFirst($tag, $name);
         if (empty($page)) {
-            throw new BusinessException('找不到指定的页面信息:' . $name);
+            throw new BusinessException('page not found for ' . $name);
         }
         return $page;
     }

@@ -39,7 +39,6 @@ class Notify extends AbstractWepay
     /**
      * @link https://easywechat.com/6.x/pay/index.html#签名验证
      * @param callable{OpenOrder}|null $success 在支持成功后接收订单数据
-     * @throws \Exception
      * @return mixed 响应结果不需要再次处理直接返回给微信即可
      */
     public function response(callable $success = null): mixed

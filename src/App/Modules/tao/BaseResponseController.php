@@ -7,6 +7,7 @@ use App\Modules\tao\sdk\phaxui\HtmlAssets;
 use Phax\Db\QueryBuilder;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * 定义各种响应格式
@@ -80,6 +81,15 @@ class BaseResponseController extends Controller
         }
         // 为页面准备数据：然后跳转到方法：beforeViewResponse
         return parent::executeRouteResponseData($data);
+    }
+
+    /**
+     * 是否为首页查询
+     * @return bool
+     */
+    protected function isFirstPage(): bool
+    {
+        return $this->request->getQuery('page', 'int', 1) == 1;
     }
 
     /**
@@ -166,7 +176,7 @@ class BaseResponseController extends Controller
             $data = $data['data'] ?? [];
         }
         $action = $this->router->getActionName();
-        if('add' == $action){
+        if ('add' == $action) {
             // TODO 除非 add 模板存在，否则使用 edit 模板
         }
         // 如果定义了移动版模板
@@ -229,9 +239,10 @@ class BaseResponseController extends Controller
      * 通常用在显示列表数据
      * @param int $count
      * @param mixed $rows
+     * @param array $merge 其它数据，会合并到返回数据中
      * @return array
      */
-    public function successPagination(int $count, mixed $rows): array
+    public function successPagination(int $count, mixed $rows, array $merge = []): array
     {
 
         if ($rows instanceof \Phax\Mvc\Model || $rows instanceof \Phalcon\Mvc\Model\Resultset\Simple) {
@@ -240,7 +251,7 @@ class BaseResponseController extends Controller
         return [
             'code' => 0,
             'msg' => '',
-            'data' => ['count' => $count, 'rows' => $rows]
+            'data' => array_merge(['count' => $count, 'rows' => $rows], $merge)
         ];
     }
 
@@ -254,9 +265,9 @@ class BaseResponseController extends Controller
     public function simpleView(string $tpl, $data): mixed
     {
         if (!is_array($data)) {
-            throw new \Exception('simple view data must be array');
+            throw new BusinessException('simple view data must be array');
         } elseif (isset($data['vv'])) {
-            throw new \Exception('simple view data must not have vv');
+            throw new BusinessException('simple view data must not have vv');
         }
         $data['vv'] = $this->vv;
         echo $this->vv->responseHelper()->simpleView($tpl, $data);

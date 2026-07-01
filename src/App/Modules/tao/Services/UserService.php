@@ -2,11 +2,11 @@
 
 namespace App\Modules\tao\Services;
 
-use App\Modules\tao\Data\UserBindPlatform;
+use App\Modules\tao\Config\Data;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
-use App\Modules\tao\Models\SystemUserBind;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 
 class UserService
@@ -20,24 +20,22 @@ class UserService
      * 账号是否合法
      * @param string $account
      * @return void
-     * @throws \Exception
      */
     public function mustAccountString(string $account): void
     {
         if (empty($account)) {
-            throw new \Exception('账号不能为空');
+            throw new BusinessException('账号不能为空');
         }
         if ($this->mvc->validate()->isEmail($account) || $this->mvc->validate()->isPhone($account)) {
             return;
         }
-        throw new \Exception('不是一个合法的账号');
+        throw new BusinessException('不是一个合法的账号');
     }
 
     /**
      * 账号是否可以注册
      * @param string $account
      * @return void
-     * @throws \Exception
      */
     public function mustCanRegister(string $account): void
     {
@@ -50,11 +48,11 @@ class UserService
         ) {
             if ($isEmail) {
                 if ($row['email_valid'] == 1) {
-                    throw new \Exception('邮箱已经被占用');
+                    throw new BusinessException('邮箱已经被占用');
                 }
             } else {
                 if ($row['phone_valid'] == 1) {
-                    throw new \Exception('手机号已经被占用');
+                    throw new BusinessException('手机号已经被占用');
                 }
             }
         }
@@ -64,7 +62,6 @@ class UserService
      * 账号是否可以登录
      * @param mixed $account
      * @return void
-     * @throws \Exception
      */
     public function mustCanLogin(mixed $account): void
     {
@@ -76,10 +73,10 @@ class UserService
             ->findFirstArray()
         ) {
             if ($row[$isEmail ? 'email_valid' : 'phone_valid'] != 1) {
-                throw new \Exception('账号不存在或未激活');
+                throw new BusinessException('账号不存在或未激活');
             }
         } else {
-            throw new \Exception('账号不存在');
+            throw new BusinessException('账号不存在');
         }
     }
 
@@ -87,25 +84,23 @@ class UserService
      * 密码是否合法
      * @param string $password
      * @return void
-     * @throws \Exception
      */
     public function mustPassword(string $password): void
     {
         if (strlen($password) < 8) {
-            throw new \Exception('密码最少为8位');
+            throw new BusinessException('密码最少为8位');
         }
         if (!preg_match('/[a-zA-Z]/', $password)) {
-            throw new \Exception('密码必须包含字母');
+            throw new BusinessException('密码必须包含字母');
         }
         if (!preg_match('/[0-9]/', $password)) {
-            throw new \Exception('密码必须包含数字');
+            throw new BusinessException('密码必须包含数字');
         }
     }
 
     /**
      * @param array $condition
      * @return SystemUser
-     * @throws \Exception
      */
     public function mustGetUser(array $condition): SystemUser
     {
@@ -115,19 +110,18 @@ class UserService
         if ($user = $qb->findFirstModel()) {
             return $user;
         }
-        throw new \Exception('没有找到符合条件的用户');
+        throw new BusinessException('没有找到符合条件的用户');
     }
 
     /**
      * 注册账号
      * @param SystemUser $user
      * @return void
-     * @throws \Exception
      */
     public function create(SystemUser $user): void
     {
         if (!$user->save()) {
-            throw new \Exception('注册账号失败');
+            throw new BusinessException('注册账号失败');
         }
     }
 
@@ -136,7 +130,6 @@ class UserService
      * @param array $userIds
      * @param array $columns
      * @return array
-     * @throws \Exception
      */
     public function findColumns(array $userIds, array $columns = ['id', 'nickname']): array
     {
@@ -171,7 +164,6 @@ class UserService
 
     /**
      * 设置新的密码
-     * @throws \Exception
      */
     public function newPassword(string $password, SystemUser $user): void
     {
@@ -181,15 +173,14 @@ class UserService
 
     /**
      * 检查密码是否正确
-     * @throws \Exception
      */
     public function checkPassword(string $password, SystemUser $user, bool $must = true): void
     {
         if (empty($password) && $must) {
-            throw new \Exception('密码不能为空');
+            throw new BusinessException('密码不能为空');
         }
         if (!$this->mvc->security()->checkHash($password, $user->password)) {
-            throw new \Exception('密码错误');
+            throw new BusinessException('密码错误');
         }
     }
 
@@ -222,7 +213,6 @@ class UserService
 
     /**
      * 待注册的手机号是否合法
-     * @throws \Exception
      */
     public function mustUniquePhone(string $phone, SystemUser $user, bool $assign = false): void
     {
@@ -230,14 +220,14 @@ class UserService
             return;
         }
         if (empty($phone)) {
-            throw new \Exception('待检测的手机号不能为空');
+            throw new BusinessException('待检测的手机号不能为空');
         }
         $this->mvc->validate()->mustPhone($phone);
         if ($user->getQueryBuilder($this->mvc->di)
             ->string('phone', $phone)
             ->notEqual("id", $user->id)
             ->exits()) {
-            throw new \Exception('手机号重复');
+            throw new BusinessException('手机号重复');
         }
         if ($assign) {
             $user->phone = $phone;
@@ -246,7 +236,6 @@ class UserService
 
     /**
      * 检查待注册的电子邮箱是否合法
-     * @throws \Exception
      */
     public function mustUniqueEmail(string $email, SystemUser $user, bool $assign = false): void
     {
@@ -255,7 +244,7 @@ class UserService
         }
         if ($user->getQueryBuilder($this->mvc->di)->string('email', $email)
             ->notEqual('id', $user->id)->exits()) {
-            throw new \Exception('邮箱地址重复');
+            throw new BusinessException('邮箱地址重复');
         }
         if ($assign) {
             $user->email = $email;
@@ -266,28 +255,27 @@ class UserService
      * 能否修改账号
      * @param string $kind 类型 account|phone|email
      * @param string $account 待检查的账号
-     * @throws \Exception
      */
     public function mustAllowChangeAccount(string $kind, string $account, SystemUser $user): void
     {
         if (empty($account)) {
-            throw new \Exception('账号不能为空');
+            throw new BusinessException('账号不能为空');
         }
         switch ($kind) {
             case 'phone':
                 if (!$this->enableChangePhoneAt($user->phone_at)) {
-                    throw new \Exception('每 30天 才能修改一次电话号码');
+                    throw new BusinessException('每 30天 才能修改一次电话号码');
                 }
                 $this->mustUniquePhone($account, $user);
                 break;
             case 'email':
                 if (!$this->enableChangeEmailAt($user->email_at)) {
-                    throw new \Exception('每 30天 才能修改一次电子邮箱');
+                    throw new BusinessException('每 30天 才能修改一次电子邮箱');
                 }
                 $this->mustUniqueEmail($account, $user);
                 break;
             default:
-                throw new \Exception('不支持修改的账号类型');
+                throw new BusinessException('不支持修改的账号类型');
         }
     }
 
@@ -296,12 +284,11 @@ class UserService
      * @param string $account
      * @param string $kind 默认为 空
      * @return null|SystemUser
-     * @throws \Exception
      */
     public function findByAccount(string $account, string $kind = ''): ?SystemUser
     {
         if (empty($account)) {
-            throw new \Exception('账号不能为空');
+            throw new BusinessException('账号不能为空');
         } elseif (empty($kind)) {
             if ($this->mvc->validate()->isEmail($account)) {
                 $kind = 'email';
@@ -317,7 +304,7 @@ class UserService
                 return SystemUser::queryBuilder($this->mvc->getDi())
                     ->string('phone', $account)->findFirstModel();
             default:
-                throw new \Exception('不支持的账号类型');
+                throw new BusinessException('不支持的账号类型');
         }
     }
 
@@ -341,27 +328,22 @@ class UserService
     /**
      * 添加绑定
      * @param SystemUser $user
-     * @param string $bind UserBindPlatform::Xxx = gmail|tiktokMini|wechatMini|wechatOfficial
-     * @param array $extra 额外信息（open_id, union_id, nickname, avatar, raw_data）
+     * @param string $bind Data::Xxx = gmail|tiktokMini|wechatMini|wechatOfficial
      * @return void
-     * @throws \Exception
      */
-    public function addBinds(SystemUser $user, string $bind, array $extra = []): void
+    public function addBinds(SystemUser $user, string $bind): void
     {
-        if (!UserBindPlatform::isValid($bind)) {
-            throw new \Exception('不支持绑定类型:' . $bind);
+        if (!in_array($bind, array_keys(Data::MapBinds))) {
+            throw new BusinessException('不支持绑定类型:' . $bind);
         }
-        // 写入独立表
-        $bindModel = new SystemUserBind();
-        $bindModel->user_id = $user->id;
-        $bindModel->platform = $bind;
-        $bindModel->open_id = $extra['open_id'] ?? '';
-        $bindModel->union_id = $extra['union_id'] ?? '';
-        $bindModel->nickname = $extra['nickname'] ?? '';
-        $bindModel->avatar = $extra['avatar'] ?? '';
-        $bindModel->raw_data = isset($extra['raw_data']) ? json_encode($extra['raw_data']) : null;
-        if (!$bindModel->save()) {
-            throw new \Exception('绑定失败：' . json_encode($bindModel->getMessages()));
+        if (empty($user->binds)) {
+            $user->binds = json_encode([$bind]);
+        } else {
+            $binds = json_decode($user->binds, true);
+            if (!in_array($bind, $binds)) {
+                $binds[] = $bind;
+            }
+            $user->binds = json_encode($binds);
         }
     }
 
@@ -381,12 +363,11 @@ class UserService
 
     /**
      * 账号必须是正常状态
-     * @throws \Exception
      */
     public function activeStatus(SystemUser $user): void
     {
         if ($user->status == SystemUser::STATUS_DELETE) {
-            throw new \Exception('当前账号已经被禁止登录');
+            throw new BusinessException('当前账号已经被禁止登录');
         }
     }
 
@@ -418,20 +399,20 @@ class UserService
         }
         $user->head_img = $profile->photoURL;
         $user->nickname = $profile->displayName;
-        $this->addBinds($user, UserBindPlatform::Gmail);
+        $this->addBinds($user, Data::Gmail);
 
         if ($user->save()) {
             return $user;
         } else {
             Logger::error('注册账号失败', $user->getErrors());
-            throw new \Exception('register account failed');
+            throw new BusinessException(__('auth.register_fail','注册账号失败'));
         }
     }
 
     public function userIdExist(int $userId, int $status = 1): bool
     {
         if ($userId < 1) {
-            throw new \Exception('用户 ID 不能为空');
+            throw new BusinessException('用户 ID 不能为空');
         }
         return SystemUser::queryBuilder($this->mvc->getDi())
             ->int('id', $userId)
@@ -448,14 +429,14 @@ class UserService
     public function loginWithPassword(string $account, string $password)
     {
         if (empty($password)) {
-            throw new \Exception('密码不能为空');
+            throw new BusinessException('密码不能为空');
         }
         if ($this->mvc->validate()->isEmail($account)) {
             $condition = ['email' => $account, 'email_valid' => 1];
         } elseif ($this->mvc->validate()->isPhone($account)){
             $condition = ['phone' => $account, 'phone_valid' => 1];
         } else {
-            throw new \Exception('账号格式不正确');
+            throw new BusinessException('账号格式不正确');
         }
         if ($user = SystemUser::queryBuilder($this->mvc->getDi())
             ->where($condition)->findFirstModel()){
@@ -463,7 +444,7 @@ class UserService
             $this->activeStatus($user);
             return $user;
         } else {
-            throw new \Exception('账号不存在或密码不正确');
+            throw new BusinessException('账号不存在或密码不正确');
         }
     }
 }

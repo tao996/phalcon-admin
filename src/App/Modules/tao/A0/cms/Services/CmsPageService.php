@@ -16,7 +16,6 @@ class CmsPageService
      * @param string $name 名称
      * @param int $status 状态，默认为 1
      * @return array|null
-     * @throws \Exception
      */
     public function findFirst(string $tag, string $name, int $status = 1): array|null
     {
@@ -29,9 +28,6 @@ class CmsPageService
         return null;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function isRepeat(CmsPage $model): bool
     {
         $q = $model->getQueryBuilder($this->cms->mvc->di)

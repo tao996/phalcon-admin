@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Helper;
 
 use App\Modules\tao\sdk\SdkHelper;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -35,7 +36,6 @@ readonly class ApplicationHelper
 
     /**
      * 抖音小程序实例
-     * @throws \Exception
      */
     public function getTiktok(array $app): TikTokApplication
     {
@@ -43,7 +43,7 @@ readonly class ApplicationHelper
         MyData::mustHasSet($app, ['appid', 'secret', 'sandbox', 'kind']);
 
         if (!$this->helper->appService()->isMini($app['kind'])) {
-            throw new \Exception('tiktok mini appid is invalid');
+            throw new BusinessException('tiktok mini appid is invalid');
         }
 
         try {
@@ -68,17 +68,16 @@ readonly class ApplicationHelper
      * 微信公众号实例
      * @param $appid string 微信 appID
      * @return OfficialApplication
-     * @throws \Exception
      */
     public function getOfficial(string $appid): OfficialApplication
     {
         if (empty($appid)) {
-            throw new \Exception('wechat official appid is empty');
+            throw new BusinessException('wechat official appid is empty');
         }
 
         $wa = $this->helper->appService()->getWithAppid($appid);
         if (!$this->helper->appService()->isGzh($wa['kind'])) {
-            throw new \Exception('不是公众号 appid');
+            throw new BusinessException('不是公众号 appid');
         }
         try {
             $app = new OfficialApplication(
@@ -106,15 +105,14 @@ readonly class ApplicationHelper
     /**
      * 微信支付实例
      * @throws InvalidArgumentException
-     * @throws \Exception
      */
     public function getPay(string $appid, string $mchid): PayApplication
     {
         if (empty($appid)) {
-            throw new \Exception('必须指定微信应用 appid');
+            throw new BusinessException('必须指定微信应用 appid');
         }
         if (empty($mchid)) {
-            throw new \Exception('必须指定微信支付商户号');
+            throw new BusinessException('必须指定微信支付商户号');
         }
         // $app = OpenAppService::getWithAppid($appid); // 应用配置信息
         $mch = $this->helper->mchService()->getWith($mchid);

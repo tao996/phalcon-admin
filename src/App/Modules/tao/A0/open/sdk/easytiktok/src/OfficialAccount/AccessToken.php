@@ -2,6 +2,7 @@
 
 namespace EasyTiktok\OfficialAccount;
 
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
@@ -39,12 +40,12 @@ class AccessToken extends \EasyWeChat\OfficialAccount\AccessToken
             ]
         ])->toArray();
         if (!isset($response['data'])) {
-            throw new \Exception('tiktok getClientToken 响应格式错误');
+            throw new BusinessException('tiktok getClientToken 响应格式错误');
         }
         $data = $response['data'];
         if (empty($data['access_token'])) {
             Logger::error('tiktok 获取应用授权调用凭证错误',$response);
-            throw new \Exception('Failed to get client_token:'.$data['description']);
+            throw new BusinessException('Failed to get client_token:'.$data['description']);
         }
 
         $this->cache->set($this->getKey(), $data['access_token'], intval($data['expires_in']));

@@ -6,6 +6,7 @@ use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 
 /**
@@ -16,13 +17,10 @@ class RefundNotify
     private OpenOrder $order;
     public WepayServer $wepayServer;
 
-    /**
-     * @throws \Exception
-     */
     public function __construct(public MyOpenMvcHelper $helper, string $outTradeNo)
     {
         if (empty($outTradeNo)) {
-            throw new \Exception('wechat refund notify outTradeNo is empty');
+            throw new BusinessException('wechat refund notify outTradeNo is empty');
         }
         $this->order = $this->helper->orderService()->fromOutTradeNo($outTradeNo);
     }
@@ -32,9 +30,6 @@ class RefundNotify
         return $this->order;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getWechatServer(): WepayServer
     {
         if (empty($this->wepayServer)) {
@@ -48,7 +43,6 @@ class RefundNotify
      * @param array $data
      * @param callable{OpenOrder}|null $success 订单成功修改为已退款的回调
      * @return void
-     * @throws \Exception
      */
     public function handleRefund(array $data, callable $success = null): void
     {

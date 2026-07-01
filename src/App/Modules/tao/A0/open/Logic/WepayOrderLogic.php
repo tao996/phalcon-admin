@@ -6,6 +6,8 @@ use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use Phax\Db\QueryBuilder;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -24,29 +26,26 @@ class WepayOrderLogic
     public static function createWithQB(MyOpenMvcHelper $mvc, QueryBuilder $openOrderQb, int $orderId): WepayOrderLogic
     {
         if ($orderId < 1) {
-            throw new \Exception('订单ID不能为空');
+            throw new BusinessException('订单ID不能为空');
         }
         $logic = new WepayOrderLogic($mvc);
         $logic->order = $openOrderQb->int('id', $orderId)->findFirstModel();
         if (empty($logic->order)) {
-            throw new \Exception('没有找到符合条件的订单');
+            throw new BusinessException('没有找到符合条件的订单');
         }
         return $logic;
     }
 
     public static function createWithOrder(MyOpenMvcHelper $mvc, OpenOrder $order): WepayOrderLogic
     {
-        if (empty($order) || $order->id < 1) {
-            throw new \Exception('订单为空或数据错误');
+        if ($order->id < 1) {
+            throw new BusinessException('订单为空或数据错误');
         }
         $logic = new WepayOrderLogic($mvc);
         $logic->order = $order;
         return $logic;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getWechatPayHelper(): WepayServer
     {
         if (empty($this->helper)) {
@@ -60,13 +59,10 @@ class WepayOrderLogic
         return $this->order;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function continuePay(): array
     {
         if (!$this->order->continuePayStatus()) {
-            throw new \Exception('不是待支付的订单');
+            throw new BusinessException('不是待支付的订单');
         }
         $prepayId = '';
         if (!empty($this->order->response)) {
@@ -75,7 +71,7 @@ class WepayOrderLogic
         if (empty($prepayId)) {
             $this->order->status = OpenOrder::StatusDiscard;
             $this->order->save();
-            throw new \Exception('订单支付信息丢失，无法继续支付');
+            throw new LogException('订单支付信息丢失，无法继续支付',$this->order->toArray());
         }
         return $this->getWechatPayHelper()->repay($prepayId);
     }
@@ -83,7 +79,6 @@ class WepayOrderLogic
     /**
      * 订单查询
      * @return false|array false 不处理业务逻辑
-     * @throws \Exception
      */
     public function query(): false|array
     {

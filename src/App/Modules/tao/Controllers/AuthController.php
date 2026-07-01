@@ -69,12 +69,12 @@ class AuthController extends BaseController
                     $isEmail ? 'email' : 'phone' => $data['account'],
                     $isEmail ? 'email_valid' : 'phone_valid' => 1
                 ])->findFirstModel()) {
-                $token = $this->loginAuth->saveUser($user->toArray());
+                $token = $this->getLoginAdapter()->saveUser($user->toArray());
             } else {
                 return $this->error('没有找到符合条件的账号');
             }
 
-            $this->vv->captchaHelper()->destory();
+            $this->vv->captchaHelper()->destroy();
             return $this->success('登录成功', $token);
         }
         return [

@@ -6,6 +6,7 @@ use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Helper\MyMvcHelper;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * 小程序
@@ -27,9 +28,6 @@ class BaseOpenMiniController extends BaseController
     {
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getUserId(): int
     {
         if ($this->userId < 1) {
@@ -41,13 +39,12 @@ class BaseOpenMiniController extends BaseController
     /**
      * 获取客户端请求的 ID
      * @return string
-     * @throws \Exception
      */
     protected function getAppid(): string
     {
         $appid = $this->request->getQuery('appid', 'string', '');
         if (empty($appid)) {
-            throw new \Exception('必须指定 appid');
+            throw new BusinessException('必须指定 appid');
         }
         // todo 检查 appid 是否合法
         return $appid;
@@ -79,7 +76,6 @@ class BaseOpenMiniController extends BaseController
     /**
      * 客户端平台
      * @return int
-     * @throws \Exception
      */
     protected function mustGetPlatform(): int
     {
@@ -92,6 +88,6 @@ class BaseOpenMiniController extends BaseController
             case 'wechat':
                 return UserBindPlatform::PlatformWechat;
         }
-        throw new \Exception('could not find platform from query');
+        throw new BusinessException('could not find platform from query');
     }
 }

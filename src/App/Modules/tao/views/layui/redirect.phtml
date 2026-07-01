@@ -12,7 +12,7 @@
 
 $vv->layui();
 $icon = $icon ?? 2;
-$wait = $wait ?? 5;
+$wait = $wait ?? 4;
 $title = $title ?? ($icon == 1 ? '成功' : '提示');
 ?>
 <!DOCTYPE html>
@@ -75,6 +75,23 @@ $title = $title ?? ($icon == 1 ? '成功' : '提示');
             font-size: 14px;
             margin: 0 6px;
             transition: all 0.2s;
+        }
+        @media (max-width: 480px) {
+            .redirect-box {
+                padding: 30px 20px;
+            }
+            .redirect-box .btn-group {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+            .redirect-box .btn-group a {
+                margin: 0;
+                width: 100%;
+                max-width: 200px;
+                text-align: center;
+            }
         }
         .redirect-box .btn-primary {
             background: #1e9fff;

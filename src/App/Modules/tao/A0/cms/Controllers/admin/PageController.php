@@ -55,10 +55,10 @@ class PageController extends BaseTaoA0CmsController
                 if ($cc->create()) {
                     $this->model->content_id = $cc->id;
                     if ($this->model->create() === false) {
-                        throw new BusinessException('保存单页失败:' . $this->model->getFirstError());
+                        throw new BusinessException('文章失败:' . $this->model->getFirstError());
                     }
                 } else {
-                    throw new BusinessException('保存内容失败:' . $cc->getFirstError());
+                    throw new BusinessException('文章内容保存失败:' . $cc->getFirstError());
                 }
             });
 
@@ -86,11 +86,11 @@ class PageController extends BaseTaoA0CmsController
 
             Transaction::db(function () use ($cc) {
                 if (!$cc->save()) {
-                    throw new BusinessException('保存内容失败:' . $cc->getFirstError());
+                    throw new BusinessException('save content failed:' . $cc->getFirstError());
                 }
                 $this->model->content_id = $cc->id;
                 if (!$this->model->save()) {
-                    throw new BusinessException('保存单页制作:' . $this->model->getFirstError());
+                    throw new BusinessException('save page failed:' . $this->model->getFirstError());
                 }
             });
             return $this->saveModelResponse(true);

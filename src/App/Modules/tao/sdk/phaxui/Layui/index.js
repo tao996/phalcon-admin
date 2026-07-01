@@ -50,6 +50,7 @@ const admin = {
          *        limit: 1000000, limits: [1000000],
          *        defaultToolbar: [],
          *        cols: cols,
+         *    },{
          *        success: function (res) {
          *            allData = res.data.rows || [];
          *            console.log('请求完成', allData.length)
@@ -181,6 +182,20 @@ const admin = {
             }
             const separator = url.includes('?') ? '&' : '?';
             return url + separator + d.join('&');
+        },
+        /**
+         * 过滤空值
+         * @param {Object} dict
+         * @return {Map<K, V>}
+         */
+        filter: function (dict) {
+            const d = {};
+            for(let k in dict){
+                if(!admin.util.isEmpty(dict[k])){
+                    d[k] = dict[k];
+                }
+            }
+            return d;
         },
         /**
          * 追加或替换 url 中的请求参数
@@ -930,7 +945,7 @@ const admin = {
             // https://layui.dev/docs/2/table/#table.render 表格实例
             tableInst: null,
             key: 'id', // 每1行数据的主键
-            query: null,
+            query: null,// 其它参数
             /**
              * 回调，通常在执行 lay-on 之后调用
              */
@@ -952,7 +967,7 @@ const admin = {
             return layui.table.cache[this._config.id] || [];
         },
         /**
-         * 获取配置信息
+         * 获取 admin.table 的配置信息（不是 layui.table 的配置）
          * @param config {Object} 配置值
          * @param key {string}
          * @param {any} defV 默认值
@@ -962,6 +977,9 @@ const admin = {
                 return config[key];
             }
             return this._config[key] || defV;
+        },
+        getTableConfig: function () {
+            return layui.table.config[this._config.id];
         },
         /**
          * 初始化表格配置
@@ -1000,39 +1018,97 @@ const admin = {
          * lineStyle: 'height: 95px;' 多行樣式
          * </pre>
          * https://layui.dev/docs/2/table/#options
-         * @param {{toolbar?:string,url?:string,cols:Array,page?:boolean,lineStyle?:string,success?:Function}} options 表格 render 时配置信息
-         * @param {{search?:boolean}} [additions] 其它配置信息
+         * @param options 表格 render 时配置信息
+         * @param {string} [options.url] 发送异步请求的 URL。
+         * @param {boolean|Object} [options.page] 用于开启分页
+         * @param {number} [options.limit] 每页显示的条数。值需对应 limits 参数的选项。优先级低于 page 属性中的 limit 属性。
+         * @param {Array} [options.limits] 每页条数的选择项。示例 [10,…,90]
+         * @param {string} [options.lineStyle] 用于定义表格的多行样式，如每行的高度等。该参数一旦设置，单元格将会开启多行模式，且鼠标 hover 时会通过显示滚动条的方式查看到更多内容。 请按实际场景使用。示例：lineStyle: 'height: 95px;'
+         * @param {string} [options.className] 用于给表格主容器追加 css 类名，以便更好地扩展表格样式
+         * @param {string} [options.css] 用于给当前表格主容器直接设定 css 样式，样式值只会对所在容器有效，不会影响其他表格实例。如：css: '.layui-table-page{text-align: right;}'
+         * @param {string|boolean} [options.toolbar] 开启表格头部工具栏。支持多咱写法，如 toolbar: '#template-id' 自定义工具栏模板选择
+         * @param {Array|boolean} [options.defaultToolbar] 设置头部工具栏右上角工具图标，值为一个数组，图标将根据数组值的顺序排列。如果为 true，则使用默认
+         * @param {Array} [options.cols] 表头属性集，通过二维数组定义多级表头。方法渲染时必填。
+         * @param {boolean} [options.page] 是否分页
+         * @param {Object} [options.where] 请求的其他参数。如：where: {token: 'sasasas', id: 123}
+         * @param {Object} [options.headers] 请求的数据头参数。如：headers: {token: 'sasasas'}
+         * @param additions 其它附加功能
+         * @param {boolean} [additions.search] 是否开启表格搜索功能，如果是，则页面需要存在 '#' + tableId + '-search' 的元素
+         * @param {Function} [additions.success] 成功请求数据响应
+         * @param {function} [additions.onSummary] 有统计数据时回调(summary)，数据来自 appendToSuccessPaginationData
+         * @param {string} [additions.summaryQueryName] 用于表示当前查询是否开启了统计功能，默认为 indexSummary
+         * @param {string} [additions.summaryFieldName] 用表表示统计数据在返回数据中的字段名，默认为 summary
          * @return this
          */
         render: function (options, additions = {}) {
+            // 表格 ID
             const tableId = this._config.id;
-            const data = form.val('form-search');
-            // const defaultToolbar = [ // 设置头部工具栏右上角工具图标，值为一个数组，图标将根据数组值的顺序排列
-            //     'filter', // 列筛选
-            //     'exports', // 导出
-            //     'print', // 打印
-            //     {
-            //         title: '搜索',
-            //         layEvent: 'search',
-            //         icon: 'layui-icon-search'
-            //     }
-            // ];
+            // 其它功能
+            const adds = Object.assign({
+                search: true,
+            }, additions)
+            // 是否设置为统计数据回调
+            const hasOnSummary = typeof adds.onSummary == 'function';
+            const summaryFieldName = additions['summary'] || 'summary'; // 统计数据名称
+            const summaryQueryName = additions['summaryQueryName'] || 'indexSummary';
+
+            if (options['defaultToolbar'] === true) {
+                options['defaultToolbar'] = [ // 默认开启
+                    'filter', // 列筛选
+                    'exports', // 导出
+                    'print', // 打印
+                ];
+            }
+
             const config = Object.assign({
                 // id: '', 设定实例唯一索引，以便用于其他方法对 table 实例进行相关操作，默认为 id;(this._config.key)
                 elem: '#' + tableId, // 绑定原始 table div 元素
-                url: admin.util.concatQuery(this._config.url, Object.assign(data, this._config.query)),
+                url: admin.util.concatQuery(this._config.url, this._config.query),
                 defaultToolbar: [], // 开启表格头部工具栏, 默认不需要
                 page: true, // 用于开启分页。
+                ajax: function (origOptions, type) {
+                    $.ajax({
+                        url: origOptions.url,
+                        data: origOptions.data,
+                        dataType: origOptions.dataType,
+                    })
+                        .done(function (data) {
+                            if (hasOnSummary) {
+                                const hasIndexSummary = origOptions.data.hasOwnProperty(summaryQueryName) && [1, 'on', true].includes(origOptions.data[summaryQueryName]);
+                                const isFirstPage = origOptions.data.page == 1 || options['page'] == false; // 必须是首页
+                                if (hasIndexSummary) { // 使用了统计功能
+                                    if (isFirstPage) {
+                                        adds.onSummary(data.data[summaryFieldName]);
+                                    } // 不是首页时，不更新统计数据
+                                } else {
+                                    adds.onSummary(null); // 清空统计数据
+                                }
+                            }
+                            // 调用原始的 success 回调
+                            origOptions.success(data);
+                        })
+                        .fail(function (xhr, status, error) {
+                            // 调用原始的 error 回调
+                            origOptions.error(xhr, status, error);
+                        })
+                        .always(function () {
+                            // 调用原始的 complete 回调
+                            if (typeof origOptions.complete === "function") {
+                                origOptions.complete();
+                            }
+                        });
+                },
                 // 异步属性 借助 parseData 回调函数将数据解析并转换为默认规定的格式
                 parseData: function (res) { // res 即为原始返回的数据
-                    if (typeof options['success'] == 'function') {
-                        options['success'](res);
+                    if (typeof additions['success'] == 'function') {
+                        additions['success'](res);
                     }
+
                     return {
                         "code": res.code, // 解析接口状态
                         "msg": res.message, // 解析提示文本
                         "count": res.data.count, // 解析数据长度
-                        "data": res.data.rows // 解析数据列表
+                        "data": res.data.rows, // 解析数据列表
                     };
                 },
             }, options)
@@ -1041,18 +1117,6 @@ const admin = {
                 config['limits'] = [1, 15, 30, 50, 100];
             }
 
-            if (typeof config['done'] == 'undefined') {
-                config['done'] = function (res, curr, count, origin) {
-                    if (count === 0) {
-                        if (!admin.util.isEmpty(res['msg'])) {
-                            $('.layui-none').text(res['msg']);
-                        }
-                    }
-                }
-            }
-            const adds = Object.assign({
-                search: true,
-            }, additions)
             // 渲染，并获得实例对象
             const tableInst = layui.table.render(config);
 
@@ -1629,37 +1693,45 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          * 初始化移动端列表页面
          * @param {object} opts
          * @param {string} opts.url        - API URL
+         * @param {boolean} [opts.page]  - 是否开启分页，默认 true
+         * @param {number} [opts.pageSize]  - 每页条数，默认 20
          * @param {function} [opts.getSearchData] - 返回搜索参数字典
          * @param {function} [opts.renderCards]   - 接收 rows 数组，返回卡片 HTML
          * @param {function} [opts.onData]        - 每次加载完成回调(rows, append)
+         * @param {function} [opts.onSummary]     - 有统计数据时回调(summary)，数据来自 appendToSuccessPaginationData
          */
         init: function (opts) {
-            var self = this;
+            const self = this;
+            if (opts.page === false) {
+                opts.pageSize = 999999;
+            }
             self.opts = opts;
             self.currentPage = 1;
             self.totalPages = 1;
             self.isLoading = false;
             self.hasMore = true;
 
-            // 首次加载
+            // 开始加载数据
             self.load(false);
 
             // 搜索表单提交与重置
             layui.use('form', function () {
-                var form = layui.form;
+                const form = layui.form;
                 form.on('submit', function () {
                     self.load(false);
                     return false;
                 });
                 $('button[type="reset"]').on('click', function () {
-                    setTimeout(function () { self.load(false); }, 50);
+                    setTimeout(function () {
+                        self.load(false);
+                    }, 50);
                 });
             });
 
             // 滚动加载：距底部 50px 时自动加载下一页
             $(window).on('scroll', function () {
                 if (!self.hasMore || self.isLoading) return;
-                var scrollBottom = $(document).height() - $(window).height() - $(window).scrollTop();
+                const scrollBottom = $(document).height() - $(window).height() - $(window).scrollTop();
                 if (scrollBottom < 50) {
                     self.load(true);
                 }
@@ -1671,8 +1743,8 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          * @param {boolean} append - true=追加到尾部，false=重新加载
          */
         load: function (append) {
-            var self = this;
-            var opts = self.opts;
+            const self = this;
+            const opts = self.opts;
             if (self.isLoading) return;
             self.isLoading = true;
             if (!append) {
@@ -1683,9 +1755,10 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             }
             $('#loading').show();
 
-            var data = opts.getSearchData ? opts.getSearchData() : {};
+            const data = admin.util.filter(opts.getSearchData ? opts.getSearchData() : {});
+            const pageSize = opts.pageSize || 20;
             data.page = self.currentPage;
-            data.limit = 20;
+            data.limit = pageSize;
 
             $.get(opts.url, data, function (res) {
                 self.isLoading = false;
@@ -1694,9 +1767,9 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
                     if (!append) $('#cardList').html('<div class="empty-state">请求失败：' + (res.msg || '未知错误') + '</div>');
                     return;
                 }
-                var rows = res.data.rows || [];
-                var count = res.data.count || 0;
-                self.totalPages = Math.max(1, Math.ceil(count / 20));
+                const rows = res.data.rows || [];
+                const count = res.data.count || 0;
+                self.totalPages = Math.max(1, Math.ceil(count / pageSize));
                 self.hasMore = self.currentPage < self.totalPages;
                 if (rows.length === 0 && !append) {
                     $('#cardList').html('<div class="empty-state">📭 暂无数据</div>');
@@ -1716,6 +1789,15 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
                 }
                 if (opts.onData) {
                     opts.onData(rows, append);
+                }
+                if (typeof opts.onSummary == 'function') {
+                    if ([1, 'on'].includes(data.indexSummary)) { // 使用了统计功能
+                        if (data.page == 1) {
+                            opts.onSummary(res.data.summary);
+                        } // 不是首页时，不更新统计数据
+                    } else {
+                        opts.onSummary(null); // 清空统计数据
+                    }
                 }
                 self.currentPage++;
             }, 'json').fail(function () {

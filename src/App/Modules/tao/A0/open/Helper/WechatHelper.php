@@ -8,6 +8,7 @@ use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
 
 class WechatHelper
@@ -70,10 +71,10 @@ class WechatHelper
     public function quickOpenid(array $query = [], bool $jump = true, bool $qrcode = true): string
     {
         if (empty($query['appid'])) {
-            throw new \Exception('appid should not empty');
+            throw new BusinessException('appid should not empty');
         }
         if (empty($query['target'])) {
-            throw new \Exception('target should not empty');
+            throw new BusinessException('target should not empty');
         }
         $redirectURL = $this->helper->openUrlHelper()->moduleUrl('tao.wechat/auth', $query);
         if ($qrcode && !self::isMicroMessengerBrowser()) {
