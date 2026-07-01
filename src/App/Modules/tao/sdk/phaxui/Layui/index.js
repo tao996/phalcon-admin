@@ -930,7 +930,7 @@ const admin = {
             // https://layui.dev/docs/2/table/#table.render 表格实例
             tableInst: null,
             key: 'id', // 每1行数据的主键
-            query: null,
+            query: null,// 其它参数
             /**
              * 回调，通常在执行 lay-on 之后调用
              */
@@ -952,7 +952,7 @@ const admin = {
             return layui.table.cache[this._config.id] || [];
         },
         /**
-         * 获取配置信息
+         * 获取 admin.table 的配置信息（不是 layui.table 的配置）
          * @param config {Object} 配置值
          * @param key {string}
          * @param {any} defV 默认值
@@ -962,6 +962,9 @@ const admin = {
                 return config[key];
             }
             return this._config[key] || defV;
+        },
+        getTableConfig: function () {
+            return layui.table.config[this._config.id];
         },
         /**
          * 初始化表格配置
@@ -1001,12 +1004,14 @@ const admin = {
          * </pre>
          * https://layui.dev/docs/2/table/#options
          * @param {{toolbar?:string,url?:string,cols:Array,page?:boolean,lineStyle?:string,success?:Function}} options 表格 render 时配置信息
-         * @param {{search?:boolean}} [additions] 其它配置信息
+         * @param additions
+         * @param {boolean} [additions.search] 是否搜索
+         * @param {function} [additions.onSummary] 有统计数据时回调(summary)，数据来自 appendToSuccessPaginationData
          * @return this
          */
         render: function (options, additions = {}) {
             const tableId = this._config.id;
-            const data = form.val('form-search');
+            const summaryName = additions['summary'] || 'summary'
             // const defaultToolbar = [ // 设置头部工具栏右上角工具图标，值为一个数组，图标将根据数组值的顺序排列
             //     'filter', // 列筛选
             //     'exports', // 导出
@@ -1017,22 +1022,57 @@ const admin = {
             //         icon: 'layui-icon-search'
             //     }
             // ];
+            const adds = Object.assign({
+                search: true,
+            }, additions)
+
             const config = Object.assign({
                 // id: '', 设定实例唯一索引，以便用于其他方法对 table 实例进行相关操作，默认为 id;(this._config.key)
                 elem: '#' + tableId, // 绑定原始 table div 元素
-                url: admin.util.concatQuery(this._config.url, Object.assign(data, this._config.query)),
+                url: admin.util.concatQuery(this._config.url, this._config.query),
                 defaultToolbar: [], // 开启表格头部工具栏, 默认不需要
                 page: true, // 用于开启分页。
+                ajax: function (origOptions, type) {
+                    $.ajax({
+                        url: origOptions.url,
+                        data: origOptions.data,
+                        dataType: origOptions.dataType,
+                    })
+                        .done(function (data) {
+                            const hasIndexSummary = origOptions.data.hasOwnProperty('indexSummary') && typeof adds.onSummary == 'function';
+                            const isFirstPage = origOptions.data.page == 1;
+                            if (hasIndexSummary) { // 使用了统计功能
+                                if (isFirstPage) {
+                                    adds.onSummary(data.data[summaryName]);
+                                } // 不是首页时，不更新统计数据
+                            } else {
+                                adds.onSummary(null); // 清空统计数据
+                            }
+                            // 调用原始的 success 回调
+                            origOptions.success(data);
+                        })
+                        .fail(function (xhr, status, error) {
+                            // 调用原始的 error 回调
+                            origOptions.error(xhr, status, error);
+                        })
+                        .always(function () {
+                            // 调用原始的 complete 回调
+                            if (typeof origOptions.complete === "function") {
+                                origOptions.complete();
+                            }
+                        });
+                },
                 // 异步属性 借助 parseData 回调函数将数据解析并转换为默认规定的格式
                 parseData: function (res) { // res 即为原始返回的数据
                     if (typeof options['success'] == 'function') {
                         options['success'](res);
                     }
+
                     return {
                         "code": res.code, // 解析接口状态
                         "msg": res.message, // 解析提示文本
                         "count": res.data.count, // 解析数据长度
-                        "data": res.data.rows // 解析数据列表
+                        "data": res.data.rows, // 解析数据列表
                     };
                 },
             }, options)
@@ -1050,9 +1090,6 @@ const admin = {
                     }
                 }
             }
-            const adds = Object.assign({
-                search: true,
-            }, additions)
             // 渲染，并获得实例对象
             const tableInst = layui.table.render(config);
 
@@ -1632,6 +1669,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          * @param {function} [opts.getSearchData] - 返回搜索参数字典
          * @param {function} [opts.renderCards]   - 接收 rows 数组，返回卡片 HTML
          * @param {function} [opts.onData]        - 每次加载完成回调(rows, append)
+         * @param {function} [opts.onSummary]     - 有统计数据时回调(summary)，数据来自 appendToSuccessPaginationData
          */
         init: function (opts) {
             var self = this;
@@ -1652,7 +1690,9 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
                     return false;
                 });
                 $('button[type="reset"]').on('click', function () {
-                    setTimeout(function () { self.load(false); }, 50);
+                    setTimeout(function () {
+                        self.load(false);
+                    }, 50);
                 });
             });
 
@@ -1716,6 +1756,13 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
                 }
                 if (opts.onData) {
                     opts.onData(rows, append);
+                }
+                if ([1, 'on'].includes(data.indexSummary) && opts.onSummary) { // 使用了统计功能
+                    if (data.page == 1) {
+                        opts.onSummary(res.data.summary);
+                    } // 不是首页时，不更新统计数据
+                } else {
+                    opts.onSummary(null); // 清空统计数据
                 }
                 self.currentPage++;
             }, 'json').fail(function () {

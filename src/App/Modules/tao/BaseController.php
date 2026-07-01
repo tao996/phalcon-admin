@@ -46,7 +46,6 @@ class BaseController extends BaseRbacController
     protected bool $allowBatchDelete = false;
 
 
-
     /**
      * @throws \Exception
      */
@@ -178,12 +177,21 @@ class BaseController extends BaseRbacController
                     $this->pagination($queryBuilder);
                     $rows = $this->buildIndexResult($count, $queryBuilder);
                 }
-                return $this->successPagination($count, $rows);
+                return $this->successPagination($count, $rows, $this->appendToSuccessPaginationData());
             } else {
-                return $this->successPagination(0, []);
+                return $this->successPagination(0, [], $this->appendToSuccessPaginationData());
             }
         }
         $this->updateHtmlTitle('列表', false);
+        return [];
+    }
+
+    /**
+     * 用于返回分页数据之中合并其它的数据
+     * @return array
+     */
+    protected function appendToSuccessPaginationData(): array
+    {
         return [];
     }
 

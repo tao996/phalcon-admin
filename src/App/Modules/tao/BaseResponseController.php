@@ -83,6 +83,15 @@ class BaseResponseController extends Controller
     }
 
     /**
+     * 是否为首页查询
+     * @return bool
+     */
+    protected function isFirstPage(): bool
+    {
+        return $this->request->getQuery('page', 'int', 1) == 1;
+    }
+
+    /**
      * 处理分页数据
      * @param QueryBuilder $queryBuilder
      * @return QueryBuilder
@@ -166,7 +175,7 @@ class BaseResponseController extends Controller
             $data = $data['data'] ?? [];
         }
         $action = $this->router->getActionName();
-        if('add' == $action){
+        if ('add' == $action) {
             // TODO 除非 add 模板存在，否则使用 edit 模板
         }
         // 如果定义了移动版模板
@@ -229,9 +238,10 @@ class BaseResponseController extends Controller
      * 通常用在显示列表数据
      * @param int $count
      * @param mixed $rows
+     * @param array $merge 其它数据，会合并到返回数据中
      * @return array
      */
-    public function successPagination(int $count, mixed $rows): array
+    public function successPagination(int $count, mixed $rows, array $merge = []): array
     {
 
         if ($rows instanceof \Phax\Mvc\Model || $rows instanceof \Phalcon\Mvc\Model\Resultset\Simple) {
@@ -240,7 +250,7 @@ class BaseResponseController extends Controller
         return [
             'code' => 0,
             'msg' => '',
-            'data' => ['count' => $count, 'rows' => $rows]
+            'data' => array_merge(['count' => $count, 'rows' => $rows], $merge)
         ];
     }
 
