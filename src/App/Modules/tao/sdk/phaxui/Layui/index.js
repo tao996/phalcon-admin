@@ -184,6 +184,20 @@ const admin = {
             return url + separator + d.join('&');
         },
         /**
+         * 过滤空值
+         * @param {Object} dict
+         * @return {Map<K, V>}
+         */
+        filter: function (dict) {
+            const d = {};
+            for(let k in dict){
+                if(!admin.util.isEmpty(dict[k])){
+                    d[k] = dict[k];
+                }
+            }
+            return d;
+        },
+        /**
          * 追加或替换 url 中的请求参数
          * @param url {string} URL 地址
          * @param name {string} 请求参数
@@ -1679,25 +1693,30 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          * 初始化移动端列表页面
          * @param {object} opts
          * @param {string} opts.url        - API URL
+         * @param {boolean} [opts.page]  - 是否开启分页，默认 true
+         * @param {number} [opts.pageSize]  - 每页条数，默认 20
          * @param {function} [opts.getSearchData] - 返回搜索参数字典
          * @param {function} [opts.renderCards]   - 接收 rows 数组，返回卡片 HTML
          * @param {function} [opts.onData]        - 每次加载完成回调(rows, append)
          * @param {function} [opts.onSummary]     - 有统计数据时回调(summary)，数据来自 appendToSuccessPaginationData
          */
         init: function (opts) {
-            var self = this;
+            const self = this;
+            if (opts.page === false) {
+                opts.pageSize = 999999;
+            }
             self.opts = opts;
             self.currentPage = 1;
             self.totalPages = 1;
             self.isLoading = false;
             self.hasMore = true;
 
-            // 首次加载
+            // 开始加载数据
             self.load(false);
 
             // 搜索表单提交与重置
             layui.use('form', function () {
-                var form = layui.form;
+                const form = layui.form;
                 form.on('submit', function () {
                     self.load(false);
                     return false;
@@ -1712,7 +1731,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             // 滚动加载：距底部 50px 时自动加载下一页
             $(window).on('scroll', function () {
                 if (!self.hasMore || self.isLoading) return;
-                var scrollBottom = $(document).height() - $(window).height() - $(window).scrollTop();
+                const scrollBottom = $(document).height() - $(window).height() - $(window).scrollTop();
                 if (scrollBottom < 50) {
                     self.load(true);
                 }
@@ -1724,8 +1743,8 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
          * @param {boolean} append - true=追加到尾部，false=重新加载
          */
         load: function (append) {
-            var self = this;
-            var opts = self.opts;
+            const self = this;
+            const opts = self.opts;
             if (self.isLoading) return;
             self.isLoading = true;
             if (!append) {
@@ -1736,9 +1755,10 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
             }
             $('#loading').show();
 
-            var data = opts.getSearchData ? opts.getSearchData() : {};
+            const data = admin.util.filter(opts.getSearchData ? opts.getSearchData() : {});
+            const pageSize = opts.pageSize || 20;
             data.page = self.currentPage;
-            data.limit = 20;
+            data.limit = pageSize;
 
             $.get(opts.url, data, function (res) {
                 self.isLoading = false;
@@ -1747,9 +1767,9 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
                     if (!append) $('#cardList').html('<div class="empty-state">请求失败：' + (res.msg || '未知错误') + '</div>');
                     return;
                 }
-                var rows = res.data.rows || [];
-                var count = res.data.count || 0;
-                self.totalPages = Math.max(1, Math.ceil(count / 20));
+                const rows = res.data.rows || [];
+                const count = res.data.count || 0;
+                self.totalPages = Math.max(1, Math.ceil(count / pageSize));
                 self.hasMore = self.currentPage < self.totalPages;
                 if (rows.length === 0 && !append) {
                     $('#cardList').html('<div class="empty-state">📭 暂无数据</div>');
@@ -1770,12 +1790,14 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
                 if (opts.onData) {
                     opts.onData(rows, append);
                 }
-                if ([1, 'on'].includes(data.indexSummary) && opts.onSummary) { // 使用了统计功能
-                    if (data.page == 1) {
-                        opts.onSummary(res.data.summary);
-                    } // 不是首页时，不更新统计数据
-                } else {
-                    opts.onSummary(null); // 清空统计数据
+                if (typeof opts.onSummary == 'function') {
+                    if ([1, 'on'].includes(data.indexSummary)) { // 使用了统计功能
+                        if (data.page == 1) {
+                            opts.onSummary(res.data.summary);
+                        } // 不是首页时，不更新统计数据
+                    } else {
+                        opts.onSummary(null); // 清空统计数据
+                    }
                 }
                 self.currentPage++;
             }, 'json').fail(function () {
