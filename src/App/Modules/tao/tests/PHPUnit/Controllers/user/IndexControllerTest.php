@@ -39,14 +39,19 @@ class IndexControllerTest extends TestCase
 
     public function testPassword()
     {
+        // 重置密码
+        $user = getMyTestMvc()->getLoginUser();
+        $user->password = '';
+        $this->assertNotFalse($user->save());
+
         $http = new MyTestTaoHttpHelper($this);
         $http->get('/m/tao/user.index/password')
             ->login()->send()->notContainsFailed()->contains(['登录密码', '确认密码']);
 
         $http->post('/api/m/tao/user.index/password', [
-            'password' => '123456',
-            'password_confirm' => '123456'
-        ])->login()->send()->testResponseCode0();
+            'password' => '1234abcd',
+            'password_confirm' => '1234abcd'
+        ])->login()->send(false)->testResponseCode0();
     }
 
 }

@@ -32,7 +32,7 @@ class UserControllerTest extends TestCase
 
         $postData = [
             'nickname' => 'test-' . time(),
-            'password' => '123456',
+            'password' => '1234abcd',
             'role_ids[2]' => 'on',
         ];
         $data = $http->post('/api/m/tao/admin.user/add', $postData)
@@ -85,8 +85,8 @@ class UserControllerTest extends TestCase
             ->contains(['旧的密码', '新的密码']);
 
         $response = $http->post('/api/m/tao/admin.user/password?id=' . $id, [
-            'old_password' => '123456',
-            'password' => '123456'
+            'old_password' => '1234abcd',
+            'password' => '1234abcd'
         ])->login()->send()->jsonResponse();
         $this->assertEquals(0, $response['code']);
     }

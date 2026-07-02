@@ -17,7 +17,7 @@ class AuthControllerTest extends TestCase
 
         $data = $http->post('/api/m/tao/auth/index', [
             'account' => 'admin',
-            'password' => '123456',
+            'password' => '1234abcd',
             'captcha' => '1234'
         ])->cookie()->send()->jsonResponse();
         // token
