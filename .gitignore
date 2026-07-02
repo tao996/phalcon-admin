@@ -2,7 +2,8 @@
 .vscode
 .codewhale/
 .deepseek/
-.reasonix/
+.reasonix/*
+!.reasonix/skills/
 DirectoryV3.xml
 reasonix.toml
 
