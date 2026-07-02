@@ -509,7 +509,7 @@ class BaseController extends BaseRbacController
                 if ($this->model->supportSoftDelete()) {
                     // 软删除：设置 deleted_at 时间戳
                     $deletedColumn = $this->model->getSortDeleteColumnName();
-                    $deletedValue = \Phax\Events\Model::printTimestampFormat($this->model->autoWriteTimestamp);
+                    $deletedValue = $this->model->getSortDeleteColumnValue();
                     if (!$qb->update([$deletedColumn => $deletedValue])) {
                         throw new LogException('删除失败',[
                             $qb->getSql(),

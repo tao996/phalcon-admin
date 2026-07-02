@@ -46,10 +46,10 @@ class LoginSessionAuthAdapter extends LoginAuthAdapter
         return null;
     }
 
-    public function saveUser(array $user,array $info = []): mixed
+    public function saveUser(SystemUser $user,array $info = []): mixed
     {
-        $this->mvc->session()->set(self::Key, $user['id']);
-        return join(':', [$user['id'], 'web', time()]);
+        $this->mvc->session()->set(self::Key, $user->id);
+        return join(':', [$user->id, 'web', time()]);
     }
 
     private function updateToken($userId)

@@ -32,11 +32,11 @@ abstract class LoginAuthAdapter
 
     /**
      * 保存用户信息
-     * @param array $user
+     * @param SystemUser $user
      * @param array $info 其它的配置信息
      * @return mixed 登录标识 token/jwtToken 其它
      */
-    abstract public function saveUser(array $user,array $info = []): mixed;
+    abstract public function saveUser(SystemUser $user,array $info = []): mixed;
 
     /**
      * 退出登录

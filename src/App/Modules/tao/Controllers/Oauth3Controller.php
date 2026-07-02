@@ -70,7 +70,7 @@ class Oauth3Controller extends BaseController
         }
 
         $user = $this->vv->userService()->addUserProfile($userProfile);
-        $this->getLoginAdapter()->saveUser($user->toArray());
+        $this->getLoginAdapter()->saveUser($user);
         $this->vv->redirectHelper()->read();
 
         throw new BlankException('登录成功：跳转到登录页'); // 不会执行到这里

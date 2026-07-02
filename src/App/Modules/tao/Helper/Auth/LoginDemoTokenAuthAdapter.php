@@ -8,7 +8,7 @@ use App\Modules\tao\Models\SystemUser;
 class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
 {
     private int $userId = 0;
-    private array $users = [];
+    private array $testUsers = [];
     public const string HeaderKeyName = 'test-token';
 
     public static function check(MyMvcHelper $mvc): bool
@@ -27,7 +27,7 @@ class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
             $users = $this->mvc->config()->getTestUsers();
             if (isset($users[$authData])) {
                 $this->userId = $users[$authData];
-                $this->users = $users;
+                $this->testUsers = $users;
             } else {
                 // 因为是 phpunit 所以直接 pr 输出，方便调试
                 pr([
@@ -48,10 +48,10 @@ class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
         return null;
     }
 
-    public function saveUser(array $user,array $info = []): mixed
+    public function saveUser(SystemUser $user,array $info = []): mixed
     {
-        $this->userId = $user['id'];
-        return array_flip($this->users)[$this->userId] ?? '---test user not found---';
+        $this->userId = $user->id;
+        return array_flip($this->testUsers)[$this->userId] ?? '---test user not found---';
     }
 
     public function destroy(): void

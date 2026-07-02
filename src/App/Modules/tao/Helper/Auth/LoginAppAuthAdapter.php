@@ -81,12 +81,9 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
             ->generateToken($userId, 'app'); // 已经使用了 . 号作为分割号
     }
 
-    public function saveUser(array $user,array $info = []): mixed
+    public function saveUser(SystemUser $user,array $info = []): mixed
     {
-        $userId = MyData::getInt($user, 'id');
-        if ($userId < 1) {
-            throw new \Exception('user id is empty when save user');
-        }
+        $userId = $user->id;
         $token = $this->getCacheToken($userId);
         // 随机码，用于生成 sign 签名
         $sec = md5(join(',', [rand(1, 100), time() + rand(100, 9999)]));

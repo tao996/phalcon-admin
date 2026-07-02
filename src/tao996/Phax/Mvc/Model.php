@@ -136,6 +136,15 @@ class Model extends \Phalcon\Mvc\Model
     }
 
     /**
+     * 获取软删除字段的值
+     * @return int|string
+     */
+    public function getSortDeleteColumnValue(): int|string
+    {
+        return \Phax\Events\Model::printTimestampFormat($this->autoWriteTimestamp);
+    }
+
+    /**
      * @var array 需要转换为 float 的字段
      */
     public array $floatColumns = [];

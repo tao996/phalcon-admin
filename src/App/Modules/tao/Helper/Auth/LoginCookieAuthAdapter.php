@@ -49,10 +49,9 @@ class LoginCookieAuthAdapter extends LoginAuthAdapter
         return null;
     }
 
-    public function saveUser(array $user,array $info = []): mixed
+    public function saveUser(SystemUser $user,array $info = []): mixed
     {
-        $userId = MyData::getInt($user, 'id');
-        $token = join(':', [$userId, 'web', time()]); // 由 3 部分组成
+        $token = join(':', [$user->id, 'web', time()]); // 由 3 部分组成
         // 可以设置保存用户的设备信息
         $this->mvc->authRedisData()->setToken($token, 1, ['EX' => $this->expireSeconds]); // 默认 1 个小时
         $this->mvc->responseHelper()->cookieSet('Authorization', $token);

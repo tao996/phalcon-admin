@@ -62,12 +62,8 @@ class LoginUserHelper
      */
     public function updateUserInfo(array $info = []): void
     {
-        $this->mvc->loginAuthHelper()->getAdapter()->saveUser(
-            $info
-                ? array_merge($this->user->toArray(), $info)
-                : $this->user->toArray()
-        );
         $this->user->assign($info);
+        $this->mvc->loginAuthHelper()->getAdapter()->saveUser($this->user);
     }
 
     /**

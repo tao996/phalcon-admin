@@ -44,7 +44,7 @@ class AuthController extends BaseController
                 $user = $this->vv->userService()->loginWithPassword($data['account'], $data['password']);
             }
 
-            $authResp = $this->vv->loginAuthHelper()->getAdapter()->saveUser($user->toArray());
+            $authResp = $this->vv->loginAuthHelper()->getAdapter()->saveUser($user);
             return $this->success('登录成功', $authResp);
         }
         return [
@@ -69,7 +69,7 @@ class AuthController extends BaseController
                     $isEmail ? 'email' : 'phone' => $data['account'],
                     $isEmail ? 'email_valid' : 'phone_valid' => 1
                 ])->findFirstModel()) {
-                $token = $this->getLoginAdapter()->saveUser($user->toArray());
+                $token = $this->getLoginAdapter()->saveUser($user);
             } else {
                 return $this->error('没有找到符合条件的账号');
             }

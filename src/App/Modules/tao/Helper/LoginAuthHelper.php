@@ -97,7 +97,7 @@ class LoginAuthHelper
     {
         if ($userId > 0) {
             if ($user = SystemUser::findFirst($userId)) {
-                $this->getAdapter()->saveUser($user->toArray());
+                $this->getAdapter()->saveUser($user);
                 $this->mvc->loginUserHelper()->resetUser($user);
                 $this->user = $user;
             } else {

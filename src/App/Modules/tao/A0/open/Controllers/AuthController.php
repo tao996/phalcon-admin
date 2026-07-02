@@ -151,8 +151,10 @@ class AuthController extends BaseOpenMiniController
             'nickname' => $user['nickname'],
             'avatar_url' => $user['head_img'] ?? $user['avatar'] ?? '',
         ];
+        $systemUser = new SystemUser();
+        $systemUser->assign(['id'=>$baseInfo['user_id']]);
         $baseInfo['ts'] = $this->tryGetLoginAuth()
-            ->getAdapter()->saveUser(['id' => $baseInfo['user_id']]);
+            ->getAdapter()->saveUser($systemUser);
         return $baseInfo;
     }
 }

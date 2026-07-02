@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Controllers\weixin;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
+use App\Modules\tao\Models\SystemUser;
 use Phax\Support\Exception\BlankException;
 
 use Phax\Support\Logger;
@@ -36,7 +37,9 @@ class MiniController extends BaseOpenMiniController
         $baseInfo = $this->openMvcHelper->userService()->save($app, $data, $this->requestData['userInfo'] ?? []);
         Logger::debug($data, $baseInfo);
         // token-secret
-        $baseInfo['ts'] = $this->tryGetLoginAuth()->getAdapter()->saveUser(['id' => $baseInfo['user_id']],[
+        $user = new SystemUser();
+        $user->id = $baseInfo['user_id'];
+        $baseInfo['ts'] = $this->tryGetLoginAuth()->getAdapter()->saveUser($user,[
             'EX'=> 604800, // 24*3600*7 = 7 天
         ]);
         $baseInfo['expired_at'] = time() + 604800 - 60;  // 过期时间
