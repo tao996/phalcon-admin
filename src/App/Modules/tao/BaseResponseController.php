@@ -195,6 +195,9 @@ class BaseResponseController extends Controller
      */
     public function error(array|string $msg, int $code = 500, mixed $data = null): array
     {
+        if ($data == null && IS_DEBUG && isset($_GET['test'])){ // 开启测试时显示调用栈
+            $data = debug_backtrace();
+        }
         return [
             'code' => $code,
             'msg' => is_array($msg) ? join('<br>', $msg) : $msg,

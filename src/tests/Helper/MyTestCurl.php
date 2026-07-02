@@ -114,7 +114,7 @@ class MyTestCurl
     {
     }
 
-    public function requestURL():string
+    public function requestURL(): string
     {
         return MyFileSystem::concat(
             $this->origin,
@@ -177,7 +177,7 @@ class MyTestCurl
         $this->ch = null; // 销毁句柄
 
         if ($ddd) {
-            ddd($url, $content, $error, $httpCode);
+            ddd(['url' => $url, 'responseContent' => $content, 'httpCode' => $httpCode]);
         }
 
         return [$content, $httpCode ?: 0];

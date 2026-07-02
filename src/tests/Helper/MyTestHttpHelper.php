@@ -88,6 +88,7 @@ class MyTestHttpHelper
 
     /**
      * 发送请求
+     * @param bool $ddd 是否打印发送的请求，响应的数据和状态码
      * @return $this
      */
     public function send(bool $ddd = false): static
