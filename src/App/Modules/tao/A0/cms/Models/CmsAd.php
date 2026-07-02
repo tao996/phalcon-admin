@@ -61,6 +61,11 @@ class CmsAd extends BaseTaoModel
         'at_banner'
     ];
 
+    public array $nullColumns = [
+        'begin_at',
+        'end_at'
+    ];
+
     public function beforeSave()
     {
         if (empty($this->title) && empty($this->cover)) {

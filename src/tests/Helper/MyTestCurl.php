@@ -143,6 +143,7 @@ class MyTestCurl
         $this->setting[CURLOPT_FRESH_CONNECT] = true;
         $this->setting[CURLOPT_SSL_SESSIONID_CACHE] = false;
         $this->setting[CURLOPT_CONNECTTIMEOUT] = 10;
+//        ddd($this->setting);
 
         // 一次性设置所有配置
         curl_setopt_array($this->ch, $this->setting);

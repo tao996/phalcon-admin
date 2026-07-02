@@ -25,9 +25,10 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
             ->login()->send()->notContainsFailed();
 
         $postData = [
-            'appid' => 'wx'.time(),
-            'mchid' => 'mch'.time(),
+            'appid' => 'wx' . time(),
+            'mchid' => 'mch' . time(),
             'secret_key' => '123456789123456789123456789',
+            'pubkey_id' => date('Y-m-d'),
             'v2_secret_key' => '123456789123456789123456789',
             'remark' => 'just a test'
         ];
@@ -35,7 +36,8 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
             ->login()->send()->testModelSaveResponse();
     }
 
-    #[Depends('testAdd')] public function testEdit($record)
+    #[Depends('testAdd')]
+    public function testEdit($record)
     {
         $path = '/m/tao.open/admin.mch/edit?id=' . $record['id'];
         $http = new MyTestTaoHttpHelper($this);
@@ -46,7 +48,8 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
             ->login()->send()->testModelSaveResponse();
     }
 
-    #[Depends('testEdit')] public function testDelete($record)
+    #[Depends('testEdit')]
+    public function testDelete($record)
     {
         $http = new MyTestTaoHttpHelper($this);
         $http->post('/api/m/tao.open/admin.mch/delete', ['id' => $record['id']])

@@ -204,7 +204,7 @@ class ValidateTest extends \PHPUnit\Framework\TestCase
     public function testCallerValidationUnknownRule(): void
     {
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('un support validation rule of');
+        $this->expectExceptionMessage('不支持的验证规则');
         self::$v->getCallerValidation('nonexistent_rule_x', []);
     }
 

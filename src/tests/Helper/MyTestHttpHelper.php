@@ -2,7 +2,6 @@
 
 namespace Tests\Helper;
 
-
 class MyTestHttpHelper
 {
     public static string $origin = '';
@@ -129,13 +128,19 @@ class MyTestHttpHelper
      * @param array|string $texts
      * @return $this
      */
-    public function contains(array|string $texts): static
+    public function contains(array|string $texts, bool $ddd = false): static
     {
         if (is_string($texts)) {
             $texts = [$texts];
         }
         foreach ($texts as $text) {
-            $this->tc->assertStringContainsString($text, $this->content, 'could not find text: ' . $text);
+            if ($ddd) {
+                if (!str_contains($this->content, $text)) {
+                    ddd('没有找到 text:' . $text, $this->content);
+                }
+            } else {
+                $this->tc->assertStringContainsString($text, $this->content, 'could not find text: ' . $text);
+            }
         }
         return $this;
     }
@@ -193,25 +198,46 @@ class MyTestHttpHelper
         return $response['data'];
     }
 
-    public function testJsonPaginationResponse(): array
+    public function testJsonPaginationResponse(bool $ddd = false): array
     {
         $response = $this->jsonResponse();
-        $this->tc->assertIsArray($response['data'] ?? null, 'response data should be an array');
-        $this->tc->assertTrue(($response['data']['count'] ?? -1) >= 0);
-        $this->tc->assertTrue(isset($response['data']['rows']));
+        if ($ddd) {
+            if (!is_array($response['data'])) {
+                ddd('不是一个数组', $response);
+            } elseif (!isset($response['data']['count']) || $response['data']['count'] < 0) {
+                ddd('count < 0', $response);
+            } elseif (!isset($response['data']['rows'])) {
+                ddd('没有 rows', $response);
+            }
+        } else {
+            $this->tc->assertIsArray($response['data'] ?? null, 'response data should be an array');
+            $this->tc->assertTrue(($response['data']['count'] ?? -1) >= 0);
+            $this->tc->assertTrue(isset($response['data']['rows']));
+        }
         return $response;
     }
 
-    public function testResponseCode0(): array
+    public function testResponseCode0(bool $ddd = false): array
     {
         $response = $this->jsonResponse();
+        if ($ddd) {
+            if ($response['code'] != 0) {
+                ddd($response);
+            }
+        }
         $this->tc->assertEquals(0, $response['code']);
+
         return $response;
     }
 
-    public function testModelSaveResponse(bool $data = true): array
+    public function testModelSaveResponse(bool $data = true, $ddd = false): array
     {
         $response = $this->testResponseCode0();
+        if ($ddd) {
+            if ($response['data']['id'] <= 0) {
+                ddd($response);
+            }
+        }
         $this->tc->assertTrue($response['data']['id'] > 0);
         return $data ? $response['data'] : $response;
     }

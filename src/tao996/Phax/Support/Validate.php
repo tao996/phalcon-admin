@@ -53,7 +53,6 @@ class Validate
     /**
      * 执行链式定义的所有验证规则
      * @return ValidationResult
-     * @throws \Exception
      */
     public function validate(): ValidationResult
     {
@@ -99,7 +98,7 @@ class Validate
     private function addRule(string $rule, array $params): static
     {
         if ($this->fluentCurrent === null) {
-            throw new \Exception('必须先调用 with() 再添加验证规则');
+            throw new BusinessException('必须先调用 with() 再添加验证规则');
         }
         $this->fluentFields[$this->fluentCurrent]['rules'][] = [$rule, $params];
         return $this;
@@ -204,7 +203,6 @@ class Validate
      * 对验证规则进行拆分 (可查看测试)
      * @param array $rules ['name|用户名' => 'require|min:20|max:20|or:1,2']
      * @return array [0 => ['title' => '用户名','rules' => [['require', []],['min', [20]],['max', [20]],['or', [1, 2]]]]]
-     * @throws \Exception
      */
     public function rules(array $rules): array
     {
@@ -238,7 +236,6 @@ class Validate
      * @param string $rule 规则名称
      * @param array $params 规则所在参数
      * @return array|string[] [ 0=>i18n的key, 1=>验证的类, 2?=>参数, 'with'?=>数据来自其它]
-     * @throws \Exception
      */
     public function getCallerValidation(string $rule, array $params): array
     {
@@ -480,7 +477,7 @@ class Validate
 
 
             default:
-                throw new \Exception('un support validation rule of ' . $rule);
+                throw new BusinessException('不支持的验证规则' . $rule);
         }
     }
 
@@ -530,12 +527,11 @@ class Validate
      * expire                           验证当前操作（注意不是某个值）是否在某个有效日期之内，示例 expire:20230101,20231231
      * </pre>
      * @param array $messages 验证消息, 示例 ['name.require'=>'姓名不能为空', 'name.max'=>'姓名不得超过20位']
-     * @throws \Exception
      */
     public function check(array $data, array $rules = [], array $messages = []): void
     {
         if ($rst = $this->getCheckMessages($data, $rules, $messages)) {
-            throw new \Exception(join("<br/>", $rst));
+            throw new BusinessException(join("<br/>", $rst));
         }
     }
 
@@ -545,7 +541,6 @@ class Validate
      * @param array $rules
      * @param array $messages
      * @return array|null
-     * @throws \Exception
      */
     public function getCheckMessages(array $data, array $rules = [], array $messages = []): ?array
     {
@@ -627,13 +622,10 @@ class Validate
         return false;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function mustPhone(string $phone): void
     {
         if (!$this->isPhone($phone)) {
-            throw new \Exception(__('validate.cnPhone', ':field 不是一个有效的 +86 手机号码', ['field' => $phone]));
+            throw new BusinessException(__('validate.cnPhone', ':field 不是一个有效的 +86 手机号码', ['field' => $phone]));
         }
     }
 

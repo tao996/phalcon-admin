@@ -3,9 +3,11 @@
 namespace App\Modules\tao\Services;
 
 use App\Modules\tao\Config\Data;
+use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Models\SystemUserBind;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 
@@ -331,19 +333,24 @@ class UserService
      * @param string $bind Data::Xxx = gmail|tiktokMini|wechatMini|wechatOfficial
      * @return void
      */
+
+    /**
+     * 添加绑定
+     * @param SystemUser $user
+     * @param string $bind UserBindPlatform::Xxx = gmail|tiktokMini|wechatMini|wechatOfficial
+     * @return void
+     * @throws \Exception
+     */
     public function addBinds(SystemUser $user, string $bind): void
     {
-        if (!in_array($bind, array_keys(Data::MapBinds))) {
+        if (!UserBindPlatform::isValid($bind)) {
             throw new BusinessException('不支持绑定类型:' . $bind);
         }
-        if (empty($user->binds)) {
-            $user->binds = json_encode([$bind]);
-        } else {
-            $binds = json_decode($user->binds, true);
-            if (!in_array($bind, $binds)) {
-                $binds[] = $bind;
-            }
-            $user->binds = json_encode($binds);
+        $bindModel = new SystemUserBind();
+        $bindModel->user_id = $user->id;
+        $bindModel->platform = $bind;
+        if (!$bindModel->save()) {
+            throw new \Exception('绑定失败：' . json_encode($bindModel->getMessages()));
         }
     }
 

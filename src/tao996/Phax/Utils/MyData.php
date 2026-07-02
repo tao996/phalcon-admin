@@ -105,6 +105,7 @@ class MyData
             throw new BusinessException('not a string value :' . $key);
         }
     }
+
     /**
      * 必须是一个整数值
      * @param mixed $value 待检查的值
@@ -228,13 +229,17 @@ class MyData
      */
     public static function isBool(mixed $v, bool $strict = false): bool
     {
-        if ($strict) {
-            return $v === true || $v === false;
+        if ($v === true || $v === false) {
+            return true;
         }
-        if (is_numeric($v)) {
-            return intval($v) > 0;
+        if (!$strict) {
+            if (is_numeric($v)) {
+                return intval($v) > 0;
+            } elseif (is_string($v)) {
+                return in_array(strtolower($v), ['on', 'true', 't', 'ok', 1, '1']);
+            }
         }
-        return in_array(strtolower($v), ['on', 'true', 't', 'ok', 1, '1']);
+        return false;
     }
 
     public static function notEmpty(array $data, string $key): bool

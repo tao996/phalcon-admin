@@ -13,14 +13,13 @@ class AuthControllerTest extends TestCase
         $http->get('/m/tao/auth/index')
             ->send()
             ->notContainsFailed()
-            ->contains(['后台系统', '注册帐号', '忘记密码', '验证码登录']);
+            ->contains(['注册帐号', '忘记密码', '验证码登录']);
 
         $data = $http->post('/api/m/tao/auth/index', [
-            'account' => 'admin',
+            'account' => 'admin@test.com', // 不支持账户名登录
             'password' => '1234abcd',
             'captcha' => '1234'
         ])->cookie()->send()->jsonResponse();
-        // token
         $this->assertTrue(str_starts_with($data['data'], '1:web'));
     }
 

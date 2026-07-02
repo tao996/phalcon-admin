@@ -81,7 +81,7 @@ class MyDataTest extends TestCase
     public function testGetBool()
     {
         foreach ([true, 'on', 'true', 't', 'ok', 1, '1'] as $v) {
-            $this->assertTrue(MyData::isBool($v));
+            $this->assertTrue(MyData::isBool($v),'|'.$v.'| 不是一个 bool 类型:'.gettype($v));
         }
         foreach (['on', 'true', 't', 'ok', 1, '1'] as $v) {
             $this->assertFalse(MyData::isBool($v, true), $v . ' is not strict bool');

@@ -51,7 +51,7 @@ class IndexControllerTest extends TestCase
         $http->post('/api/m/tao/user.index/password', [
             'password' => '1234abcd',
             'password_confirm' => '1234abcd'
-        ])->login()->send(false)->testResponseCode0();
+        ])->login()->send()->testResponseCode0();
     }
 
 }

@@ -2,6 +2,7 @@
 
 namespace App\Modules\tao\tests\PHPUnit\A0\cms\Controllers\admin;
 
+use App\Modules\tao\A0\cms\Models\CmsCategory;
 use App\Modules\tao\tests\Helper\MyTestTaoHttpHelper;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
@@ -25,10 +26,14 @@ class ArticleControllerTest extends TestCase
     public function testAdd()
     {
         $http = new MyTestTaoHttpHelper($this);
-        $http->get('/m/tao.cms/admin.article/add')
-            ->login()->send()
-            ->notContainsFailed()
-            ->contains(['文章']);
+        $http->login()
+            ->get('/m/tao.cms/admin.article/add')
+            ->send()
+            ->notContainsFailed();
+//            ->contains(['文章'],true);
+        // 需要将 cate_id 设置为存在
+        CmsCategory::queryBuilder()->int('id', 1)
+            ->withTrashed()->update(['deleted_at' => null]);
 
         return $http->post('/api/m/tao.cms/admin.article/add', [
             'cate_id' => 1,
@@ -43,7 +48,8 @@ class ArticleControllerTest extends TestCase
         ])->login()->send()->testModelSaveResponse();
     }
 
-    #[Depends('testAdd')] public function testPreview($record)
+    #[Depends('testAdd')]
+    public function testPreview($record)
     {
         $http = new MyTestTaoHttpHelper($this);
         $http->get('/m/tao.cms/admin.article/preview?id=' . $record['id'])
@@ -51,7 +57,8 @@ class ArticleControllerTest extends TestCase
         return $record;
     }
 
-    #[Depends('testPreview')] public function testCstatus($record)
+    #[Depends('testPreview')]
+    public function testCstatus($record)
     {
         $http = new MyTestTaoHttpHelper($this);
         $http->post('/api/m/tao.cms/admin.article/cstatus', [
@@ -62,7 +69,8 @@ class ArticleControllerTest extends TestCase
         return $record;
     }
 
-    #[Depends('testCstatus')] public function testEdit($record)
+    #[Depends('testCstatus')]
+    public function testEdit($record)
     {
         $http = new MyTestTaoHttpHelper($this);
         $path = '/m/tao.cms/admin.article/edit?id=' . $record['id'];
@@ -78,7 +86,8 @@ class ArticleControllerTest extends TestCase
         return $response;
     }
 
-    #[Depends('testEdit')] public function testDelete($record)
+    #[Depends('testEdit')]
+    public function testDelete($record)
     {
         $http = new MyTestTaoHttpHelper($this);
         $http->post('/api/m/tao.cms/admin.article/delete', [

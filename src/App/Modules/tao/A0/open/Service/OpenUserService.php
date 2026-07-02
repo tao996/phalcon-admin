@@ -224,7 +224,7 @@ readonly class OpenUserService
             "unionid": " o6_bmasdasdsad6_2sgVt7hMZOPfL",
         } */
         return $this->save([
-            'app_id' => $appid,
+            'appid' => $appid,
             'platform' => UserBindPlatform::PlatformWechat,
             'kind' => 'official'
         ], $data, []);
@@ -236,7 +236,7 @@ readonly class OpenUserService
      * @return void
      * @throws \Exception
      */
-    public function unsubscribe($data)
+    public function unsubscribe(array $data)
     {
         if ($record = $this->getOpenidRecord($data['ToUserName'], $data['FromUserName'])) {
             $record->sub = 0;

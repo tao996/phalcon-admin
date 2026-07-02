@@ -5,7 +5,9 @@ namespace App\Modules\tao\tests\PHPUnit\A0\open\Service;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenUserUnionid;
 use App\Modules\tao\A0\open\Service\OpenUserService;
+use App\Modules\tao\Helper\MyMvcHelper;
 use EasyWeChat\OfficialAccount\Application;
+use Phax\Foundation\Application as PhaxApp;
 use PHPUnit\Framework\TestCase;
 
 class OpenUserServiceTest extends TestCase
@@ -53,7 +55,7 @@ class OpenUserServiceTest extends TestCase
             }
         );
 //        $mvc = new MyOpenMvcHelper(new MyMvcHelper(\Phax\Foundation\Application::di()));
-        $mvc = \Mockery::mock(MyOpenMvcHelper::class);
+        $mvc = new MyOpenMvcHelper(new MyMvcHelper(PhaxApp::di()));
         $us = new OpenUserService($mvc);
         $data = $us->officialUser($application, self::userinfo['openid']);
         $this->assertTrue($data['user_id'] > 0);
