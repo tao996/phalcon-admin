@@ -39,6 +39,7 @@ src/phpunit.xml
 src/phar-src
 src/routes/cli.more.php
 src/routes/web.more.php
+src/tests/Helper/cookies/*
 src/tests/Helper/cookie.txt
 src/tests/bootstrap.test.php
 src/storage/app/*

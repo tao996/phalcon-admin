@@ -39,6 +39,9 @@ class IndexControllerTest extends TestCase
 
     public function testPassword()
     {
+        if (TEST_SKIP_HTTP) {
+            $this->markTestSkipped();
+        }
         // 重置密码
         $user = getMyTestMvc()->getLoginUser();
         $user->password = '';

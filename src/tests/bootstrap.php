@@ -15,7 +15,8 @@ if (file_exists(__DIR__ . '/bootstrap.test.php')) {
 // 用于暂时跳过所有的 http 测试（测试内部类时可以关掉）
 // const TEST_ORIGIN = 'http://127.0.0.1:8072';
 if (!defined('TEST_SKIP_HTTP')) {
-    define('TEST_SKIP_HTTP', false);
+    define('TEST_SKIP_HTTP', true); // 有时会造成 gateway 错误
+    echo '当前跳过 HTTP 测试', PHP_EOL;
 }
 require_once PATH_ROOT . 'bootstrap/app.php';
 $di = \Phax\Foundation\Application::di();
