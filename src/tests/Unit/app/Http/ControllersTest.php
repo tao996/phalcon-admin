@@ -6,9 +6,6 @@ use Tests\Helper\MyTestHttpHelper;
 
 class ControllersTest extends \PHPUnit\Framework\TestCase
 {
-    public function testIndex()
-    {
-    }
 
     public function testSubTest()
     {

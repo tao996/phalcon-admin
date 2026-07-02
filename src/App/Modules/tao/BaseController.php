@@ -340,7 +340,7 @@ class BaseController extends BaseRbacController
         }
         foreach ($this->model->bool2IntColumns as $column) {
             if (array_key_exists($column, $data)) {
-                $data[$column] = MyData::getBool($data, $column) ? 1 : 0;
+                $data[$column] = (int)MyData::isTrueWith($data, $column);
             } else {
                 $data[$column] = 0;
             }

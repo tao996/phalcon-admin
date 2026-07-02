@@ -36,10 +36,10 @@ class UserController extends BaseController
             $userSer->mustUniqueEmail(MyData::getString($data, 'email'), $user, true);
             $userSer->mustUniquePhone(MyData::getString($data, 'phone'), $user, true);
             if ($user->email) {
-                $user->email_valid = (int)MyData::getBool($data, 'email_valid');
+                $user->email_valid = (int)MyData::isTrueWith($data, 'email_valid');
             }
             if ($user->phone) {
-                $user->phone_valid = (int)MyData::getBool($data, 'phone_valid');
+                $user->phone_valid = (int)MyData::isTrueWith($data, 'phone_valid');
             }
             if (!$userSer->hasLoginAccount($user)) {
                 return $this->error('必须设置一个登录账号');
@@ -132,12 +132,12 @@ class UserController extends BaseController
 
             if (!empty($data['phone'])) {
                 $userSer->mustUniquePhone($data['phone'], $user, true);
-                $user->phone_valid = (int)MyData::getBool($data, 'phone_valid');
+                $user->phone_valid = (int)MyData::isTrueWith($data, 'phone_valid');
             }
 
             if (!empty($data['email'])) {
                 $userSer->mustUniqueEmail($data['email'], $user, true);
-                $user->email_valid = (int)MyData::getBool($data, 'email_valid');
+                $user->email_valid = (int)MyData::isTrueWith($data, 'email_valid');
             }
 
             $user->assign($data, ['nickname', 'signature', 'head_img']);

@@ -209,13 +209,33 @@ class MyData
     }
 
     /**
-     * 获取布尔值 : 字符串 (on|true|t|ok), >0 都将被作为 true 对待
+     * 是否为真值
      * @param array $data
      * @param string $key
      * @param bool $strict 是否严格类型，只接受 true/false
      * @return bool
      */
-    public static function getBool(array $data, string $key, bool $strict = false): bool
+    public static function isTrueWith(array $data, string $key, bool $strict = false): bool
+    {
+        $v = $data[$key] ?? false;
+        return self::isTrue($v, $strict);
+    }
+
+    public static function isTrue($v, bool $strict = false): bool
+    {
+        if ($v) {
+            return true;
+        } else if (!$strict) {
+            if (is_numeric($v)) {
+                return intval($v) > 0;
+            } elseif (is_string($v)) {
+                return in_array(strtolower($v), ['on', 'true', 't', 'ok', '1']);
+            }
+        }
+        return false;
+    }
+
+    public static function isBoolWith(array $data, string $key, bool $strict = false): bool
     {
         $v = $data[$key] ?? false;
         return self::isBool($v, $strict);
@@ -236,7 +256,7 @@ class MyData
             if (is_numeric($v)) {
                 return intval($v) > 0;
             } elseif (is_string($v)) {
-                return in_array(strtolower($v), ['on', 'true', 't', 'ok', 1, '1']);
+                return in_array(strtolower($v), ['on', 'true', 't', 'ok', '1']);
             }
         }
         return false;

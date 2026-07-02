@@ -234,11 +234,14 @@ class MyMvc
         if (!empty($options['query'])) {
             $builder->queryParams($options['query']);
         }
-
-        if (MyData::getBool($options, 'origin', true)) {
+        if (isset($options['origin'])) {
+            if (is_string($options['origin']) && !empty($options['origin'])) {
+                $builder->origin($options['origin']);
+            } elseif ($options['origin']) {
+                $builder->origin($this->route()->appOrigin());
+            }
+        } else {
             $builder->origin($this->route()->appOrigin());
-        } elseif (!empty($options['origin']) && is_string($options['origin'])) {
-            $builder->origin($options['origin']);
         }
 
         return $builder->build();
@@ -318,7 +321,7 @@ class MyMvc
         if ($mixed === true) {
             $options['api'] = true;
         } elseif ($mixed === false) {
-            $options['origin'] = '';
+            $options['origin'] = false;
         } elseif (!empty($mixed)) {
             $options['query'] = $mixed;
         }

@@ -45,7 +45,7 @@ class AppController extends BaseOpenController
             'kind|应用类型' => 'required',
             'secret' => 'required'
         ]);
-        $data['sandbox'] = (int)MyData::getBool($data, 'sandbox');
+        $data['sandbox'] = (int)MyData::isTrueWith($data, 'sandbox');
         return $data;
     }
 
