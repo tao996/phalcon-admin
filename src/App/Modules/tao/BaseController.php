@@ -174,7 +174,7 @@ class BaseController extends BaseRbacController
                     $this->pagination($queryBuilder);
                     $rows = $this->buildIndexResult($count, $queryBuilder);
                 }
-                return $this->successPagination($count, $rows, $this->appendToSuccessPaginationData());
+                return $this->successPagination($count, $rows, $this->appendToSuccessPaginationData($queryBuilder));
             } else {
                 return $this->successPagination(0, [], $this->appendToSuccessPaginationData());
             }
@@ -187,7 +187,7 @@ class BaseController extends BaseRbacController
      * 用于返回分页数据之中合并其它的数据
      * @return array
      */
-    protected function appendToSuccessPaginationData(): array
+    protected function appendToSuccessPaginationData(QueryBuilder|null $queryBuilder): array
     {
         return [];
     }
@@ -511,14 +511,14 @@ class BaseController extends BaseRbacController
                     $deletedColumn = $this->model->getSortDeleteColumnName();
                     $deletedValue = $this->model->getSortDeleteColumnValue();
                     if (!$qb->update([$deletedColumn => $deletedValue])) {
-                        throw new LogException('删除失败',[
+                        throw new LogException('删除失败', [
                             $qb->getSql(),
                         ]);
                     }
                 } else {
                     // 硬删除：直接删除记录
                     if (!$qb->delete()) {
-                        throw new LogException('删除失败',[
+                        throw new LogException('删除失败', [
                             $qb->getSql()
                         ]);
                     }

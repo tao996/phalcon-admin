@@ -365,6 +365,23 @@ class QueryBuilder
     }
 
     /**
+     * 去掉分页、页、排序条件，重新生成查询器；通常用于统计.
+     * ```
+     * return ['summary' => $queryBuilder->getWhereBuilder()->columns([
+     * 'sum(amount) as amount',
+     * 'sum(handle_amount) as handle_amount',
+     * 'sum(receive_amount) as receive_amount',
+     * ])->getQuery()->execute()?->getFirst() ?? []];
+     * ```
+     */
+    public function getWhereBuilder(): \Phalcon\Mvc\Model\Query\Builder
+    {
+        $params = json_decode(json_encode($this->getParameter()), true);
+        unset($params['limit'], $params['offset'], $params['columns'], $params['order']);
+        return new \Phalcon\Mvc\Model\Query\Builder($params);
+    }
+
+    /**
      * 取消分页
      * @return $this
      */
