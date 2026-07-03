@@ -5,8 +5,8 @@ namespace App\Modules\tao\A0\open\Service;
 
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenMch;
-use Phalcon\Logger\Exception;
-use Phax\Support\Logger;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 
 /**
  * 支付商户
@@ -38,7 +38,6 @@ class OpenMchService
     /**
      * 强制缓存商户列表
      * @return array{id:int,mchid:string,private_key:string,certificate:string,secret_key:string,v2_secret_key:string,platform_cert:string}
-     * @throws Exception
      */
     public function cache(): array
     {
@@ -52,9 +51,9 @@ class OpenMchService
                 'secret_key',
                 'v2_secret_key',
                 'platform_cert'
-            ], key:'mchid')) {
+            ], key: 'mchid')) {
             if (!$this->cache->set(self::cacheKey, json_encode($cache))) {
-                Logger::error('cache pay mch failed:' . __CLASS__);
+                throw new LogException('更新商户列表缓存失败');
             }
             return $cache;
         }
@@ -65,12 +64,11 @@ class OpenMchService
      * 获取指定商户配置信息
      * @param string $mchid 商户号
      * @return array{id:int, mchid:string, private_key:string, certificate:string, secret_key:string, v2_secret_key:string, platform_cert:string}
-     * @throws \Exception
      */
     public function getWith(string $mchid): array
     {
         if (empty($mchid)) {
-            throw new \Exception('商户号不能为空');
+            throw new BusinessException('商户号不能为空');
         }
         if ($rows = self::rows()) {
             if (isset($rows[$mchid])) {
@@ -84,7 +82,7 @@ class OpenMchService
             }
         }
 
-        throw new \Exception('could not find pay mch :' . $mchid);
+        throw new BusinessException('找不到指定商户号' . $mchid);
     }
 
     /**

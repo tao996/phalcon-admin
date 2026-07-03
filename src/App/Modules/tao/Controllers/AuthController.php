@@ -5,7 +5,7 @@ namespace App\Modules\tao\Controllers;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUser;
 use Phax\Db\Transaction;
-use Phax\Support\Logger;
+use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
 class AuthController extends BaseController
@@ -98,10 +98,10 @@ class AuthController extends BaseController
         try {
             $this->vv->userService()->mustCanLogin($data['account']);
         } catch (\Exception $e) {
-            Logger::message('登录验证码已发送，请注意查收.', [
-                $e->getMessage(),
-                '登录账号检查异常:' . $data['account'],
-            ]);
+            throw new LogException('账号异常', [
+                'msg' => '待接收验证码的账号存在异常',
+                'account' => $data['account'],
+            ], previous: $e);
         }
 
         // 发送验证码
@@ -131,7 +131,9 @@ class AuthController extends BaseController
                 $this->vv->userService()->newPassword($data['password'], $user);
                 $this->vv->userService()->newAccount($data['account'], $user);
                 if ($user->save() === false) {
-                    Logger::message('账号注册失败，请稍后再试', $user->getErrors());
+                    throw new LogException('账号注册失败', [
+                        'data' => $data, 'err' => $user->getErrors()
+                    ]);
                 }
 
                 $this->vv->smsCodeService()->done($code);
@@ -161,10 +163,10 @@ class AuthController extends BaseController
         try {
             $this->vv->userService()->mustCanRegister($data['account']);
         } catch (\Exception $e) {
-            Logger::message('注册验证码已发送，请注意查收', [
-                $e->getMessage(),
-                '注册账号检查:' . $data['account'],
-            ]);
+            throw new LogException('注册验证码已发送，请注意查收', [
+                'msg' => '帐号注册失败',
+                'data' => $data,
+            ], previous: $e);
         }
 
         // 发送验证码

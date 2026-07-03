@@ -8,7 +8,8 @@ use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenApp;
 use App\Modules\tao\Data\UserBindPlatform;
-use Phax\Support\Logger;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
 class OpenAppService
@@ -32,28 +33,22 @@ class OpenAppService
         return self::cache();
     }
 
-    /**
-     * @throws \Exception
-     */
     public function cache(): array
     {
         $rows = OpenApp::queryBuilder($this->helper->mvc->getDi())
             ->int('status', 1)
-            ->findColumn(key:'appid');
+            ->findColumn(key: 'appid');
         if (!$this->cache->set(self::cacheKey, $rows)) {
-            Logger::error('cache tao.open.app failed:' . __CLASS__);
+            throw new LogException('更新应用缓存失败');
         }
         return $rows;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getWithAppid(string $appid, bool $must = true): ?array
     {
         $data = $this->rows();
         if ($must && !isset($data[$appid])) {
-            throw new \Exception('没有找到(' . $appid . ')的应用配置');
+            throw new BusinessException('没有找到(' . $appid . ')的应用配置');
         }
         return (array)$data[$appid] ?? null;
     }
@@ -79,7 +74,7 @@ class OpenAppService
             case 'work':
                 return $this->isWork($wc['kind']);
             default:
-                throw new \Exception('kind value is not allow:' . $kind);
+                throw new BusinessException('kind value is not allow:' . $kind);
         }
     }
 
@@ -146,7 +141,7 @@ class OpenAppService
             'rsa_private_key' => 'pi2'
         ];
         if (!isset($dd[$name])) {
-            throw new \Exception('不存在的证书字段:' . $name);
+            throw new BusinessException('不存在的证书字段:' . $name);
         }
         return $dd[$name];
     }
@@ -157,13 +152,12 @@ class OpenAppService
      * @param string $name public_key|rsa_public_key|rsa_private_key
      * @param string $content 证书内容
      * @return boolean
-     * @throws \Exception
      */
     public function encrypt(OpenApp $app, string $name, string $content): bool
     {
         $pIndexName = $this->getPIndex($name);
         if (strlen($content) < 100) {
-            throw new \Exception('证书内容过短或不符合规范？');
+            throw new BusinessException('证书内容过短或不符合规范？');
         }
         $fMd5 = md5($content);
         $pIndex = rand(30, 80);
@@ -176,7 +170,7 @@ class OpenAppService
         if ($app->save()) {
             $dir = PayCertHelper::dir();
             if (!file_put_contents($dir . $fMd5, $newContent)) {
-                throw new \Exception('app 保存证书失败');
+                throw new LogException('app 保存证书失败', ['file' => $dir . $fMd5]);
             }
             return true;
         }
@@ -188,18 +182,17 @@ class OpenAppService
      * @param string $filename 文件名称，来自 TiktokApp 中的 public_key|rsa_public_key|rsa_private_key 内容
      * @param int $pIndex 来自 TiktokApp 中的 pi0|pi1|pi2
      * @return string 解密内容
-     * @throws \Exception
      */
     public function decrypt(string $filename, int $pIndex): string
     {
         if (empty($filename)) {
-            throw new \Exception('tiktok 证书文件名不能为空');
+            throw new BusinessException('tiktok 证书文件名不能为空');
         } elseif ($pIndex < 1) {
             throw new \Exception('tiktok 证书加密索引不能为空');
         }
         $file = PayCertHelper::dir() . $filename;
         if (!file_exists($file)) {
-            throw new \Exception('tiktok 证书不存在');
+            throw new BusinessException('tiktok 证书不存在');
         }
         $content = file_get_contents($file);
         return CertSecretHelper::decryptData($content, $pIndex, 5);

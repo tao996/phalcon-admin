@@ -2,8 +2,7 @@
 
 namespace EasyTiktok\OfficialAccount;
 
-use Phax\Support\Exception\BusinessException;
-use Phax\Support\Logger;
+use Phax\Support\Exception\LogException;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Psr16Cache;
@@ -22,7 +21,6 @@ class AccessToken extends \EasyWeChat\OfficialAccount\AccessToken
 
     public function getStableAccessToken(bool $force_refresh = false): string
     {
-        logger()->warning('暂不支持 tiktok.getStableAccessToken 方法' . __CLASS__);
         return $this->getAccessToken();
     }
 
@@ -32,20 +30,26 @@ class AccessToken extends \EasyWeChat\OfficialAccount\AccessToken
      */
     public function getAccessToken(): string
     {
+        $requestData = [
+            'grant_type' => 'client_credential',
+            'client_key' => $this->appId,
+            'client_secret' => $this->secret
+        ];
         $response = $this->httpClient->request('POST', 'oauth/client_token/', [
-            'json' => [
-                'grant_type' => 'client_credential',
-                'client_key' => $this->appId,
-                'client_secret' => $this->secret
-            ]
+            'json' => $requestData
         ])->toArray();
         if (!isset($response['data'])) {
-            throw new BusinessException('tiktok getClientToken 响应格式错误');
+            throw new LogException('获取抖音访问凭证接口错误', [
+                'request' => $requestData,
+                'response' => $response,
+            ]);
         }
         $data = $response['data'];
         if (empty($data['access_token'])) {
-            Logger::error('tiktok 获取应用授权调用凭证错误',$response);
-            throw new BusinessException('Failed to get client_token:'.$data['description']);
+            throw new LogException('获取抖音应用授权调用凭证错误', [
+                'request' => $requestData,
+                'response' => $response,
+            ]);
         }
 
         $this->cache->set($this->getKey(), $data['access_token'], intval($data['expires_in']));

@@ -62,7 +62,7 @@ class MiniAppHelper
             'lang|语言' => 'required'
         ]);
         $app = $this->helper->application()->getMini($appid);
-        // 记录日志
+        // 测试环境为 $app 提供记录引擎
         if (IS_DEBUG) {
             $logger = $this->helper->mvc->logger();
             if ($logger instanceof \Psr\Log\LoggerInterface) {
@@ -70,7 +70,9 @@ class MiniAppHelper
             }
         }
         $api = $app->getClient();
-        Logger::debug($appid, $options);
+        if (IS_DEBUG) {
+            Logger::debug('MiniAppHelper.getClient', $appid, $options);
+        }
         // "errcode":47001,"errmsg":"data format error —— 因为使用了 post 而不是 postJson
         return $api->postJson('/cgi-bin/message/subscribe/send', $options);
     }

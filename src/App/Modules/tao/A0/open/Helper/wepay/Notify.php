@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
 /**
@@ -17,7 +18,6 @@ class Notify extends AbstractWepay
      * @param array $data 通知数据
      * @param callable{OpenOrder}|null $success 订单成功修改为已支付的回调
      * @return void
-     * @throws \Exception
      */
     public function handlePaid(array $data, callable $success = null): void
     {
@@ -28,14 +28,19 @@ class Notify extends AbstractWepay
                 try {
                     call_user_func($success, $order);
                 } catch (\Exception $e) {
-                    Logger::error('订单回调错误', [
-                        'id' => $order->id,
-                        'message' => $e->getMessage()
-                    ]);
+                    throw new LogException('订单处理回调错误', [
+                        'data' => $data,
+                        'order' => $order->toArray(),
+                    ], previous: $e);
                 }
+            } elseif (IS_DEBUG) {
+                Logger::debug('没有需要处理的已支付的订单回调', $data);
             }
+        } elseif (IS_DEBUG) {
+            Logger::debug('不需要处理已支付的订单', $data);
         }
     }
+
     /**
      * @link https://easywechat.com/6.x/pay/index.html#签名验证
      * @param callable{OpenOrder}|null $success 在支持成功后接收订单数据

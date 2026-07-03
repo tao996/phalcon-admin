@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers\user;
 
 use App\Modules\tao\BaseController;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -79,7 +80,7 @@ class IndexController extends BaseController
                 $user->phone_at = time();
                 $user->phone_valid = 1;
                 if ($user->save() === false) {
-                    Logger::message('修改手机号失败', $user->getErrors());
+                    throw new LogException('更新手机号码状态失败', ['user' => $user->toArray(), 'err' => $user->getErrors()]);
                 }
                 $this->vv->smsCodeService()->done($code);
             });
@@ -138,7 +139,7 @@ class IndexController extends BaseController
                 $user->email_at = time();
                 $user->email_valid = 1;
                 if ($user->save() === false) {
-                    Logger::message('修改邮箱失败', $user->getErrors());
+                    throw new LogException('更新邮箱状态失败', ['user' => $user->toArray(), 'err' => $user->getErrors()]);
                 }
                 $this->vv->smsCodeService()->done($code);
             });

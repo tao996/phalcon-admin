@@ -9,11 +9,15 @@
 
 namespace App\Modules\tao\A0\open\ExtendControllers;
 
+use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Helper\wepay\Notify;
 use App\Modules\tao\A0\open\Helper\wepay\Prepay;
 use App\Modules\tao\A0\open\Helper\wepay\RefundNotify;
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use App\Modules\tao\Helper\MyMvcHelper;
+use Phalcon\Di\DiInterface;
+use Phalcon\Http\Request;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
@@ -22,6 +26,17 @@ use Phax\Utils\MyData;
  * 简化应用集成微信支付相关操作
  * @property string $notify_path 订单支持成员回调路径，示例 `/api/p/house/order/notify/` 注意最后的 / 是必须的，因为要拼接 appid/mchid
  * @property string $refund_notify_path 退款地址路径，示例 '/api/p/house/order/notify-refund/'
+ * @property MyMvcHelper $vv
+ * @property MyOpenMvcHelper $openMvcHelper
+ * @property Request $request
+ * @property array $requestData
+ * @method int getUserId()
+ * @method DiInterface getDI()
+ * @method array successPagination()
+ * @method mixed getRequestQueryInt()
+ * @method void mustPostMethod();
+ * @method string getAppid()
+ * @method string getMchid()
  */
 trait WepayOrder
 {
@@ -210,10 +225,10 @@ trait WepayOrder
                 $this->paySuccess($gOrder);
             });
         } catch (\Exception $e) {
-            Logger::error('wechat notify failed:' . $e->getMessage());
-            if (!empty($gOrder)) {
-                Logger::info($gOrder->toArray());
-            }
+            Logger::error('微信支付回调处理失败', [
+                'gOrder' => $gOrder?->toArray(),
+                'err' => $e->getMessage(),
+            ]);
             // 已经无法处理，以后使用订单查询处理
             $this->vv->responseHelper()->send([
                 'code' => 'SUCCESS',
@@ -371,7 +386,7 @@ trait WepayOrder
     {
         $this->autoResponse = false;
         if (IS_DEBUG) {
-            Logger::info('接收退款通知:' . $outTradeNo);
+            Logger::debug('接收退款通知:' . $outTradeNo);
         }
         $helper = $this->getWechatPayRefundNotifyHelper($outTradeNo);
         return $helper->response(function (OpenOrder $order) {

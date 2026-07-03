@@ -9,6 +9,7 @@ use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Models\SystemUserBind;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
 class UserService
@@ -339,7 +340,6 @@ class UserService
      * @param SystemUser $user
      * @param string $bind UserBindPlatform::Xxx = gmail|tiktokMini|wechatMini|wechatOfficial
      * @return void
-     * @throws \Exception
      */
     public function addBinds(SystemUser $user, string $bind): void
     {
@@ -350,7 +350,11 @@ class UserService
         $bindModel->user_id = $user->id;
         $bindModel->platform = $bind;
         if (!$bindModel->save()) {
-            throw new \Exception('绑定失败：' . json_encode($bindModel->getMessages()));
+            throw new LogException('绑定账号失败', [
+                'errors' => $bindModel->getErrors(),
+                'bind' => $bind,
+                'user' => $user->toArray(),
+            ]);
         }
     }
 
@@ -406,13 +410,15 @@ class UserService
         }
         $user->head_img = $profile->photoURL;
         $user->nickname = $profile->displayName;
-        $this->addBinds($user, Data::Gmail);
+        $this->addBinds($user, UserBindPlatform::Gmail);
 
         if ($user->save()) {
             return $user;
         } else {
-            Logger::error('注册账号失败', $user->getErrors());
-            throw new BusinessException(__('auth.register_fail','注册账号失败'));
+            throw new LogException(__('auth.register_fail', '注册账号失败'), [
+                'errors' => $user->getErrors(),
+                'data' => $user->toArray(),
+            ]);
         }
     }
 
@@ -440,14 +446,14 @@ class UserService
         }
         if ($this->mvc->validate()->isEmail($account)) {
             $condition = ['email' => $account, 'email_valid' => 1];
-        } elseif ($this->mvc->validate()->isPhone($account)){
+        } elseif ($this->mvc->validate()->isPhone($account)) {
             $condition = ['phone' => $account, 'phone_valid' => 1];
         } else {
             throw new BusinessException('账号格式不正确');
         }
         if ($user = SystemUser::queryBuilder($this->mvc->getDi())
-            ->where($condition)->findFirstModel()){
-            $this->checkPassword($password,$user);
+            ->where($condition)->findFirstModel()) {
+            $this->checkPassword($password, $user);
             $this->activeStatus($user);
             return $user;
         } else {

@@ -30,9 +30,10 @@ class Logger
      *  "trace":["#0 /vendor/file.php(123)","#1 /src/main.php(45)"]}
      *
      * @param \Throwable $e
+     * @param array $context 更多补充信息
      * @return void
      */
-    public static function exception(\Throwable $e): void
+    public static function exception(\Throwable $e, array $context = []): void
     {
         try {
             // 请求上下文
@@ -53,8 +54,13 @@ class Logger
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'request' => $request,
-                'trace' => explode("\n", $e->getTraceAsString()),
             ];
+
+            // 记录上下文信息
+            if (!empty($context)) {
+                $data['context'] = $context;
+            }
+            $data['trace'] = explode("\n", $e->getTraceAsString());
             // JsonFormatter 会自动注入 time 和 level 字段
             self::logger()->error(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         } catch (\Throwable $inner) {
@@ -71,7 +77,6 @@ class Logger
      * 只记录消息到日志中
      * @param ...$args
      * @return void
-     * @throws \Phalcon\Logger\Exception
      */
     public static function info(...$args): void
     {
@@ -97,7 +102,6 @@ class Logger
      * 只记录警告级别信息
      * @param ...$args
      * @return void
-     * @throws \Phalcon\Logger\Exception
      */
     public static function warning(...$args): void
     {
@@ -112,50 +116,35 @@ class Logger
      * 只记录错误级别信息
      * @param ...$args
      * @return void
-     * @throws \Phalcon\Logger\Exception
      */
     public static function error(...$args): void
     {
+        try {
+            if (count($args) === 1) {
+                self::logger()->error(print_r($args[0], true));
+            } else {
+                self::logger()->error(print_r($args, true));
+            }
+        } catch (\Throwable $inner) {
+            error_log(
+                '[Logger::error FAILED] ' . get_class($inner) . ': ' . $inner->getMessage()
+                . ' at ' . $inner->getFile() . '(' . $inner->getLine() . ')'
+            );
+        }
+    }
+
+
+    /**
+     * 在日志中记录普通信息
+     * @param ...$args
+     * @return void
+     */
+    public static function notice(...$args): void
+    {
         if (count($args) === 1) {
-            self::logger()->error(print_r($args[0], true));
+            self::logger()->notice(print_r($args[0], true));
         } else {
-            self::logger()->error(print_r($args, true));
-        }
-    }
-
-    /**
-     * 记录异常详细的栈信息，并重新抛出 $message 异常
-     * @param string $message 需要返回给客户端的信息，并重新 throw
-     * @param \Exception|null $e 需要记录的异常
-     * @throws \Exception
-     */
-    public static function wrap(string $message, \Exception|null $e, ...$args)
-    {
-        if (!is_null($e)) {
-            self::logger()->error($e->getMessage());
-            self::logger()->error($e->getTraceAsString());
-        }
-        self::error($args);
-        throw new \Exception($message);
-    }
-
-    /**
-     * @param string $message 要返回给客户端显示的信息
-     * @param string|array $logMsg 需要记录到日志的信息
-     * @param bool $throwMessage 是否再次抛出 $message 异常
-     * @throws \Exception
-     */
-    public static function message(string $message, array|string $logMsg, bool $throwMessage = true): string
-    {
-        if (is_array($logMsg)) {
-            self::logger()->error($message . PHP_EOL . join(PHP_EOL, $logMsg));
-        } else {
-            self::logger()->error($message . PHP_EOL . $logMsg);
-        }
-        if ($throwMessage) {
-            throw new \Exception($message);
-        } else {
-            return $message;
+            self::logger()->notice(print_r($args, true));
         }
     }
 }

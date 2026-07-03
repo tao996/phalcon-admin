@@ -5,7 +5,7 @@ namespace App\Modules\tao\A0\open\Service;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenConfig;
 use Phalcon\Cache\Exception\InvalidArgumentException;
-use Phax\Support\Logger;
+use Phax\Support\Exception\LogException;
 
 
 class OpenConfigService
@@ -40,7 +40,7 @@ class OpenConfigService
             ->findColumn('name,value');
         $rows = array_column($data, 'value', 'name');
         if (!$this->cache->set(self::cacheKey, $rows)) {
-            Logger::error('cache open.config failed:' . __CLASS__);
+            throw new LogException('更新 open 模块缓存失败');
         }
         return $rows;
     }
@@ -50,7 +50,7 @@ class OpenConfigService
         $data = $this->rows();
 
         if (!empty($data[$name])) {
-            if (trim($data[$name]) == "0"){
+            if (trim($data[$name]) == "0") {
                 return $default;
             }
             return $data[$name];

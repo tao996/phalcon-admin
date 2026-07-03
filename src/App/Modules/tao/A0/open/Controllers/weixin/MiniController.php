@@ -4,8 +4,8 @@ namespace App\Modules\tao\A0\open\Controllers\weixin;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\Models\SystemUser;
-use Phax\Support\Exception\BlankException;
 
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -19,7 +19,6 @@ class MiniController extends BaseOpenMiniController
      * @method POST
      * @query {appid:小程序appid}
      * @body {code:login接口返回的登录凭证,userInfo:{avatarUrl:头像,nickName:昵称}} 其它参数如 encryptedData,iv,rawData,signature 不是必须的
-     * @throws \Exception
      */
     public function code2SessionAction()
     {
@@ -29,18 +28,21 @@ class MiniController extends BaseOpenMiniController
         $this->vv->validate()->check($this->requestData, ['code' => 'required']);
         $code = $this->requestData['code'];
         if (empty($code)) {
-            throw new \Exception('code 参数不能为空');
+            throw new BusinessException('code 参数不能为空');
         }
         $appid = $this->getAppid();
         $app = $this->openMvcHelper->appService()->getWithAppid($appid); // 应用配置信息
         $data = $this->openMvcHelper->miniAppHelper()->code2Session($app, $code); // session_key, openid, unionid
         $baseInfo = $this->openMvcHelper->userService()->save($app, $data, $this->requestData['userInfo'] ?? []);
-        Logger::debug($data, $baseInfo);
+        if (IS_DEBUG) {
+            Logger::debug('code2SessionAction',$data, $baseInfo);
+        }
+
         // token-secret
         $user = new SystemUser();
         $user->id = $baseInfo['user_id'];
-        $baseInfo['ts'] = $this->tryGetLoginAuth()->getAdapter()->saveUser($user,[
-            'EX'=> 604800, // 24*3600*7 = 7 天
+        $baseInfo['ts'] = $this->tryGetLoginAuth()->getAdapter()->saveUser($user, [
+            'EX' => 604800, // 24*3600*7 = 7 天
         ]);
         $baseInfo['expired_at'] = time() + 604800 - 60;  // 过期时间
         return $baseInfo; // [id, user_id, nickname,avatar_url, openid, ts]
@@ -50,7 +52,6 @@ class MiniController extends BaseOpenMiniController
      * 获取不限制的小程序码
      * https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/qrcode-link/qr-code/getUnlimitedQRCode.html
      * @return void
-     * @throws \Exception
      */
     public function qRCodeAction()
     {

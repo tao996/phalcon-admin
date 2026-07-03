@@ -9,7 +9,8 @@ use App\Modules\tao\Models\SystemSmsCode;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\sdk\EmailDriverInterface;
 use App\Modules\tao\sdk\SmsDriverInterface;
-use Phax\Support\Logger;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 
 class SmsCodeService
 {
@@ -42,7 +43,7 @@ class SmsCodeService
         if (isset(static::$code[$kind])) {
             return static::$code[$kind];
         } else {
-            throw new \Exception('没有找到符合条件的短信模板:' . $kind);
+            throw new BusinessException('没有找到符合条件的短信模板:' . $kind);
         }
     }
 
@@ -64,7 +65,6 @@ class SmsCodeService
      * 获取最近的发送
      * @param array $conditions
      * @return SystemSmsCode|null
-     * @throws \Exception
      */
     public function getLast(array $conditions): SystemSmsCode|null
     {
@@ -78,7 +78,6 @@ class SmsCodeService
      * 统计当天发送的数量
      * @param array $conditions
      * @return int
-     * @throws \Exception
      */
     public function todayCount(array $conditions): int
     {
@@ -96,7 +95,6 @@ class SmsCodeService
      * @param $rst
      * @return bool
      * @throws \Phalcon\Logger\Exception
-     * @throws \Exception
      */
     public function updateSendStatus(SmsDriverInterface|EmailDriverInterface $engine, SystemSmsCode $code, $rst): bool
     {
@@ -104,13 +102,13 @@ class SmsCodeService
         if ($engine->isSendSuccess($rst)) {
             $code->send_status = SystemSmsCode::SendStatusSuccess;
             if ($code->save() === false) {
-                Logger::message('更新验证码发送成功状态错误:' . $code->id, $code->getErrors());
+                throw new LogException('更新验证码发送成功状态错误', ['id' => $code->id, 'err' => $code->getErrors()]);
             }
             return true;
         } else {
             $code->send_status = SystemSmsCode::SendStatusFailed;
             if ($code->save() === false) {
-                Logger::message('更新验证码发送失败状态错误:' . $code->id, $code->getErrors());
+                throw new LogException('更新验证码发送失败状态错误', ['id' => $code->id, 'err' => $code->getErrors()]);
             }
             return false;
         }
@@ -118,12 +116,11 @@ class SmsCodeService
 
     /**
      * 比较用户提交的验证码是否正确
-     * @throws \Exception
      */
     public function compare(SystemSmsCode $code, string $verCode): bool
     {
         if (empty($verCode)) {
-            throw new \Exception('必须填写验证码');
+            throw new BusinessException('必须填写验证码');
         }
         if ($code->code !== $verCode) {
             $code->num += 1;
@@ -132,7 +129,7 @@ class SmsCodeService
                 $code->status = SystemSmsCode::StatusDone;
             }
             if ($code->save() === false) {
-                Logger::message('更新验证码错误次数失败:' . $code->id, $code->getMessages());
+                throw new LogException('更新验证码错误次数失败', ['id' => $code->id, 'err' => $code->getMessages()]);
             }
             return false;
         }
@@ -204,7 +201,6 @@ class SmsCodeService
      * @param string $account 账号
      * @return bool
      * @throws \Phalcon\Logger\Exception
-     * @throws \Exception
      */
     public function sendRegisterCode(string $account, array $config = []): bool
     {
@@ -223,7 +219,10 @@ class SmsCodeService
 
         $count = self::todayCount($condition);
         if ($count > self::$maxRegisterCodeNum) {
-            throw new \Exception('每天至多发送' . self::$maxRegisterCodeNum . '次注册验证码');
+            throw new LogException('每天至多发送' . self::$maxRegisterCodeNum . '次注册验证码', [
+                'condition' => $condition,
+                'err' => '验证码发送次数达到上限'
+            ]);
         }
 
         $mSer = new MessageHelper(empty($config) ? self::smsConfig() : $config);
@@ -250,7 +249,7 @@ class SmsCodeService
     public function insertOne(array $condition, MyMvcHelper $mvc = null): SystemSmsCode
     {
         if (empty($condition['kind']) || empty($condition['receiver'])) {
-            throw new \Exception('必须指定 kind 和 receiver');
+            throw new BusinessException('必须指定 kind 和 receiver');
         }
         $verifyCode = rand(1000, 9999);
         $code = new SystemSmsCode();
@@ -270,7 +269,10 @@ class SmsCodeService
                 : SystemSmsCode::ReceiverKindPhone,
         ]));
         if ($code->create() === false) {
-            throw new \Exception($code->getFirstError());
+            throw new LogException('更新验证码记录错误', [
+                'condition' => $condition,
+                'err' => $code->getFirstError()
+            ]);
         }
         return $code;
     }
@@ -286,7 +288,6 @@ class SmsCodeService
      * @param string $account 新的账号
      * @return bool
      * @throws \Phalcon\Logger\Exception
-     * @throws \Exception
      */
     public function sendChangeAccountCode(int $userId, string $account, array $config = [])
     {
@@ -304,7 +305,7 @@ class SmsCodeService
 
         $count = self::todayCount($condition);
         if ($count >= self::$maxChangeAccountCodeNum) {
-            throw new \Exception('每天至多发送' . self::$maxChangeAccountCodeNum . '次账号修改验证码');
+            throw new BusinessException('每天至多发送' . self::$maxChangeAccountCodeNum . '次账号修改验证码');
         }
         $condition['receiver'] = $account;
         $mSer = $this->getMessageHelper($config);
@@ -346,19 +347,17 @@ class SmsCodeService
      * 将验证码标记为已使用
      * @param SystemSmsCode $code
      * @return void
-     * @throws \Exception
      */
     public function done(SystemSmsCode $code): void
     {
         $code->status = SystemSmsCode::StatusDone;
         if ($code->save() === false) {
-            Logger::message('更新验证码状态错误', $code->getErrors());
+            throw new LogException('更新验证码状态错误', $code->getErrors());
         }
     }
 
     /**
      * 发送登录验证码
-     * @throws \Exception
      */
     public function sendLoginCode(string $account, array $config = []): bool
     {
@@ -377,7 +376,7 @@ class SmsCodeService
 
         $count = $this->todayCount($condition);
         if ($count > self::$maxSigninCodeNum) {
-            throw new \Exception('每天至多发送' . self::$maxSigninCodeNum . '次登录验证码');
+            throw new LogException('每天至多发送' . self::$maxSigninCodeNum . '次登录验证码', $condition);
         }
 
         $mSer = new MessageHelper(empty($config) ? self::smsConfig() : $config);
@@ -403,7 +402,6 @@ class SmsCodeService
 
     /**
      * 登录验证码校验
-     * @throws \Exception
      */
     public function checkLoginCode(string $account, string $verCode): SystemSmsCode
     {
@@ -415,12 +413,11 @@ class SmsCodeService
      * @param $email
      * @param array $config
      * @return bool
-     * @throws \Exception
      */
     public function sendForgotPasswordEmail($email, array $config = []): bool
     {
         if (!$this->mvc->validate()->isEmail($email)) {
-            throw new \Exception('不是有一个有效电子邮箱地址');
+            throw new BusinessException('不是有一个有效电子邮箱地址');
         }
         if ($row = SystemUser::queryBuilder($this->mvc->getDi())
             ->where(['email' => $email, 'email_valid' => 1])
@@ -434,7 +431,7 @@ class SmsCodeService
 
             $count = $this->todayCount($condition);
             if ($count > self::$maxResetPasswordCodeNum) {
-                throw new \Exception('每天至多发送' . self::$maxResetPasswordCodeNum . '次重置密码邮件');
+                throw new LogException('每天至多发送' . self::$maxResetPasswordCodeNum . '次重置密码邮件', $condition);
             }
 
             $mSer = new MessageHelper(empty($config) ? self::smsConfig() : $config);
@@ -460,7 +457,7 @@ HTML;
                 ->send();
             return $this->updateSendStatus($engine, $code, $rst);
         } else {
-            throw new \Exception('没有找到符合条件的账号');
+            throw new BusinessException('没有找到符合条件的账号');
         }
     }
 
@@ -469,26 +466,25 @@ HTML;
      * @param int $id 记录 ID
      * @param string $sign 签名
      * @return SystemSmsCode
-     * @throws \Exception
      */
     public function checkForgotPasswordEmail(int $id, string $sign): SystemSmsCode
     {
         if ($id < 1) {
-            throw new \Exception('验证码 ID 不能为空');
+            throw new BusinessException('验证码 ID 不能为空');
         }
         /**
          * @var $code SystemSmsCode
          */
         $code = SystemSmsCode::findFirst($id);
         if (!$code || !$code->isActive(3600 * 2)) {
-            throw new \Exception('重置密码验证码不存在或过期');
+            throw new BusinessException('重置密码验证码不存在或过期');
         }
 
         if ($sign !== md5($code->code . $code->user_id . $this->mvc->config()->path('app.key', 'tao-default-secret'))) {
-            throw new \Exception('签名参数不匹配');
+            throw new BusinessException('签名参数不匹配');
         }
         if ($code->user_id < 1) {
-            throw new \Exception('验证码所绑定用户丢失');
+            throw new BusinessException('验证码所绑定用户丢失');
         }
         return $code;
     }

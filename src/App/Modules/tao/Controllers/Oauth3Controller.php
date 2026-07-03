@@ -6,7 +6,7 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\sdk\SdkHelper;
 use Hybridauth\Hybridauth;
 use Phax\Support\Exception\BlankException;
-use Phax\Support\Logger;
+use Phax\Support\Exception\LogException;
 
 class Oauth3Controller extends BaseController
 {
@@ -66,7 +66,9 @@ class Oauth3Controller extends BaseController
             $userProfile = $adapter->getUserProfile();
             $adapter->disconnect();
         } catch (\Exception $e) {
-            return $this->error(Logger::message($driver . ' 授权错误，请查看日志', $e->getMessage(), false));
+            throw new LogException('授权失败，请稍后再试', [
+                'config' => $config,
+            ], previous: $e);
         }
 
         $user = $this->vv->userService()->addUserProfile($userProfile);

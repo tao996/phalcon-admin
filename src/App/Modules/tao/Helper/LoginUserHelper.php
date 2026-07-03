@@ -27,6 +27,12 @@ class LoginUserHelper
     {
     }
 
+    /**
+     * 保存登录用户的信息
+     * @param SystemUser|null $user 如果为 null 则异常
+     * @return $this
+     * @throws \Exception
+     */
     public function resetUser(SystemUser|null $user): static
     {
         if (empty($user) || $user->id < 1) {

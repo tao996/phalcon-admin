@@ -22,16 +22,17 @@ use Phax\Support\Logger;
 class LogException extends BusinessException
 {
     /**
+     * 同时记录自身堆栈信息
      * @param string $message  向前端展示的错误消息
      * @param array  $context  补充上下文（记录到日志）
      * @param int    $code     错误码
      * @param \Throwable|null $previous 原始异常链
      */
     public function __construct(
-        string     $message = '',
-        private array $context = [],
-        int        $code = 0,
-        ?\Throwable $previous = null
+        string                 $message = '',
+        private readonly array $context = [],
+        int                    $code = 0,
+        ?\Throwable            $previous = null
     ) {
         parent::__construct($message, $code, $previous);
         $this->log();
@@ -52,17 +53,7 @@ class LogException extends BusinessException
     {
         try {
             // 记录异常堆栈
-            Logger::exception($this);
-
-            // 记录上下文信息
-            if (!empty($this->context)) {
-                Logger::info(
-                    sprintf(
-                        '[LogException] context: %s',
-                        json_encode($this->context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                    )
-                );
-            }
+            Logger::exception($this, $this->context);
         } catch (\Throwable) {
             // 日志异常静默处理，防止循环出错
         }

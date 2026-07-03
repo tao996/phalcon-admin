@@ -15,6 +15,7 @@ use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\SmsCodeService;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
 /**
@@ -27,9 +28,10 @@ class AccountMigrateAction
 
     public function __construct(
         public MyMvcHelper $helper,
-        public int $user_id,
-        public string $appid,
-    ) {
+        public int         $user_id,
+        public string      $appid,
+    )
+    {
         $this->smsCodeService = $this->helper->smsCodeService();
     }
 
@@ -121,7 +123,9 @@ class AccountMigrateAction
                 // 1. 将当前的应用 appid+user_id， open_user_openid/open_user_unionid 等账号迁移到新的账号 $user->id 上；
                 // 2. 将当前应用的数据迁移到指定账户下
                 if ($this->appid && $this->user_id) {
-                    Logger::info('账号迁移', ['user_id' => $this->user_id, 'account' => $account, 'type' => $type],['to_user_id'=>$user->id]);
+                    if (IS_DEBUG) {
+                        Logger::debug('准备账号迁移', ['user_id' => $this->user_id, 'account' => $account, 'type' => $type], ['to_user_id' => $user->id]);
+                    }
                     OpenUserOpenid::layer()->update(['user_id' => $user->id], [
                         'appid' => $this->appid,
                         'user_id' => $this->user_id,
@@ -138,7 +142,11 @@ class AccountMigrateAction
                 $user = $this->helper->loginUserHelper()->user();
                 $user->addAccount($account, $type);
                 if (!$user->save()) {
-                    throw new \Exception($user->getFirstError());
+                    throw new LogException('更新账号关联失败', [
+                        'errors' => $user->getErrors(),
+                        'user' => $user->toArray(),
+                        'data' => ['account' => $account, 'type' => $type]
+                    ]);
                 }
             }
             $this->smsCodeService->done($codeModel);

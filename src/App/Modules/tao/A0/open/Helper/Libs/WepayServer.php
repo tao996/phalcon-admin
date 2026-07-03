@@ -4,6 +4,8 @@ namespace App\Modules\tao\A0\open\Helper\Libs;
 
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use EasyWeChat\Pay\Message;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
 /**
@@ -38,10 +40,10 @@ class WepayServer
     private function checkClientResponseData(string $title, array $responseData, mixed $postData): void
     {
         if (!empty($responseData['code']) && !empty($responseData['message'])) {
-            Logger::error($title, 'wechat request failed:', $postData, $responseData);
             throw new \Exception($responseData['message']);
+        } elseif (IS_DEBUG) {
+            Logger::debug($title, $postData, $responseData);
         }
-        Logger::debug($title, $postData, $responseData);
     }
 
     /**
@@ -61,13 +63,18 @@ class WepayServer
             // 验证返回值签名
             $app->getValidator()->validate($response->toPsrResponse());
         } catch (\Exception $e) {
-            Logger::wrap('wechat jsapi response sign failed', $e, $data);
+            throw new LogException('微信 jsapi 支付签名验证失败', [
+                'app' => $app->getConfig()->all(),
+                'postData' => $postData,
+                'data' => $data
+            ], previous: $e);
         }
         if (!isset($data['prepay_id'])) {
-            if (isset($data['message'])) {
-                throw new \Exception($data['message']);
-            }
-            throw new \Exception('创建订单时生成 prepayId 错误');
+            throw new LogException('创建订单时生成 prepayId 错误',
+                [
+                    'app' => $app->getConfig()->all(), 'postData' => $postData, 'data' => $data,
+                ]);
+
         }
         return $data;
 //        $utils = $app->getUtils();
@@ -116,14 +123,17 @@ class WepayServer
 
             )
              */
-            Logger::debug('wechatPay.notify', $data); // 记录响应信息到日志中
             try {
                 // 推送消息签名验证
                 $app->getValidator()->validate($app->getRequest());
                 // 验证通过，其它业务
                 $callback($data);
             } catch (\Exception $e) {
-                Logger::error('支持通知验证失败', $e->getMessage());
+                Logger::error('微信支付推送消息通知验证失败', [
+                    'data' => $data,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTrace(),
+                ]);
             }
             return $next($message);
         });
@@ -140,24 +150,21 @@ class WepayServer
     public function refundNotify(callable $callback)
     {
         if (IS_DEBUG) {
-            Logger::info('准备处理微信退款通知');
+            Logger::debug('准备处理微信退款通知');
         }
         $app = $this->getApplication();
         $server = $app->getserver();
         $server->handleRefunded(function (Message $message, \Closure $next) use ($callback, $app) {
             $data = $message->toArray();
-            if (IS_DEBUG) {
-                Logger::info('wechatPay.refundNotify 数据', $data); // 记录响应日志
-            }
             try {
                 $app->getValidator()->validate($app->getRequest());
-                // 验证通过，其它业务
-                if (IS_DEBUG){
-                    Logger::info('退款通知数据验证通过，准备处理回调');
-                }
                 $callback($data);
             } catch (\Exception $e) {
-                Logger::error('退款回调验证失败', $e->getMessage());
+                Logger::error('退款回调验证失败', [
+                    'data' => $data,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTrace(),
+                ]);
             }
             // $message->out_trade_no 获取商户订单号
             // $message->payer['openid'] 获取支付者 openid
@@ -184,12 +191,11 @@ class WepayServer
      * 订单查询
      * @param string $outTradeNo
      * @return mixed
-     * @throws \Exception
      */
     public function queryByOutTradeNo(string $outTradeNo)
     {
         if (empty($outTradeNo)) {
-            throw new \Exception('订单号查询时 out_trade_no is empty');
+            throw new BusinessException('订单号查询时 out_trade_no is empty');
         }
         $app = $this->getApplication();
         $response = $app->getClient()->get("/v3/pay/transactions/out-trade-no/{$outTradeNo}", [
@@ -198,9 +204,15 @@ class WepayServer
         $data = $response->toArray(false);
         $this->checkClientResponseData('订单商户号查询:', $data, ['out_trade_no' => $outTradeNo]);
         try {
+            /**
+             * @var \EasyWeChat\Kernel\HttpClient\Response $response
+             */
             $app->getValidator()->validate($response->toPsrResponse());
         } catch (\Exception $e) {
-            Logger::wrap('wechat query by out_trade_no response sign failed', $e, $data);
+            throw new LogException('查询订单时验证签名失败', [
+                'mch' => $this->mchid, 'out_trade_no' => $outTradeNo,
+                'data' => $data
+            ], previous: $e);
         }
         return $data;
     }
@@ -214,7 +226,7 @@ class WepayServer
     public function queryByTransactionId(string $transactionId)
     {
         if (empty($transactionId)) {
-            throw new \Exception('订单号查询时 transaction_id is empty');
+            throw new BusinessException('订单号查询时 transaction_id is empty');
         }
         $app = $this->getApplication();
         $response = $app->getClient()->get("/v3/pay/transactions/id/{$transactionId}", [
@@ -223,9 +235,15 @@ class WepayServer
         $data = $response->toArray(false);
         $this->checkClientResponseData('订单订单号查询:', $data, ['transaction_id' => $transactionId]);
         try {
+            /**
+             * @var \EasyWeChat\Kernel\HttpClient\Response $response
+             */
             $app->getValidator()->validate($response->toPsrResponse());
         } catch (\Exception $e) {
-            Logger::wrap('wechat query by transaction_id response sign failed', $e, $data);
+            throw new LogException('查询订单时验证签名失败', [
+                'mch' => $this->mchid, 'transaction_id' => $transactionId,
+                'data' => $data
+            ], previous: $e);
         }
         return $data;
     }
@@ -239,16 +257,22 @@ class WepayServer
     public function refundQuery(string $outRefundNo)
     {
         if (empty($outRefundNo)) {
-            throw new \Exception('退款单号查询时 out_refund_no is empty');
+            throw new BusinessException('退款单号查询时 out_refund_no is empty');
         }
         $app = $this->getApplication();
         $response = $app->getClient()->get("/v3/refund/domestic/refunds/{$outRefundNo}");
         $data = $response->toArray(false);
         $this->checkClientResponseData('退款单号查询:', $data, ['out_refund_no' => $outRefundNo]);
         try {
+            /**
+             * @var \EasyWeChat\Kernel\HttpClient\Response $response
+             */
             $app->getValidator()->validate($response->toPsrResponse());
         } catch (\Exception $e) {
-            Logger::wrap('wechat refund query by out_refund_no response sign failed', $e, $data);
+            throw new LogException('查询退款时验证签名失败', [
+                'mch' => $this->mchid, 'out_refund_no' => $outRefundNo,
+                'data' => $data
+            ], previous: $e);
         }
         return $data;
     }
@@ -257,25 +281,24 @@ class WepayServer
      * 退款，注意退款金额 amount 和 退款账号
      * @link https://pay.weixin.qq.com/docs/merchant/apis/mini-program-payment/create.html
      * @param array{transaction_id:string,out_trade_no:string,out_refund_no:string,reason:string,notify_url:string,amount:array{refund:int,total:int,currency:string} $postData
-     * @throws \Exception
      * @return array
      */
     public function refund(array $postData)
     {
         if (empty($postData['transaction_id']) || empty($postData['out_trade_no'])) {
-            throw new \Exception('退款时订单号和交易单号不能同时为空');
+            throw new BusinessException('退款时订单号和交易单号不能同时为空');
         }
         if (empty($postData['out_refund_no'])) {
-            throw new \Exception('退款单号不能为空');
+            throw new BusinessException('退款单号不能为空');
         }
         if (empty($postData['amount'])) {
-            throw new \Exception('退款金额配置项为空');
+            throw new BusinessException('退款金额配置项为空');
         }
         if (empty($postData['amount']['refund'])) {
-            throw new \Exception('退款金额不能为空');
+            throw new BusinessException('退款金额不能为空');
         }
         if (empty($postData['amount']['total'])) {
-            throw new \Exception('订单总金额不能为空');
+            throw new BusinessException('订单总金额不能为空');
         }
         if (empty($postData['notify_url'])) {
             $postData['notify_url'] = $this->helper->openUrlHelper()->refundNotifyDemoURL($postData['out_trade_no']);
@@ -291,7 +314,10 @@ class WepayServer
         try {
             $app->getValidator()->validate($response->toPsrResponse());
         } catch (\Exception $e) {
-            Logger::wrap('wechat refund response sign failed', $e, $postData, $data);
+            throw new LogException('退款申请时验证签名失败', [
+                'mch' => $this->mchid, 'postData' => $postData,
+                'data' => $data
+            ], previous: $e);
         }
         return $data;
     }
@@ -305,7 +331,7 @@ class WepayServer
     public function close(string $outTradeNo): void
     {
         if (empty($outTradeNo)) {
-            throw new \Exception('关闭订单时订单号不能为空');
+            throw new BusinessException('关闭订单时订单号不能为空');
         }
         $app = $this->getApplication();
         $app->getClient()->postJson("/v3/pay/transactions/out-trade-no/{$outTradeNo}/close", [

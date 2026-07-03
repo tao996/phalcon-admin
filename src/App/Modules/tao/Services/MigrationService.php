@@ -5,6 +5,8 @@ namespace App\Modules\tao\Services;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemMigration;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
 class MigrationService
@@ -27,7 +29,7 @@ class MigrationService
     public function upgrade(string $version, string $summary, callable $handle): bool
     {
         if (empty($version)) {
-            throw new \Exception('必须指定 version');
+            throw new BusinessException('必须指定 version');
         }
         $tableName = SystemMigration::getObject()->getSource();
         if (!self::versionExits($version)) {
@@ -40,10 +42,10 @@ class MigrationService
             Transaction::pdo(function (\PDO $db) use ($tableName, $params, $handle) {
                 $stmt = $db->prepare('INSERT INTO ' . $tableName . ' (created_at,version,summary) values(?,?,?)');
                 if (!$stmt->execute($params)) {
-                    Logger::message('insert migration record failed', $db->errorInfo());
+                    throw new LogException('添加 migration 记录失败', $db->errorInfo());
                 }
                 if ($db->lastInsertId() < 1) {
-                    throw new \Exception('could not get the lastInsertId when insert migrate record');
+                    throw new LogException('获取最新插入的 id 失败', $db->errorInfo());
                 }
                 $handle($db);
             });

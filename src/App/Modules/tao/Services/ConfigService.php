@@ -5,6 +5,7 @@ namespace App\Modules\tao\Services;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemConfig;
 use Phalcon\Cache\Exception\InvalidArgumentException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
 class ConfigService
@@ -48,7 +49,7 @@ class ConfigService
             $rows[$row['gname'] . '.' . $row['name']] = $row['value'];
         }
         if (!$this->cache->set(self::cacheKey, $rows)) {
-            Logger::error('缓存系统配置信息失败：' . __CLASS__);
+            throw new LogException('缓存系统配置信息失败');
         }
         return $rows;
     }

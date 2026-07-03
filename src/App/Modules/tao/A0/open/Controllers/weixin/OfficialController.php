@@ -40,7 +40,7 @@ class OfficialController extends BaseOpenMiniController
                 $openid = $data['FromUserName'];
 
                 if (IS_DEBUG) {
-                    Logger::info($data);
+                    Logger::debug('接收微信公众号消息', $data);
                 }
 
                 // 事件推送

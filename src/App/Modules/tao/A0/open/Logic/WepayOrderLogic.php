@@ -71,7 +71,7 @@ class WepayOrderLogic
         if (empty($prepayId)) {
             $this->order->status = OpenOrder::StatusDiscard;
             $this->order->save();
-            throw new LogException('订单支付信息丢失，无法继续支付',$this->order->toArray());
+            throw new LogException('订单支付信息丢失，无法继续支付', $this->order->toArray());
         }
         return $this->getWechatPayHelper()->repay($prepayId);
     }
@@ -139,7 +139,11 @@ class WepayOrderLogic
             $this->order->status = OpenOrder::StatusSuccess;
             if ($saveChange) {
                 if (!$this->order->updateColumns(['status', 'transaction_id', 'success_time'])) {
-                    Logger::info('更新订单支持结果数据错误', $this->order->getFirstError(), $this->order->toArray());
+                    throw new LogException('更新订单支持结果数据错误', [
+                        'errors' => $this->order->getErrors(),
+                        'order' => $this->order->toArray(),
+                        'data' => $data,
+                    ]);
                 }
             }
             return true;
@@ -172,16 +176,15 @@ class WepayOrderLogic
      * @link https://pay.weixin.qq.com/docs/merchant/apis/mini-program-payment/create.html
      * @param callable{array} $setPostRefundData
      * @return array{refund_id:string,out_refund_no:string,transation_id:string,out_trade_no:string,channel:string,use_received_account:string,success_time:string,create_time:string,status:string,funds_account:string,amount:array{total:int,refund:int}}
-     * @throws \Exception
      */
     public function refund(callable $setPostRefundData): array
     {
         if ($this->order->isRefunding()) {
-            throw new \Exception('当前订单正在退款中');
+            throw new BusinessException('当前订单正在退款中');
         }
         // 申请退款
         if (IS_DEBUG) {
-            Logger::info('申请退款');
+            Logger::debug('准备申请退款', $this->order->toArray());
         }
         $refundData = $setPostRefundData();
         return $this->getWechatPayHelper()
@@ -206,11 +209,11 @@ class WepayOrderLogic
     public function refundResponse(array $data): bool
     {
         if (IS_DEBUG) {
-            Logger::info('处理订单[' . $this->order->id . ']退款数据', $data);
+            Logger::debug('处理订单[' . $this->order->id . ']退款数据', $data);
         }
         if ($this->order->refund_time > 0) { // 已经处理过退款
             if (IS_DEBUG) {
-                Logger::info('订单[' . $this->order->id . ']已经处理过退款数据:' . $this->order->refund_time);
+                Logger::debug('订单[' . $this->order->id . ']已经处理过退款数据:' . $this->order->refund_time);
             }
             return false;
         }
@@ -228,15 +231,13 @@ class WepayOrderLogic
                 if (!$this->order->updateColumns(
                     ['refund_at', 'refund_id', 'refund_time', 'refund_status', 'refund_amount']
                 )) {
-                    Logger::error(
-                        '更新订单退款结果数据错误',
-                        $this->order->getFirstError(),
-                        $this->order->toArray()
-                    );
-                } else {
-                    if (IS_DEBUG) {
-                        Logger::info('更新订单退款 status=success OK');
-                    }
+                    throw new LogException('更新订单退款失败', [
+                        'err' => $this->order->getFirstError(),
+                        'data' => $data,
+                        'order' => $this->order->toArray()
+                    ]);
+                } elseif (IS_DEBUG) {
+                    Logger::debug('更新订单退款 status=success OK', $data, $this->order->toArray());
                 }
             } else {
                 $this->order->refund_status = MyData::getMapDataByValue(
@@ -245,15 +246,13 @@ class WepayOrderLogic
                 $this->order->refund_amt = $data['amount']['payer_refund']; // 退款用户的金额
 
                 if (!$this->order->updateColumns(['refund_at', 'refund_status', 'refund_id', 'refund_amt'])) {
-                    Logger::info(
-                        '更新订单退款结果数据错误',
-                        $this->order->getFirstError(),
-                        $this->order->toArray()
-                    );
-                } else {
-                    if (IS_DEBUG) {
-                        Logger::info('更新订单退款数据: refund_at|status|id|amt');
-                    }
+                    throw new LogException('更新订单退款数据错误', [
+                        'err' => $this->order->getFirstError(),
+                        'data' => $data,
+                        'order' => $this->order->toArray()
+                    ]);
+                } else if (IS_DEBUG) {
+                    Logger::info('更新订单退款数据: refund_at|status|id|amt', $data, $this->order->toArray());
                 }
             }
             return true;
@@ -264,21 +263,18 @@ class WepayOrderLogic
     /**
      * 关闭订单
      * @return void
-     * @throws \Exception
      */
     public function close()
     {
         $this->getWechatPayHelper()->close($this->order->getOutTradeNo());
     }
 
-    /**
-     * @throws \Exception
-     */
+
     public function closeResponse()
     {
         $this->order->status = OpenOrder::StatusClose;
         if (!$this->order->save()) {
-            Logger::wrap('更新订单关闭状态失败', null, $this->order->getFirstError());
+            throw new LogException('更新订单关闭状态失败', $this->order->toArray());
         }
     }
 

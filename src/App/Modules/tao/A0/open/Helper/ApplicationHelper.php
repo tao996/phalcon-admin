@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Helper;
 
 use App\Modules\tao\sdk\SdkHelper;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -26,7 +27,7 @@ readonly class ApplicationHelper
     private function tiktokSDK(): void
     {
         static $unload = true;
-        if ($unload){
+        if ($unload) {
             $unload = false;
             loader()
                 ->addNamespace('EasyTiktok', SdkHelper::PATH, 'easytiktok/src')
@@ -57,10 +58,7 @@ readonly class ApplicationHelper
             $app->setCache($cache);
             return $app;
         } catch (\Exception $e) {
-            if (IS_DEBUG) {
-                prettyException($e);
-            }
-            Logger::wrap('Tiktok 小程序配置失败:' . $app['appid'], $e);
+            throw new LogException('Tiktok 小程序配置失败', ['app'=>$app],previous: $e);
         }
     }
 
@@ -95,10 +93,9 @@ readonly class ApplicationHelper
             $app->setCache($cache);
             return $app;
         } catch (\Exception $e) {
-            if (IS_DEBUG) {
-                prettyException($e);
-            }
-            Logger::wrap('微信公众号配置失败:' . $appid, $e);
+            throw new LogException('微信公众号配置失败', [
+                'app' => $wa
+            ], previous: $e);
         }
     }
 
@@ -152,18 +149,17 @@ readonly class ApplicationHelper
      * 获取微信小程序
      * @param array|string $app 小程序配置，或者小程序 appid
      * @return MiniApplication
-     * @throws \Exception
      */
     public function getMini(array|string $app): MiniApplication
     {
         if (is_string($app)) {
             $app = $this->helper->appService()->getWithAppid($app);
         }
-        MyData::mustHasSet($app, ['appid', 'secret','kind'], ['token', 'aes_key']);
+        MyData::mustHasSet($app, ['appid', 'secret', 'kind'], ['token', 'aes_key']);
 
 
         if (!$this->helper->appService()->isMini($app['kind'])) {
-            throw new \Exception('不是小程序 appid');
+            throw new BusinessException('不是小程序 appid');
         }
         try {
             $app = new MiniApplication([
@@ -179,10 +175,9 @@ readonly class ApplicationHelper
             $app->setCache($cache);
             return $app;
         } catch (\Exception $e) {
-            if (IS_DEBUG) {
-                prettyException($e);
-            }
-            Logger::wrap('微信小程序配置失败:' . $app['appid'], $e);
+            throw new LogException('微信小程序配置失败', [
+                'app' => $app,
+            ], previous: $e);
         }
     }
 }

@@ -37,7 +37,12 @@ class LoginCookieAuthAdapter extends LoginAuthAdapter
             $userId = $this->mvc->authRedisData()->getUserId($this->authValue, 'web');
             $data = $this->mvc->authRedisData()->getTokenValue($this->authValue);
             if ($data != 1) {
-                Logger::info('CookieAuth 当前登录凭证不存在或已过期:' . $this->authValue);
+                if (IS_DEBUG) {
+                    Logger::debug('CookieAuth 当前登录凭证不存在或已过期', [
+                        'authValue' => $this->authValue,
+                        'data' => $data
+                    ]);
+                }
                 return null;
             }
 
@@ -49,7 +54,7 @@ class LoginCookieAuthAdapter extends LoginAuthAdapter
         return null;
     }
 
-    public function saveUser(SystemUser $user,array $info = []): mixed
+    public function saveUser(SystemUser $user, array $info = []): mixed
     {
         $token = join(':', [$user->id, 'web', time()]); // 由 3 部分组成
         // 可以设置保存用户的设备信息

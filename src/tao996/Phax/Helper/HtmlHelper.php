@@ -294,7 +294,7 @@ class HtmlHelper
             } elseif (str_ends_with($file, '.js')) {
                 $type = 'js';
             } else {
-                Logger::warning('unknown assets file type for:' . $file);
+                Logger::warning('不被支持的资源文件', ['file' => $file]);
                 return false;
             }
         }
@@ -328,7 +328,10 @@ class HtmlHelper
                 echo '</script>';
             }
         } else {
-            Logger::warning('include invalid assets type for:' . $file);
+            Logger::warning('不被支持的资源文件类型', [
+                'file' => $file,
+                'type' => $type
+            ]);
             return false;
         }
         $this->hasImports[] = $file;

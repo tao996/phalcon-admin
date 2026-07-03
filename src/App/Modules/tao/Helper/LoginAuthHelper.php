@@ -18,7 +18,7 @@ class LoginAuthHelper
 
     /**
      * 设置登录验证方式
-     * @param LoginAuthAdapter|null|string $authAdapter
+     * @param LoginAuthAdapter|null|string $authAdapter 如果为 null 则根据环境自动判断；如果为 string 则为类名；
      * @throws \Exception
      */
     public function setAuthAdapter(LoginAuthAdapter|null|string $authAdapter = null): void
@@ -38,9 +38,6 @@ class LoginAuthHelper
         $this->authAdapter->data();
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getAdapter(): LoginAuthAdapter
     {
         if (empty($this->authAdapter)) {
@@ -63,17 +60,11 @@ class LoginAuthHelper
             return;
         }
         if (is_null($this->user)) {
-            try {
-                if ($user = $this->authAdapter->getUser()) {
-                    $this->mvc->loginUserHelper()->resetUser($user);
-                    $this->user = $user;
-                } else {
-                    $this->user = new SystemUser();
-                }
-            } catch (\Exception $e) {
-                if (IS_DEBUG) {
-                    throw $e;
-                }
+            if ($user = $this->authAdapter->getUser()) {
+                $this->mvc->loginUserHelper()->resetUser($user);
+                $this->user = $user;
+            } else {
+                $this->user = new SystemUser(); // 一个匿名用户
             }
         }
     }

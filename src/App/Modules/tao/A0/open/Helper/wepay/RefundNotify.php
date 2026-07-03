@@ -7,6 +7,7 @@ use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
 /**
@@ -50,21 +51,18 @@ class RefundNotify
         if ($logic->refundResponse($data)) {
             if (is_callable($success)) {
                 try {
-                    if (IS_DEBUG){
-                        Logger::info('准备处理退款业务逻辑');
-                    }
                     call_user_func($success, $this->order);
                 } catch (\Exception $e) {
-                    Logger::error('退款回调错误', [
-                        'id' => $this->order->id,
-                        'message' => $e->getMessage()
-                    ]);
+                    throw new LogException('退款回调处理错误', [
+                        'data' => $data,
+                        'order' => $this->order->toArray(),
+                    ], previous: $e);
                 }
+            } elseif (IS_DEBUG) {
+                Logger::debug('不需要处理退款 handleRefund', $data);
             }
-        } else {
-            if (IS_DEBUG){
-                Logger::info('不需要处理退款 handleRefund');
-            }
+        } elseif (IS_DEBUG) {
+            Logger::debug('不需要处理已退款的订单', $data);
         }
     }
 
