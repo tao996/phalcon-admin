@@ -140,17 +140,18 @@ class SmsCodeService
      * 检查是否是一个合法的接收账号
      * @param string $receiver 接收账号
      * @return bool 是否为 email账号
-     * @throws \Exception 如果不是手机号或者电子邮箱
      */
     public function mustReceiver(string $receiver): bool
     {
         if (empty($receiver)) {
-            throw new \Exception('接收账号不能为空');
+            throw new BusinessException('接收账号不能为空');
         }
         $isPhone = $this->mvc->validate()->isPhone($receiver);
         $isEmail = $this->mvc->validate()->isEmail($receiver);
         if (!$isPhone && !$isEmail) {
-            throw new \Exception('只支持手机号或电子邮箱');
+            throw new BusinessException('只支持手机号或电子邮箱', [
+                'receive' => $receiver,
+            ]);
         }
         return $isEmail;
     }
@@ -161,12 +162,11 @@ class SmsCodeService
      * @param string $verCode
      * @param string $kind
      * @return SystemSmsCode
-     * @throws \Exception
      */
     public function checkCode(string $account, int $userId, string $kind, string $verCode): SystemSmsCode
     {
         if (empty($verCode)) {
-            throw new \Exception('必须填写验证码');
+            throw new BusinessException('必须填写验证码');
         }
         $this->mustReceiver($account);
         $condition = [
@@ -176,10 +176,18 @@ class SmsCodeService
         ];
         $code = $this->getLast($condition);
         if (!$code || !$code->isActive()) {
-            throw new \Exception('验证码不存在或者已经过期了');
+            throw new BusinessException('验证码不存在或者已经过期了', [
+                'condition' => $condition,
+                'verCode' => $verCode,
+                'code' => $code?->toArray(),
+            ]);
         }
         if (!$this->compare($code, $verCode)) {
-            throw new \Exception('验证码错误');
+            throw new BusinessException('验证码错误', [
+                'condition' => $condition,
+                'verCode' => $verCode,
+                'code' => $code->toArray(),
+            ]);
         }
         return $code;
     }

@@ -7,6 +7,7 @@ use App\Modules\demo\Models\User;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phalcon\Mvc\Model\ResultsetInterface;
 use Phax\Mvc\Controller;
+use Phax\Support\Exception\BusinessException;
 
 #[RBAC(title: 'demo.A0.DbTest')]
 class TestController extends Controller
@@ -40,7 +41,9 @@ class TestController extends Controller
             'title' => '小灰',
             'age' => rand(1, 100)
         ])->save()) {
-            throw new \Exception($cat->getFirstError());
+            throw new BusinessException('保存 Cat 记录错误', [
+                'errors' => $cat->getErrors(),
+            ]);
         }
         return $cat->toArray();
     }

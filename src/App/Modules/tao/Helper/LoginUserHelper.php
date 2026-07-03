@@ -6,6 +6,7 @@ use App\Modules\tao\Config\Data;
 use App\Modules\tao\Helper\Libs\MenuLibHelper;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * 管理指定用户的访问权限/菜单
@@ -31,12 +32,11 @@ class LoginUserHelper
      * 保存登录用户的信息
      * @param SystemUser|null $user 如果为 null 则异常
      * @return $this
-     * @throws \Exception
      */
     public function resetUser(SystemUser|null $user): static
     {
         if (empty($user) || $user->id < 1) {
-            throw new \Exception('必须指定用户 setUser');
+            throw new BusinessException('用户数据错误');
         }
         $this->user = $user;
         return $this;
@@ -45,7 +45,7 @@ class LoginUserHelper
     public function user(): SystemUser
     {
         if (empty($this->user)) {
-            throw new \Exception('could not get user before you set user data');
+            throw new BusinessException('还没有设置用户数据，读取错误');
         }
         return $this->user;
     }
@@ -85,15 +85,14 @@ class LoginUserHelper
      * 当前用户能否访问指定的节点
      * @param string $node 待检查的节点
      * @return bool
-     * @throws \Exception
      */
     public function access(string $node): bool
     {
         if (empty($node)) {
-            throw new \Exception('待检查的节点不能为空');
+            throw new BusinessException('待检查的节点不能为空');
         }
         if (empty($this->user)) {
-            throw new \Exception('用户未登录或登录信息失效');
+            throw new BusinessException('用户未登录或登录信息失效');
         }
         if (in_array($this->user->id, $this->mvc->superAdminIds())) {
             return true;
@@ -118,12 +117,11 @@ class LoginUserHelper
      * 是否在指定角色中
      * @param array $roles 支持字符串（角色名）数组或角色ID
      * @return bool
-     * @throws \Exception
      */
     public function inRoles(array $roles): bool
     {
         if (empty($roles)) {
-            throw new \Exception('待检查的角色不能为空');
+            throw new BusinessException('待检查的角色不能为空');
         }
         if (!is_integer(end($roles))) {
             $roles = $this->mvc->roleService()->getIds($roles);

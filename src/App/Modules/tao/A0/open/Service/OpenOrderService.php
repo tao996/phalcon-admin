@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Service;
 
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use Phax\Support\Exception\BusinessException;
 
 class OpenOrderService
 {
@@ -20,20 +21,20 @@ class OpenOrderService
     {
         $data = explode('_', $outTradeNo);
         if (count($data) != 3) {
-            throw new \Exception('不符合规划的订单号');
+            throw new BusinessException('不符合规划的订单号');
         } elseif (intval($data[0]) < 1) {
-            throw new \Exception('订单 ID 错误');
+            throw new BusinessException('订单 ID 错误');
         }
         /**
          * @var OpenOrder $order
          */
         $order = OpenOrder::findFirst($data[0]);
         if (empty($order)) {
-            throw new \Exception('没有找到符合订单号的记录');
+            throw new BusinessException('没有找到符合订单号的记录');
         } elseif ($order->created_at != $data[1]) {
-            throw new \Exception('订单号数据错误 1');
+            throw new BusinessException('订单号数据错误 1');
         } elseif ($order->rndcode != $data[2]) {
-            throw new \Exception('订单号数据错误 2');
+            throw new BusinessException('订单号数据错误 2');
         }
 
         return $order;
@@ -42,13 +43,13 @@ class OpenOrderService
     public function mustExits(int $orderId, int $userId): void
     {
         if ($orderId < 1 || $userId < 1) {
-            throw new \Exception('检查订单时参数错误');
+            throw new BusinessException('检查订单时参数错误');
         }
         if (OpenOrder::queryBuilder($this->helper->mvc->getDi())
             ->int('id', $orderId)
             ->int('user_id', $userId)
             ->notExists()) {
-            throw new \Exception('订单不存在或没有权限查看');
+            throw new BusinessException('订单不存在或没有权限查看');
         }
     }
 

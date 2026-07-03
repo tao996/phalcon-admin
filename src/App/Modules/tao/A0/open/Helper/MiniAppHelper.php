@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Helper;
 
 use App\Modules\tao\Data\UserBindPlatform;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -42,7 +43,7 @@ class MiniAppHelper
                 $data = $application->getUtils()->codeToSession($code);
                 break;
             default:
-                throw new \Exception('code2Session app platform is invalid');
+                throw new BusinessException('code2Session app platform is invalid');
         }
         return $data;
     }

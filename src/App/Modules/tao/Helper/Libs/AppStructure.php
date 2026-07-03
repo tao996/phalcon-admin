@@ -2,6 +2,7 @@
 
 namespace App\Modules\tao\Helper\Libs;
 
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyFileSystem;
 
 class AppStructure
@@ -54,12 +55,13 @@ class AppStructure
      * 获取全部的控制器（含子模块 A0）
      * @param string $dir 通常为模块或项目目录
      * @return array
-     * @throws \Exception
      */
     public static function getControllerFilesInDeep(string $dir): array
     {
         if (!is_dir($dir)) {
-            throw new \Exception('不是一个有效的目录');
+            throw new BusinessException('不是一个有效的目录',[
+                'dir'=>$dir,
+            ]);
         }
         $dir = rtrim($dir, '/');
 

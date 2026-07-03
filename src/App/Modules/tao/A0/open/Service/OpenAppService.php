@@ -188,7 +188,7 @@ class OpenAppService
         if (empty($filename)) {
             throw new BusinessException('tiktok 证书文件名不能为空');
         } elseif ($pIndex < 1) {
-            throw new \Exception('tiktok 证书加密索引不能为空');
+            throw new BusinessException('tiktok 证书加密索引不能为空');
         }
         $file = PayCertHelper::dir() . $filename;
         if (!file_exists($file)) {

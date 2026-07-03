@@ -5,6 +5,7 @@ namespace App\Modules\tao\Helper\Auth;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
 /**
@@ -33,7 +34,9 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
             try {
                 MyData::mustHasSet($this->data, ['token', 't', 'sign']);
             } catch (\Exception $e) {
-                throw new \Exception('登录凭证过期或不存在.', 401);
+                throw new BusinessException('登录凭证过期或不存在.', [
+                    'data' => $this->data,
+                ], 401);
             }
         }
     }
@@ -49,7 +52,9 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
             if ('logout' != $this->mvc->route()->getAction()) {
                 $secret = $this->mvc->authRedisData()->getTokenValue($this->data['token']);
                 if (!$secret) {
-                    throw new \Exception('登录凭证过期或不存在', 403);
+                    throw new BusinessException('登录凭证过期或不存在', [
+                        'data' => $this->data,
+                    ], 403);
                 }; // 用于签名的 secret
                 // 包含了毫秒数的时间戳（时间戳本身也具有验签作用）
 
@@ -57,7 +62,10 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
                 $sign = md5($secret . $timestamp);
 //                ddd($secret,$timestamp,$sign,MyData::getString($this->data, 'sign'),'aaa');
                 if ($sign !== MyData::getString($this->data, 'sign')) {
-                    throw new \Exception('签名验证失败');
+                    throw new BusinessException('签名验证失败', [
+                        'data' => $this->data,
+                        'timestamp' => $timestamp, 'expect' => $sign
+                    ]);
                 }
             }
             // 刷新 token 时间
@@ -81,13 +89,13 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
             ->generateToken($userId, 'app'); // 已经使用了 . 号作为分割号
     }
 
-    public function saveUser(SystemUser $user,array $info = []): mixed
+    public function saveUser(SystemUser $user, array $info = []): mixed
     {
         $userId = $user->id;
         $token = $this->getCacheToken($userId);
         // 随机码，用于生成 sign 签名
         $sec = md5(join(',', [rand(1, 100), time() + rand(100, 9999)]));
-        $ex = MyData::getInt($info,'EX',604800);
+        $ex = MyData::getInt($info, 'EX', 604800);
         $this->mvc->authRedisData()->setToken($token, $sec, ['EX' => $ex]); // 24*3600*7 = 7 天
         return join('-', [$token, $sec]);
     }

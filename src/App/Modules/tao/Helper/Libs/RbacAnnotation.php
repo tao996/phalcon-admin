@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper\Libs;
 
 use App\Modules\tao\Models\SystemNode;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Router;
 use Phax\Utils\MyAnnotationDocCommentParse as Annotation;
 use Phax\Utils\MyJSON;
@@ -199,8 +200,8 @@ class RbacAnnotation
         ];
 
         // 模块名称
-        if (file_exists($rows['path'] . DIRECTORY_SEPARATOR.'Module.php')) {
-            if ($mInfo = self::getClassRbacDoc($rows['namespace'] .DIRECTORY_SEPARATOR. 'Module')) {
+        if (file_exists($rows['path'] . DIRECTORY_SEPARATOR . 'Module.php')) {
+            if ($mInfo = self::getClassRbacDoc($rows['namespace'] . DIRECTORY_SEPARATOR . 'Module')) {
                 $rows['title'] = $mInfo['title'] ?? $rows['name'];
             }
         }
@@ -220,7 +221,7 @@ class RbacAnnotation
         $rows = [
             'name' => $name,
             'namespace' => $inProjects ? 'App\Projects\\' . $name : 'App\Http',
-            'path' => PATH_APP . 'Http' . ($inProjects ? DIRECTORY_SEPARATOR.'Projects'.DIRECTORY_SEPARATOR . $name : ''),
+            'path' => PATH_APP . 'Http' . ($inProjects ? DIRECTORY_SEPARATOR . 'Projects' . DIRECTORY_SEPARATOR . $name : ''),
             'module' => false,
         ];
         $rows['structure'] = AppStructure::getControllerFilesInDeep($rows['path']);
@@ -346,7 +347,7 @@ class RbacAnnotation
         if (isset($cDos['rbac'])) {
             $parsed = MyJSON::decode(self::getDocContent($cDos['rbac']), MyJSON::GET_ARRAY);
             if (is_null($parsed)) {
-                throw new \Exception('is rbac annotation ok?' . $cDos['rbac']);
+                throw new LogException('错误的 RBAC 声明', ['rbac' => $cDos['rbac']]);
             }
             return $parsed;
         }

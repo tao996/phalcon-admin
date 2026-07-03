@@ -5,6 +5,7 @@ namespace App\Modules\tao\Controllers;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUser;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
@@ -22,7 +23,6 @@ class AuthController extends BaseController
 
     /**
      * 用户密码登录
-     * @throws \Exception
      */
     public function indexAction(): array
     {
@@ -132,7 +132,7 @@ class AuthController extends BaseController
                 $this->vv->userService()->newAccount($data['account'], $user);
                 if ($user->save() === false) {
                     throw new LogException('账号注册失败', [
-                        'data' => $data, 'err' => $user->getErrors()
+                        'data' => $data, 'errors' => $user->getErrors()
                     ]);
                 }
 
@@ -199,14 +199,13 @@ class AuthController extends BaseController
 
     /**
      * 用户通过邮件链接重置密码
-     * @throws \Exception
      */
     public function passwordAction()
     {
         $data = $this->request->getQuery();
         MyData::mustHasSet($data, ['type', 'sign', 'id']);
         if ('forgot' != $data['type']) {
-            throw new \Exception('参数错误');
+            throw new BusinessException('参数错误');
         }
         $code = $this->vv->smsCodeService()->checkForgotPasswordEmail($data['id'], $data['sign']);
 
@@ -217,7 +216,10 @@ class AuthController extends BaseController
             $user = $this->vv->userService()->mustGetUser(['id' => $code->user_id]);
             $this->vv->userService()->newPassword($d2['password'], $user);
             if ($user->save() === false) {
-                return $this->error('重置密码失败');
+                throw new LogException('重置密码失败', [
+                    'errors' => $user->getErrors(),
+                    'data' => $data, 'user' => $user->toArray()
+                ]);
             }
 
             $this->vv->smsCodeService()->done($code);

@@ -7,6 +7,7 @@ use App\Modules\tao\Helper\Auth\LoginAuthAdapter;
 use App\Modules\tao\Helper\Auth\LoginSessionAuthAdapter;
 use App\Modules\tao\Helper\Auth\LoginDemoTokenAuthAdapter;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Support\Exception\BusinessException;
 
 class LoginAuthHelper
 {
@@ -82,7 +83,6 @@ class LoginAuthHelper
      * 重新加载用户信息
      * @param int $userId 用户 ID
      * @return void
-     * @throws \Exception
      */
     public function loginWith(int $userId): void
     {
@@ -92,7 +92,7 @@ class LoginAuthHelper
                 $this->mvc->loginUserHelper()->resetUser($user);
                 $this->user = $user;
             } else {
-                throw new \Exception('账号不存在');
+                throw new BusinessException('账号不存在');
             }
         }
     }
@@ -100,7 +100,6 @@ class LoginAuthHelper
     /**
      * 退出登录
      * @return void
-     * @throws \Exception
      */
     public function logout(): void
     {

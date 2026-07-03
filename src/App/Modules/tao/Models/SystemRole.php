@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Models;
 
 use App\Modules\tao\BaseTaoModel;
+use Phax\Support\Exception\BusinessException;
 use Phax\Traits\SoftDelete;
 
 class SystemRole extends BaseTaoModel
@@ -20,23 +21,25 @@ class SystemRole extends BaseTaoModel
         return '角色';
     }
 
-    /**
-     * @throws \Exception
-     */
+
     public function beforeSave(): void
     {
         if (empty($this->title)) {
-            throw new \Exception('必须填写角色名称');
+            throw new BusinessException('必须填写角色名称');
         }
-        if (!empty($this->name)) {
+        if ($this->name) {
             if (!preg_match('|^\w+$|', $this->name)) {
-                throw new \Exception('角色英文名称只支持字母数字下划线');
+                throw new BusinessException('角色英文名称只支持字母数字下划线', [
+                    'name' => $this->name
+                ]);
             }
             if ($this->getQueryBuilder($this->getDI())
                 ->string('name', $this->name)
                 ->notEqual('id', $this->id, true)
                 ->exits()) {
-                throw new \Exception('角色英文名称重复');
+                throw new BusinessException('角色英文名称重复', [
+                    'id' => $this->id, 'name' => $this->name
+                ]);
             }
         }
 
@@ -44,7 +47,9 @@ class SystemRole extends BaseTaoModel
             ->string('title', $this->title)
             ->notEqual('id', $this->id, true)
             ->exits()) {
-            throw new \Exception('角色名称重复');
+            throw new BusinessException('角色名称重复', [
+                'id' => $this->id, 'title' => $this->title,
+            ]);
         }
     }
 

@@ -10,6 +10,7 @@ use Phax\Db\Transaction;
 use Phax\Mvc\Model;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
+use Phax\Support\Logger;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
@@ -240,22 +241,22 @@ class BaseController extends BaseRbacController
                 $this->model->{'user_id'} = $this->loginUser()->id;
             }
 
-            try {
-                $data = $this->beforeModelAssign($data);
-                if ($data) {
-                    $this->model->assign($data);
-                }
-                $this->beforeModelSave();
-
-                \Phax\Db\Transaction::db(function () use ($data) {
-                    if (!$this->model->save()) {
-                        throw new \Exception($this->model->getErrors());
-                    }
-                    $this->afterModelChange('add');
-                });
-            } catch (\Throwable $e) {
-                return $this->error($e->getMessage());
+            $data = $this->beforeModelAssign($data);
+            if ($data) {
+                $this->model->assign($data);
             }
+            $this->beforeModelSave();
+
+            \Phax\Db\Transaction::db(function () use ($data) {
+                if (!$this->model->save()) {
+                    throw new LogException('添加模型数据失败', [
+                        'errors' => $this->model->getErrors(),
+                        'data' => $data,
+                    ]);
+                }
+                $this->afterModelChange('add');
+            });
+
             return $this->success('添加成功', $this->model?->toArray());
         }
         $this->updateHtmlTitle('添加');
@@ -286,22 +287,20 @@ class BaseController extends BaseRbacController
 
         if ($this->request->isPost()) {
             $data = $this->getPostData();
-            try {
-                $data = $this->beforeModelAssign($data);
-                if ($data) {
-                    $this->model->assign($data);
-                }
-                $this->beforeModelSave();
-
-                \Phax\Db\Transaction::db(function () use ($data) {
-                    if (!$this->model->save()) {
-                        throw new \Exception($this->model->getErrors());
-                    }
-                    $this->afterModelChange('edit');
-                });
-            } catch (\Throwable $e) {
-                return $this->error($e->getMessage());
+            $data = $this->beforeModelAssign($data);
+            if ($data) {
+                $this->model->assign($data);
             }
+            $this->beforeModelSave();
+            \Phax\Db\Transaction::db(function () use ($data) {
+                if (!$this->model->save()) {
+                    throw new LogException('更新模型数据失败', [
+                        'errors' => $this->model->getErrors(),
+                        'data' => $data,
+                    ]);
+                }
+                $this->afterModelChange('edit');
+            });
             return $this->success('修改成功', $this->model?->toArray());
         }
         $this->updateHtmlTitle('编辑');
@@ -439,17 +438,18 @@ class BaseController extends BaseRbacController
         ], [$post['field']]);
         $this->beforeModelModifySave($this->model);
 
-        try {
-            Transaction::db(function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) {
-                if ($this->model->save()) {
-                    $this->afterModelChange('edit');
-                } else {
-                    throw new \Exception($this->model->getErrors());
-                }
-            });
-        } catch (\Throwable $e) {
-            return $this->error($e->getMessage());
-        }
+
+        Transaction::db(function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) {
+            if ($this->model->save()) {
+                $this->afterModelChange('edit');
+            } else {
+                throw new LogException('修改属性失败', [
+                    'errors' => $this->model->getErrors(),
+                    'data' => $this->getPostData(),
+                ]);
+            }
+        });
+
         $this->vv->logService()->insert($this->model->tableTitle(), 'modify');
         return $this->success('保存成功');
     }

@@ -2,6 +2,8 @@
 
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
+use Phax\Support\Exception\BusinessException;
+
 class LayuiData
 {
     /**
@@ -79,11 +81,17 @@ class LayuiData
 
         $start = strtotime($dt[0]);
         if ($start === false) {
-            throw new \Exception($dt[0] . ' is not a valid start date time');
+            throw new BusinessException($dt[0] . ' 不是一个有效的时间', [
+                'reason' => 'start time invalid',
+                'dtRange' => $dtRange, 'timestamp' => $timestamp, 'dt' => $dt
+            ]);
         }
         $end = strtotime($dt[1]);
         if ($end === false) {
-            throw new \Exception($dt[1] . ' is not a valid end date time');
+            throw new BusinessException($dt[1] . ' 不是一个有效的时间', [
+                'reason' => 'end time invalid',
+                'dtRange' => $dtRange, 'timestamp' => $timestamp, 'dt' => $dt
+            ]);
         }
         return $timestamp ? [$start, $end] : $dt;
     }

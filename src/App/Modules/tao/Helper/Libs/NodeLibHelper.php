@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper\Libs;
 
 use App\Modules\tao\Models\SystemNode;
+use Phax\Support\Exception\BusinessException;
 
 
 class NodeLibHelper
@@ -105,7 +106,6 @@ class NodeLibHelper
      * 将一维节点列表转为 Layui.Tree 格式的节点
      * @param array $nodes
      * @return array
-     * @throws \Exception
      */
     public static function nodeTree(array $nodes)
     {
@@ -120,7 +120,7 @@ class NodeLibHelper
                     $rows[] = self::childrenNodeTree($node, $nodes);
                 }
             } else {
-                throw new \Exception('unknown node.kind value');
+                throw new BusinessException('node.kind 不合法的值');
             }
         }
         return $rows;

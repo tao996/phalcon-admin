@@ -3,6 +3,7 @@
 namespace App\Modules\tao\sdk\tencent\cos;
 
 use App\Modules\tao\sdk\OssDriverInterface;
+use Phax\Support\Exception\BusinessException;
 use Qcloud\Cos\Client;
 
 /**
@@ -61,11 +62,11 @@ class QcloudDriver implements OssDriverInterface
             $result = (array)$result;
             $result = $result[' * data'];
             if (!isset($result['Location'])) {
-                throw new \Exception('腾讯云保存失败');
+                throw new BusinessException('腾讯云保存失败');
             }
             return $this->schema . '://' . $result['Location'];
         } else {
-            throw new \Exception('无法读取本地文件信息有误');
+            throw new BusinessException('无法读取本地文件信息有误');
         }
     }
 }

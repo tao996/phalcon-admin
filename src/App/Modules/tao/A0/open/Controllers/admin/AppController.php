@@ -6,6 +6,7 @@ namespace App\Modules\tao\A0\open\Controllers\admin;
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenApp;
 use App\Modules\tao\Helper\Libs\RBAC;
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
 /**
@@ -49,16 +50,13 @@ class AppController extends BaseOpenController
         return $data;
     }
 
-    /**
-     * @throws \Exception
-     */
     protected function beforeModelSave(): void
     {
         if ($this->model->getQueryBuilder($this->getDI())
             ->where('appid', $this->model->appid)
             ->notEqual('id', $this->model->id)->exits()
         ) {
-            throw new \Exception('重复的 appid');
+            throw new BusinessException('重复的 appid');
         }
     }
 

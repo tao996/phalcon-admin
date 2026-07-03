@@ -67,7 +67,7 @@ class Application
     public function runWeb(string|null $requestURL = null): ?\Phalcon\Http\ResponseInterface
     {
         $requestURL = $requestURL ?: $_SERVER['REQUEST_URI'];
-        if ($requestURL == '/favicon.ico'){
+        if ($requestURL == '/favicon.ico') {
             die('/favicon.ico');
         }
         $di = self::di();
@@ -113,7 +113,10 @@ class Application
         // BusinessException 为普通业务异常（如验证失败、业务规则冲突），
         // 属于预期行为，不记录错误日志，减少日志噪音
         if (!($e instanceof BusinessException)) {
-            Logger::exception($e);
+            /**
+             * @var BusinessException $e
+             */
+            Logger::exception($e, $e->getContext());
         }
 
         /**
@@ -147,7 +150,7 @@ class Application
                 }
             }
         } else {
-            return 'could not find the error handle class:' . $errClass;
+            return '没有找到错误处理类:' . $errClass;
         }
     }
 

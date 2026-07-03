@@ -5,6 +5,7 @@ namespace App\Modules\tao\sdk\aliyun;
 use App\Modules\tao\sdk\EmailDriverInterface;
 use App\Modules\tao\sdk\SdkHelper;
 use Dm\Request\V20151123 as Dm;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * @link https://help.aliyun.com/document_detail/29460.html
@@ -29,13 +30,21 @@ class AliyumEmailDriver implements EmailDriverInterface
     {
         $this->config = array_merge($this->config, $config);
         if (empty($this->config['accessKeyId'])) {
-            throw new \Exception('必备填写 accessKeyId');
+            throw new BusinessException('必备填写 accessKeyId', [
+                'config' => $this->config,
+            ]);
         } elseif (empty($this->config['accessKeySecret'])) {
-            throw new \Exception('必须填写 accessKeySecret');
+            throw new BusinessException('必须填写 accessKeySecret', [
+                'config' => $this->config,
+            ]);
         } elseif (empty($this->config['accountName'])) {
-            throw new \Exception('必须填写发信地址');
+            throw new BusinessException('必须填写发信地址', [
+                'config' => $this->config,
+            ]);
         } elseif (empty($this->config['fromAlias'])) {
-            throw new \Exception('必须填写发信人昵称');
+            throw new BusinessException('必须填写发信人昵称', [
+                'config' => $this->config,
+            ]);
         }
         SdkHelper::aliyunCore();
 // 需要设置对应的region名称，如华东1（杭州）设为cn-hangzhou，新加坡Region设为ap-southeast-1，澳洲Region设为ap-southeast-2。
@@ -91,7 +100,7 @@ class AliyumEmailDriver implements EmailDriverInterface
     public function setAddress(string|array $address): static
     {
         if (empty($address)) {
-            throw new \Exception('必须填写写件人地址');
+            throw new BusinessException('必须填写写件人地址');
         }
         $this->singleSendMailRequest->setToAddress(is_array($address) ? join(',', $address) : $address);
         return $this;

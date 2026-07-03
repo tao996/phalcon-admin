@@ -15,8 +15,24 @@ namespace Phax\Support\Exception;
  */
 class BusinessException extends \Exception
 {
-    public function __construct(string $message = "", int $code = 0, ?\Throwable $previous = null)
+    /**
+     * @param string $message
+     * @param array $context 上下文信息只有在 IS_DEBUG 时才会记录
+     * @param int $code
+     * @param \Throwable|null $previous
+     */
+    public function __construct(string                 $message = "",
+                                private readonly array $context = [],
+                                int                    $code = 0, ?\Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
+    }
+
+    /**
+     * 获取补充上下文
+     */
+    public function getContext(): array
+    {
+        return $this->context;
     }
 }

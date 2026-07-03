@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper\Auth;
 
 use App\Modules\tao\Helper\MyMvcHelper;
+use Phax\Support\Exception\BusinessException;
 
 
 class AuthRedisData
@@ -65,11 +66,16 @@ class AuthRedisData
         $tokenData = explode($kind == 'app' ? '.' : ':', $token);
 //        dd($kind,$token,$tokenData);
         if (count($tokenData) != 3) {
-            throw new \Exception('用户登录凭证错误:1');
+            throw new BusinessException('用户登录凭证错误', [
+                'error'=>'count($tokenData) != 3',
+                'token' => $token, 'kind' => $kind, 'tokenData' => $tokenData,
+            ]);
         }
 
         if (intval($tokenData[0]) < 1 || $tokenData[1] != $kind) {
-            throw new \Exception('用户登录凭证错误:2');
+            throw new BusinessException('用户登录凭证错误',[
+                'token'=>$token,'kind'=>$kind,'tokenData'=>$tokenData,
+            ]);
         }
 
         return $tokenData[0];

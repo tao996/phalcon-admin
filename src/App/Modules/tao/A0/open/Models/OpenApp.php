@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Models;
 
 use App\Modules\tao\BaseTaoModel;
 use App\Modules\tao\Data\UserBindPlatform;
+use Phax\Support\Exception\BusinessException;
 use Phax\Traits\SoftDelete;
 
 class OpenApp extends BaseTaoModel
@@ -58,24 +59,24 @@ class OpenApp extends BaseTaoModel
     public function beforeValidation()
     {
         if (empty($this->appid)) {
-            throw new \Exception('appid 不能为空');
+            throw new BusinessException('appid 不能为空');
         }
         if (empty($this->secret)) {
-            throw new \Exception('secret 不能为空');
+            throw new BusinessException('secret 不能为空');
         }
         if (!in_array($this->kind, array_keys(UserBindPlatform::MapAppKinds))) {
-            throw new \Exception('不支持的抖音应用类型');
+            throw new BusinessException('不支持的抖音应用类型');
         }
         switch ($this->platform) {
             case UserBindPlatform::PlatformTiktok;
                 break;
             case UserBindPlatform::PlatformWechat;
                 if ('work' == $this->kind && empty($this->crop_id)) {
-                    throw new \Exception('企业微信必须填写 cropId');
+                    throw new BusinessException('企业微信必须填写 cropId');
                 }
                 break;
             default:
-                throw new \Exception('不支持的平台');
+                throw new BusinessException('不支持的平台');
         }
     }
 

@@ -4,6 +4,7 @@ namespace App\Modules\tao\Models;
 
 use App\Modules\tao\BaseTaoModel;
 use App\Modules\tao\Services\RoleService;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Facade\MyHelperFacade;
 use Phax\Traits\SoftDelete;
 
@@ -52,7 +53,7 @@ class SystemUser extends BaseTaoModel
      * 返回用户的角色
      * @return array<SystemRole>
      */
-    public function roles():array
+    public function roles(): array
     {
         return RoleService::getRolesByIds($this->roleIds());
     }
@@ -63,22 +64,27 @@ class SystemUser extends BaseTaoModel
             $this->email = $account;
             $this->email_at = $validAt;
             $this->email_valid = true;
-        } elseif ('phone' == $kind){
+        } elseif ('phone' == $kind) {
             $this->phone = $account;
             $this->phone_at = $validAt;
             $this->phone_valid = true;
         } else {
-            throw new \Exception('不支持的账号类型');
+            throw new BusinessException('不支持的账号类型', [
+                'kind' => $kind,
+            ]);
         }
     }
-    public function getAccountByType(string $type):string
+
+    public function getAccountByType(string $type): string
     {
-        if ($type == 'email'){
+        if ($type == 'email') {
             return $this->email;
-        } elseif ($type == 'phone'){
+        } elseif ($type == 'phone') {
             return $this->phone;
         } else {
-            throw new \Exception('不支持的账号类型');
+            throw new BusinessException('不支持的账号类型', [
+                'type' => $type,
+            ]);
         }
     }
 

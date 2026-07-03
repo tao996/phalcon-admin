@@ -10,11 +10,17 @@
 namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyFileSystem;
 
 class UpgradeController extends BaseController
 {
     protected string $htmlTitle = '更新升级';
+
+    public function initialize(): void
+    {
+        ddd('当前功能未完成');
+    }
 
     /**
      * @return array
@@ -33,11 +39,11 @@ class UpgradeController extends BaseController
     {
         $path_project = PATH_APP_PROJECTS . '/' . $project;
         if (!is_dir($path_project)) {
-            throw new \Exception('项目不存在');
+            throw new BusinessException('项目不存在');
         }
         $path_project_migrations = $path_project . '/data/migrations';
         if (!is_dir($path_project_migrations)) {
-            throw new \Exception('项目没有迁移脚本');
+            throw new BusinessException('项目没有迁移脚本');
         }
         return true;
     }

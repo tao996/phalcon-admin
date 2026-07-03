@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Controllers\weixin;
 
 use App\Modules\tao\A0\open\BaseOpenController;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
 
 /**
@@ -28,7 +29,7 @@ class AuthController extends BaseOpenController
 
         $appid = $this->request->getQuery('appid');
         if (empty($appid)) {
-            throw new \Exception('appid is empty');
+            throw new BusinessException('appid is empty');
         }
         $scope = $this->request->getQuery('scope', null, 'snsapi_base');
         $target = $this->request->getQuery('target', null, '/');
@@ -44,11 +45,11 @@ class AuthController extends BaseOpenController
 
         if (in_array($scope, ['snsapi_base', 'snsapi_userinfo'])) {
             if (!$this->helper->appService()->kindCompare($appid, 'gzh')) {
-                throw new \Exception('appid is not kind of "gzh"');
+                throw new BusinessException('appid is not kind of "gzh"');
             }
         } elseif ('snsapi_login' == $scope) {
             if (!$this->helper->appService()->kindCompare($appid, 'web')) {
-                throw new \Exception('appid is not kind of "web"');
+                throw new BusinessException('appid is not kind of "web"');
             }
         }
         $oauth->scopes([$scope]);

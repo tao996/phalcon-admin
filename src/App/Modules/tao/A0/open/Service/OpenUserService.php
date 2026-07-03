@@ -8,6 +8,8 @@ use App\Modules\tao\A0\open\Models\OpenUserUnionid;
 use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Models\SystemUser;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
 
@@ -22,12 +24,11 @@ readonly class OpenUserService
      * @param string $appID
      * @param string $openid
      * @return OpenUserOpenid|null
-     * @throws \Exception
      */
     public function getOpenidRecord(string $appID, string $openid): OpenUserOpenid|null
     {
         if (empty($appID) || empty($openid)) {
-            throw new \Exception(' appID 或 openid 不能为空');
+            throw new BusinessException(' appID 或 openid 不能为空');
         }
         return OpenUserOpenid::findFirst([
             'conditions' => "appid='{$appID}' AND openid='{$openid}'",
@@ -39,12 +40,11 @@ readonly class OpenUserService
      * @param string $appID
      * @param int $userId
      * @return string
-     * @throws \Exception
      */
     public function getOpenidByUserId(string $appID, int $userId): string
     {
         if (empty($appID) || empty($userId)) {
-            throw new \Exception('appID 或 userId 不能为空');
+            throw new BusinessException('appID 或 userId 不能为空');
         }
         if ($row = OpenUserOpenid::findFirst([
             'conditions' => "appid='{$appID}' AND user_id='{$userId}'",
@@ -59,12 +59,11 @@ readonly class OpenUserService
      * 查询 OpenUserUnionid 记录
      * @param string $unionid
      * @return OpenUserUnionid|null
-     * @throws \Exception
      */
     public function getUnionIDRecord(string $unionid): OpenUserUnionid|null
     {
         if (empty($unionid)) {
-            throw new \Exception("unionID can't be empty");
+            throw new BusinessException("unionID can't be empty");
         }
         return OpenUserUnionid::queryBuilder($this->helper->mvc->getDi())
             ->string('unionid', $unionid)
@@ -107,13 +106,14 @@ readonly class OpenUserService
      * @return void
      */
     public function bindUserInfo(
-        SystemUser $user,
-        OpenUserOpenid $openidRecord,
+        SystemUser           $user,
+        OpenUserOpenid       $openidRecord,
         OpenUserUnionid|null $unionidRecord,
-        array $postUserInfo,
-        string $appid,
-        array $data
-    ): void {
+        array                $postUserInfo,
+        string               $appid,
+        array                $data
+    ): void
+    {
         $user->nickname = $postUserInfo['nickname'];
         $user->avatar_url = $postUserInfo['avatarUrl'];
 
@@ -140,10 +140,11 @@ readonly class OpenUserService
      */
     public function createOpenidRecord(
         OpenUserOpenid $openidRecord,
-        array $userInfo,
-        string $appid,
-        array $data
-    ): void {
+        array          $userInfo,
+        string         $appid,
+        array          $data
+    ): void
+    {
         $openidRecord->appid = $appid;
         $openidRecord->openid = $data['openid'];
         self::bindSubscribe($openidRecord, $data);
@@ -152,7 +153,11 @@ readonly class OpenUserService
         $openidRecord->nickname = $userInfo['nickname'];
         $openidRecord->session_key = $data['session_key'] ?? '';
         if ($openidRecord->create() === false) {
-            throw new \Exception($openidRecord->getFirstError());
+            throw new LogException('保存 openid 关联记录失败', [
+                'errors' => $openidRecord->getErrors(),
+                'record' => $openidRecord->toArray(),
+                'userInfo' => $userInfo, 'data' => $data,
+            ]);
         }
     }
 
@@ -162,22 +167,29 @@ readonly class OpenUserService
      * @throws \Exception
      */
     public function createUser(
-        SystemUser $user,
-        OpenUserOpenid $openidRecord,
+        SystemUser           $user,
+        OpenUserOpenid       $openidRecord,
         OpenUserUnionid|null $unionidRecord = null,
-    ): void {
+    ): void
+    {
         Transaction::db(function () use ($user, $openidRecord, $unionidRecord) {
             $this->helper->mvc->userService()->create($user);
 
             $openidRecord->user_id = $user->id;
             if (!$openidRecord->save()) {
-                throw new \Exception($openidRecord->getFirstError());
+                throw new LogException('openid 保存错误', [
+                    'errors' => $openidRecord->getErrors(),
+                    'openidRecord' => $openidRecord->toArray(),
+                ]);
             }
 
             if ($unionidRecord) {
                 $unionidRecord->user_id = $user->id;
                 if (!$unionidRecord->save()) {
-                    throw new \Exception($unionidRecord->getFirstError());
+                    throw new LogException('unionid 保存错误', [
+                        'errors' => $unionidRecord->getErrors(),
+                        'unionidRecord' => $unionidRecord->toArray()
+                    ]);
                 }
             }
         });
@@ -234,15 +246,18 @@ readonly class OpenUserService
      * 取消订阅
      * @param array{ToUserName:string,FromUserName:string} $data 接收微信发送的信息
      * @return void
-     * @throws \Exception
      */
-    public function unsubscribe(array $data)
+    public function unsubscribe(array $data): void
     {
         if ($record = $this->getOpenidRecord($data['ToUserName'], $data['FromUserName'])) {
             $record->sub = 0;
             $record->sub_at = time();
             if ($record->save() === false) {
-                throw new \Exception($record->getErrors());
+                throw new LogException('更新订阅时间错误', [
+                    'errors' => $record->getErrors(),
+                    'record' => $record->toArray(),
+                    'data' => $data,
+                ]);
             }
         }
     }
@@ -314,7 +329,12 @@ readonly class OpenUserService
                     $unionidRecord->user_id = $responseData['user_id'];
                     $unionidRecord->appid = $app['appid'];
                     if (!$unionidRecord->save()) {
-                        throw new \Exception($unionidRecord->getFirstError());
+                        throw new LogException('添加 unionid 记录错误',
+                            [
+                                'errors' => $unionidRecord->getErrors(),
+                                'record' => $unionidRecord->toArray(),
+                                'data' => $data,
+                            ]);
                     }
                 } else {
                     // Openid 和 Unionid 都没有，需要注册用户

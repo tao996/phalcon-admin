@@ -19,16 +19,13 @@ class WepayServer
     public function __construct(public MyOpenMvcHelper $helper, public string $appid, public string $mchid)
     {
         if (empty($this->appid)) {
-            throw new \Exception('wechat pay helper appid is empty');
+            throw new BusinessException('wechat pay helper appid is empty');
         }
         if (empty($this->mchid)) {
-            throw new \Exception('wechat pay helper mchid is empty');
+            throw new BusinessException('wechat pay helper mchid is empty');
         }
     }
 
-    /**
-     * @throws \Exception
-     */
     private function getApplication(): \EasyWeChat\Pay\Application
     {
         if (empty($this->app)) {
@@ -40,7 +37,7 @@ class WepayServer
     private function checkClientResponseData(string $title, array $responseData, mixed $postData): void
     {
         if (!empty($responseData['code']) && !empty($responseData['message'])) {
-            throw new \Exception($responseData['message']);
+            throw new BusinessException($responseData['message']);
         } elseif (IS_DEBUG) {
             Logger::debug($title, $postData, $responseData);
         }

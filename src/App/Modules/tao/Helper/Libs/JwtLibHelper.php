@@ -7,6 +7,7 @@ use Phalcon\Encryption\Security\JWT\Exceptions\UnsupportedAlgorithmException;
 use Phalcon\Encryption\Security\JWT\Exceptions\ValidatorException;
 use Phalcon\Encryption\Security\JWT\Signer\Hmac;
 use Phalcon\Encryption\Security\JWT\Token\Enum;
+use Phax\Support\Exception\BusinessException;
 
 
 /**
@@ -23,14 +24,14 @@ class JwtLibHelper
      */
     public function __construct(public array $config)
     {
-        if (empty($this->config['secret'])){
-            throw new \Exception('jwt secret is empty');
+        if (empty($this->config['secret'])) {
+            throw new BusinessException('jwt secret is empty', $this->config);
         }
-        if (empty($this->config['expire'])){
-            throw new \Exception('jwt expire is empty');
+        if (empty($this->config['expire'])) {
+            throw new BusinessException('jwt expire is empty', $this->config);
         }
-        if (empty($this->config['iss'])){
-            throw new \Exception('jwt iss is empty');
+        if (empty($this->config['iss'])) {
+            throw new BusinessException('jwt iss is empty', $this->config);
         }
 
         $this->config = array_merge(['hmac' => 'sha512', 'subject' => 'jwt'], $this->config);
@@ -114,7 +115,9 @@ class JwtLibHelper
 
         $tokenObject->validate($validator);
         if ($errors = $validator->getErrors()) {
-            throw new \Exception($errors[0]);
+            throw new BusinessException($errors[0], [
+                'errors' => $errors,
+            ]);
         }
 
         return $tokenObject->getClaims()->getPayload();

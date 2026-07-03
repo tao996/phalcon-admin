@@ -161,13 +161,13 @@ class WepayOrderLogic
     public function mustAllowRefund(): void
     {
         if ($this->order->isRefundSuccess()) {
-            throw new \Exception('当前订单已经退款成功');
+            throw new BusinessException('当前订单已经退款成功');
         }
         if (!$this->order->isPaySuccess()) {
-            throw new \Exception('只有支付成功的订单才能退款');
+            throw new BusinessException('只有支付成功的订单才能退款');
         }
         if ($this->order->success_time + 365 * 3600 * 24 < time()) {
-            throw new \Exception('订单超过1年，无法退款');
+            throw new BusinessException('订单超过1年，无法退款');
         }
     }
 

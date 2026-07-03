@@ -8,6 +8,7 @@ use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
 use Phax\Utils\MyData;
 use Phax\Db\QueryBuilder;
@@ -83,12 +84,16 @@ class MenuController extends BaseController
         if (!empty($data['href'])) {
             if (SystemNode::KIND_MODULE == $data['type']) {
                 if (str_starts_with($data['href'], Router::$modulePrefix)) {
-                    throw new \Exception('Module 链接地址不能以 /m/ 开头');
+                    throw new BusinessException('Module 链接地址不能以 /m/ 开头', [
+                        'data' => $data, 'type' => 'module'
+                    ]);
                 }
             } else {
                 if (SystemNode::KIND_PROJECT == $data['type']) {
                     if (str_starts_with($data['href'], Router::$projectPrefix)) {
-                        throw new \Exception('Project 链接地址不能以 ' . Router::$projectPrefix . ' 开头');
+                        throw new BusinessException('Project 链接地址不能以 ' . Router::$projectPrefix . ' 开头', [
+                            'data' => $data, 'type' => 'project'
+                        ]);
                     }
                 }
             }
@@ -126,12 +131,11 @@ class MenuController extends BaseController
      * 获取指定用户菜单列表
      * @param $userId
      * @return array
-     * @throws \Exception
      */
     public function userAction($userId)
     {
         if ($userId < 1) {
-            throw new \Exception('user id 不能为空');
+            throw new BusinessException('user id 不能为空');
         }
         return $this->vv->loginUserHelper()->getMenuTree();
     }
@@ -140,7 +144,7 @@ class MenuController extends BaseController
     {
         $homeId = $this->vv->menuService()->homeId();
         if (in_array($homeId, $ids)) {
-            throw new \Exception('不允许删除后台首页');
+            throw new BusinessException('不允许删除后台首页');
         }
     }
 

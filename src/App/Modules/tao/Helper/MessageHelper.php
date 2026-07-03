@@ -8,6 +8,7 @@ use App\Modules\tao\sdk\aliyun\AliyumEmailDriver;
 use App\Modules\tao\sdk\aliyun\AliyumSmsDriver;
 use App\Modules\tao\sdk\EmailDriverInterface;
 use App\Modules\tao\sdk\SmsDriverInterface;
+use Phax\Support\Exception\BusinessException;
 
 class MessageHelper
 {
@@ -18,9 +19,6 @@ class MessageHelper
 
     private string $smsEngine = '';
 
-    /**
-     * @throws \Exception
-     */
     public function sms(): SmsDriverInterface
     {
         if ((int)$this->config['sms_mock'] > 0) {
@@ -35,7 +33,7 @@ class MessageHelper
                 'signName' => $this->config['alisms_signname']
             ]);
         }
-        throw new \Exception('没有可使用的 SMS 引擎');
+        throw new BusinessException('没有可使用的 SMS 引擎');
     }
 
     public function getSmsEngine(): string
@@ -45,9 +43,6 @@ class MessageHelper
 
     private string $emailEngine = '';
 
-    /**
-     * @throws \Exception
-     */
     public function email(): EmailDriverInterface
     {
         if ((int)$this->config['sms_mock'] > 0) {
@@ -63,7 +58,7 @@ class MessageHelper
                 'fromAlias' => $this->config['aliemail_fromalias'],
             ]);
         }
-        throw new \Exception('没有可使用的邮件引擎');
+        throw new BusinessException('没有可使用的邮件引擎');
     }
 
     public function getEmailEngine(): string

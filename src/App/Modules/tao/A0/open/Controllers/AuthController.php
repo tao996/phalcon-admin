@@ -11,6 +11,8 @@ namespace App\Modules\tao\A0\open\Controllers;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Logger;
 
 class AuthController extends BaseOpenMiniController
 {
@@ -19,7 +21,6 @@ class AuthController extends BaseOpenMiniController
     /**
      * 使用统一平台登录码，格式 puid.id
      * @return array
-     * @throws \Exception
      */
     public function puidAction()
     {
@@ -43,36 +44,63 @@ class AuthController extends BaseOpenMiniController
         } else {
             $captchaData = $this->vv->session()->get($captchaKey);
             if (empty($captchaData) || empty($captchaData['answer'])) {
-                throw new \Exception('验证码不存在，请重新获取');
+                throw new BusinessException('验证码不存在，请重新获取', [
+                    'captchaData' => $captchaData,
+                ]);
             }
             if ($captchaData['expire'] < time()) {
                 $this->vv->session()->remove($captchaKey);
-                throw new \Exception('验证码已过期，请重新获取');
+                throw new BusinessException('验证码已过期，请重新获取', [
+                    'captchaData' => $captchaData,
+                ]);
             }
             if ($captchaData['attempts'] >= 3) {
                 $this->vv->session()->remove($captchaKey);
-                throw new \Exception('验证码错误次数过多，请重新获取');
+                throw new BusinessException('验证码错误次数过多，请重新获取', [
+                    'captchaData' => $captchaData,
+                ]);
             }
             if ((string)$this->requestData['captcha']['value'] !== (string)$captchaData['answer']) {
                 $captchaData['attempts'] += 1;
                 $this->vv->session()->set($captchaKey, $captchaData);
-                throw new \Exception('验证码错误');
+                if (IS_DEBUG) {
+                    Logger::debug('验证码错误', [
+                        'key' => $captchaKey,
+                        'requestData' => $this->requestData,
+                        'captchaData' => $captchaData
+                    ]);
+                }
+                throw new BusinessException('验证码错误', [
+                    'captchaData' => $captchaData,
+                    'expect' => (string)$this->requestData['captcha']['value'],
+                ]);
             }
             $this->vv->session()->remove($captchaKey);
         }
 
         $puid = $this->requestData['puid'] ?? '';
         if (empty($puid)) {
-            throw new \Exception('puid 参数不能为空');
+            throw new BusinessException('puid 参数不能为空', [
+                'requestData' => $this->requestData
+            ]);
         }
         $items = explode('.', $puid);
         if (empty($items) || count($items) != 2) {
-            throw new \Exception('puid 参数格式错误:1');
+            throw new BusinessException('puid 参数格式错误', [
+                'reason' => 'empty($items) || count($items) != 2',
+                'items' => $items,
+            ]);
         }
         if (intval($items[1]) < 1) {
-            throw new \Exception('puid 参数格式错误:2');
+            throw new BusinessException('puid 参数格式错误', [
+                'reason' => 'intval($items[1]) < 1',
+                'items' => $items,
+            ]);
         } elseif (empty($items[0])) {
-            throw new \Exception('puid 参数格式错误:3');
+            throw new BusinessException('puid 参数格式错误', [
+                'reason' => 'empty($items[0])',
+                'items' => $items,
+            ]);
         }
         if ($user = SystemUser::queryBuilder($this->getDI())
             ->int('id', $items[1])->string('puid', $items[0])
@@ -80,7 +108,9 @@ class AuthController extends BaseOpenMiniController
             ->findFirstArray()) {
             return $this->authData($user);
         } else {
-            throw new \Exception('没有找到用户信息');
+            throw new BusinessException('没有找到用户信息', [
+                'items' => $items,
+            ]);
         }
     }
 
@@ -114,21 +144,31 @@ class AuthController extends BaseOpenMiniController
             $captchaKey = 'open_login_captcha';
             $captchaData = $this->vv->session()->get($captchaKey);
             if (empty($captchaData) || empty($captchaData['answer'])) {
-                throw new \Exception('验证码不存在，请重新获取');
+                throw new BusinessException('验证码不存在，请重新获取', [
+                    'captchaKey' => $captchaKey,
+                    'captchaData' => $captchaData,
+                ]);
             }
             if ($captchaData['expire'] < time()) {
                 $this->vv->session()->remove($captchaKey);
-                throw new \Exception('验证码已过期，请重新获取');
+                throw new BusinessException('验证码已过期，请重新获取', [
+                    'captchaData' => $captchaData,
+                ]);
             }
             // 错误次数检查：最多允许3次尝试
             if ($captchaData['attempts'] >= 3) {
                 $this->vv->session()->remove($captchaKey);
-                throw new \Exception('验证码错误次数过多，请重新获取');
+                throw new BusinessException('验证码错误次数过多，请重新获取', [
+                    'captchaData' => $captchaData
+                ]);
             }
             if ((string)$this->requestData['captcha']['value'] !== (string)$captchaData['answer']) {
                 $captchaData['attempts'] += 1;
                 $this->vv->session()->set($captchaKey, $captchaData);
-                throw new \Exception('验证码错误');
+                throw new BusinessException('验证码错误', [
+                    'captchaData' => $captchaData,
+                    'expect' => (string)$this->requestData['captcha']['value'],
+                ]);
             }
             // 验证通过后立即销毁
             $this->vv->session()->remove($captchaKey);
@@ -152,7 +192,7 @@ class AuthController extends BaseOpenMiniController
             'avatar_url' => $user['head_img'] ?? $user['avatar'] ?? '',
         ];
         $systemUser = new SystemUser();
-        $systemUser->assign(['id'=>$baseInfo['user_id']]);
+        $systemUser->assign(['id' => $baseInfo['user_id']]);
         $baseInfo['ts'] = $this->tryGetLoginAuth()
             ->getAdapter()->saveUser($systemUser);
         return $baseInfo;

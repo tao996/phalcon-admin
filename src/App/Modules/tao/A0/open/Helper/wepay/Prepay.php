@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 
 /**
  * 微信下单服务
@@ -81,14 +82,18 @@ class Prepay extends AbstractWepay
             }
         }
         if (empty($notify_url)) {
-            throw new \Exception('notify_url 不能为空');
+            throw new BusinessException('notify_url 不能为空');
         }
         if ($order->amount < 1) {
-            throw new \Exception('订单金额不能小于1分');
+            throw new BusinessException('订单金额不能小于1分');
         }
         // 创建订单
         if (!$order->create()) {
-            throw new \Exception($order->getFirstError());
+            throw new LogException('创建订单失败', [
+                'errors' => $order->getErrors(),
+                'order' => $order->toArray(),
+                'jsapiData' => $jsapiData,
+            ]);
         }
 
         $postData = [
@@ -110,7 +115,11 @@ class Prepay extends AbstractWepay
         $data = $wepayServer->prepay($postData);
         $order->response = json_encode($data);
         if (!$order->save()) {
-            throw new \Exception($order->getFirstError());
+            throw new LogException('保存订单失败', [
+                'errors' => $order->getErrors(),
+                'order' => $order->toArray(),
+                'data' => $data,
+            ]);
         }
         $this->order = $order;
         return $wepayServer->repay($data['prepay_id']);

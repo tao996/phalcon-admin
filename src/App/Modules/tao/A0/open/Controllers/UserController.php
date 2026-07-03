@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Controllers;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\A0\open\Models\OpenUserOpenid;
+use Phax\Support\Exception\BusinessException;
 
 
 class UserController extends BaseOpenMiniController
@@ -22,7 +23,7 @@ class UserController extends BaseOpenMiniController
             ->string('appid', $this->getAppid())
             ->findFirstModel();
         if (!$record) {
-            throw new \Exception('没有找到 userOpenid 记录');
+            throw new BusinessException('没有找到 userOpenid 记录');
         }
         if ($this->request->isGet()) {
             return $record->toArray([
@@ -34,7 +35,7 @@ class UserController extends BaseOpenMiniController
         } elseif ($this->request->isPost()) {
             $this->vv->validate()->check($this->requestData, ['name' => 'required', 'value' => 'required']);
             if (!in_array($this->requestData['name'], ['avatar_url', 'nickname'])) {
-                throw new \Exception('不允许修改的字段');
+                throw new BusinessException('不允许修改的字段');
             }
 
             $record->assign([

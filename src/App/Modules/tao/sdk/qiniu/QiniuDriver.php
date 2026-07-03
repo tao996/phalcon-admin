@@ -3,6 +3,7 @@
 namespace App\Modules\tao\sdk\qiniu;
 
 use App\Modules\tao\sdk\OssDriverInterface;
+use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 use Qiniu\Auth;
 use Qiniu\Storage\UploadManager;
@@ -62,7 +63,11 @@ class QiniuDriver implements OssDriverInterface
         $uploadMgr = new UploadManager();
         list($result, $error) = $uploadMgr->putFile($token, $objectName, $filePath);
         if ($error !== null) {
-            throw new \Exception('上传七牛云文件保存失败:' . $error);
+            throw new LogException('上传七牛云文件保存失败', [
+                'objectName' => $objectName, 'filePath' => $filePath,
+                'error' => $error,
+                'result' => $result,
+            ]);
         }
         return $this->domain . '/' . $result['key'];
     }
@@ -72,13 +77,13 @@ class QiniuDriver implements OssDriverInterface
      * @param string $bucket
      * @return string
      */
-    public function imageToken(string $bucket = ''):string
+    public function imageToken(string $bucket = ''): string
     {
         // https://developer.qiniu.com/kodo/1206/put-policy
         // 其它各种限制
-        return $this->auth->uploadToken($bucket ?: $this->bucket,null,3600,[
-            'mimeLimit'=>'image/*',
-            'fsizeLimit'=>1024*1024*10, // 10M
+        return $this->auth->uploadToken($bucket ?: $this->bucket, null, 3600, [
+            'mimeLimit' => 'image/*',
+            'fsizeLimit' => 1024 * 1024 * 10, // 10M
 //            'forceSaveKey'=>true, // 自定义资源名称
 //            'saveKey'=>''
         ]);

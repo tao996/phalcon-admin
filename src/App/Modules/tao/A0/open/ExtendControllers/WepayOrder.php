@@ -19,6 +19,8 @@ use App\Modules\tao\Helper\MyMvcHelper;
 use Phalcon\Di\DiInterface;
 use Phalcon\Http\Request;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
+use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -62,9 +64,9 @@ trait WepayOrder
     {
         if (empty($this->notify_url)) {
             if (empty($this->notify_path)) {
-                throw new \Exception('both notify_url and notify_path cannot be empty');
+                throw new BusinessException('both notify_url and notify_path cannot be empty');
             } elseif (!str_ends_with($this->notify_path, '/notify/')) {
-                throw new \Exception('notify_path must end with /notify/');
+                throw new BusinessException('notify_path must end with /notify/');
             }
             //  http://localhost:8071/api/p/family/order/notify/123
             $this->notify_url = $this->vv->a0openHelper()
@@ -90,9 +92,9 @@ trait WepayOrder
     {
         if (empty($this->refund_notify_url)) {
             if (empty($this->refund_notify_path)) {
-                throw new \Exception('both refund_notify_url and refund_notify_path cannot be empty');
+                throw new BusinessException('both refund_notify_url and refund_notify_path cannot be empty');
             } elseif (!str_ends_with($this->refund_notify_path, '/notify_refund/')) {
-                throw new \Exception('refund_notify_path must end with /notify_refund/');
+                throw new BusinessException('refund_notify_path must end with /notify_refund/');
             }
             // http://localhost:8071/api/p/family/order/notify-refund/456
             $this->refund_notify_url = $this->vv->a0openHelper()
@@ -181,9 +183,9 @@ trait WepayOrder
         ], $this->setPayOrderData($order));
 
         if (empty($metadata['description'])) {
-            throw new \Exception('order.metadata description cannot be empty');
+            throw new BusinessException('order.metadata description cannot be empty');
         } elseif ($order->amount < 1) {
-            throw new \Exception('order.amount cannot be less than 1');
+            throw new BusinessException('order.amount cannot be less than 1');
         }
         $order->metadata = json_encode($metadata);
         $rst = $prepayHelper->prepay($order, $metadata);
@@ -330,7 +332,7 @@ trait WepayOrder
         $orderLogic->mustAllowRefund();
         $order = $orderLogic->getOrder();
         if ($order->isRefunding()) {
-            throw new \Exception('订单正在退款处理中');
+            throw new BusinessException('订单正在退款处理中');
         }
         $this->refundOrderValidate($order);
         if ($order->refund_amt === 0) {
@@ -339,9 +341,9 @@ trait WepayOrder
         if ($order->refund_amt === 0) {
             $order->refund_amt = $order->amount;
         } elseif ($order->refund_amt < 1) {
-            throw new \Exception('退款金额不能为空');
+            throw new BusinessException('退款金额不能为空');
         } elseif ($order->refund_amt > $order->amount) {
-            throw new \Exception('退款金额不能大于订单金额');
+            throw new BusinessException('退款金额不能大于订单金额');
         }
 
         $responseData = $orderLogic->refund(function () use ($order) {
@@ -414,7 +416,9 @@ trait WepayOrder
             $this->closeSuccess($order);
             return $this->closeActionResponse($order);
         }
-        throw new \Exception('订单状态错误，无法关闭');
+        throw new LogException('订单状态错误，无法关闭', [
+            'order' => $order->toArray()
+        ]);
     }
 
     /**

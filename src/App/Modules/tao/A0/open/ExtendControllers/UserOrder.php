@@ -11,6 +11,7 @@ namespace App\Modules\tao\A0\open\ExtendControllers;
 
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use Phalcon\Di\DiInterface;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * @property \Phalcon\Http\Request $request
@@ -24,12 +25,9 @@ trait UserOrder
 
     protected function getProjectId(): int
     {
-        throw new \Exception('请实现 getProjectId 方法');
+        throw new BusinessException('请实现 getProjectId 方法');
     }
 
-    /**
-     * @throws \Exception
-     */
     protected function getOrderQueryBuilder(): \Phax\Db\QueryBuilder
     {
         return OpenOrder::queryBuilder($this->getDI())
@@ -82,7 +80,7 @@ trait UserOrder
             ->int('id', $id)
             ->findFirstModel();
         if (empty($order)) {
-            throw new \Exception('没有找到订单');
+            throw new BusinessException('没有找到订单');
         }
         return $this->orderDetailResponse($order);
     }

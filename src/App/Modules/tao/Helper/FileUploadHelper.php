@@ -10,6 +10,7 @@ use App\Modules\tao\sdk\qiniu\QiniuDriver;
 use App\Modules\tao\sdk\tencent\cos\QcloudDriver;
 use OSS\Core\OssException;
 use Phalcon\Http\Request\File;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Facade\MyHelperFacade;
 use Phax\Utils\MyFormat;
 
@@ -37,15 +38,14 @@ class FileUploadHelper
     /**
      * 對上傳來源進行校驗
      * @return $this
-     * @throws \Exception
      */
     public function fromRequest(): static
     {
         if (!$this->mvc->request()->isPost()) {
-            throw new \Exception('非法请求');
+            throw new BusinessException('非法请求');
         }
         if (!$this->mvc->request()->hasFiles()) {
-            throw new \Exception('必须指定上传文件');
+            throw new BusinessException('必须指定上传文件');
         }
         return $this;
     }
@@ -60,7 +60,7 @@ class FileUploadHelper
             $this->_file = $file;
         }
         if (empty($this->_file)) {
-            throw new \Exception('必须指定上传文件');
+            throw new BusinessException('必须指定上传文件');
         }
         return $this->_file;
     }
@@ -87,15 +87,15 @@ class FileUploadHelper
         $file = $this->mustGetFile($file);
         if (!in_array($file->getExtension(), explode(',', $this->_config['upload_allow_ext']))) {
 //            dd('checkType',$file->getType(),$this->_config['upload_allow_mime']);
-            throw new \Exception('不允许上传的指定文件类型');
-        }
-        if (!in_array($file->getExtension(), explode(',', $this->_config['upload_allow_ext']))) {
-            throw new \Exception('不允许上传的文件');
+            throw new BusinessException('不允许上传的指定文件类型', [
+                'allow' => $this->_config['upload_allow_ext'],
+                'upload' => $file->getExtension(),
+            ]);
         }
 
         $bitSize = $this->getMaxBytes();
         if ($file->getSize() > $bitSize) {
-            throw new \Exception('文件超过了' . MyFormat::humanFileSize($bitSize));
+            throw new BusinessException('文件超过了' . MyFormat::humanFileSize($bitSize));
         }
         return $this;
     }
@@ -143,7 +143,9 @@ class FileUploadHelper
             $sf->tmpSavePath = $pathUploadDir . $saveName;
             return $sf;
         }
-        throw new \Exception('保存本地文件错误');
+        throw new BusinessException('保存本地文件错误', [
+            'file' => $pathUploadDir . $saveName,
+        ]);
     }
 
 
@@ -199,20 +201,19 @@ class FileUploadHelper
                     'schema' => 'https',
                 ]);
             default:
-                throw new \Exception('不支持的云上传类型');
+                throw new BusinessException('不支持的云上传类型');
         }
     }
 
     /**
      * @throws OssException
-     * @throws \Exception
      */
     public function save(File $file = null): SystemUploadfile
     {
         $this->mustGetFile($file);
         $uploadType = $this->getUploadType();
         if (empty($uploadType)) {
-            throw new \Exception('未指定上传存储方式');
+            throw new BusinessException('未指定上传存储方式');
         }
         switch ($uploadType) {
             case 'local':

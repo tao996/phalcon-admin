@@ -10,6 +10,7 @@ use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Models\SystemUserBind;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Db\QueryBuilder;
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
 /**
@@ -166,14 +167,14 @@ class UserController extends BaseController
     protected function beforeModifyData(array $data): void
     {
         if (in_array($data['id'], $this->vv->superAdminIds()) && $data['field'] == 'status') {
-            throw new \Exception('不允许修改超级管理员状态');
+            throw new BusinessException('不允许修改超级管理员状态');
         }
     }
 
     protected function beforeDeleteQuery($queryBuilder, array $ids)
     {
         if (array_intersect($this->vv->superAdminIds(), $ids)) {
-            throw new \Exception('不允许删除超级管理员');
+            throw new BusinessException('不允许删除超级管理员');
         }
     }
 
@@ -182,7 +183,7 @@ class UserController extends BaseController
     {
         $id = $this->getRequestInt('id'); // 用户 ID
         if (!$this->vv->userRecordAccess($this->loginUser()->id,$id)){
-            throw new \Exception('没有修改密码的权限');
+            throw new BusinessException('没有修改密码的权限');
         }
 
         $data = $this->request->get();
@@ -197,11 +198,11 @@ class UserController extends BaseController
             // 不是超级管理员，则必须提供正确的旧密码
             if (!$this->vv->loginUserHelper()->isSuperAdmin()) {
                 if (!empty($user->password) && empty($data['old_password'])) {
-                    throw new \Exception('必须提供旧密码');
+                    throw new BusinessException('必须提供旧密码');
                 }
                 if (!empty($user->password)) {
                     if (!$this->vv->security()->checkHash($data['old_password'], $user->password)) {
-                        throw new \Exception('旧密码错误');
+                        throw new BusinessException('旧密码错误');
                     }
                 }
             }

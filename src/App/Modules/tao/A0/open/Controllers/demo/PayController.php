@@ -6,6 +6,7 @@ namespace App\Modules\tao\A0\open\Controllers\demo;
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
 
 class PayController extends BaseOpenController
@@ -20,13 +21,12 @@ class PayController extends BaseOpenController
     /**
      * 一个简单的微信支付测试
      * http://localhost:8071/m/tao.open/demo.pay
-     * @throws \Exception
      */
     public function indexAction()
     {
         $appid = $this->request->getQuery('appid');
         if (empty($appid)) {
-            throw new \Exception('必须指定支付公众号 ID');
+            throw new BusinessException('必须指定支付公众号 ID');
         }
 
         if ($this->vv->loginAuthHelper()->isLogin()) {
@@ -57,7 +57,7 @@ class PayController extends BaseOpenController
     {
 
         if (!$this->helper->wechatHelper()->isMicroMessengerBrowser()) {
-            throw new \Exception('只支持在微信浏览器中操作');
+            throw new BusinessException('只支持在微信浏览器中操作');
         }
         $appid = $this->request->getQuery('appid', 'string');
         $openid = $this->request->getQuery('openid', 'string');

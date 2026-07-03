@@ -4,6 +4,7 @@ namespace App\Modules\tao\sdk\aliyun;
 
 use App\Modules\tao\sdk\aliyun\sms\SignatureHelper;
 use App\Modules\tao\sdk\SmsDriverInterface;
+use Phax\Support\Exception\BusinessException;
 
 class AliyumSmsDriver implements SmsDriverInterface
 {
@@ -28,14 +29,14 @@ class AliyumSmsDriver implements SmsDriverInterface
     {
         $this->config = array_merge($this->config, $config);
         if (empty($this->config['accessKeyId'])) {
-            throw new \Exception('必须指定 accessKeyId');
+            throw new BusinessException('必须指定 accessKeyId', $this->config);
         }
         if (empty($this->config['accessKeySecret'])) {
-            throw new \Exception('必须指定 accessKeySecret');
+            throw new BusinessException('必须指定 accessKeySecret', $this->config);
         }
         $this->params['SignName'] = $config['signName'];
         if (empty($this->params['SignName'])) {
-            throw new \Exception('必须填写短信签名');
+            throw new BusinessException('必须填写短信签名', $this->config);
         }
     }
 
@@ -72,11 +73,11 @@ class AliyumSmsDriver implements SmsDriverInterface
         $this->params = array_merge($this->params, $params);
 //        dd($this->config,$this->params);
         if (empty($this->params['PhoneNumbers'])) {
-            throw new \Exception('必须填写短信接收号码');
+            throw new BusinessException('必须填写短信接收号码', $this->params);
         }
 
         if (empty($this->params['TemplateCode'])) {
-            throw new \Exception('必须填写短信模板');
+            throw new BusinessException('必须填写短信模板', $this->params);
         }
         if (is_array($this->params['TemplateParam'])) {
             if (!empty($this->params['TemplateParam'])) {
@@ -87,7 +88,9 @@ class AliyumSmsDriver implements SmsDriverInterface
         }
         // 验证码模板需要设置 ['code'=>'xxx']
         if (empty($this->params['TemplateParam']) && !$emptyTemplateParams) {
-            throw new \Exception('请检查短信模板变量是否设置');
+            throw new BusinessException('请检查短信模板变量是否设置', [
+                'params' => $this->params
+            ]);
         }
 
         $helper = new SignatureHelper();

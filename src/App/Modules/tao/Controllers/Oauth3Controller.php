@@ -6,6 +6,7 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\sdk\SdkHelper;
 use Hybridauth\Hybridauth;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 
 class Oauth3Controller extends BaseController
@@ -36,7 +37,7 @@ class Oauth3Controller extends BaseController
                     $allowedHost = $this->request->getHttpHost();
                     $redirectHost = parse_url($decoded, PHP_URL_HOST);
                     if ($redirectHost !== null && $redirectHost !== $allowedHost) {
-                        throw new \Exception('重定向地址不允许跨域');
+                        throw new BusinessException('重定向地址不允许跨域');
                     }
                 }
                 $this->vv->redirectHelper()->save($redirect);

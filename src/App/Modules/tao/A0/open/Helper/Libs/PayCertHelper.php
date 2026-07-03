@@ -2,6 +2,8 @@
 
 namespace App\Modules\tao\A0\open\Helper\Libs;
 
+use Phax\Support\Exception\LogException;
+
 /**
  * 商户证书服务
  */
@@ -19,7 +21,9 @@ class PayCertHelper
             if (mkdir($dir)) {
                 return $dir;
             } else {
-                throw new \Exception('could not mkdir the pay cert direction');
+                throw new LogException('无法创建支付证书保存目录', [
+                    'dir' => $dir,
+                ]);
             }
         }
         return $dir;

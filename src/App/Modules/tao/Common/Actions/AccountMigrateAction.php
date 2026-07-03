@@ -15,6 +15,7 @@ use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\SmsCodeService;
 use Phax\Db\Transaction;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
@@ -35,20 +36,17 @@ class AccountMigrateAction
         $this->smsCodeService = $this->helper->smsCodeService();
     }
 
-    /**
-     * @throws \Exception
-     */
     protected function getAccountInfo(string $account): array
     {
         if (empty($account)) {
-            throw new \Exception('请填写账号');
+            throw new BusinessException('请填写账号');
         }
         if ($this->helper->validate()->isPhone($account)) {
             $type = 'phone';
         } elseif ($this->helper->validate()->isEmail($account)) {
             $type = 'email';
         } else {
-            throw new \Exception('不支持的账号类型');
+            throw new BusinessException('不支持的账号类型');
         }
         $condition = ['user_id' => $this->user_id, 'kind' => 'connect'];
         return [$type, $condition];
@@ -66,7 +64,7 @@ class AccountMigrateAction
         $user = $this->helper->userService()
             ->mustGetUser(['id' => $this->user_id]);
         if ($user->getAccountByType($type) === $account) {
-            throw new \Exception('重复绑定');
+            throw new BusinessException('重复绑定');
         }
 
         $history = $this->smsCodeService->getLast($condition);
@@ -75,8 +73,7 @@ class AccountMigrateAction
         }
         $count = $this->smsCodeService->todayCount($condition);
         if ($count >= $this->max_count) {
-            // TODO
-//            throw new \Exception('今日发送次数过多');
+            throw new BusinessException('今日发送次数过多');
         }
         $condition['receiver'] = $account;
         $mSer = $this->smsCodeService->getMessageHelper();
@@ -112,7 +109,7 @@ class AccountMigrateAction
     public function connect(string $account, string $verCode, callable $successMove): void
     {
         if (empty($verCode)) {
-            throw new \Exception('请填写验证码');
+            throw new BusinessException('请填写验证码');
         }
         list($type, $condition) = $this->getAccountInfo($account);
         $codeModel = $this->smsCodeService
