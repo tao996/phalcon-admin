@@ -1066,6 +1066,7 @@ const admin = {
                 url: admin.util.concatQuery(this._config.url, this._config.query),
                 defaultToolbar: [], // 开启表格头部工具栏, 默认不需要
                 page: true, // 用于开启分页。
+                // height: 'full-20', // 高度最大化，并减去20px的差值，通常用于固定表头；或者使用 .tao-table-fixed
                 ajax: function (origOptions, type) {
                     $.ajax({
                         url: origOptions.url,

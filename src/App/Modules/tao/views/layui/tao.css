@@ -190,3 +190,11 @@
 /* 其它 */
 .empty-state { text-align: center; padding: 60px 20px; color: #999; }
 #loading { text-align: center; padding: 40px; color: #999; }
+
+/* 固定表头 */
+.tao-table-fixed thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; /* Must have a background color to hide rows behind it */
+    z-index: 1; /* Ensures it stays above body content */
+}
