@@ -4,13 +4,17 @@ namespace App\Modules\demo\A0\db\Controllers;
 
 use App\Modules\demo\Models\Cat;
 use App\Modules\demo\Models\User;
+use App\Modules\tao\Helper\Libs\RBAC;
+use Phalcon\Mvc\Model\ResultsetInterface;
 use Phax\Mvc\Controller;
 
-/**
- * @rbac ({title:'DbTest'})
- */
+#[RBAC(title: 'demo.A0.DbTest')]
 class TestController extends Controller
 {
+    /**
+     * @link http://localhost:8071/api/m/demo.db/test/index
+     * @return array
+     */
     public function indexAction()
     {
         /**
@@ -26,9 +30,7 @@ class TestController extends Controller
         ];
     }
 
-    /**
-     * @rbac ({title:'时间戳和添加记录'})
-     */
+    #[RBAC(title: '时间戳和添加记录')]
     public function insertAction()
     {
         $this->vv->isDemo(true);
@@ -46,15 +48,21 @@ class TestController extends Controller
 
     /**
      * 软删除
-     * @link http://localhost:8071/api/m/demo/index/remove
+     * @link http://localhost:8071/api/m/demo.db/test/remove
      * @return void
      * @throws \Exception
      */
     public function removeAction()
     {
         $this->vv->isDemo(true);
+        /**
+         * @var ResultsetInterface $cats
+         */
         $cats = Cat::findOnlyTrashed();
-        ddd($cats->getFirst()->isDelete(), $cats->toArray());
+        ddd(
+            ['isDelete' => $cats->getFirst()->isDelete()],
+            $cats->toArray()
+        );
 
         /**
          * @var $cat Cat
@@ -66,6 +74,7 @@ class TestController extends Controller
 
     /**
      * 记录查询
+     * @link http://localhost:8071/api/m/demo.db/test/list
      * @return void
      */
     public function listAction()
@@ -82,6 +91,7 @@ class TestController extends Controller
 
     /**
      * 表单验证
+     * @link http://localhost:8071/api/m/demo.db/test/form
      */
     public function formAction()
     {

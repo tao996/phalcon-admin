@@ -5,7 +5,7 @@ namespace App\Modules\tao\Services;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUploadfile;
-use Phax\Helper\MyUrl;
+use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
 class UploadfileService
@@ -16,7 +16,6 @@ class UploadfileService
 
     /**
      * 获取图片列表
-     * @throws \Exception
      */
     public function getImages(string|array $imageIds, int $userId = 0): array
     {
@@ -37,7 +36,6 @@ class UploadfileService
      * 验证上传的图片
      * @params array|string $images 图片
      * @params int $max 最多上传数量
-     * @throws \Exception
      */
     public function dbImages(array|string $images, int $max): string
     {
@@ -46,7 +44,7 @@ class UploadfileService
                 $images = explode(',', $images);
             }
             if (count($images) > $max) {
-                throw new \Exception('最多上传 ' . $max . ' 张图片');
+                throw new BusinessException('最多上传 ' . $max . ' 张图片');
             }
             $this->mvc->validate()->hostsValidate($images);
             return join(',', $images);

@@ -51,6 +51,8 @@ dd($cat->title); // hello
  * 注意：以下方法只在 SoftDelete 中存在
  * @method bool destroy(bool $force) 是否强制删除
  * @method bool restore() 恢复软删除数据
+ * @method bool isDelete() 是否处于删除状态
+ * @method bool delete() 软删除
  * @method static ResultsetInterface findWithTrashed($parameters = null) 查询全部的记录（含软删除）
  * @method static ResultsetInterface findOnlyTrashed($parameters = null) 只查询软删除记录
  */

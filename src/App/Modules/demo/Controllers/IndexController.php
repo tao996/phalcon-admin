@@ -8,7 +8,7 @@ class IndexController extends Controller
 {
     /**
      * 模型关联
-     * @link http://localhost:8071/api/m/demo
+     * @link http://localhost:8071/api/m/demo/index/index
      * @return array
      */
     public function indexAction(): array
@@ -16,7 +16,12 @@ class IndexController extends Controller
         return [];
     }
 
-    public function helloAction($name = 'phalcon'): array
+    /**
+     * @link http://localhost:8071/api/m/demo/index/hello
+     * @param string $name
+     * @return array|string[]
+     */
+    public function helloAction(string $name = 'phalcon'): array
     {
         return ['name' => $name];
     }

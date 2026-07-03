@@ -2,7 +2,6 @@
 
 namespace App\Modules\tao\Services;
 
-use App\Modules\tao\Config\Data;
 use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemRole;
@@ -10,7 +9,6 @@ use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Models\SystemUserBind;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Support\Logger;
 
 class UserService
 {
