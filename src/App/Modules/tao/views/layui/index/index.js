@@ -65,7 +65,7 @@ const tabsCache = {
     defaultData: function () {
         return {menuId: 0, active: {id: 0, href: '', title: ''}};
     },
-    save: function (active) {
+    saveActiveTab: function (active) {
         const old = this.read();
         const data = {
             menuId: tabs.menuId > 0 ? tabs.menuId : old.menuId,
@@ -73,7 +73,7 @@ const tabsCache = {
         }
         admin.cache.save(this._key, data);
     },
-    remove: function (href) {
+    removeActive: function (href) {
         const def = this.defaultData();
         const tab = admin.cache.read(this._key, def);
         if (tab.active.href === href) {
@@ -91,6 +91,7 @@ const tabsCache = {
 // iframe tabs
 // iframe tabs
 const tabs = {
+    debug: false,
     menuId: 0, // 当前激活菜单所属的 sidebar id
     activeLayHref: '',// 当前激活的 ID
     container: $('#LAY_app_tabsheader'), // tab 列表
@@ -138,8 +139,8 @@ const tabs = {
         this.iframeElements()[index].classList.add('layui-show');
     },
     remove: function (index) {
-        this.elements()[index].remove();
-        this.iframeElements()[index].remove();
+        this.elements()[index].removeActive();
+        this.iframeElements()[index].removeActive();
     },
     // 关闭一个标签
     close: function (href) {
@@ -150,23 +151,54 @@ const tabs = {
             this.activeLeft();
         }
         this.remove(index);
-        tabsCache.remove(href);
+        tabsCache.removeActive(href);
+    },
+    /**
+     * 切换左侧菜单
+     * @param {Object} info 缓存的菜单信息
+     * @param isActive 是否激活
+     */
+    leftMenu: function (info, isActive) {
+        const dataId = info['id'] || '';
+        if (dataId.split('-').length == 2) {
+            const id = 'layui-nav-item-' + dataId.split('-')[1];
+            if (isActive) {
+                $('#' + id).addClass('layui-this');
+            } else {
+                $('#' + id).removeClass('layui-this');
+            }
+        } else {
+            console.log('leftMenu: 菜单ID错误', info);
+        }
     },
     // 添加一个标签 {id,href,title} 到 iframe 中; 如果已经存在，则激活它
     // tabs.append({id:8,title:'单页管理',href:'/m/tao.cms/admin.page'})
     append: function (info, cache = true) {
         if (info.href === this.activeLayHref) {
+            if (this.debug) {
+                console.log('点击已处于激活状态的 tab。', info)
+            }
             return;
         }
+        const oldInfo = tabsCache.read()['active'];
+        this.leftMenu(oldInfo,false);
         this.activeLayHref = info.href;
         if (cache) {
-            tabsCache.save(info);
+            tabsCache.saveActiveTab(info);
+            if (this.debug) {
+                console.log('保存缓存', info)
+            }
         }
         const hrefs = tabs.ids();
         const index = hrefs.indexOf(info.href);
-        // console.log('info', info, hrefs, index)
+        if (this.debug) {
+            console.log('info', info, hrefs, index)
+        }
         tabs.removeActiveClass();
         if (index === -1) {
+            if (this.debug) {
+                console.log('index == -1, 添加标签', info)
+            }
             tabs.container.append(`<li lay-id="${info.href}" class="layui-this" onclick="tabs.append({id:'${info.id}',title:'${info.title}',href:'${info.href}'})">
 <span>${info.title}</span>
 <i class="layui-icon layui-icon-close layui-unselect layui-tab-close"
@@ -179,7 +211,11 @@ onclick="tabs.close('${info.href}')"></i>
             frameborder="0" class="layadmin-iframe"></iframe>
 </div>`);
         } else {
+            if (this.debug) {
+                console.log('index > -1, 激活标签', index, info)
+            }
             this.addActiveClass(index);
+            this.leftMenu(info,true);
         }
     },
     // 激活左边标签
@@ -260,6 +296,9 @@ onclick="tabs.close('${info.href}')"></i>
         if (bMenu) {
             this.activeSidebar(data.menuId, true);
         }
+        if(sMenu || bMenu){
+            this.leftMenu(data['active'],true);
+        }
     },
     /**
      * 当前菜单 ID
@@ -275,10 +314,10 @@ onclick="tabs.close('${info.href}')"></i>
      * @return {number}
      */
     getCurrentMenuParentId: function (id) {
-        return parseInt((''+id).indexOf('-') > -1 ? id.split('-')[0] : id);
+        return parseInt(('' + id).indexOf('-') > -1 ? id.split('-')[0] : id);
     },
     isSubMenuId: function (id) {
-        return (''+id).includes('-');
+        return ('' + id).includes('-');
     }
 };
 
@@ -342,7 +381,9 @@ tabs.recoverFromCache();
             tabTouch.moved = true;
         }
     }).on('touchend', function () {
-        setTimeout(function () { tabTouch.moved = false; }, 300);
+        setTimeout(function () {
+            tabTouch.moved = false;
+        }, 300);
     });
     document.getElementById('LAY_app_tabsheader').addEventListener('click', function (e) {
         if (tabTouch.moved) {

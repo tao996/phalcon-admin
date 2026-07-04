@@ -217,15 +217,14 @@ $vv->layui();
             <div class="mobile-sidebar-switch-wrap layui-hide">
                 <select id="mobileSidebarSwitch" class="mobile-sidebar-switch">
                     <?php foreach ($menuTree as $index => $menu) { ?>
-                        <option value="<?php echo $menu['id'] ?>" <?php echo $index == 0 ? 'selected' : '' ?>><?php echo $menu['title'] ?></option>
+                        <option value="<?= $menu['id'] ?>" <?= $index == 0 ? 'selected' : '' ?>><?= $menu['title'] ?></option>
                     <?php } ?>
                 </select>
             </div>
             <div class="layui-side-scroll">
                 <div class="layui-logo" lay-href="<?php
                 echo $vv->urlModule('tao') ?>">
-                    <span><?php
-                        echo $vv->config()->path('app.title') ?></span>
+                    <span><?= $vv->config()->path('app.title') ?></span>
                 </div>
                 <!-- 显示模块菜单 -->
                 <div id="menuTree">
@@ -233,8 +232,7 @@ $vv->layui();
                     foreach ($menuTree as $index => $firstMenus) { ?>
                         <ul id="layui-nav-<?php
                         echo $firstMenus['id'] ?>"
-                            class="layui-nav layui-nav-tree <?php
-                            echo $index > 0 ? 'layui-hide' : '' ?>"
+                            class="layui-nav layui-nav-tree <?= $index > 0 ? 'layui-hide' : '' ?>"
                         >
                             <?php
                             if (isset($firstMenus['child'])) {
@@ -247,15 +245,11 @@ $vv->layui();
                                     echo $secondMenus['id'] ?>">
                                         <a <?php
                                         echo $hasSecondMenuChild ? 'href="javascript:;"' : 'lay-href="' . $secondMenus['href'] . '"' ?>
-                                                data-tips="<?php
-                                                echo $secondMenus['title'] ?>"
-                                                data-id="<?php
-                                                echo $secondMenus['id'] ?>"
+                                                data-tips="<?= $secondMenus['title'] ?>"
+                                                data-id="<?= $secondMenus['id'] ?>"
                                         >
-                                            <i class="<?php
-                                            echo $secondMenus['icon'] ?>"></i>
-                                            <cite><?php
-                                                echo $secondMenus['title'] ?></cite>
+                                            <i class="<?= $secondMenus['icon'] ?>"></i>
+                                            <cite><?= $secondMenus['title'] ?></cite>
                                         </a>
 
                                         <?php
@@ -264,19 +258,13 @@ $vv->layui();
                                             <dl class="layui-nav-child" style="padding-left: 20px;">
                                                 <?php
                                                 foreach ($secondMenus['child'] as $thirdMenus) { ?>
-                                                    <dd id="layui-nav-item-<?php
-                                                    echo $thirdMenus['id'] ?>">
-                                                        <a lay-href="<?php
-                                                        echo $thirdMenus['href'] ?>"
-                                                           data-tips="<?php
-                                                           echo $thirdMenus['title'] ?>"
-                                                           data-id="<?php
-                                                           echo $secondMenus['id'], '-', $thirdMenus['id'] ?>"
+                                                    <dd id="layui-nav-item-<?= $thirdMenus['id'] ?>">
+                                                        <a lay-href="<?= $thirdMenus['href'] ?>"
+                                                           data-tips="<?= $thirdMenus['title'] ?>"
+                                                           data-id="<?= $secondMenus['id'], '-', $thirdMenus['id'] ?>"
                                                         >
-                                                            <i class="<?php
-                                                            echo $thirdMenus['icon'] ?>"></i>
-                                                            <cite><?php
-                                                                echo $thirdMenus['title'] ?></cite>
+                                                            <i class="<?= $thirdMenus['icon'] ?>"></i>
+                                                            <cite><?= $thirdMenus['title'] ?></cite>
                                                         </a>
                                                     </dd>
                                                     <?php
@@ -315,10 +303,8 @@ $vv->layui();
             <div class="layui-tab" lay-unauto lay-allowClose="true" lay-filter="layadmin-layout-tabs">
                 <ul class="layui-tab-title" id="LAY_app_tabsheader">
                     <!-- 默认首页 -->
-                    <li lay-id="<?php
-                    echo $indexWelcome ?>"
-                        onclick="tabs.append({href:'<?php
-                        echo $indexWelcome ?>'})"
+                    <li lay-id="<?= $indexWelcome ?>"
+                        onclick="tabs.append({href:'<?= $indexWelcome ?>'})"
                         class="layui-this">
                         <i class="layui-icon layui-icon-home"></i>
                     </li>
@@ -331,8 +317,7 @@ $vv->layui();
         <div class="layui-body" id="LAY_app_body">
             <!---->
             <div class="layadmin-tabsbody-item layui-show">
-                <iframe src="<?php
-                echo $indexWelcome ?>"
+                <iframe src="<?= $indexWelcome ?>"
                         frameborder="0" class="layadmin-iframe"></iframe>
             </div>
         </div>
@@ -352,7 +337,7 @@ $vv->layui()->footer();
     include __DIR__ . '/index.js' ?></script>
 <script>
     if (tabs.activeLayHref === '') {
-        tabs.activeLayHref = '<?php echo $indexWelcome ?>';
+        tabs.activeLayHref = '<?= $indexWelcome ?>';
     }
     admin.util.layOn({
         message: function () {
@@ -360,12 +345,12 @@ $vv->layui()->footer();
         },
         clear: function () {
             admin.ajax.get({
-                url: '<?php echo $vv->urlModule("tao/user.index/clear", true) ?>'
+                url: '<?= $vv->urlModule("tao/user.index/clear", true) ?>'
             })
         },
         logout: function () {
             admin.ajax.get({
-                url: '<?php echo $vv->urlModule("tao/user.index/logout", true) ?>'
+                url: '<?= $vv->urlModule("tao/user.index/logout", true) ?>'
             }, function (rst) {
                 admin.cache.clear();
                 setTimeout(function () {

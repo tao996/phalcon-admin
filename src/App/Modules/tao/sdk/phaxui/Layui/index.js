@@ -1664,7 +1664,7 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
         },
         remove: function (key) {
             layui.data(this.dbIndex, {
-                key: key, remove: true,
+                key: key, removeActive: true,
             })
         },
         clear: function () {
