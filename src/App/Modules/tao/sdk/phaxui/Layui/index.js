@@ -464,7 +464,7 @@ const admin = {
                     + '<div class="layui-form" style="text-align: left;">'
                     + content
                     + '</div>'
-                    + '</div>'+appendContent,
+                    + '</div>' + appendContent,
                 success: function (layero) {
                     layui.form.render('radio');
                 },
@@ -1170,7 +1170,7 @@ const admin = {
                     };
                 },
             }, options)
-            if (config.page && admin.util.isEmpty(config['limit'])) {
+            if (config.page !== false && admin.util.isEmpty(config['limit'])) {
                 config['limit'] = 15;
                 config['limits'] = [1, 15, 30, 50, 100];
             }
@@ -1186,10 +1186,14 @@ const admin = {
                     const resetElem = tableSearchElem.find('button[type=reset]');
                     if (resetElem.length === 1) {
                         resetElem.bind('click', function () {
-                            tableInst.reloadData({
+                            const reloadData = {
                                 where: {reset: 1},
                                 page: {curr: 1}
-                            })
+                            }
+                            if (options['page'] === false) {
+                                delete reloadData.page;
+                            }
+                            tableInst.reloadData(reloadData)
                         })
                     } else {
                         console.log('没有找到重置按钮 <button type="reset" class="layui-btn layui-btn-primary">重置</button>')
@@ -1201,12 +1205,14 @@ const admin = {
                             e.stopPropagation();
                             e.preventDefault();
                             // <form className="layui-form layui-form-pane form-search"  lay-filter="form-search"></form>
-                            const data = form.val('form-search');
-                            // console.log(data);
-                            tableInst.reloadData({
-                                where: data,
+                            const reloadData = {
+                                where: form.val('form-search'),
                                 page: {curr: 1}
-                            })
+                            };
+                            if (options['page'] === false) {
+                                delete reloadData.page;
+                            }
+                            tableInst.reloadData(reloadData)
                         })
                     } else {
                         console.log('没有找到提交按钮 <a class="layui-btn layui-btn-normal" lay-submit>搜索</a>')
