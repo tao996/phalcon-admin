@@ -433,7 +433,7 @@ const admin = {
          * 弹出一个单选选择框
          * @param {string} title 标题
          * @param {Object} kvMap 选项
-         * @param {Function} success `(value, index)` 选项选中后的回调，接收选中的值，注意关闭层
+         * @param {function(value:String, index:number)} success `(value, index)` 选项选中后的回调，接收选中的值，注意关闭层
          * @param {String} appendContent 其它的 HTML 内容
          */
         radiosDialog: function (title, kvMap, success, appendContent = '') {
@@ -465,14 +465,28 @@ const admin = {
                 }
             });
         },
-        input: function (title, placeholder,success) {
+        /**
+         * 弹出一个输入框
+         * @param {String} title 标题
+         * @param {String} placeholder 输入提示
+         * @param {function(value:String, index:number)} success 回调函数
+         * @param {function(value:String):string|null} [validate] 验证函数，返回 string 表示错误信息，其它表示验证通过
+         */
+        input: function (title, placeholder, success, validate = null) {
             layer.prompt({
                 title,
                 formType: 0,
                 area: ['300px', '160px'],
                 placeholder
             }, function (value, index) {
-                success(value,index);
+                if (typeof validate === 'function') {
+                    const result = validate(value);
+                    if (typeof result === 'string') {
+                        layui.layer.msg(result, {icon: 2});
+                        return;
+                    }
+                }
+                success(value, index);
             });
         }
     },

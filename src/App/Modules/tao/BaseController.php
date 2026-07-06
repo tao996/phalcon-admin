@@ -478,9 +478,36 @@ class BaseController extends BaseRbacController
         }
         // 对数据进行处理
         $data = $this->model->getAssignWith([$post['field'] => $post['value']]);
-        $this->model->getQueryBuilder()
-            ->in('id', $ids)->update($data);
+        $this->beforeBatchChange($ids, $post['field'], $data[$post['field']]);
+        Transaction::db(function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) use ($ids, $data, $post) {
+            $this->model->getQueryBuilder()
+                ->in('id', $ids)->update($data);
+            $this->afterBatchChange($db, $ids, $post['field'], $data[$post['field']]);
+        });
         return $this->success('');
+    }
+
+    /**
+     * 在批量修改属性之前调用
+     * @param array $ids
+     * @param string $name 属性名
+     * @param mixed $value 属性值
+     * @return void
+     */
+    protected function beforeBatchChange(array $ids, string $name, mixed $value)
+    {
+
+    }
+
+    /**
+     * 在批量修改属性之后调用
+     * @param array $ids
+     * @param string $name 属性名
+     * @return void
+     */
+    protected function afterBatchChange(\Phalcon\Db\Adapter\Pdo\AbstractPdo $db, array $ids, string $name, mixed $value)
+    {
+
     }
 
     /**
