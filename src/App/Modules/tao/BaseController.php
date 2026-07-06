@@ -10,7 +10,6 @@ use Phax\Db\Transaction;
 use Phax\Mvc\Model;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Support\Logger;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
@@ -438,7 +437,6 @@ class BaseController extends BaseRbacController
         ], [$post['field']]);
         $this->beforeModelModifySave($this->model);
 
-
         Transaction::db(function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) {
             if ($this->model->save()) {
                 $this->afterModelChange('edit');
@@ -452,6 +450,37 @@ class BaseController extends BaseRbacController
 
         $this->vv->logService()->insert($this->model->tableTitle(), 'modify');
         return $this->success('保存成功');
+    }
+
+    protected array $allowBatchChangeFields = [];
+
+    /**
+     * 批量修改属性
+     */
+    #[RBAC(title: '批量修改属性')]
+    public function batchChangeAction(): array
+    {
+        $this->mustPostMethod();
+        $post = $this->getPostData();
+        MyData::mustHasSet($post, ['ids', 'field'], ['value']);
+        if (!in_array($post['field'], $this->allowBatchChangeFields)) {
+            return $this->error('该字段不允许修改');
+        }
+        $ids = MyData::getInts($post['ids']);
+        if (empty($ids)) {
+            return $this->error('待修改记录 ID 不能为空');
+        }
+        if (empty($this->model)) {
+            return $this->error('控制器 this.model 不能为空');
+        }
+        if (!property_exists($this->model, $post['field'])) {
+            return $this->error('当前模型不存在此属性');
+        }
+        // 对数据进行处理
+        $data = $this->model->getAssignWith([$post['field'] => $post['value']]);
+        $this->model->getQueryBuilder()
+            ->in('id', $ids)->update($data);
+        return $this->success('');
     }
 
     /**

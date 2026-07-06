@@ -9,6 +9,7 @@ use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phax\Db\Layer;
 use Phax\Db\QueryBuilder;
+use Phax\Utils\MyData;
 
 
 /*
@@ -162,6 +163,36 @@ class Model extends \Phalcon\Mvc\Model
      * @var array 需要将 bool 转为 int 的字段
      */
     public array $bool2IntColumns = [];
+
+    /**
+     * 使用内置的规划，对数据进行处理
+     * @param array $data
+     * @return array
+     */
+    public function getAssignWith(array $data):array
+    {
+        foreach ($this->floatColumns as $column) {
+            if (array_key_exists($column, $data)) {
+                $data[$column] = (float)$data[$column];
+            }
+        }
+        foreach ($this->nullColumns as $column) {
+            if (array_key_exists($column, $data) && in_array($data[$column], ['', 0])) {
+                $data[$column] = null;
+            }
+        }
+        foreach ($this->bool2IntColumns as $column) {
+            if (array_key_exists($column, $data)) {
+                $data[$column] = (int)MyData::isTrueWith($data, $column);
+            }
+        }
+        foreach ($this->intColumns as $column) {
+            if (array_key_exists($column, $data)) {
+                $data[$column] = MyData::getInt($data, $column);
+            }
+        }
+        return $data;
+    }
 
     public function getSortDeleteColumnName(): string
     {

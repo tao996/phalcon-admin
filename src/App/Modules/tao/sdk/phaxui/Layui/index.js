@@ -190,8 +190,8 @@ const admin = {
          */
         filter: function (dict) {
             const d = {};
-            for(let k in dict){
-                if(!admin.util.isEmpty(dict[k])){
+            for (let k in dict) {
+                if (!admin.util.isEmpty(dict[k])) {
                     d[k] = dict[k];
                 }
             }
@@ -434,6 +434,7 @@ const admin = {
          * @param {string} title 标题
          * @param {Object} kvMap 选项
          * @param {Function} success `(index, value)` 选项选中后的回调，接收选中的值，注意关闭层
+         * @param {String} appendContent 其它的 HTML 内容
          * @example
          * // success 回调接收两个参数 (index,value)
          * admin.ajax.postLimit({
@@ -449,7 +450,7 @@ const admin = {
          *    });
          * });
          */
-        radiosDialog: function (title, kvMap, success) {
+        radiosDialog: function (title, kvMap, success, appendContent = '') {
             var content = '';
             $.each(kvMap, function (val, label) {
                 content += '<input type="radio" name="toValue" value="' + val + '" title="' + label + '">';
@@ -463,7 +464,7 @@ const admin = {
                     + '<div class="layui-form" style="text-align: left;">'
                     + content
                     + '</div>'
-                    + '</div>',
+                    + '</div>'+appendContent,
                 success: function (layero) {
                     layui.form.render('radio');
                 },
@@ -967,6 +968,59 @@ const admin = {
             return layui.table.cache[this._config.id] || [];
         },
         /**
+         * 获取选中记录的行
+         * @returns {*}
+         */
+        getCheckedRows: function () {
+            return table.checkStatus(this._config.id).data;
+        },
+        /**
+         * 获取选中的行的 ID，使用示例查看 doBatchChange 注释
+         * @param success
+         */
+        getRowIds: function (success) {
+            const rows = admin.table.getCheckedRows();
+            if (rows.length == 0) {
+                admin.layer.error('没有选中任何出车记录');
+            } else {
+                const ids = rows.map(function (d) {
+                    return d.id;
+                });
+                success(ids);
+            }
+        },
+        /**
+         *
+         * 向服务器发送批量修改
+         * ```js
+         * admin.util.layOn({batchMaterial: function () {
+         *    admin.table.getRowIds((ids) => {
+         *       admin.layer.radiosDialog('修改物料种类', tripMaterial, function (index, value) {
+         *           admin.table.doBatchChange(ids, 'material', value, index);
+         *       })
+         *    })
+         * });
+         * ```
+         * @param {Array<number>} ids 待修改的记录的 ID
+         * @param {String} field 待修改的字段名称
+         * @param {String|number} value 修改后的值
+         * @param index 关闭的 layer.open 的索引
+         */
+        doBatchChange: function (ids, field, value, index) {
+            admin.ajax.postLimit({
+                url: this._config.url + '/batchChange',
+                data: {ids, field, value}
+            }, function (res) {
+                if (index) layer.close(index);
+                layer.msg('已更新 ' + (ids.length) + ' 条记录', {
+                    icon: 1,
+                    time: 1500
+                }, function () {
+                    admin.table.reloadData();
+                });
+            });
+        },
+        /**
          * 获取 admin.table 的配置信息（不是 layui.table 的配置）
          * @param config {Object} 配置值
          * @param key {string}
@@ -1030,7 +1084,7 @@ const admin = {
          * @param {Array|boolean} [options.defaultToolbar] 设置头部工具栏右上角工具图标，值为一个数组，图标将根据数组值的顺序排列。如果为 true，则使用默认
          * @param {Array} [options.cols] 表头属性集，通过二维数组定义多级表头。方法渲染时必填。
          * @param {boolean} [options.page] 是否分页
-         * @param {Object} [options.where] 请求的其他参数。如：where: {token: 'sasasas', id: 123}
+         * @param {Object} [options.where] 请求的其他参数。原 table 只支持静态数据，如：where: {token: 'sasasas', id: 123}；现在扩展支持 function，要求返回一个 {}
          * @param {Object} [options.headers] 请求的数据头参数。如：headers: {token: 'sasasas'}
          * @param additions 其它附加功能
          * @param {boolean} [additions.search] 是否开启表格搜索功能，如果是，则页面需要存在 '#' + tableId + '-search' 的元素
@@ -1068,6 +1122,9 @@ const admin = {
                 page: true, // 用于开启分页。
                 // height: 'full-20', // 高度最大化，并减去20px的差值，通常用于固定表头；或者使用 .tao-table-fixed
                 ajax: function (origOptions, type) {
+                    if (typeof options['where'] === 'function') {
+                        origOptions.data = Object.assign({}, options['where'](), origOptions.data);
+                    }
                     $.ajax({
                         url: origOptions.url,
                         data: origOptions.data,
@@ -1185,13 +1242,7 @@ const admin = {
             this._config.tableInst = tableInst;
             return this;
         },
-        /**
-         * 获取选中记录的行
-         * @returns {*}
-         */
-        getCheckedRows: function () {
-            return table.checkStatus(this._config.id).data;
-        },
+
         /**
          * 监听表格工具栏的 batchDelete/create 事件；如果需要监听其它独立事件，使用 admin.utils.layOn
          * @param {{url?:string}} [config] 配置信息
