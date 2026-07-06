@@ -433,22 +433,8 @@ const admin = {
          * 弹出一个单选选择框
          * @param {string} title 标题
          * @param {Object} kvMap 选项
-         * @param {Function} success `(index, value)` 选项选中后的回调，接收选中的值，注意关闭层
+         * @param {Function} success `(value, index)` 选项选中后的回调，接收选中的值，注意关闭层
          * @param {String} appendContent 其它的 HTML 内容
-         * @example
-         * // success 回调接收两个参数 (index,value)
-         * admin.ajax.postLimit({
-         *    url: prefix + '/batchChange',
-         *    data: {id: ids, type: 'material', value: value}
-         * }, function (res) {
-         *    layer.close(index);
-         *    layer.msg('已更新 ' + (res.data || res.count || '') + ' 条记录', {
-         *        icon: 1,
-         *        time: 1500
-         *    }, function () {
-         *        admin.table.reloadData();
-         *    });
-         * });
          */
         radiosDialog: function (title, kvMap, success, appendContent = '') {
             var content = '';
@@ -475,8 +461,18 @@ const admin = {
                         layui.layer.msg('请选择' + title, {icon: 2});
                         return;
                     }
-                    success(index, value);
+                    success(value, index);
                 }
+            });
+        },
+        input: function (title, placeholder,success) {
+            layer.prompt({
+                title,
+                formType: 0,
+                area: ['300px', '160px'],
+                placeholder
+            }, function (value, index) {
+                success(value,index);
             });
         }
     },
