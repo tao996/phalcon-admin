@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+
+<?php
+/*
+ * 远程项目维护的步骤 (省略命令前辍 php deploy，使用参数使用 -key=value 传递)
+# 初始化项目 -init=项目名称
+根据 deploys/template 目录下的模板，为项目生成配置信息
+
+ */
