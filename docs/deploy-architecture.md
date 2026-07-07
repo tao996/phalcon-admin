@@ -213,7 +213,7 @@ return [
 return [
     'project' => [
         'name' => 'myapp',
-        'repo' => 'git@github.com:user/phalcon-admin.git',
+        'repo' => 'https://github.com/tao996/phalcon-admin.git',
         'branch' => 'main',
         'path' => '/root/projects/myapp',
         'modules' => [

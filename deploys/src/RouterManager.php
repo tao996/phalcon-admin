@@ -374,19 +374,11 @@ class RouterManager
 
     /**
      * 检测宿主机 nginx 配置目录
-     * 通过检查常见路径来判断
      */
     protected function detectNginxConfigDir(): string
     {
-        // CentOS/RHEL 默认 /etc/nginx/conf.d，Ubuntu/Debian 也是
-        // 优先使用最常见的路径
-        $result = $this->ssh->exec(
-            "[ -d /etc/nginx/conf.d ] && echo '/etc/nginx/conf.d' || " .
-            "[ -d /etc/nginx/sites-enabled ] && echo '/etc/nginx/sites-enabled' || " .
-            "echo '/etc/nginx/conf.d'",
-            false
-        );
-        return trim($result);
+        // nginx 站点配置目录，CentOS/Ubuntu/Debian 均默认为 /etc/nginx/conf.d
+        return '/etc/nginx/conf.d';
     }
 
     /**

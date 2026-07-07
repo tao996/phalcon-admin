@@ -19,8 +19,8 @@ return [
             // 'tao'  => 'git@github.com:user/module-tao.git',
         ],
         // repo 和 branch 继承自 deploys/server.php，如需覆盖取消注释：
-        // 'repo' => 'git@github.com:user/repo.git',
-        // 'branch' => 'main',
+         'repo' => 'https://github.com/tao996/phalcon-admin.git',
+         'branch' => 'main',
         // 宿主机模式时项目的 nginx 端口（可选，默认 8071）
         // 'nginxPort' => 8071,
     ],
