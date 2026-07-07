@@ -283,7 +283,7 @@ class ProjectDeployer
 
         // src/config/config.php
         $configPhpContent = $this->renderer->render(
-            $this->getTemplatePath('config.php'),
+            $this->getTemplatePath('config.php.template'),
             $vars
         );
         if (!empty($configPhpContent)) {
