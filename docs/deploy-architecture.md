@@ -33,9 +33,9 @@
   │    │    │    │    │
   ▼    ▼    ▼    ▼    ▼
  ┌──┐ ┌──┐ ┌──┐ ┌──┐
- │A-│ │A-│ │B-│ │B-│ ...
- │n🐘│ │p🐘│ │n🐘│ │p🐘│
- │gx│ │hp│ │gx│ │hp│
+ │A-│ │A-│ │A-│ │A-│ ...
+ │n🐘│ │p🐘│ │my│ │re│
+ │gx│ │hp│ │sl│ │ds│
  └──┘ └──┘ └──┘ └──┘
  项目 Alpha          项目 Beta
 ```
@@ -85,7 +85,7 @@
 │   ├── src/                        — 部署引擎 PHP 代码
 │   │   ├── helpers.php             — 辅助函数
 │   │   ├── Config.php              — 配置加载 + 合并
-│   │   ├── SSH.php                 — SSH 连接（基于 phpseclib）
+│   │   ├── SSH.php                 — SSH 连接（基于 phpseclib v3 SFTP）
 │   │   ├── TemplateRenderer.php    — 模板渲染（{{KEY}} 替换）
 │   │   ├── GitHelper.php           — 远程 git 操作
 │   │   ├── RouterManager.php       — Router Nginx 管理（环境检测、双模式）
@@ -97,13 +97,11 @@
 │   │   ├── nginx/default.conf      — 项目内部 nginx 站点配置
 │   │   ├── php/php.ini             — 生产环境 PHP 配置
 │   │   ├── mysql/my.cnf
-│   │   ├── config.php              — 应用主配置
+│   │   ├── config.php.template     — 应用主配置模板（.template 避免 IDE 误解析）
 │   │   └── server.php              — 旧版模板保留
 │   ├── projects/                   — 项目配置
 │   │   ├── .example/server.php     — 项目配置模板
-│   │   ├── demo/server.php
-│   │   ├── tao/server.php
-│   │   └── yihe/server.php
+│   │   └── yihe/server.php         — 自定义模块示例
 │   ├── tests/                      — 单元测试
 │   │   ├── bootstrap.php
 │   │   ├── helpersTest.php         — 17 tests
@@ -116,65 +114,152 @@
 
 ---
 
-## 四、双模式设计
+## 四、环境检测（init:router 不带 -y）
 
-`init:router` 会自动检测服务器环境并在两种模式间选择。
+`php deploy init:router`（不加 `-y`）只检测不执行。检测后打印报告并退出。
 
-### 检测项目
+### 检测项及执行命令
 
-| 检测项 | 方法 | 影响 |
-|--------|------|------|
-| Nginx 是否安装 | `command -v nginx` | 决定模式选择 |
-| Nginx 是否运行 | `nginx -t` | 判断 80/443 是否可用 |
-| Certbot 是否安装 | `command -v certbot` | SSL 策略提示 |
-| 端口 80/443 状态 | `ss -tlnp` / `netstat` | 判断端口是否被占用 |
-| Docker Router 容器 | `docker inspect` | 检测是否已初始化过 |
+| # | 检测项 | 实际执行的 SSH 命令 | 判定依据 | 作用 |
+|---|--------|-------------------|---------|------|
+| 1 | 操作系统 | `. /etc/os-release 2>/dev/null && echo "$PRETTY_NAME"` | 输出 `PRETTY_NAME` | 显示发行版信息 |
+| 2 | Nginx 进程 | `ps aux 2>/dev/null \| grep -v grep \| grep -q ' nginx'` | `echo YES` 或 `echo NO` | 判断 nginx 是否在运行 |
+| 3 | Nginx 命令 | `command -v nginx >/dev/null 2>&1` | `echo YES` 或 `echo NO` | 判断 nginx 命令是否在 PATH 中 |
+| 4 | Certbot | `command -v certbot >/dev/null 2>&1` | `echo YES` 或 `echo NO` | 判断 certbot 是否可用 |
+| 5 | 端口 80 | `ss -tln 2>/dev/null \| grep -q '\.80 '` → 失败则 fallback `netstat -tln \| grep -q '\.80 '` | `echo 'in_use'` 或 `echo 'free'` | 判断 80 是否被占用 |
+| 6 | 端口 443 | 同上，换为 443 | 同上 | 判断 443 是否被占用 |
+| 7 | Docker Router | `docker inspect -f '{{.State.Running}}' phalcon-router 2>/dev/null` | 输出 `true` 则表示已在运行 | 是否已初始化 |
 
-### 模式对比
+### 模式判定逻辑（determineMode）
 
-| 维度 | Docker Router 模式 | 宿主机 Nginx 模式 |
+```
+如果 Docker Router 容器已在运行           →  Docker Router 模式（复用已有）
+否则如果 nginx 进程在运行 或 80 端口被占用  →  宿主机 Nginx 模式
+否则                                       →  Docker Router 模式（新服务器）
+```
+
+### 检测报告示例输出
+
+```
+  → ━━━━━ 服务器环境检测报告 ━━━━━
+  ℹ 系统:       CentOS Linux 7 (Core)
+  ℹ Nginx:      已安装  (运行中)
+  ℹ Nginx 配置: /etc/nginx/conf.d
+  ℹ Certbot:    已安装
+  ℹ 端口 80:    已被占用
+  ℹ 端口 443:   已被占用
+  ℹ Docker Router: 未运行
+
+  → 推荐模式:   宿主机 Nginx
+  ⚠ 使用 -y 参数执行安装：php deploy init:router -y
+```
+
+---
+
+## 五、init:router -y 执行流程
+
+`php deploy init:router -y` 先检测，然后根据模式执行对应的安装步骤。
+
+### Docker Router 模式执行流程
+
+```
+1. 创建共享 Docker 网络
+   docker network create phalcon-shared 2>/dev/null || echo 'network already exists'
+
+2. 创建 Router 配置目录
+   mkdir -p /root/router
+   mkdir -p /etc/nginx-router/conf.d
+
+3. 上传 Router 的 docker-compose.yaml（由 generateRouterCompose() 生成）
+   ┌──────────────────────────────────────────┐
+   │version: '3.5'                            │
+   │services:                                  │
+   │  router:                                  │
+   │    image: nginx:stable-alpine              │
+   │    container_name: phalcon-router          │
+   │    ports:                                  │
+   │      - "80:80"                             │
+   │      - "443:443"                           │
+   │    volumes:                                │
+   │      - /etc/nginx-router/conf.d:/etc/nginx/conf.d │
+   │      - /etc/nginx-router/ssl:/etc/nginx/ssl       │
+   │    networks:                               │
+   │      - phalcon-shared                      │
+   │    restart: always                         │
+   │networks:                                   │
+   │  phalcon-shared:                           │
+   │    external: true                          │
+   └──────────────────────────────────────────┘
+
+4. 启动 Router 容器
+   cd /root/router && docker-compose up -d
+
+完成。
+```
+
+### 宿主机 Nginx 模式执行流程
+
+```
+1. 创建共享 Docker 网络
+   docker network create phalcon-shared 2>/dev/null || echo 'network already exists'
+
+2. 确认宿主机 nginx 配置目录存在
+   mkdir -p /etc/nginx/conf.d
+
+3. 验证 nginx 配置是否有效
+   nginx -t
+
+4. 如果 certbot 未安装，给出提示
+   提示: certbot 未安装，SSL 证书需手动配置
+   安装: apt install certbot python3-certbot-nginx
+
+5. 后续 init 项目时：
+   为每个项目分配一个端口（从 8071 起）
+   项目的 nginx 容器暴露该端口到 host
+   生成 server block 写入 /etc/nginx/conf.d/<project>.conf
+   proxy_pass http://127.0.0.1:<port>;
+
+完成。
+```
+
+### 两种模式的关键差异一览
+
+| 步骤 | Docker Router 模式 | 宿主机 Nginx 模式 |
 |------|-------------------|-------------------|
-| 触发条件 | 新服务器，80/443 空闲 | 已有 nginx，端口占用 |
-| docker-compose 模板 | `docker-compose.yaml`（无 ports） | `docker-compose.ports.yaml`（含 `{{NGINX_PORT}}`） |
-| proxy_pass target | `project-nginx:80`（Docker DNS） | `127.0.0.1:<port>`（宿主机地址） |
-| nginx 重载方式 | `docker exec phalcon-router nginx -s reload` | `nginx -s reload` 或 `systemctl reload nginx` |
-| SSL 管理 | Docker certbot 或手动 | 复用系统已有 certbot |
-| 端口管理 | 无需 | 每项目一个端口（自动分配，可从 8071 起） |
-
-### 工作流
-
-```
-php deploy init:router                # 检测环境 → 打印报告 → 提示加 -y
-php deploy init:router -y             # 检测 → 自动选择模式 → 执行安装
-php deploy init:router -y mode=host_nginx  # 强制宿主机模式
-```
-
-不加 `-y` 时安全只读，适合先预览再决定。
+| 共享网络 | ✅ 创建 | ✅ 创建 |
+| Docker Router 容器 | ✅ 部署 nginx 容器监听 80/443 | ❌ 不部署，复用宿主机 nginx |
+| 项目 proxy_pass | `http://<project>-nginx:80`（Docker DNS） | `http://127.0.0.1:<port>`（宿主机地址） |
+| 项目 docker-compose | 无端口映射 | 暴露 `{{NGINX_PORT}}` 到 host |
+| nginx 重载 | `docker exec phalcon-router nginx -s reload` | `nginx -s reload` 或 `systemctl reload nginx` |
+| SSL 证书 | 需手动配置或容器内 certbot | 复用系统 certbot（已安装时） |
 
 ---
 
-## 五、CLI 命令集
+## 六、配置模板渲染（init 项目时）
 
-| 命令 | 功能 |
-|------|------|
-| `php deploy --help` | 显示帮助 |
-| `php deploy init:router` | 检测服务器环境（默认只报告，加 `-y` 才执行） |
-| `php deploy init:router -y` | 执行初始化（自动选择模式） |
-| `php deploy init <project>` | 首次部署项目 |
-| `php deploy upgrade <project>` | 更新已有项目（git pull + 重启） |
-| `php deploy nginx:add <project>` | 为项目添加域名到 Router |
-| `php deploy nginx:remove <project>` | 从 Router 移除项目域名 |
-| `php deploy status <project>` | 查看项目容器状态 |
+`php deploy init <project>` 时，`ProjectDeployer::renderConfigs()` 在**本地**渲染以下模板并通过 SFTP 上传：
 
-参数：
-- `-y` — 自动执行（`init:router` 默认只检测）
-- `env=prod` — 选择服务器配置（`server.prod.php`）
-- `mode=host_nginx` — 强制宿主机模式
-- `port=8071` — 手动指定 nginx 端口（宿主机模式）
+| 模板文件（deploys/template/） | 生成到服务器的文件 | 变量来源 |
+|---------|-------------------|---------|
+| `.env` | `<project>/.env` | `env` 字段 + 默认值 |
+| `docker-compose.yaml` | `<project>/docker-compose.yaml` | Docker Router 模式使用 |
+| `docker-compose.ports.yaml` | `<project>/docker-compose.ports.yaml` | 宿主机模式使用，含 `{{NGINX_PORT}}` |
+| `nginx/default.conf` | `<project>/docker/nginx/sites/default.conf` | 项目 nginx 内部配置 |
+| `php/php.ini` | `<project>/docker/php/php.ini` | `{{TZ}}` |
+| `mysql/my.cnf` | `<project>/docker/mysql/my.cnf` | 通用 |
+| `config.php.template` | `<project>/src/config/config.php` | `config` 字段 |
+
+渲染后上传命令（通过 phpseclib SFTP）：
+
+```bash
+# 每个文件通过 SFTP put 上传到远程对应路径
+# 然后执行：
+docker-compose -f <模板文件> up -d     # 启动容器
+```
 
 ---
 
-## 六、配置文件结构
+## 七、配置文件结构
 
 ### 服务器连接配置 `deploys/server.php`
 
@@ -188,6 +273,10 @@ return [
         'password' => '',       // 与 keyFile 二选一
         // 'keyFile' => '~/.ssh/id_rsa',
         // 'keyPassphrase' => '',
+    ],
+    'project' => [              // 所有项目的默认值，各项目可覆盖
+        'repo' => 'git@github.com:user/phalcon-admin.git',
+        'branch' => 'main',
     ],
     'docker' => [
         'network' => 'phalcon-shared',
@@ -213,13 +302,12 @@ return [
 return [
     'project' => [
         'name' => 'myapp',
-        'repo' => 'https://github.com/tao996/phalcon-admin.git',
-        'branch' => 'main',
         'path' => '/root/projects/myapp',
         'modules' => [
             'demo' => 'git@github.com:user/module-demo.git',
         ],
-        // 'nginxPort' => 8071,   // 宿主机模式端口（可选）
+        // repo/branch 继承自 server.php，可不填
+        // 'nginxPort' => 8071,
     ],
     'domains' => [
         'myapp.example.com',
@@ -244,88 +332,103 @@ return [
 ];
 ```
 
----
+### 配置合并规则
 
-## 七、配置模板渲染
+`Config::getMerged()` 通过 `array_merge_deep()` 合并 `server.php` + 项目 `server.php`。
 
-模板文件位于 `deploys/template/`，使用 `{{KEY}}` 占位符。
+```php
+// server.php 配置
+['project' => ['repo' => 'git@...com:main.git', 'branch' => 'main']]
 
-每个 .example 文件对应一个部署时生成的正式文件：
+// 项目 server.php 配置（只覆盖 name, path）
+['project' => ['name' => 'myapp', 'path' => '/root/projects/myapp']]
 
-| 模板文件 | 生成目标 | 变量来源 |
-|---------|---------|---------|
-| `.env` | `<project>/.env` | `env` 字段 + 默认值 |
-| `docker-compose.yaml` | `<project>/docker-compose.yaml` | 通用（Docker Router 模式） |
-| `docker-compose.ports.yaml` | `<project>/docker-compose.ports.yaml` | + `{{NGINX_PORT}}`（宿主机模式） |
-| `nginx/default.conf` | `<project>/docker/nginx/sites/default.conf` | 通用 |
-| `php/php.ini` | `<project>/docker/php/php.ini` | `{{TZ}}` |
-| `mysql/my.cnf` | `<project>/docker/mysql/my.cnf` | 通用 |
-| `config.php` | `<project>/src/config/config.php` | `config` 字段 |
+// 合并结果（repo, branch 继承自 server.php）
+['project' => ['name' => 'myapp', 'path' => '/root/projects/myapp',
+               'repo' => 'git@...com:main.git', 'branch' => 'main']]
+```
 
-渲染流程在本地完成，然后通过 SCP 上传到服务器。不依赖远程服务器的模板引擎。
+项目配置中定义的同名键会覆盖 `server.php` 的默认值。
 
 ---
 
-## 八、init 完整流程
+## 八、init 项目完整流程
 
 ```
 01. 读取 deploys/server.php + projects/<name>/server.php
-02. 检测 Router 模式（缓存 → 远程 Docker 容器检查 → 回退自动检测）
+02. 检测 Router 模式（本地缓存 → 远程 Docker 容器检查 → 回退自动检测）
 03. SSH 连接远程服务器
 04. mkdir -p <project.path>
 05. git clone <repo> <path> --branch <branch>
 06. git clone 子模块到 src/App/Modules/<name>
-07. 渲染配置文件（本地）：
-    - .env（从 template/.env + server.php env 变量）
+07. 渲染配置文件（本地 TemplateRenderer）：
+    - .env
     - docker-compose.yaml 或 docker-compose.ports.yaml（根据模式）
     - docker/nginx/sites/default.conf
     - docker/php/php.ini
     - docker/mysql/my.cnf
-    - src/config/config.php
-08. SCP 上传渲染后的配置文件
-09. docker-compose -f <模板> up -d
-10. 将域名添加到 Router（生成 nginx server block → SCP → reload）
+    - src/config/config.php.template → config.php
+08. SFTP 上传渲染后的配置文件到服务器
+09. docker-compose -f <模板文件> up -d
+10. 生成 nginx server block → 上传到 Router 配置目录 → reload nginx
 11. 执行 afterInit 钩子（如 php artisan migration）
 ```
 
 ---
 
-## 九、单元测试
+## 九、CLI 命令集
 
-部署引擎的纯逻辑部分有单元测试覆盖：
+### 命令列表
 
-```
-deploys/tests/
-├── bootstrap.php                    — 加载源文件
-├── helpersTest.php                  — array_get / safe_name / array_merge_deep
-├── ConfigTest.php                   — 配置加载、合并、getter
-├── TemplateRendererTest.php         — 单文件渲染 / renderToFile / renderDir / 边界
-└── fixtures/                        — 测试用的 fixture 配置和模板
-```
+| 命令 | 功能说明 |
+|------|---------|
+| `php deploy --help` | 显示帮助 |
+| `php deploy init:router` | 检测服务器环境（nginx/certbot/端口/OS），打印报告后退出 |
+| `php deploy init:router -y` | 检测 + 自动选择模式并执行安装 |
+| `php deploy init:router -y mode=host_nginx` | 强制宿主机 Nginx 模式 |
+| `php deploy init <project>` | 首次部署项目（git clone + 配置 + docker-compose + router） |
+| `php deploy upgrade <project>` | 更新已有项目（git pull + 重启） |
+| `php deploy nginx:add <project>` | 将 project 的域名添加到 Router |
+| `php deploy nginx:remove <project>` | 从 Router 移除 project 的域名 |
+| `php deploy status <project>` | 查看项目容器运行状态 |
 
-运行方式：`php src/vendor/bin/phpunit -c deploys/phpunit.xml`
+### 参数
 
-| 组件 | 测试数 | 说明 |
+| 参数 | 作用于 | 说明 |
 |------|--------|------|
-| helpers | 17 | 覆盖各类边情况 |
-| Config | 12 | 加载 + 合并 + 字段提取 |
-| TemplateRenderer | 16 | 渲染、目录、子目录、跳过规则 |
-
-未测（需真实 SSH）：SSH.php、GitHelper.php、RouterManager.php 远程部分、ProjectDeployer 编排部分。
+| `-y` | `init:router` | 自动执行安装；不加则只检测 |
+| `env=prod` | 所有命令 | 选择服务器配置 `server.{env}.php` |
+| `mode=host_nginx` | `init:router -y`、`init`、`upgrade` | 强制宿主机模式 |
+| `port=8071` | `init`、`upgrade` | 手动指定项目 nginx 端口（宿主机模式） |
 
 ---
 
-## 十、使用步骤
+## 十、单元测试
+
+运行方式：`php src/vendor/bin/phpunit -c deploys/phpunit.xml`
+
+| 测试文件 | 测试数 | 覆盖内容 |
+|---------|--------|---------|
+| `helpersTest.php` | 17 | `array_get`（嵌套/默认/缺失）、`safe_name`、`array_merge_deep` 多层级合并 |
+| `ConfigTest.php` | 12 | 配置加载、合并、各 getter 方法 |
+| `TemplateRendererTest.php` | 16 | 单文件渲染、`renderToFile`、`renderDir` 目录渲染、跳过 `_` 文件、子目录结构保持、边界情况 |
+
+未测（需真实 SSH 连接）：`SSH.php`、`GitHelper.php`、`RouterManager.php` 远程部分、`ProjectDeployer.php` 编排部分。这些在 `php deploy init <project>` 实际运行时验证。
+
+---
+
+## 十一、使用步骤
 
 ### 首次搭建
 
 ```bash
 # 1. 配置服务器连接
 cp deploys/server.example.php deploys/server.php
-# 编辑 deploys/server.php 填入真实服务器信息
+# 编辑 deploys/server.php 填入真实服务器信息（IP、用户、密钥、默认仓库地址等）
 
-# 2. 配置项目（已有 demo/tao/yihe 示例，修改即可）
-# 编辑 deploys/projects/demo/server.php
+# 2. 配置项目
+cp deploys/projects/.example/server.php deploys/projects/yihe/server.php
+# 编辑 deploys/projects/yihe/server.php 填入项目名、路径、域名
 
 # 3. 检测服务器环境
 php deploy init:router
@@ -334,18 +437,18 @@ php deploy init:router
 php deploy init:router -y
 
 # 5. 部署项目
-php deploy init demo
+php deploy init yihe
 ```
 
 ### 日常更新
 
 ```bash
-php deploy upgrade demo
+php deploy upgrade yihe
 ```
 
 ### 新增域名
 
 ```bash
-# 在 server.php 的 domains 中添加域名后
-php deploy nginx:add demo
+# 在 deploys/projects/yihe/server.php 的 domains 中添加域名后
+php deploy nginx:add yihe
 ```
