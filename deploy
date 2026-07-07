@@ -7,7 +7,7 @@
  *   php deploy init:router             # 检测环境并生成报告
  *   php deploy init:router -y          # 执行初始化（根据环境自动选择模式）
  *   php deploy init:router -y mode=host_nginx  # 强制宿主机 nginx 模式
- *   php deploy init <project>          # 首次部署项目
+ *   php deploy init <project>          # 预览（无 -y）或执行部署（加 -y）
  *   php deploy upgrade <project>       # 更新已有项目
  *   php deploy nginx:add <project>     # 为项目添加域名到 Router
  *   php deploy nginx:remove <project>  # 从 Router 移除域名
@@ -81,7 +81,7 @@ function showHelp(): void
 命令:
   \033[33minit:router\033[0m             检测服务器环境（默认只报告，加 -y 才执行）
   \033[33minit:router -y\033[0m          执行初始化（自动选择 Docker Router 或宿主机 Nginx）
-  \033[33minit\033[0m <项目名>          首次部署项目
+  \033[33minit\033[0m <项目名>          预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mupgrade\033[0m <项目名>       更新已有项目
   \033[33mnginx:add\033[0m <项目名>     为项目添加域名到 Router
   \033[33mnginx:remove\033[0m <项目名>  从 Router 移除域名
@@ -93,7 +93,7 @@ function showHelp(): void
 
 参数:
   env=prod              选择服务器配置文件 (server.prod.php)
-  -y                    自动执行（init:router 默认只检测，加 -y 才安装）
+  -y                    自动执行（init:router 默认只检测，加 -y 才安装；init 默认预览，加 -y 执行远程部署）
   mode=host_nginx       强制宿主机模式（仅 init:router -y 时生效）
   port=8071             手动指定项目 nginx 端口（宿主机模式 init 时可选）
   local=13306           SSH 隧道本地端口（db:proxy 时指定）
@@ -281,7 +281,15 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
     }
 
     $deployer = new ProjectDeployer($config);
-    $deployer->init($options);
+
+    // 无 -y 时进入预览模式（仅本地生成配置文件供检查）
+    if (!isset($params['y'])) {
+        $deployer->preview($options);
+        return;
+    }
+
+    // 有 -y 时执行完整部署，优先使用本地已生成的配置文件
+    $deployer->init($options, true);
 }
 
 function handleUpgrade(string $serverConfigFile, string $projectName, array $params): void

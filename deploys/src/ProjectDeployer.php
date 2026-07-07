@@ -63,7 +63,7 @@ class ProjectDeployer
     /**
      * 首次部署项目
      */
-    public function init(array $options = []): void
+    public function init(array $options = [], bool $useLocalConfigs = false): void
     {
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
@@ -106,7 +106,11 @@ class ProjectDeployer
 
             // 4. 生成并上传配置文件
             deploy_log('步骤 4/7: 生成配置文件', 'step');
-            $this->renderConfigs($projectPath, $nginxPort);
+            if ($useLocalConfigs) {
+                $this->uploadLocalConfigs($projectPath, $nginxPort);
+            } else {
+                $this->renderConfigs($projectPath, $nginxPort);
+            }
 
             // 5. Docker Compose 启动
             deploy_log('步骤 5/7: 启动 Docker 容器', 'step');
@@ -134,6 +138,89 @@ class ProjectDeployer
         }
 
         $this->ssh->disconnect();
+    }
+
+    /**
+     * 预览生成配置文件（不连接远程，仅输出到本地项目目录供检查）
+     */
+    public function preview(array $options = []): void
+    {
+        $projectName = $this->config->getProjectName();
+
+        // 检测模式：参数 > 本地缓存 > 默认 host_nginx（预览模式不连远程检测）
+        if (isset($options['mode'])) {
+            $this->routerMode = $options['mode'];
+        } else {
+            $cacheFile = deploy_base_path() . '/.cache/mode.txt';
+            if (file_exists($cacheFile)) {
+                $mode = trim(file_get_contents($cacheFile));
+                if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
+                    $this->routerMode = $mode;
+                }
+            }
+        }
+        if (empty($this->routerMode)) {
+            $this->routerMode = RouterManager::MODE_HOST;
+            deploy_log('未检测到模式缓存，默认使用 host_nginx', 'warn');
+        }
+
+        $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
+
+        deploy_log("=== 预览模式: {$projectName} ===", 'step');
+        deploy_log("Router 模式: {$this->routerMode}", 'info');
+        if ($this->routerMode === RouterManager::MODE_HOST) {
+            deploy_log("Nginx 端口: {$nginxPort}", 'info');
+        }
+        deploy_log('', '');
+
+        $localDir = $this->getLocalProjectDir();
+        $this->ensureLocalDir($localDir);
+
+        // 构建模板变量
+        $projectPath = $this->config->getProjectPath();
+        $vars = array_merge([
+            'APP_NAME' => $projectName,
+            'PROJECT_NAME' => $projectName,
+            'PROJECT_PATH' => $projectPath,
+            'NETWORKS_NAME' => 'phalcon-shared',
+            'TZ' => 'Asia/Shanghai',
+            'DATA_PATH_HOST' => $projectPath . '/docker/storage',
+            'NGINX_PORT' => $nginxPort,
+        ], $this->config->getEnvOverrides());
+
+        // 合并应用配置覆盖到模板变量（如 app.title → APP_TITLE）
+        $vars = array_merge($vars, $this->getConfigTemplateVars());
+
+        $composeTemplate = $this->routerMode === RouterManager::MODE_HOST
+            ? 'docker-compose.ports.yaml'
+            : 'docker-compose.yaml';
+
+        // 渲染并写入本地文件
+        $files = [
+            '.env' => $this->getTemplatePath('.env.example'),
+            $composeTemplate => deploy_base_path() . '/template/' . $composeTemplate,
+            'docker/nginx/sites/default.conf' => $this->getTemplatePath('nginx/default.conf'),
+            'docker/php/php.ini' => $this->getTemplatePath('php/php.ini'),
+            'docker/mysql/my.cnf' => $this->getTemplatePath('mysql/my.cnf'),
+            'src/config/config.php' => $this->getTemplatePath('config.php.template'),
+        ];
+
+        foreach ($files as $relativePath => $templatePath) {
+            $content = $this->renderer->render($templatePath, $vars);
+            if (!empty($content)) {
+                $targetFile = $localDir . '/' . $relativePath;
+                $targetDir = dirname($targetFile);
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0755, true);
+                }
+                file_put_contents($targetFile, $content);
+                deploy_log("  生成: {$relativePath}", 'ok');
+            }
+        }
+
+        deploy_log('', '');
+        deploy_log("配置文件已生成到: {$localDir}", 'ok');
+        deploy_log("请检查配置文件后执行: php deploy init {$projectName} -y", 'info');
     }
 
     /**
@@ -219,6 +306,9 @@ class ProjectDeployer
             'NGINX_PORT' => $nginxPort,
         ], $this->config->getEnvOverrides());
 
+        // 合并应用配置覆盖到模板变量（如 app.title → APP_TITLE）
+        $vars = array_merge($vars, $this->getConfigTemplateVars());
+
         // 根据模式选择 docker-compose 模板
         $composeTemplate = $this->routerMode === RouterManager::MODE_HOST
             ? 'docker-compose.ports.yaml'
@@ -227,7 +317,7 @@ class ProjectDeployer
         // 渲染并上传各配置文件
         // .env
         $envContent = $this->renderer->render(
-            $this->getTemplatePath('.env'),
+            $this->getTemplatePath('.env.example'),
             $vars
         );
         if (!empty($envContent)) {
@@ -296,6 +386,114 @@ class ProjectDeployer
     }
 
     /**
+     * 获取本地项目配置目录
+     */
+    protected function getLocalProjectDir(): string
+    {
+        return deploy_base_path() . '/projects/' . $this->config->getProjectName();
+    }
+
+    /**
+     * 确保本地项目配置目录存在
+     */
+    protected function ensureLocalDir(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+    }
+
+    /**
+     * 将项目配置覆盖（server.php 的 config 段）映射为模板变量
+     * config.php.template 使用 {{APP_TITLE}}、{{JWT_SECRET}} 等占位符
+     */
+    protected function getConfigTemplateVars(): array
+    {
+        $cfg = $this->config->getConfigOverrides();
+        $vars = [];
+
+        // 映射 config 覆盖到 config.php.template 所需的变量名
+        $map = [
+            'app.title' => 'APP_TITLE',
+            'app.origin' => 'APP_ORIGIN',
+            'app.https' => 'APP_HTTPS',
+            'app.jwt.secret' => 'JWT_SECRET',
+            'app.sites' => 'APP_SITES',
+        ];
+
+        foreach ($map as $configKey => $varName) {
+            $value = $cfg[$configKey] ?? null;
+            if ($value !== null) {
+                // 布尔值转字符串
+                if (is_bool($value)) {
+                    $value = $value ? 'true' : 'false';
+                }
+                $vars[$varName] = $value;
+            }
+        }
+
+        // 确保所有必需变量都有默认值
+        $vars += [
+            'APP_TITLE' => $this->config->getProjectName(),
+            'APP_ORIGIN' => '',
+            'APP_HTTPS' => 'true',
+            'JWT_SECRET' => '',
+            'APP_SITES' => '',
+            'MYSQL_USER' => $this->config->getProjectName(),
+        ];
+
+        return $vars;
+    }
+
+    /**
+     * 上传本地配置文件到远程（供 -y 模式使用）
+     * 优先读取本地已生成的文件，不存在时回退到模板渲染
+     */
+    protected function uploadLocalConfigs(string $projectPath, int $nginxPort): void
+    {
+        $localDir = $this->getLocalProjectDir();
+
+        // 本地文件路径 => 远程路径的映射
+        $fileMap = [
+            '.env' => $projectPath . '/.env',
+            'docker-compose.yaml' => $projectPath . '/docker-compose.yaml',
+            'docker-compose.ports.yaml' => $projectPath . '/docker-compose.ports.yaml',
+            'docker/nginx/sites/default.conf' => $projectPath . '/docker/nginx/sites/default.conf',
+            'docker/php/php.ini' => $projectPath . '/docker/php/php.ini',
+            'docker/mysql/my.cnf' => $projectPath . '/docker/mysql/my.cnf',
+            'src/config/config.php' => $projectPath . '/src/config/config.php',
+        ];
+
+        $foundAny = false;
+        foreach ($fileMap as $localRelative => $remotePath) {
+            $localFile = $localDir . '/' . $localRelative;
+            if (file_exists($localFile)) {
+                $foundAny = true;
+                // 确保远程目录存在
+                $remoteDir = dirname($remotePath);
+                if ($remoteDir !== '.' && $remoteDir !== $projectPath) {
+                    $this->ssh->exec("mkdir -p {$remoteDir}", false);
+                }
+                $this->ssh->uploadContent(file_get_contents($localFile), $remotePath);
+                deploy_log("已上传: {$localRelative}", 'ok');
+            }
+        }
+
+        if (!$foundAny) {
+            // 没有本地配置文件，回退到模板渲染
+            deploy_log('未找到本地配置文件，使用模板生成', 'warn');
+            $this->renderConfigs($projectPath, $nginxPort);
+        } else {
+            // 确保 docker-compose.yaml 兼容副本
+            $this->ssh->exec(
+                "cd {$projectPath} && [ -f docker-compose.ports.yaml ] && [ ! -f docker-compose.yaml ] && cp docker-compose.ports.yaml docker-compose.yaml || true",
+                false
+            );
+            deploy_log('配置文件上传完成', 'ok');
+        }
+    }
+
+    /**
      * 执行钩子命令
      */
     protected function runHooks(string $hookName, string $projectPath): void
@@ -324,7 +522,7 @@ class ProjectDeployer
             return $path;
         }
         // 回退到项目自带的 example 文件
-        $fallback = deploy_base_path() . '/../../' . $name;
+        $fallback = deploy_base_path() . '/../' . $name;
         return $fallback;
     }
 
