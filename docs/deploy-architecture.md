@@ -1,329 +1,351 @@
 # 部署架构设计 — ReverseProxy + DockerNetwork 模式
 
 > 设计日期：2025-07-07
-> 状态：待实现
+> 最后更新：2025-07-07
+> 状态：已实现（v1）
 
 ---
 
-## 一、核心拓扑
+## 一、核心思想
+
+**目标**：将重复的手动部署流程（SSH → 创建目录 → git clone → cp 配置 → 改端口 → 配 nginx）变为一条命令。
+
+**手段**：
+- 所有项目容器置于共享 Docker 网络 `phalcon-shared`，通过容器名相互寻址
+- 流量统一经过 Router Nginx，按域名分发到各项目
+- 部署工具通过 `phpseclib` 执行远程操作，本地渲染配置后上传
+
+---
+
+## 二、架构拓扑
+
+### Docker Router 模式（新服务器）
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     宿主服务器                            │
-│                                                         │
-│  host:80/443                                            │
-│     ↓                                                   │
-│  ┌──────────────┐    共享网络: phalanx-shared            │
-│  │   router     │  ────┬────┬────┬────                  │
-│  │   nginx      │      │    │    │                      │
-│  └──────────────┘      │    │    │                      │
-│         │              │    │    │                      │
-│         │ proxy_pass   │    │    │                      │
-│         ├─────  demo-nginx:80    │                      │
-│         ├─────────  tao-nginx:80 │                      │
-│         └───────────── yihe-nginx:80                    │
-│                                                         │
-│  每个项目有自己的 default 网络（nginx+php+mysql+redis）    │
-│  仅 nginx 同时接入「项目内网」+「phalanx-shared」          │
-└─────────────────────────────────────────────────────────┘
+宿主机（仅暴露 80/443）               Docker 内部网络
+┌──────────────────────┐
+│   Router Nginx       │← 80/443  用户访问
+│   (Docker 容器)       │
+└──────┬───────────────┘
+       │ 共享网络: phalcon-shared
+       │
+  ┌────┼────┬────┬────┐
+  │    │    │    │    │
+  ▼    ▼    ▼    ▼    ▼
+ ┌──┐ ┌──┐ ┌──┐ ┌──┐
+ │A-│ │A-│ │B-│ │B-│ ...
+ │n🐘│ │p🐘│ │n🐘│ │p🐘│
+ │gx│ │hp│ │gx│ │hp│
+ └──┘ └──┘ └──┘ └──┘
+ 项目 Alpha          项目 Beta
 ```
 
-### 关键规则
+### 宿主机 Nginx 模式（已有 nginx 的服务器）
 
-- **只有 router 映射 host 端口**（80/443）
-- **每个业务项目的容器不暴露任何 host 端口**
-- 每个项目的 nginx 同时连接两个网络：
-  - `default`（项目内网，与 php-fpm 通信）
-  - `phalanx-shared`（共享网络，被 router 访问）
-- 项目间的 mysql/redis 默认隔离；需要共享的服务（如共用 redis）可选择性加入共享网络
+```
+宿主机 Nginx（已运行）                Docker 内部网络
+┌────────────────────┐
+│  nginx + certbot   │← 80/443  用户访问
+│  (宿主机原生)        │
+└──────┬─────────────┘
+    proxy_pass 127.0.0.1:<port>
+       │
+  ┌────┼────┬────┬────┐
+  │    │    │    │    │
+  ▼    ▼    ▼    ▼    ▼
+ ┌──┐ ┌──┐ ┌──┐ ┌──┐
+ │A-│ │A-│ │A-│ │A-│ ...
+ │n🐘│ │p🐘│ │my│ │re│
+ │gx│ │hp│ │sl│ │ds│
+ └──┘ └──┘ └──┘ └──┘
+  ↑ 端口暴露到 host
+  项目 Alpha
+```
 
 ### 流量路径
 
 ```
 用户访问 demo.example.com
-  → Host:80 → Router Nginx
-  → 根据 server_name 匹配 → proxy_pass http://demo-nginx:80
-  → demo-nginx 处理静态文件 / 代理到 demo-php:9000
+  → Host:80 → Router（Docker 容器 或 宿主机 nginx）
+  → 根据 server_name 匹配
+  → proxy_pass http://demo-nginx:80   （Docker Router 模式）
+    或 proxy_pass http://127.0.0.1:8071  （宿主机 Nginx 模式）
+  → demo-nginx 处理静态文件 / 代理 PHP 到 demo-php:9000
 ```
 
 ---
 
-## 二、目录结构
+## 三、目录结构
 
 ```
 项目根目录/
-├── deploy                     — PHP CLI 入口
+├── deploy                          — PHP CLI 入口（7 个命令）
 ├── deploys/
-│   ├── shared-network.php     — 共享网络定义（名称: phalanx-shared）
-│   ├── router/                — Router 项目
-│   │   ├── server.php         — Router 自身的部署配置
-│   │   ├── nginx/
-│   │   │   ├── router.conf.example   — 主体 nginx 配置
-│   │   │   └── upstream/             — 每个项目的 server block 片段
-│   │   │       └── example.conf      — 示例片段
-│   │   └── docker-compose.yaml       — Router compose（仅 nginx 服务）
-│   ├── projects/              — 各业务项目
-│   │   └── <project-name>/
-│   │       ├── server.php     — 部署配置（服务器、仓库、域名、变量等）
-│   │       └── commands/
-│   │           └── after-up.sh       — docker-compose up 后的自定义钩子
-│   ├── template/              — 通用模板（可选 fallback）
-│   └── lib/                   — 部署引擎核心
-│       ├── SSH.php            — SSH/SFTP 远程执行封装
-│       ├── Router.php         — Router 配置管理（增删 upstream、reload）
-│       ├── Project.php        — 项目生命周期
-│       ├── ConfigRenderer.php — .example → 正式配置渲染
-│       └── DeployCommand.php  — CLI 命令路由
+│   ├── server.example.php          — 服务器连接配置模板
+│   ├── src/                        — 部署引擎 PHP 代码
+│   │   ├── helpers.php             — 辅助函数
+│   │   ├── Config.php              — 配置加载 + 合并
+│   │   ├── SSH.php                 — SSH 连接（基于 phpseclib）
+│   │   ├── TemplateRenderer.php    — 模板渲染（{{KEY}} 替换）
+│   │   ├── GitHelper.php           — 远程 git 操作
+│   │   ├── RouterManager.php       — Router Nginx 管理（环境检测、双模式）
+│   │   └── ProjectDeployer.php     — 项目部署编排
+│   ├── template/                   — 配置模板
+│   │   ├── .env
+│   │   ├── docker-compose.yaml     — 无端口映射（Docker Router 模式）
+│   │   ├── docker-compose.ports.yaml — 有端口暴露（宿主机 Nginx 模式）
+│   │   ├── nginx/default.conf      — 项目内部 nginx 站点配置
+│   │   ├── php/php.ini             — 生产环境 PHP 配置
+│   │   ├── mysql/my.cnf
+│   │   ├── config.php              — 应用主配置
+│   │   └── server.php              — 旧版模板保留
+│   ├── projects/                   — 项目配置
+│   │   ├── .example/server.php     — 项目配置模板
+│   │   ├── demo/server.php
+│   │   ├── tao/server.php
+│   │   └── yihe/server.php
+│   ├── tests/                      — 单元测试
+│   │   ├── bootstrap.php
+│   │   ├── helpersTest.php         — 17 tests
+│   │   ├── ConfigTest.php          — 12 tests
+│   │   ├── TemplateRendererTest.php — 16 tests
+│   │   └── fixtures/
+│   └── phpunit.xml
+└── .gitignore                      — 已排除 server.php 和 projects 内容
 ```
 
 ---
 
-## 三、Router 设计
+## 四、双模式设计
 
-Router 本身也是一个 Docker 容器，是整个集群的流量入口。
+`init:router` 会自动检测服务器环境并在两种模式间选择。
 
-### docker-compose
+### 检测项目
 
-```yaml
-services:
-  router:
-    image: nginx:stable-alpine
-    container_name: phalanx-router
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/router.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/upstream/:/etc/nginx/upstream/:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro   # SSL 证书
-    networks:
-      - phalanx-shared
-    restart: always
+| 检测项 | 方法 | 影响 |
+|--------|------|------|
+| Nginx 是否安装 | `command -v nginx` | 决定模式选择 |
+| Nginx 是否运行 | `nginx -t` | 判断 80/443 是否可用 |
+| Certbot 是否安装 | `command -v certbot` | SSL 策略提示 |
+| 端口 80/443 状态 | `ss -tlnp` / `netstat` | 判断端口是否被占用 |
+| Docker Router 容器 | `docker inspect` | 检测是否已初始化过 |
 
-networks:
-  phalanx-shared:
-    external: true
-```
+### 模式对比
 
-### nginx 配置策略
+| 维度 | Docker Router 模式 | 宿主机 Nginx 模式 |
+|------|-------------------|-------------------|
+| 触发条件 | 新服务器，80/443 空闲 | 已有 nginx，端口占用 |
+| docker-compose 模板 | `docker-compose.yaml`（无 ports） | `docker-compose.ports.yaml`（含 `{{NGINX_PORT}}`） |
+| proxy_pass target | `project-nginx:80`（Docker DNS） | `127.0.0.1:<port>`（宿主机地址） |
+| nginx 重载方式 | `docker exec phalcon-router nginx -s reload` | `nginx -s reload` 或 `systemctl reload nginx` |
+| SSL 管理 | Docker certbot 或手动 | 复用系统已有 certbot |
+| 端口管理 | 无需 | 每项目一个端口（自动分配，可从 8071 起） |
+
+### 工作流
 
 ```
-/etc/nginx/conf.d/default.conf  → http 块基础配置
-/etc/nginx/upstream/*.conf      → 每个项目一个独立 server block
+php deploy init:router                # 检测环境 → 打印报告 → 提示加 -y
+php deploy init:router -y             # 检测 → 自动选择模式 → 执行安装
+php deploy init:router -y mode=host_nginx  # 强制宿主机模式
 ```
 
-每个项目一个 conf 片段（由 `deploy init` 自动生成）：
-
-```nginx
-# /etc/nginx/upstream/demo.conf
-server {
-    listen 80;
-    server_name demo.example.com;
-
-    location / {
-        proxy_pass http://demo-nginx:80;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # SSL 版本
-    # listen 443 ssl;
-    # ssl_certificate /etc/letsencrypt/live/demo.example.com/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/demo.example.com/privkey.pem;
-}
-```
-
----
-
-## 四、项目配置格式（server.php）
-
-不再需要端口管理，配置大大简化：
-
-```php
-<?php
-return [
-    'ssh' => [
-        'ip'       => '1.2.3.4',
-        'port'     => 22,
-        'username' => 'root',
-        'keyFile'  => '~/.ssh/id_rsa',
-        // 或 'password' => 'xxx'
-    ],
-    'project' => [
-        'name'       => 'demo',               // 项目名（也是容器名前缀）
-        'repo'       => 'git@github.com:user/phalcon-admin.git',
-        'branch'     => 'master',
-        'path'       => '/root/projects/demo',
-        'modules'    => [
-            'demo' => '',                     // 空=主仓库已有，非空=单独 git 地址
-        ],
-        'domain'     => 'demo.example.com',
-        'ssl'        => false,
-    ],
-    'config' => [
-        // .example 模板渲染时的变量替换（{{VAR}} 占位符）
-        'APP_TITLE'  => 'Demo Admin',
-        'DB_NAME'    => 'phalcon_demo',
-        'REDIS_DB'   => '1',
-        'JWT_SECRET' => 'xxx',
-    ],
-];
-```
-
-### 与之前版本的区别
-
-| 旧字段 | 新字段 | 说明 |
-|--------|--------|------|
-| `ports` | 无 | 整个架构消除了端口映射 |
-| nginx 主机配置 | `domain` | 只需域名，nginx 配置由工具生成 |
-| 大量 example 变量的手动填写 | `config` | 统一在 server.php 中声明 |
+不加 `-y` 时安全只读，适合先预览再决定。
 
 ---
 
 ## 五、CLI 命令集
 
-### Router 管理
-
 | 命令 | 功能 |
 |------|------|
-| `php deploy router:init` | 首次：安装 Docker → 创建 phalanx-shared 网络 → 启动 router |
-| `php deploy router:reload` | 重载 nginx 配置 |
-| `php deploy router:ssl <domain>` | 为域名配置 Let's Encrypt 证书 |
+| `php deploy --help` | 显示帮助 |
+| `php deploy init:router` | 检测服务器环境（默认只报告，加 `-y` 才执行） |
+| `php deploy init:router -y` | 执行初始化（自动选择模式） |
+| `php deploy init <project>` | 首次部署项目 |
+| `php deploy upgrade <project>` | 更新已有项目（git pull + 重启） |
+| `php deploy nginx:add <project>` | 为项目添加域名到 Router |
+| `php deploy nginx:remove <project>` | 从 Router 移除项目域名 |
+| `php deploy status <project>` | 查看项目容器状态 |
 
-### 项目管理
-
-| 命令 | 功能 |
-|------|------|
-| `php deploy init <project>` | 首次部署 |
-| `php deploy upgrade <project>` | 更新代码和配置 |
-| `php deploy status <project>` | 查看容器状态 |
-| `php deploy logs <project> [service]` | 实时日志 |
-
----
-
-## 六、init 完整流程
-
-```
-01. 验证 server.php 配置合法
-02. SSH 连接远程服务器
-03. mkdir -p <project.path>
-04. git clone <repo> <path> [--branch <branch>]
-05. git clone 子模块到 src/App/Modules/<name>
-06. 渲染配置文件（本地生成）：
-    - .env（从 .env.example + server.php config 变量）
-    - docker-compose.yaml（加入 phalanx-shared 外部网络，仅 nginx 加入）
-    - docker/php/php.ini（从 php.prod.ini 或 php.example.ini）
-    - docker/nginx/sites/*.conf
-07. SCP 上传渲染后的配置文件到服务器
-08. 远程执行：cd <path> && docker-compose up -d
-09. 远程执行：容器就绪后执行数据库迁移等初始化
-10. 生成 nginx upstream 片段（域名 → 服务名映射）
-11. SCP 上传 upstream 片段到 router 的 nginx/upstream/ 目录
-12. SSH 执行 router nginx -s reload
-13. 输出部署摘要（域名、访问地址、状态）
-```
-
-如 router 与项目在同一台服务器（最常见），步骤 11-12 在同一 SSH 会话完成；
-如 router 在独立服务器，则需在步骤 10-12 切换 SSH 连接。
+参数：
+- `-y` — 自动执行（`init:router` 默认只检测）
+- `env=prod` — 选择服务器配置（`server.prod.php`）
+- `mode=host_nginx` — 强制宿主机模式
+- `port=8071` — 手动指定 nginx 端口（宿主机模式）
 
 ---
 
-## 七、项目 docker-compose.yaml 调整
+## 六、配置文件结构
 
-### 改动点
+### 服务器连接配置 `deploys/server.php`
 
-1. **去掉所有 services 的 `ports:`** — 不暴露宿主机端口
-2. **nginx 加一个外网** — 加入 `phalanx-shared` 供 router 访问
+```php
+<?php
+return [
+    'ssh' => [
+        'host' => '1.2.3.4',
+        'port' => 22,
+        'user' => 'root',
+        'password' => '',       // 与 keyFile 二选一
+        // 'keyFile' => '~/.ssh/id_rsa',
+        // 'keyPassphrase' => '',
+    ],
+    'docker' => [
+        'network' => 'phalcon-shared',
+    ],
+    'router' => [
+        'containerName' => 'phalcon-router',
+        'configDir' => '/etc/nginx-router/conf.d',
+        'composePath' => '/root/router',
+    ],
+    'env' => [
+        'TZ' => 'Asia/Shanghai',
+        'REDIS_PASSWORD' => '123456',
+        'MYSQL_PASSWORD' => '123456',
+        'MYSQL_USER' => 'admin',
+    ],
+];
+```
 
-### 模板结构
+### 项目配置 `deploys/projects/<name>/server.php`
 
-```yaml
-services:
-  nginx:
-    image: nginx:stable-alpine
-    # ports:            ← 去掉，不需要暴露
-    #   - "8071:80"
-    volumes:
-      - ./docker/nginx/sites:/etc/nginx/conf.d:ro
-      - ./src:/var/www:ro
-    networks:
-      - default
-      - phalanx-shared    ← 加入共享网络
-
-  php:
-    build: ./docker/images
-    # ports:            ← 去掉（php-fpm 不走端口）
-    volumes:
-      - ./src:/var/www
-    networks:
-      - default            ← 只在项目内网
-    environment:
-      - IS_PHP_FPM=1
-
-  mysql:
-    image: mysql:8.1.0
-    # ports:            ← 去掉
-    volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - default
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-
-  redis:
-    image: redis:7.2-alpine
-    # ports:            ← 去掉
-    networks:
-      - default
-
-networks:
-  default:
-    driver: bridge
-  phalanx-shared:
-    external: true
-    name: phalanx-shared
-
-volumes:
-  mysql-data:
+```php
+<?php
+return [
+    'project' => [
+        'name' => 'myapp',
+        'repo' => 'git@github.com:user/phalcon-admin.git',
+        'branch' => 'main',
+        'path' => '/root/projects/myapp',
+        'modules' => [
+            'demo' => 'git@github.com:user/module-demo.git',
+        ],
+        // 'nginxPort' => 8071,   // 宿主机模式端口（可选）
+    ],
+    'domains' => [
+        'myapp.example.com',
+    ],
+    'env' => [
+        'APP_NAME' => 'myapp',
+        'MYSQL_DATABASE' => 'myapp_db',
+    ],
+    'config' => [
+        'app.title' => 'My App',
+        'app.origin' => 'https://myapp.example.com/',
+        'app.jwt.secret' => 'change-this-secret',
+        'app.https' => true,
+        'app.demo' => false,
+        'app.superAdmin' => [1],
+    ],
+    'hooks' => [
+        'afterInit' => [
+            'shell:php artisan migration',
+        ],
+    ],
+];
 ```
 
 ---
 
-## 八、实现路线（三个阶段）
+## 七、配置模板渲染
 
-### Phase 1：基础框架
+模板文件位于 `deploys/template/`，使用 `{{KEY}}` 占位符。
 
-目标：一条命令完成首次部署，router 配置手动补充
+每个 .example 文件对应一个部署时生成的正式文件：
 
-- [ ] 创建 `deploys/lib/` 核心类（SSH、ConfigRenderer、Project）
-- [ ] 实现 `php deploy init` 流程步骤 1-9
-- [ ] 实现 `php deploy upgrade` 流程
-- [ ] 创建第一个项目 `deploys/projects/<name>/server.php`
+| 模板文件 | 生成目标 | 变量来源 |
+|---------|---------|---------|
+| `.env` | `<project>/.env` | `env` 字段 + 默认值 |
+| `docker-compose.yaml` | `<project>/docker-compose.yaml` | 通用（Docker Router 模式） |
+| `docker-compose.ports.yaml` | `<project>/docker-compose.ports.yaml` | + `{{NGINX_PORT}}`（宿主机模式） |
+| `nginx/default.conf` | `<project>/docker/nginx/sites/default.conf` | 通用 |
+| `php/php.ini` | `<project>/docker/php/php.ini` | `{{TZ}}` |
+| `mysql/my.cnf` | `<project>/docker/mysql/my.cnf` | 通用 |
+| `config.php` | `<project>/src/config/config.php` | `config` 字段 |
 
-### Phase 2：Router 自动化
-
-目标：init 自动完成 router upstream 注册
-
-- [ ] 创建 `deploys/router/` 完整配置
-- [ ] 实现 `php deploy router:init`
-- [ ] 实现 `php deploy router:reload`
-- [ ] `deploy init` 集成步骤 10-13
-
-### Phase 3：运维能力
-
-- [ ] `php deploy status`
-- [ ] `php deploy logs`
-- [ ] SSL 自动配置（certbot 集成）
-- [ ] 数据库备份/同步
+渲染流程在本地完成，然后通过 SCP 上传到服务器。不依赖远程服务器的模板引擎。
 
 ---
 
-## 九、注意与备忘
+## 八、init 完整流程
 
-1. **容器命名**：router 固定为 `phalanx-router`；项目 nginx 命名为 `<project>-nginx`（如 `demo-nginx`），以便 router 的 proxy_pass 能通过 Docker DNS 解析
-2. **首次部署**：必须先初始化 router，再部署业务项目
-3. **SSH 认证**：使用密钥对优先，`server.php` 中配置 `keyFile`；密码也可用但不推荐
-4. **.env 变量**：`config.php` 中声明的内容会自动渲染到 `.env.example` → `.env`；不随 git 提交的敏感值（JWT secret、数据库密码）应在 `server.php` 中定义
-5. **phalanx-shared 网络**：名称固定，所有项目和 router 使用同一个
+```
+01. 读取 deploys/server.php + projects/<name>/server.php
+02. 检测 Router 模式（缓存 → 远程 Docker 容器检查 → 回退自动检测）
+03. SSH 连接远程服务器
+04. mkdir -p <project.path>
+05. git clone <repo> <path> --branch <branch>
+06. git clone 子模块到 src/App/Modules/<name>
+07. 渲染配置文件（本地）：
+    - .env（从 template/.env + server.php env 变量）
+    - docker-compose.yaml 或 docker-compose.ports.yaml（根据模式）
+    - docker/nginx/sites/default.conf
+    - docker/php/php.ini
+    - docker/mysql/my.cnf
+    - src/config/config.php
+08. SCP 上传渲染后的配置文件
+09. docker-compose -f <模板> up -d
+10. 将域名添加到 Router（生成 nginx server block → SCP → reload）
+11. 执行 afterInit 钩子（如 php artisan migration）
+```
+
+---
+
+## 九、单元测试
+
+部署引擎的纯逻辑部分有单元测试覆盖：
+
+```
+deploys/tests/
+├── bootstrap.php                    — 加载源文件
+├── helpersTest.php                  — array_get / safe_name / array_merge_deep
+├── ConfigTest.php                   — 配置加载、合并、getter
+├── TemplateRendererTest.php         — 单文件渲染 / renderToFile / renderDir / 边界
+└── fixtures/                        — 测试用的 fixture 配置和模板
+```
+
+运行方式：`php src/vendor/bin/phpunit -c deploys/phpunit.xml`
+
+| 组件 | 测试数 | 说明 |
+|------|--------|------|
+| helpers | 17 | 覆盖各类边情况 |
+| Config | 12 | 加载 + 合并 + 字段提取 |
+| TemplateRenderer | 16 | 渲染、目录、子目录、跳过规则 |
+
+未测（需真实 SSH）：SSH.php、GitHelper.php、RouterManager.php 远程部分、ProjectDeployer 编排部分。
+
+---
+
+## 十、使用步骤
+
+### 首次搭建
+
+```bash
+# 1. 配置服务器连接
+cp deploys/server.example.php deploys/server.php
+# 编辑 deploys/server.php 填入真实服务器信息
+
+# 2. 配置项目（已有 demo/tao/yihe 示例，修改即可）
+# 编辑 deploys/projects/demo/server.php
+
+# 3. 检测服务器环境
+php deploy init:router
+
+# 4. 如果报告满意，执行安装
+php deploy init:router -y
+
+# 5. 部署项目
+php deploy init demo
+```
+
+### 日常更新
+
+```bash
+php deploy upgrade demo
+```
+
+### 新增域名
+
+```bash
+# 在 server.php 的 domains 中添加域名后
+php deploy nginx:add demo
+```

@@ -1,0 +1,2 @@
+# Internal reference fragment (should not be rendered directly)
+{{SOME_VAR}}

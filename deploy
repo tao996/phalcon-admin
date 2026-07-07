@@ -1,9 +1,318 @@
 #!/usr/bin/env php
-
 <?php
-/*
- * 远程项目维护的步骤 (省略命令前辍 php deploy，使用参数使用 -key=value 传递)
-# 初始化项目 -init=项目名称
-根据 deploys/template 目录下的模板，为项目生成配置信息
-
+/**
+ * Phalcon Admin 部署工具
+ *
+ * 用法:
+ *   php deploy init:router             # 检测环境并生成报告
+ *   php deploy init:router -y          # 执行初始化（根据环境自动选择模式）
+ *   php deploy init:router -y mode=host_nginx  # 强制宿主机 nginx 模式
+ *   php deploy init <project>          # 首次部署项目
+ *   php deploy upgrade <project>       # 更新已有项目
+ *   php deploy nginx:add <project>     # 为项目添加域名到 Router
+ *   php deploy nginx:remove <project>  # 从 Router 移除域名
+ *   php deploy status <project>        # 查看项目容器状态
+ *   php deploy --help                  # 显示帮助
+ *
+ * 参数:
+ *   -y                   自动执行（init:router 默认只检测，加 -y 才安装）
+ *   -key=value           命名参数
+ *   env=prod             选择服务器配置文件 (server.{env}.php)
+ *   mode=docker_router   强制模式（仅 init:router -y 时生效）
  */
+
+// ---------- 初始化 ----------
+
+// 定义根路径
+define('DEPLOY_BASE', __DIR__);
+define('DEPLOY_SRC', DEPLOY_BASE . '/deploys/src');
+
+// 加载 phpseclib（用于 SSH 连接）
+$pharPath = DEPLOY_BASE . '/src/tao996/phar/phpseclib.phar';
+if (file_exists($pharPath)) {
+    require $pharPath;
+} else {
+    fwrite(STDERR, "错误: 未找到 phpseclib.phar\n");
+    fwrite(STDERR, "预期路径: {$pharPath}\n");
+    exit(1);
+}
+
+// 加载部署引擎
+require DEPLOY_SRC . '/helpers.php';
+require DEPLOY_SRC . '/Config.php';
+require DEPLOY_SRC . '/SSH.php';
+require DEPLOY_SRC . '/TemplateRenderer.php';
+require DEPLOY_SRC . '/GitHelper.php';
+require DEPLOY_SRC . '/RouterManager.php';
+require DEPLOY_SRC . '/ProjectDeployer.php';
+
+// ---------- 解析参数 ----------
+
+$args = $_SERVER['argv'] ?? [];
+$scriptName = array_shift($args); // 移除脚本名
+
+// 分离命名参数（-key=value 或 --key=value）
+$namedParams = [];
+$positionalArgs = [];
+
+foreach ($args as $arg) {
+    if (str_starts_with($arg, '--')) {
+        $parts = explode('=', substr($arg, 2), 2);
+        $namedParams[$parts[0]] = $parts[1] ?? true;
+    } elseif (str_starts_with($arg, '-') && !str_starts_with($arg, '--')) {
+        $parts = explode('=', substr($arg, 1), 2);
+        $namedParams[$parts[0]] = $parts[1] ?? true;
+    } else {
+        $positionalArgs[] = $arg;
+    }
+}
+
+// ---------- 路由 ----------
+
+function showHelp(): void
+{
+    echo <<<HELP
+\033[36mPhalcon Admin 部署工具\033[0m
+
+用法:
+  php deploy \033[33m<命令>\033[0m [参数...] [-key=value]
+
+命令:
+  \033[33minit:router\033[0m             检测服务器环境（默认只报告，加 -y 才执行）
+  \033[33minit:router -y\033[0m          执行初始化（自动选择 Docker Router 或宿主机 Nginx）
+  \033[33minit\033[0m <项目名>          首次部署项目
+  \033[33mupgrade\033[0m <项目名>       更新已有项目
+  \033[33mnginx:add\033[0m <项目名>     为项目添加域名到 Router
+  \033[33mnginx:remove\033[0m <项目名>  从 Router 移除域名
+  \033[33mstatus\033[0m <项目名>        查看项目容器状态
+  \033[33m--help\033[0m                 显示此帮助
+
+参数:
+  env=prod              选择服务器配置文件 (server.prod.php)
+  -y                    自动执行（init:router 默认只检测，加 -y 才安装）
+  mode=host_nginx       强制宿主机模式（仅 init:router -y 时生效）
+  port=8071             手动指定项目 nginx 端口（宿主机模式 init 时可选）
+
+示例:
+  php deploy init:router              # 只检测环境
+  php deploy init:router -y           # 检测 + 自动安装
+  php deploy init:router -y mode=host_nginx  # 强制宿主机模式
+  php deploy init myapp
+  php deploy upgrade myapp
+  php deploy nginx:add myapp
+  php deploy status myapp
+
+HELP;
+}
+
+$command = $positionalArgs[0] ?? '';
+
+if ($command === '--help' || $command === '-h' || empty($command)) {
+    showHelp();
+    exit(0);
+}
+
+// ---------- 加载配置 ----------
+
+// 确定服务器配置文件
+$envSuffix = $namedParams['env'] ?? '';
+$serverConfigFile = DEPLOY_BASE . '/deploys/server.php';
+if ($envSuffix && file_exists(DEPLOY_BASE . "/deploys/server.{$envSuffix}.php")) {
+    $serverConfigFile = DEPLOY_BASE . "/deploys/server.{$envSuffix}.php";
+}
+
+if (!file_exists($serverConfigFile)) {
+    fwrite(STDERR, "错误: 服务器配置文件不存在: {$serverConfigFile}\n");
+    fwrite(STDERR, "请先执行: cp deploys/server.example.php deploys/server.php\n");
+    exit(1);
+}
+
+// ---------- 执行命令 ----------
+
+try {
+    switch ($command) {
+        case 'init:router':
+            handleInitRouter($serverConfigFile, $namedParams);
+            break;
+
+        case 'init':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy init <项目名>\n");
+                exit(1);
+            }
+            handleInit($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'upgrade':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy upgrade <项目名>\n");
+                exit(1);
+            }
+            handleUpgrade($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'nginx:add':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy nginx:add <项目名>\n");
+                exit(1);
+            }
+            handleNginxAdd($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'nginx:remove':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy nginx:remove <项目名>\n");
+                exit(1);
+            }
+            handleNginxRemove($serverConfigFile, $projectName);
+            break;
+
+        case 'status':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy status <项目名>\n");
+                exit(1);
+            }
+            handleStatus($serverConfigFile, $projectName);
+            break;
+
+        default:
+            fwrite(STDERR, "错误: 未知命令 '{$command}'\n");
+            fwrite(STDERR, "用法: php deploy --help\n");
+            exit(1);
+    }
+} catch (Throwable $e) {
+    fwrite(STDERR, "\033[31m错误: {$e->getMessage()}\033[0m\n");
+    fwrite(STDERR, "文件: {$e->getFile()}:{$e->getLine()}\n");
+    exit(1);
+}
+
+exit(0);
+
+// ---------- 命令处理函数 ----------
+
+function handleInitRouter(string $serverConfigFile, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+
+    $autoExecute = isset($params['y']) && $params['y'] === true;
+    $modeOverride = $params['mode'] ?? '';
+
+    $ssh = new DeploySSH($config->getSshConfig());
+    $ssh->connect();
+
+    $routerConfig = $config->getMerged()['router'] ?? [];
+    if ($modeOverride) {
+        $routerConfig['mode'] = $modeOverride;
+    }
+
+    $router = new RouterManager($ssh, $routerConfig);
+    $chosenMode = $router->initRouter($autoExecute);
+
+    $ssh->disconnect();
+
+    // 保存模式到本地配置缓存（供后续 init 命令使用）
+    if ($chosenMode !== null) {
+        $cacheDir = deploy_base_path() . '/.cache';
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0755, true);
+        }
+        file_put_contents($cacheDir . '/mode.txt', $chosenMode);
+        deploy_log("模式已缓存: {$chosenMode}", 'info');
+    }
+}
+
+function handleInit(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    // 传递模式参数
+    $options = [];
+    if (isset($params['mode'])) {
+        $options['mode'] = $params['mode'];
+    }
+    if (isset($params['port'])) {
+        $options['nginxPort'] = (int)$params['port'];
+    }
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->init($options);
+}
+
+function handleUpgrade(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $options = [];
+    if (isset($params['mode'])) {
+        $options['mode'] = $params['mode'];
+    }
+    if (isset($params['port'])) {
+        $options['nginxPort'] = (int)$params['port'];
+    }
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->upgrade($options);
+}
+
+function handleNginxAdd(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $domains = $config->getDomains();
+    if (empty($domains)) {
+        deploy_log('项目未配置域名，跳过', 'warn');
+        return;
+    }
+
+    $ssh = new DeploySSH($config->getSshConfig());
+    $ssh->connect();
+
+    $routerConfig = $config->getMerged()['router'] ?? [];
+    if (isset($params['mode'])) {
+        $routerConfig['mode'] = $params['mode'];
+    }
+
+    $router = new RouterManager($ssh, $routerConfig);
+    $mode = $params['mode'] ?? null;
+    $port = isset($params['port']) ? (int)$params['port'] : null;
+    $router->addDomain($projectName, $domains, false, $mode, $port);
+
+    $ssh->disconnect();
+}
+
+function handleNginxRemove(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $ssh = new DeploySSH($config->getSshConfig());
+    $ssh->connect();
+
+    $router = new RouterManager($ssh, $config->getMerged()['router'] ?? []);
+    $router->removeDomain($projectName);
+
+    $ssh->disconnect();
+}
+
+function handleStatus(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->status();
+}

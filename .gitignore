@@ -62,5 +62,9 @@ src/App/Modules/*
 !src/App/Modules/demo
 !src/App/Modules/tao
 
-deploys/prod/*
-!deploys/prod/.gitkeep
+deploys/server.php
+deploys/projects/*
+!deploys/projects/.example
+!deploys/projects/.gitkeep
+deploys/.cache/
+
