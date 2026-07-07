@@ -45,6 +45,7 @@ require DEPLOY_SRC . '/TemplateRenderer.php';
 require DEPLOY_SRC . '/GitHelper.php';
 require DEPLOY_SRC . '/RouterManager.php';
 require DEPLOY_SRC . '/ProjectDeployer.php';
+require DEPLOY_SRC . '/DbManager.php';
 
 // ---------- 解析参数 ----------
 
@@ -85,6 +86,9 @@ function showHelp(): void
   \033[33mnginx:add\033[0m <项目名>     为项目添加域名到 Router
   \033[33mnginx:remove\033[0m <项目名>  从 Router 移除域名
   \033[33mstatus\033[0m <项目名>        查看项目容器状态
+  \033[33mdb:proxy\033[0m <项目名>      SSH 隧道转发（本地 → 远程 MySQL）
+  \033[33mdb:pma\033[0m <项目名>        部署临时 phpMyAdmin
+  \033[33mdb:pma-rm\033[0m <项目名>     删除临时 phpMyAdmin
   \033[33m--help\033[0m                 显示此帮助
 
 参数:
@@ -92,6 +96,8 @@ function showHelp(): void
   -y                    自动执行（init:router 默认只检测，加 -y 才安装）
   mode=host_nginx       强制宿主机模式（仅 init:router -y 时生效）
   port=8071             手动指定项目 nginx 端口（宿主机模式 init 时可选）
+  local=13306           SSH 隧道本地端口（db:proxy 时指定）
+  host=13307            phpMyAdmin 宿主机端口（db:pma 时指定）
 
 示例:
   php deploy init:router              # 只检测环境
@@ -101,6 +107,11 @@ function showHelp(): void
   php deploy upgrade myapp
   php deploy nginx:add myapp
   php deploy status myapp
+  php deploy db:proxy myapp           # SSH 隧道到 MySQL
+  php deploy db:proxy myapp local=13307 # 指定本地端口
+  php deploy db:pma myapp             # 部署临时 phpMyAdmin
+  php deploy db:pma myapp host=13308  # 指定宿主机端口
+  php deploy db:pma-rm myapp          # 清理 phpMyAdmin
 
 HELP;
 }
@@ -178,6 +189,33 @@ try {
                 exit(1);
             }
             handleStatus($serverConfigFile, $projectName);
+            break;
+
+        case 'db:proxy':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy db:proxy <项目名> [local=端口]\n");
+                exit(1);
+            }
+            handleDbProxy($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'db:pma':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy db:pma <项目名> [host=端口]\n");
+                exit(1);
+            }
+            handleDbPma($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'db:pma-rm':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy db:pma-rm <项目名>\n");
+                exit(1);
+            }
+            handleDbPmaRm($serverConfigFile, $projectName);
             break;
 
         default:
@@ -315,4 +353,35 @@ function handleStatus(string $serverConfigFile, string $projectName): void
 
     $deployer = new ProjectDeployer($config);
     $deployer->status();
+}
+
+function handleDbProxy(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+
+    $localPort = isset($params['local']) ? (int)$params['local'] : 13306;
+
+    $db = new DbManager($config);
+    $db->proxyTunnel($projectName, $localPort);
+}
+
+function handleDbPma(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+
+    $hostPort = isset($params['host']) ? (int)$params['host'] : 13307;
+
+    $db = new DbManager($config);
+    $db->deployPhpMyAdmin($projectName, $hostPort);
+}
+
+function handleDbPmaRm(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+
+    $db = new DbManager($config);
+    $db->removePhpMyAdmin($projectName);
 }
