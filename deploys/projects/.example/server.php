@@ -5,19 +5,23 @@
  *
  * 拷贝为: deploys/projects/<项目名>/server.php
  * 然后修改真实值
+ *
+ * 公共配置（repo、branch、ssh 等）在 deploys/server.php 中定义，项目自动继承。
+ * 如果项目需要覆盖，在此文件中同名键即可。
  */
 return [
     'project' => [
         'name' => 'myapp',                        // 项目名（同时也是容器名前缀）
-        'repo' => 'git@github.com:user/repo.git', // 仓库地址
-        'branch' => 'main',                       // 分支
         'path' => '/root/projects/myapp',         // 远程部署路径
         'modules' => [                            // src/App/Modules/ 下的子模块
             // '模块名' => '仓库地址',
             // 'demo' => 'git@github.com:user/module-demo.git',
             // 'tao'  => 'git@github.com:user/module-tao.git',
         ],
-        // 宿主机模式时项目的 nginx 端口（可选，默认 8071，自动递增分配）
+        // repo 和 branch 继承自 deploys/server.php，如需覆盖取消注释：
+        // 'repo' => 'git@github.com:user/repo.git',
+        // 'branch' => 'main',
+        // 宿主机模式时项目的 nginx 端口（可选，默认 8071）
         // 'nginxPort' => 8071,
     ],
     'domains' => [                               // 域名列表（Router 转发用）

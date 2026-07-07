@@ -183,15 +183,15 @@ class ConfigTest extends TestCase
      */
     public function testLoadProjectFromProjectsDir(): void
     {
-        // 用 demo 项目（真实存在的配置）
+        // 用 yihe 项目（真实存在的配置）
         $config = new DeployConfig();
         $config->loadServer($this->fixturesDir . '/server.php');
 
-        // 注意：这会真实读取 deploys/projects/demo/server.php
-        // 所以要求 demo 配置文件结构有效
-        $result = $config->loadProject('demo');
+        // 注意：这会真实读取 deploys/projects/yihe/server.php
+        // 所以要求 yihe 配置文件结构有效
+        $result = $config->loadProject('yihe');
 
         $this->assertIsArray($result);
-        $this->assertEquals('demo', $result['project']['name'] ?? '');
+        $this->assertEquals('yihe', $result['project']['name'] ?? '');
     }
 }

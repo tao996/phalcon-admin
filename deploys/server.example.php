@@ -26,6 +26,11 @@ return [
         'configDir' => '/etc/nginx-router/conf.d',
         'composePath' => '/root/router',
     ],
+    // 所有项目的默认 repo 地址（各项目可在自己的 server.php 中覆盖）
+    'project' => [
+        'repo' => '',                 // 默认仓库地址，如 git@github.com:user/phalcon-admin.git
+        'branch' => 'main',
+    ],
     // 所有项目的默认 env 变量
     'env' => [
         'TZ' => 'Asia/Shanghai',
