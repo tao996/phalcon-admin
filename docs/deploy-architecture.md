@@ -391,6 +391,9 @@ return [
 | `php deploy nginx:add <project>` | 将 project 的域名添加到 Router |
 | `php deploy nginx:remove <project>` | 从 Router 移除 project 的域名 |
 | `php deploy status <project>` | 查看项目容器运行状态 |
+| `php deploy db:proxy <project>` | SSH 隧道转发：本地端口 → 远程项目的 MySQL |
+| `php deploy db:pma <project>` | 部署临时 phpMyAdmin，通过宿主机端口访问 |
+| `php deploy db:pma-rm <project>` | 删除临时 phpMyAdmin 容器 |
 
 ### 参数
 
@@ -400,10 +403,94 @@ return [
 | `env=prod` | 所有命令 | 选择服务器配置 `server.{env}.php` |
 | `mode=host_nginx` | `init:router -y`、`init`、`upgrade` | 强制宿主机模式 |
 | `port=8071` | `init`、`upgrade` | 手动指定项目 nginx 端口（宿主机模式） |
+| `local=13306` | `db:proxy` | SSH 隧道本地监听端口 |
+| `host=13307` | `db:pma` | phpMyAdmin 宿主机暴露端口 |
 
 ---
 
-## 十、单元测试
+## 十、数据库运维
+
+### SSH 隧道（方案 A）
+
+`php deploy db:proxy <project>` 通过系统 `ssh -L` 命令建立加密隧道，将本地端口转发到远程项目的 MySQL 容器。
+
+```
+本地                           服务器
+mysql -h127.0.0.1 -P13306
+       ↑ SSH 加密隧道
+       └────────── yihe-mysql:3306
+```
+
+**执行流程：**
+
+1. 读取 `deploys/server.php` 中的 SSH 连接信息（host、user、keyFile）
+2. 查找系统 SSH 二进制（Git Bash → Windows OpenSSH → /usr/bin/ssh）
+3. 执行 `ssh -L 127.0.0.1:13306:yihe-mysql:3306 -N user@host -p 22 -i <key>`
+4. 在前台保持连接，按 Ctrl+C 关闭
+
+**使用示例：**
+
+```bash
+# 默认端口 13306
+php deploy db:proxy yihe
+
+# 在另一个终端连接 MySQL
+mysql -h127.0.0.1 -P13306 -uadmin -p
+
+# 导入 SQL 文件
+mysql -h127.0.0.1 -P13306 -uadmin -p yihe_db < dump.sql
+
+# 自定义本地端口
+php deploy db:proxy yihe local=13308
+```
+
+**安全：** SSH 协议加密传输，MySQL 不暴露到公网，用完即关。
+
+---
+
+### 临时 phpMyAdmin（方案 D）
+
+`php deploy db:pma <project>` 在服务器上部署一个临时的 phpMyAdmin 容器，通过宿主机端口访问 Web 界面。
+
+```
+你的浏览器                   服务器
+http://服务器IP:13307
+  ↓ Router / 直连
+  └── docker:yihe-pma
+        │ PMA_HOST=mysql
+        └── yihe-mysql:3306
+```
+
+**执行流程：**
+
+1. SSH 连接到服务器
+2. 查找项目的 Docker 网络（`<project>_backend`）
+3. `docker run -d --rm --name yihe-pma --network yihe_backend -p 13307:80 -e PMA_HOST=mysql phpmyadmin/phpmyadmin`
+4. 打印访问地址和登录凭据
+
+**使用示例：**
+
+```bash
+# 部署（默认端口 13307）
+php deploy db:pma yihe
+
+# 输出示例：
+#   http://服务器IP:13307
+#   用户名: admin
+#   密码:   (从 projects/yihe/server.php 的 env.MYSQL_PASSWORD 获取)
+
+# 自定义端口
+php deploy db:pma yihe host=13308
+
+# 使用完后清理
+php deploy db:pma-rm yihe
+```
+
+**安全：** 临时容器（`--rm`），端口仅在使用期间开放；用完 `db:pma-rm` 删除。容器基于 `phalcon-shared` 以外的项目内网，不暴露到其他项目。
+
+---
+
+## 十一、单元测试
 
 运行方式：`php src/vendor/bin/phpunit -c deploys/phpunit.xml`
 
@@ -417,14 +504,14 @@ return [
 
 ---
 
-## 十一、使用步骤
+## 十二、使用步骤
 
 ### 首次搭建
 
 ```bash
 # 1. 配置服务器连接
 cp deploys/server.example.php deploys/server.php
-# 编辑 deploys/server.php 填入真实服务器信息（IP、用户、密钥、默认仓库地址等）
+# 编辑 deploys/server.php 填入真实服务器信息
 
 # 2. 配置项目
 cp deploys/projects/.example/server.php deploys/projects/yihe/server.php
@@ -451,4 +538,19 @@ php deploy upgrade yihe
 ```bash
 # 在 deploys/projects/yihe/server.php 的 domains 中添加域名后
 php deploy nginx:add yihe
+```
+
+### 数据库操作
+
+```bash
+# SSH 隧道连接 MySQL
+php deploy db:proxy yihe
+# 在另一个终端登录：mysql -h127.0.0.1 -P13306 -uadmin -p
+
+# 临时 phpMyAdmin
+php deploy db:pma yihe
+# 访问 http://服务器IP:13307
+
+# 清理 phpMyAdmin
+php deploy db:pma-rm yihe
 ```
