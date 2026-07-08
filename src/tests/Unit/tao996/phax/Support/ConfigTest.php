@@ -9,13 +9,16 @@ use PHPUnit\Framework\TestCase;
 class ConfigTest extends TestCase
 {
     private static Config $config;
+    /** @var mixed 保存原始静态 $config 用于恢复 */
+    private static mixed $originalConfig;
 
     public static function setUpBeforeClass(): void
     {
-        // 使用反射设置静态 $config 属性，避免加载真实文件
+        // 保存原始 config 以便恢复
         $ref = new \ReflectionClass(Config::class);
         $prop = $ref->getProperty('config');
         $prop->setAccessible(true);
+        self::$originalConfig = $prop->getValue(null);
         $prop->setValue(null, new PhalconConfig([
             'app' => [
                 'title' => '测试项目',
@@ -45,6 +48,17 @@ class ConfigTest extends TestCase
         $prop->setAccessible(false);
 
         self::$config = new Config(\Phax\Foundation\Application::di());
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        // 恢复原始静态 config，避免影响后续测试
+        $ref = new \ReflectionClass(Config::class);
+        $prop = $ref->getProperty('config');
+        $prop->setAccessible(true);
+        $prop->setValue(null, self::$originalConfig);
+        $prop->setAccessible(false);
+        unset(self::$originalConfig);
     }
 
     // ============================================================

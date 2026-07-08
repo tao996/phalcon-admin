@@ -111,11 +111,12 @@ class Application
     {
         // BusinessException 为普通业务异常（如验证失败、业务规则冲突），
         // 属于预期行为，不记录错误日志，减少日志噪音
-        if (!($e instanceof BusinessException)) {
-            /**
-             * @var BusinessException $e
-             */
-            Logger::exception($e, $e->getContext());
+        if ($e instanceof BusinessException) {
+            if (IS_DEBUG) {
+                Logger::exception($e, $e->getContext());
+            }
+        } else {
+            Logger::exception($e);
         }
 
         $errClass = AppService::config()->getString('app.error', 'App\Http\AppErrorResponse');

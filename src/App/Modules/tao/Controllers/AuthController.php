@@ -34,7 +34,7 @@ class AuthController extends BaseController
              * @var $user SystemUser
              */
             $user = null;
-            if (IS_DEBUG) {
+            if ($this->vv->isDemo()) {
                 if ($data['account'] == 'admin' && $data['password'] == '123456') {
                     $user = SystemUser::findFirst(1);
                 }

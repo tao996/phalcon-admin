@@ -3,7 +3,6 @@
 namespace App\Http;
 
 use Phax\Mvc\Controller;
-use Phax\Support\Logger;
 
 
 class AppErrorResponse extends Controller
@@ -20,7 +19,7 @@ class AppErrorResponse extends Controller
      */
     public function exception(\Throwable $e): string
     {
-        Logger::exception($e);
+        // 日志已由 handleException() 统一处理，此处只负责渲染响应
 
         if ($this->isApiRequest()) {
             $code = intval($e->getCode()) ?: 500;
