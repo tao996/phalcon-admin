@@ -89,6 +89,8 @@ function showHelp(): void
   \033[33mserver:init\033[0m              检测服务器环境（默认只报告，加 -y 才执行）
   \033[33mserver:init -y\033[0m           执行初始化（自动选择 Docker Router 或宿主机 Nginx）
   \033[33mnginx:reload\033[0m             验证配置语法并重载 Nginx（全局）
+  \033[33mnginx:log:error\033[0m          查看 Nginx 错误日志（--save 下载到本地）
+  \033[33mnginx:log:access\033[0m         查看 Nginx 访问日志（--save 下载到本地）
 
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目
@@ -111,6 +113,7 @@ function showHelp(): void
   port=8071             手动指定项目 nginx 端口（宿主机模式 app:init 时可选）
   local=13306           SSH 隧道本地端口（db:proxy 时指定）
   host=13307            phpMyAdmin 宿主机端口（db:pma 时指定）
+  --save                下载日志到本地（nginx:log:* 时使用）
 
 示例:
   php deploy server:init              # 只检测环境
@@ -160,6 +163,14 @@ try {
 
         case 'nginx:reload':
             handleNginxReload($serverConfigFile);
+            break;
+
+        case 'nginx:log:error':
+            handleNginxLog($serverConfigFile, 'error', $namedParams);
+            break;
+
+        case 'nginx:log:access':
+            handleNginxLog($serverConfigFile, 'access', $namedParams);
             break;
 
         case 'app:init':
@@ -377,6 +388,23 @@ function handleNginxReload(string $serverConfigFile): void
 
     $router = new RouterManager($ssh, $config->getMerged()['router'] ?? []);
     $router->validateAndReload();
+
+    $ssh->disconnect();
+}
+
+function handleNginxLog(string $serverConfigFile, string $type, array $params): void
+{
+    deploy_log("=== Nginx 日志: {$type} ===", 'step');
+
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+
+    $ssh = new DeploySSH($config->getSshConfig());
+    $ssh->connect();
+
+    $router = new RouterManager($ssh, $config->getMerged()['router'] ?? []);
+    $download = isset($params['save']);
+    $router->nginxLog($type, $download);
 
     $ssh->disconnect();
 }

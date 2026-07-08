@@ -543,6 +543,44 @@ class RouterManager
     }
 
     /**
+     * 查看/下载 Nginx 日志
+     */
+    public function nginxLog(string $type, bool $download = false): void
+    {
+        $label = $type === 'error' ? '错误' : '访问';
+        $logFile = "/var/log/nginx/{$type}.log";
+
+        // 先尝试 Docker Router 容器，失败则回退到宿主机路径
+        $isDocker = $this->checkDockerRouterRunning();
+
+        if ($download) {
+            // 下载到本地
+            if ($isDocker) {
+                $tmpPath = "/tmp/nginx-{$type}-{$this->containerName}.log";
+                $this->ssh->exec("docker cp {$this->containerName}:{$logFile} {$tmpPath} 2>/dev/null || echo 'CP_FAILED'", false);
+            }
+            $localPath = deploy_base_path() . "/logs/nginx-{$type}-" . date('YmdHis') . '.log';
+            $logDir = dirname($localPath);
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0755, true);
+            }
+            $srcPath = $isDocker ? $tmpPath : $logFile;
+            $this->ssh->download($srcPath, $localPath);
+            if ($isDocker) {
+                $this->ssh->exec("rm -f {$tmpPath}", false);
+            }
+            deploy_log("日志已保存: {$localPath}", 'ok');
+        } else {
+            // 远程 tail 查看
+            deploy_log("=== Nginx {$label}日志 (100行) ===", 'step');
+            $cmd = $isDocker
+                ? "docker exec {$this->containerName} tail -n 100 {$logFile} 2>/dev/null || echo '日志文件不存在'"
+                : "tail -n 100 {$logFile} 2>/dev/null || echo '日志文件不存在'";
+            $this->ssh->exec($cmd);
+        }
+    }
+
+    /**
      * 生成 nginx server block 配置
      */
     protected function generateServerBlock(array $domains, string $target, bool $ssl = false): string
