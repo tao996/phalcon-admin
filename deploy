@@ -460,6 +460,11 @@ function handleNginxAdd(string $serverConfigFile, string $projectName, array $pa
     $router = new RouterManager($ssh, $routerConfig);
     $mode = $params['mode'] ?? null;
     $port = isset($params['port']) ? (int)$params['port'] : null;
+    if ($port === null) {
+        // 从项目配置读取 nginxPort
+        $merged = $config->getMerged();
+        $port = $merged['project']['nginxPort'] ?? null;
+    }
     $router->addDomain($projectName, $domains, false, $mode, $port);
 
     $ssh->disconnect();
