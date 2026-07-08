@@ -7,7 +7,7 @@
  *   php deploy server:init             # 检测环境并生成报告
  *   php deploy server:init -y          # 执行初始化（根据环境自动选择模式）
  *   php deploy server:init -y mode=host_nginx  # 强制宿主机 nginx 模式
- *   php deploy server:reload           # 验证配置语法并重载 Nginx（全局）
+ *   php deploy nginx:reload           # 验证配置语法并重载 Nginx（全局）
  *   php deploy app:init <project>      # 预览（无 -y）或执行部署（加 -y）
  *   php deploy app:upgrade <project>   # 更新已有项目
  *   php deploy app:restart <project>   # 重启项目 Docker 容器
@@ -88,14 +88,13 @@ function showHelp(): void
 命令:
   \033[33mserver:init\033[0m              检测服务器环境（默认只报告，加 -y 才执行）
   \033[33mserver:init -y\033[0m           执行初始化（自动选择 Docker Router 或宿主机 Nginx）
-  \033[33mserver:reload\033[0m            验证配置语法并重载 Nginx（全局）
+  \033[33mnginx:reload\033[0m             验证配置语法并重载 Nginx（全局）
 
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目
   \033[33mapp:dc:restart\033[0m <项目名>   重启 Docker 容器（首次自动拉取镜像）
   \033[33mapp:dc:status\033[0m <项目名>    查看容器状态
-  \033[33mapp:dc:log\033[0m <项目名>       查看容器日志（最新 50 条）
-  \033[33mapp:dc:log:php\033[0m <项目名>   查看 PHP 容器日志
+  \033[33mapp:dc:log\033[0m <项目名> [容器名]  查看容器日志（最新 50 条）
   \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
   \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
   \033[33mapp:nginx:remove\033[0m <项目名> 从 Router 移除域名
@@ -159,7 +158,7 @@ try {
             handleInitRouter($serverConfigFile, $namedParams);
             break;
 
-        case 'server:reload':
+        case 'nginx:reload':
             handleNginxReload($serverConfigFile);
             break;
 
@@ -202,19 +201,11 @@ try {
         case 'app:dc:log':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log <项目名> [容器名]\n");
                 exit(1);
             }
-            handleDcLog($serverConfigFile, $projectName, '');
-            break;
-
-        case 'app:dc:log:php':
-            $projectName = $positionalArgs[1] ?? '';
-            if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log:php <项目名>\n");
-                exit(1);
-            }
-            handleDcLog($serverConfigFile, $projectName, 'php');
+            $service = $positionalArgs[2] ?? '';
+            handleDcLog($serverConfigFile, $projectName, $service);
             break;
 
         case 'app:upgrade':
