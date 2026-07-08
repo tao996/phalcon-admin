@@ -659,6 +659,68 @@ NGINX;
     }
 
     /**
+     * 为域名申请 SSL 证书并启用 HTTPS
+     */
+    public function enableSSL(string $projectName, array $domains, string $projectPath, string $email, ?int $nginxPort = null): void
+    {
+        $primaryDomain = $domains[0] ?? '';
+        if (empty($primaryDomain)) {
+            deploy_log('未配置域名，跳过 SSL', 'warn');
+            return;
+        }
+
+        $mode = $this->detectCachedMode();
+
+        // 检查 certbot 是否安装
+        $certbotInstalled = $this->checkInstalled('certbot');
+        if (!$certbotInstalled) {
+            deploy_log('certbot 未安装，请先安装: apt install certbot', 'error');
+            return;
+        }
+
+        deploy_log("=== 申请 SSL 证书: {$primaryDomain} ===", 'step');
+
+        // 1. 创建证书目录
+        $this->ssh->exec('mkdir -p /etc/nginx/ssl', false);
+
+        // 2. 申请证书
+        $webroot = $projectPath . '/src/public';
+        $domainArgs = '';
+        foreach ($domains as $d) {
+            $domainArgs .= ' -d ' . escapeshellarg($d);
+        }
+        $this->ssh->exec(
+            "certbot certonly --webroot -w {$webroot}{$domainArgs} --non-interactive --agree-tos -m " . escapeshellarg($email)
+        );
+
+        // 3. 创建软链到 /etc/nginx/ssl/
+        $this->ssh->exec(
+            "ln -sf /etc/letsencrypt/live/{$primaryDomain}/fullchain.pem /etc/nginx/ssl/{$primaryDomain}.pem && " .
+            "ln -sf /etc/letsencrypt/live/{$primaryDomain}/privkey.pem /etc/nginx/ssl/{$primaryDomain}.key"
+        );
+
+        // 4. 按模式设置 configDir
+        if ($mode === self::MODE_HOST) {
+            $this->configDir = '/etc/nginx/conf.d';
+        }
+
+        // 5. 重新生成含 SSL 的 server block
+        $target = $mode === self::MODE_DOCKER
+            ? $projectName . '-nginx:80'
+            : '127.0.0.1:' . ($nginxPort ?: 8071);
+
+        $configContent = $this->generateServerBlock($domains, $target, true);
+        $remoteFile = $this->configDir . '/' . $projectName . '.conf';
+        $this->ssh->exec('mkdir -p ' . dirname($remoteFile), false);
+        $this->ssh->uploadContent($configContent, $remoteFile);
+        deploy_log("配置已上传: {$remoteFile}", 'ok');
+
+        $this->reload();
+
+        deploy_log("=== SSL 配置完成: {$primaryDomain} ===", 'ok');
+    }
+
+    /**
      * 生成 Docker Router 的 docker-compose.yaml
      */
     protected function generateRouterCompose(): string

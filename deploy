@@ -103,6 +103,7 @@ function showHelp(): void
   \033[33mapp:dc:log:<容器名称>\033[0m <项目名>       查看容器日志
   \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
   \033[33mapp:nginx:remove\033[0m <项目名> 从 Router 移除域名
+  \033[33mapp:nginx:ssl\033[0m <项目名>     申请 SSL 证书并启用 HTTPS（-email=xxx）
 
   \033[33mdb:proxy\033[0m <项目名>         SSH 隧道转发（本地 → 远程 MySQL）
   \033[33mdb:pma\033[0m <项目名>          部署临时 phpMyAdmin
@@ -117,6 +118,7 @@ function showHelp(): void
   local=13306           SSH 隧道本地端口（db:proxy 时指定）
   host=13307            phpMyAdmin 宿主机端口（db:pma 时指定）
   --save                下载日志到本地（nginx:log:* 时使用）
+  -email=xx@xx.com      SSL 证书申请邮箱（app:nginx:ssl 时必填）
 
 示例:
   php deploy server:init              # 只检测环境
@@ -274,6 +276,15 @@ try {
                 exit(1);
             }
             handleNginxRemove($serverConfigFile, $projectName);
+            break;
+
+        case 'app:nginx:ssl':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:nginx:ssl <项目名> -email=your@email.com\n");
+                exit(1);
+            }
+            handleNginxSsl($serverConfigFile, $projectName, $namedParams);
             break;
 
         case 'app:dc:status':
@@ -518,6 +529,37 @@ function handleNginxRemove(string $serverConfigFile, string $projectName): void
 
     $router = new RouterManager($ssh, $config->getMerged()['router'] ?? []);
     $router->removeDomain($projectName);
+
+    $ssh->disconnect();
+}
+
+function handleNginxSsl(string $serverConfigFile, string $projectName, array $params): void
+{
+    $email = $params['email'] ?? '';
+    if (empty($email)) {
+        deploy_log('错误: 请提供邮箱（-email=your@email.com）', 'error');
+        exit(1);
+    }
+
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $domains = $config->getDomains();
+    if (empty($domains)) {
+        deploy_log('项目未配置域名，跳过 SSL', 'warn');
+        return;
+    }
+
+    $projectPath = $config->getProjectPath();
+    $merged = $config->getMerged();
+    $nginxPort = $merged['project']['nginxPort'] ?? null;
+
+    $ssh = new DeploySSH($config->getSshConfig());
+    $ssh->connect();
+
+    $router = new RouterManager($ssh, $merged['router'] ?? []);
+    $router->enableSSL($projectName, $domains, $projectPath, $email, $nginxPort);
 
     $ssh->disconnect();
 }
