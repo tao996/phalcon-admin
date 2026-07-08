@@ -119,7 +119,7 @@ class DbManager
      * @param string $projectName  项目名
      * @param int $hostPort        宿主机端口（默认 13307）
      */
-    public function deployPhpMyAdmin(string $projectName, int $hostPort = 13307): void
+    public function deployPhpMyAdmin(string $projectName, int $hostPort = 13307, string $dbUser = 'admin', string $dbPassword = ''): void
     {
         $this->ssh->connect();
 
@@ -132,7 +132,7 @@ class DbManager
         );
         if (trim($existing) === 'true') {
             deploy_log("phpMyAdmin 已在运行: {$containerName}", 'warn');
-            $this->printPmaUrl($projectName, $hostPort);
+            $this->printPmaUrl($projectName, $hostPort, $dbUser, $dbPassword);
             $this->ssh->disconnect();
             return;
         }
@@ -149,10 +149,12 @@ class DbManager
 
         // 拉取并启动 phpMyAdmin 容器
         $cmd = sprintf(
-            'docker run -d --rm --name %s --network %s -p %d:80 -e PMA_HOST=mysql -e PMA_PORT=3306 phpmyadmin/phpmyadmin',
+            'docker run -d --rm --name %s --network %s -p %d:80 -e PMA_HOST=mysql -e PMA_PORT=3306 -e PMA_USER=%s -e PMA_PASSWORD=%s phpmyadmin/phpmyadmin',
             escapeshellarg($containerName),
             escapeshellarg($networkName),
-            $hostPort
+            $hostPort,
+            escapeshellarg($dbUser),
+            escapeshellarg($dbPassword)
         );
 
         $output = $this->ssh->exec($cmd);
@@ -179,7 +181,7 @@ class DbManager
         }
 
         deploy_log("phpMyAdmin 已启动", 'ok');
-        $this->printPmaUrl($projectName, $hostPort);
+        $this->printPmaUrl($projectName, $hostPort, $dbUser, $dbPassword);
         deploy_log("清理命令: php deploy db:pma-rm {$projectName}", 'info');
 
         $this->ssh->disconnect();
@@ -218,7 +220,7 @@ class DbManager
     /**
      * 打印 phpMyAdmin 访问地址
      */
-    protected function printPmaUrl(string $projectName, int $hostPort): void
+    protected function printPmaUrl(string $projectName, int $hostPort, string $dbUser = '', string $dbPassword = ''): void
     {
         $sshConfig = $this->config->getSshConfig();
         $serverIp = $sshConfig['host'] ?? '服务器IP';
@@ -226,8 +228,13 @@ class DbManager
         echo "\n";
         deploy_log('━━━━━ phpMyAdmin 访问地址 ━━━━━', 'step');
         deploy_log("  http://{$serverIp}:{$hostPort}", 'info');
-        deploy_log("  用户名: 从项目 server.php 的 env.MYSQL_USER 获取", 'info');
-        deploy_log("  密码:   从项目 server.php 的 env.MYSQL_PASSWORD 获取", 'info');
+        if ($dbUser && $dbPassword) {
+            deploy_log("  用户名: {$dbUser}", 'info');
+            deploy_log("  密码:   {$dbPassword}", 'info');
+        } else {
+            deploy_log("  用户名: 从项目 server.php 的 env.MYSQL_USER 获取", 'info');
+            deploy_log("  密码:   从项目 server.php 的 env.MYSQL_PASSWORD 获取", 'info');
+        }
         echo "\n";
     }
 

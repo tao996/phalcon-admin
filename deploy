@@ -94,13 +94,13 @@ function showHelp(): void
 
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目（加 -y 同时更新配置）
+  \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
+  \033[33mapp:reset\033[0m <项目名>         重置远程代码到最新提交（丢弃所有修改）
   \033[33mapp:dc:restart\033[0m <项目名>          重启 Docker 容器
   \033[33mapp:dc:restart:<容器>\033[0m <项目名>    重启指定容器（如 php/mysql）
   \033[33mapp:dc:status\033[0m <项目名>    查看容器状态
   \033[33mapp:dc:log\033[0m <项目名>          查看全部容器日志
   \033[33mapp:dc:log:<容器名称>\033[0m <项目名>       查看容器日志
-  \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
-  \033[33mapp:reset\033[0m <项目名>         重置远程代码到最新提交（丢弃所有修改）
   \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
   \033[33mapp:nginx:remove\033[0m <项目名> 从 Router 移除域名
 
@@ -557,11 +557,17 @@ function handleDbPma(string $serverConfigFile, string $projectName, array $param
 {
     $config = new DeployConfig();
     $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
 
     $hostPort = isset($params['host']) ? (int)$params['host'] : 13307;
 
+    // 从配置中读取数据库凭据
+    $env = $config->getMerged()['env'] ?? [];
+    $dbUser = $env['MYSQL_USER'] ?? 'admin';
+    $dbPassword = $env['MYSQL_PASSWORD'] ?? '';
+
     $db = new DbManager($config);
-    $db->deployPhpMyAdmin($projectName, $hostPort);
+    $db->deployPhpMyAdmin($projectName, $hostPort, $dbUser, $dbPassword);
 }
 
 function handleDbPmaRm(string $serverConfigFile, string $projectName): void
