@@ -86,6 +86,11 @@ class RouterManager
         // Docker Router 容器是否已在运行
         $dockerRouterRunning = $this->checkDockerRouterRunning();
 
+        // Docker 环境
+        $dockerInstalled = $this->checkInstalled('docker');
+        $dockerComposeInstalled = $this->checkInstalled('docker-compose');
+        $dockerNetworkExists = $dockerInstalled && $this->checkDockerNetworkExists();
+
         // 推荐模式
         $recommendedMode = $this->determineMode(
             $nginxRunning || $nginxInstalled, $port80, $dockerRouterRunning
@@ -104,6 +109,11 @@ class RouterManager
             'port80' => $port80,
             'port443' => $port443,
             'dockerRouterRunning' => $dockerRouterRunning,
+            'docker' => [
+                'installed' => $dockerInstalled,
+                'composeInstalled' => $dockerComposeInstalled,
+                'networkExists' => $dockerNetworkExists,
+            ],
             'recommendedMode' => $recommendedMode,
         ];
 
@@ -151,6 +161,24 @@ class RouterManager
         deploy_log(
             sprintf("Docker Router: %s",
                 $report['dockerRouterRunning'] ? "\033[32m已在运行\033[0m" : "\033[33m未运行\033[0m"
+            ),
+            'info'
+        );
+        deploy_log(
+            sprintf("Docker:      %s",
+                $report['docker']['installed'] ? "\033[32m已安装\033[0m" : "\033[33m未安装\033[0m"
+            ),
+            'info'
+        );
+        deploy_log(
+            sprintf("Docker Compose: %s",
+                $report['docker']['composeInstalled'] ? "\033[32m已安装\033[0m" : "\033[33m未安装\033[0m"
+            ),
+            'info'
+        );
+        deploy_log(
+            sprintf("网络 phalcon-shared: %s",
+                $report['docker']['networkExists'] ? "\033[32m已创建\033[0m" : "\033[33m未创建\033[0m"
             ),
             'info'
         );
@@ -370,6 +398,18 @@ class RouterManager
             false
         );
         return trim($result) === 'true';
+    }
+
+    /**
+     * 检测 phalcon-shared Docker 网络是否已创建
+     */
+    protected function checkDockerNetworkExists(): bool
+    {
+        $result = $this->ssh->exec(
+            "docker network inspect phalcon-shared >/dev/null 2>&1 && echo 'YES' || echo 'NO'",
+            false
+        );
+        return trim($result) === 'YES';
     }
 
     /**
