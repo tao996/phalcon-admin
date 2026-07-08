@@ -443,6 +443,23 @@ class RouterManager
     }
 
     /**
+     * 验证 Nginx 配置语法后重载
+     */
+    public function validateAndReload(): void
+    {
+        deploy_log('验证 Nginx 配置语法', 'step');
+
+        $this->ssh->exec(
+            "docker exec {$this->containerName} nginx -t 2>/dev/null || " .
+            "nginx -t",
+            true
+        );
+
+        deploy_log('Nginx 配置语法正确', 'ok');
+        $this->reload();
+    }
+
+    /**
      * 生成 nginx server block 配置
      */
     protected function generateServerBlock(array $domains, string $target, bool $ssl = false): string

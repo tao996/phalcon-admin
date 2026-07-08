@@ -225,6 +225,36 @@ class ProjectDeployer
     }
 
     /**
+     * 重启项目 Docker 容器
+     */
+    public function restart(): void
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+
+        $this->routerMode = $this->detectRouterMode();
+
+        deploy_log("=== 重启项目容器: {$projectName} ===", 'step');
+        deploy_log("Router 模式: {$this->routerMode}", 'info');
+
+        try {
+            $this->ssh->connect();
+
+            $composeFile = $this->routerMode === RouterManager::MODE_HOST
+                ? 'docker-compose.ports.yaml'
+                : 'docker-compose.yaml';
+
+            $this->ssh->exec("cd {$projectPath} && docker-compose -f {$composeFile} restart");
+
+            deploy_log("=== 项目容器重启完成 ===", 'ok');
+        } catch (Exception $e) {
+            deploy_log("重启失败: " . $e->getMessage(), 'error');
+        }
+
+        $this->ssh->disconnect();
+    }
+
+    /**
      * 推送本地配置文件到远程（覆盖已有配置，不重启容器）
      */
     public function pushConfig(): void
