@@ -92,9 +92,11 @@ function showHelp(): void
 
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目
-  \033[33mapp:restart\033[0m <项目名>      重启项目 Docker 容器（首次自动拉取镜像）
+  \033[33mapp:dc:restart\033[0m <项目名>   重启 Docker 容器（首次自动拉取镜像）
+  \033[33mapp:dc:status\033[0m <项目名>    查看容器状态
+  \033[33mapp:dc:log\033[0m <项目名>       查看容器日志（最新 50 条）
+  \033[33mapp:dc:log:php\033[0m <项目名>   查看 PHP 容器日志
   \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
-  \033[33mapp:status\033[0m <项目名>       查看项目容器状态
   \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
   \033[33mapp:nginx:remove\033[0m <项目名> 从 Router 移除域名
 
@@ -117,7 +119,7 @@ function showHelp(): void
   php deploy server:init -y mode=host_nginx  # 强制宿主机模式
   php deploy app:init myapp
   php deploy app:upgrade myapp
-  php deploy app:status myapp
+  php deploy app:dc:status myapp
   php deploy db:proxy myapp           # SSH 隧道到 MySQL
   php deploy db:proxy myapp local=13307 # 指定本地端口
   php deploy db:pma myapp             # 部署临时 phpMyAdmin
@@ -179,13 +181,40 @@ try {
             handleConfigPush($serverConfigFile, $projectName, $namedParams);
             break;
 
-        case 'app:restart':
+        case 'app:dc:restart':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:restart <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:restart <项目名>\n");
                 exit(1);
             }
             handleRestart($serverConfigFile, $projectName);
+            break;
+
+        case 'app:dc:status':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:status <项目名>\n");
+                exit(1);
+            }
+            handleStatus($serverConfigFile, $projectName);
+            break;
+
+        case 'app:dc:log':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log <项目名>\n");
+                exit(1);
+            }
+            handleDcLog($serverConfigFile, $projectName, '');
+            break;
+
+        case 'app:dc:log:php':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log:php <项目名>\n");
+                exit(1);
+            }
+            handleDcLog($serverConfigFile, $projectName, 'php');
             break;
 
         case 'app:upgrade':
@@ -215,10 +244,10 @@ try {
             handleNginxRemove($serverConfigFile, $projectName);
             break;
 
-        case 'app:status':
+        case 'app:dc:status':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:status <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:status <项目名>\n");
                 exit(1);
             }
             handleStatus($serverConfigFile, $projectName);
@@ -430,6 +459,16 @@ function handleStatus(string $serverConfigFile, string $projectName): void
 
     $deployer = new ProjectDeployer($config);
     $deployer->status();
+}
+
+function handleDcLog(string $serverConfigFile, string $projectName, string $service): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->dcLog($service);
 }
 
 function handleDbProxy(string $serverConfigFile, string $projectName, array $params): void

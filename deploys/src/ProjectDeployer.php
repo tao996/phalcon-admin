@@ -617,4 +617,34 @@ class ProjectDeployer
 
         $this->ssh->disconnect();
     }
+
+    /**
+     * 查看项目 Docker 容器日志
+     */
+    public function dcLog(string $service = ''): void
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+
+        $this->routerMode = $this->detectRouterMode();
+
+        $label = $service ? "({$service})" : '';
+        deploy_log("=== 容器日志: {$projectName} {$label} ===", 'step');
+
+        try {
+            $this->ssh->connect();
+
+            $composeFile = $this->routerMode === RouterManager::MODE_HOST
+                ? 'docker-compose.ports.yaml'
+                : 'docker-compose.yaml';
+
+            $svcArg = $service ? " {$service}" : '';
+            $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} logs --tail=50{$svcArg}");
+
+        } catch (Exception $e) {
+            deploy_log("获取日志失败: " . $e->getMessage(), 'error');
+        }
+
+        $this->ssh->disconnect();
+    }
 }
