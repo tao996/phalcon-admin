@@ -20,10 +20,14 @@ $data['app'] = [
         'subject' => 'jwt'
     ],
     // 异常和错误处理的类
-    'error' => 'App\Http\AppErrorResponse',
-    // cn|ncn|(your cdn domain); 本地开发时，可不填；应用/模块会从自动的 views/assets 中读取本地资源
+    'error' => 'App\Http\AppErrorResponse', // 默认值
+    // cn|ncn|(your cdn domain); 本地开发时，
+    // 默认为空（即 self）：views/assets 中读取本地资源,通常用在开发阶段，不需要外网加载资源
+    // cn: 默认为 https://cdn.staticfile.org/
+    // ncn: 默认为 https://cdnjs.cloudflare.com/ajax/libs/
+    // 其它链接地址：cdn 地址
     'cdn_locate' => 'cn',
-    'hosts' => [], // use check images origin when user upload/select image
+    'hosts' => [], // 用户允许上传/使用的图片域名列表
     // see src/tao996/Phax/Foundation/Application.php
     'loader' => [
         'namespaces' => [], // loader()->setNamespaces

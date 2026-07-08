@@ -45,7 +45,12 @@ class HtmlAssets
                 self::$cdn = 'https://cdnjs.cloudflare.com/ajax/libs/';
                 break;
             default:
-                self::$cdnLocate = 'self';
+                if ($cdnLocate == 'self') {
+                    self::$cdnLocate = 'self';
+                } else {
+                    self::$cdnLocate = 'other';
+                    self::$cdn = $cdnLocate;
+                }
                 break;
         }
     }

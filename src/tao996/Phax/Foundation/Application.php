@@ -123,7 +123,7 @@ class Application
          * @var Config $config
          */
         $config = self::di()->get('config');
-        $errClass = $config->path('app.error');
+        $errClass = $config->path('app.error', 'App\Http\AppErrorResponse');
 
         if (class_exists($errClass)) {
             /**

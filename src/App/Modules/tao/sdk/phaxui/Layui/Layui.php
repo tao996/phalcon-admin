@@ -73,7 +73,7 @@ class Layui
         }
         $this->hasImportFooter = true;
 
-        if (HtmlAssets::$cdnLocate == 'self') {
+        if (HtmlAssets::isLocal()) {
             echo '<script src="/mstatic/tao/assets/layui/' . $this->version . '/layui.js"></script>';
         } else {
             echo '<script src="' . HtmlAssets::$cdn . 'layui/' . $this->version . '/layui.min.js"></script>';
