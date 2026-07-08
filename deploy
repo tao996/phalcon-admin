@@ -9,16 +9,23 @@
  *   php deploy init:router -y mode=host_nginx  # 强制宿主机 nginx 模式
  *   php deploy init <project>          # 预览（无 -y）或执行部署（加 -y）
  *   php deploy upgrade <project>       # 更新已有项目
+ *   php deploy restart <project>        # 重启项目 Docker 容器
+ *   php deploy config:push <project>    # 推送本地配置到远程
+ *   php deploy nginx:reload             # 验证配置语法并重载 Nginx（全局）
  *   php deploy nginx:add <project>     # 为项目添加域名到 Router
  *   php deploy nginx:remove <project>  # 从 Router 移除域名
  *   php deploy status <project>        # 查看项目容器状态
+ *   php deploy db:proxy <project>      # SSH 隧道转发
+ *   php deploy db:pma <project>        # 部署临时 phpMyAdmin
+ *   php deploy db:pma-rm <project>     # 删除临时 phpMyAdmin
  *   php deploy --help                  # 显示帮助
  *
  * 参数:
- *   -y                   自动执行（init:router 默认只检测，加 -y 才安装）
+ *   -y                   自动执行
  *   -key=value           命名参数
  *   env=prod             选择服务器配置文件 (server.{env}.php)
- *   mode=docker_router   强制模式（仅 init:router -y 时生效）
+ *   mode=host_nginx      强制宿主机模式
+ *   port=8071            手动指定项目 nginx 端口
  */
 
 // ---------- 初始化 ----------
