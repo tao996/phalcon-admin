@@ -20,6 +20,7 @@ $data['app'] = [
     ],
     // 异常和错误处理的类
     'error' => 'App\Http\AppErrorResponse', // 默认值
+//    'welcome'=>'/m/tao/index/welcome',// 后台首页，必须以 / 开头
     // cn|ncn|(your cdn domain); 本地开发时，
     // 默认为空（即 self）：views/assets 中读取本地资源,通常用在开发阶段，不需要外网加载资源
     // cn: 默认为 https://cdn.staticfile.org/

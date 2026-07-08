@@ -2,6 +2,8 @@
 
 namespace App\Modules\tao\Config;
 
+use Phax\Foundation\AppService;
+
 class Config
 {
     /**
@@ -20,6 +22,11 @@ class Config
 
     /**
      * 登录后台后默认显示的界面
+     * 可以在 config.php 中 app.welcome 中指定
      */
-    public static string $indexWelcome = 'tao/index/welcome';
+    public static function indexWelcome(): string
+    {
+        $path = AppService::config()->getString('app.welcome');
+        return $path ?: '/m/tao/index/welcome';
+    }
 }

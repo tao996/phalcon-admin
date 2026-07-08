@@ -3,7 +3,7 @@
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 
-$indexWelcome = $vv->urlModule(\App\Modules\tao\Config\Config::$indexWelcome);
+$indexWelcome = $vv->urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = $vv->user();
 $vv->layui();
@@ -54,24 +54,27 @@ $vv->layui();
                 z-index: 1003;
                 padding: 10px 15px;
                 background: #20222a;
-                border-bottom: 1px solid rgba(255,255,255,.1);
+                border-bottom: 1px solid rgba(255, 255, 255, .1);
             }
+
             #mobileSidebarSwitch {
                 width: 100%;
                 height: 34px;
                 line-height: 34px;
-                border: 1px solid rgba(255,255,255,.2);
-                background: rgba(255,255,255,.12);
+                border: 1px solid rgba(255, 255, 255, .2);
+                background: rgba(255, 255, 255, .12);
                 padding: 0 8px;
                 border-radius: 4px;
                 font-size: 14px;
                 color: #fff;
                 outline: none;
             }
+
             #mobileSidebarSwitch option {
                 color: #333;
                 background: #fff;
             }
+
             .layui-side-scroll {
                 padding-top: 55px;
             }
@@ -79,10 +82,12 @@ $vv->layui();
             .layui-layout-right li[lay-header-event="menuRight"] {
                 display: none;
             }
+
             .layui-layout-right .layui-nav-item > a {
                 padding-left: 8px;
                 padding-right: 8px;
             }
+
             .layui-layout-right .layui-nav-item cite {
                 margin-right: 8px;
             }
@@ -95,12 +100,15 @@ $vv->layui();
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
             }
+
             .layadmin-pagetabs .layui-tab::-webkit-scrollbar {
                 display: none;
             }
+
             #LAY_app_tabsheader {
                 white-space: nowrap;
             }
+
             #LAY_app_tabsheader li {
                 float: none;
                 display: inline-block;
@@ -149,10 +157,10 @@ $vv->layui();
                 if ($vv->isDemo()) { ?>
                     <li class="layui-nav-item" lay-unselect>
                         <a href="javascript:void;" style="color: orangered" title="警告：当前处于演示模式">
-                            db:<?php echo $vv->config()->getString('database.stores.mysql.dbname','NONE') ?>
+                            db:<?php echo $vv->config()->getString('database.stores.mysql.dbname', 'NONE') ?>
                         </a>
                     </li>
-                <?php
+                    <?php
                 } ?>
 
                 <li class="layui-nav-item layui-hide-xs">
@@ -185,9 +193,9 @@ $vv->layui();
                         } ?>
                         <?php
                         $nickname = \Phax\Utils\MyData::firstValue([
-                            $user->nickname,
-                            \Phax\Utils\MyData::subtext($user->phone, 3),
-                            \Phax\Utils\MyData::subtext($user->email, 3)
+                                $user->nickname,
+                                \Phax\Utils\MyData::subtext($user->phone, 3),
+                                \Phax\Utils\MyData::subtext($user->email, 3)
                         ], in_array($user->id, $vv->superAdminIds()) ? '管理员' : '会员');
                         ?>
                         <cite><?php
@@ -238,8 +246,8 @@ $vv->layui();
                             if (isset($firstMenus['child'])) {
                                 foreach ($firstMenus['child'] as $secondMenus) {
                                     $hasSecondMenuChild = isset($secondMenus['child']) && count(
-                                            $secondMenus['child']
-                                        ) > 0;
+                                                    $secondMenus['child']
+                                            ) > 0;
                                     ?>
                                     <li class="layui-nav-item layui-nav-itemed" id="layui-nav-item-<?php
                                     echo $secondMenus['id'] ?>">

@@ -56,7 +56,8 @@ class BaseRbacController extends BaseResponseController
     protected array $otherActionRoles = [];
 
     /**
-     * @var array （白名单）当前控制器允许访问的 action，如果设置，则只有 enableActions 中的 action 才允许访问
+     * @var array （白名单）当前控制器允许访问的 action，如果设置，则只有 enableActions 中的 action 才允许访问;
+     * 如果设置为 openActions，也需要将它添加进来
      */
     public array $enableActions = [];
     /**
