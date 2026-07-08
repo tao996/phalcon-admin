@@ -225,7 +225,7 @@ class ProjectDeployer
     }
 
     /**
-     * 重启项目 Docker 容器
+     * 启动/重启项目 Docker 容器（up -d 幂等：首次拉取镜像，后续等同于重启）
      */
     public function restart(): void
     {
@@ -234,7 +234,7 @@ class ProjectDeployer
 
         $this->routerMode = $this->detectRouterMode();
 
-        deploy_log("=== 重启项目容器: {$projectName} ===", 'step');
+        deploy_log("=== 启动项目容器: {$projectName} ===", 'step');
         deploy_log("Router 模式: {$this->routerMode}", 'info');
 
         try {
@@ -244,9 +244,9 @@ class ProjectDeployer
                 ? 'docker-compose.ports.yaml'
                 : 'docker-compose.yaml';
 
-            $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} restart");
+            $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} up -d");
 
-            deploy_log("=== 项目容器重启完成 ===", 'ok');
+            deploy_log("=== 项目容器启动完成 ===", 'ok');
         } catch (Exception $e) {
             deploy_log("重启失败: " . $e->getMessage(), 'error');
         }

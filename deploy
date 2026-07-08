@@ -92,7 +92,7 @@ function showHelp(): void
 
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目
-  \033[33mapp:restart\033[0m <项目名>      重启项目 Docker 容器
+  \033[33mapp:restart\033[0m <项目名>      重启项目 Docker 容器（首次自动拉取镜像）
   \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
   \033[33mapp:status\033[0m <项目名>       查看项目容器状态
   \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
