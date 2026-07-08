@@ -70,3 +70,19 @@ function deploy_log(string $message, string $type = 'info'): void
     };
     echo sprintf("  %s %s\n", $prefix, $message);
 }
+
+/**
+ * 获取缓存的 Docker Compose 命令名
+ * 优先级：本地缓存 → 'docker-compose'（默认兼容）
+ */
+function get_compose_cmd(): string
+{
+    $cacheFile = deploy_base_path() . '/.cache/compose-cmd.txt';
+    if (file_exists($cacheFile)) {
+        $cmd = trim(file_get_contents($cacheFile));
+        if (!empty($cmd)) {
+            return $cmd;
+        }
+    }
+    return 'docker-compose';
+}

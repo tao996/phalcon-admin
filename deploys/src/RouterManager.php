@@ -88,8 +88,14 @@ class RouterManager
 
         // Docker 环境
         $dockerInstalled = $this->checkInstalled('docker');
-        $dockerComposeInstalled = $this->checkInstalled('docker-compose');
+        $dockerComposeCmd = $this->detectComposeCommand();
+        $dockerComposeInstalled = !empty($dockerComposeCmd);
         $dockerNetworkExists = $dockerInstalled && $this->checkDockerNetworkExists();
+
+        // 缓存 compose 命令名
+        if ($dockerComposeInstalled) {
+            $this->cacheComposeCommand($dockerComposeCmd);
+        }
 
         // 推荐模式
         $recommendedMode = $this->determineMode(
@@ -112,6 +118,7 @@ class RouterManager
             'docker' => [
                 'installed' => $dockerInstalled,
                 'composeInstalled' => $dockerComposeInstalled,
+                'composeCmd' => $dockerComposeCmd,
                 'networkExists' => $dockerNetworkExists,
             ],
             'recommendedMode' => $recommendedMode,
@@ -172,7 +179,7 @@ class RouterManager
         );
         deploy_log(
             sprintf("Docker Compose: %s",
-                $report['docker']['composeInstalled'] ? "\033[32m已安装\033[0m" : "\033[33m未安装\033[0m"
+                $report['docker']['composeInstalled'] ? "\033[32m{$report['docker']['composeCmd']}\033[0m" : "\033[33m未安装\033[0m"
             ),
             'info'
         );
@@ -251,7 +258,7 @@ class RouterManager
         $composeContent = $this->generateRouterCompose();
         $this->ssh->uploadContent($composeContent, $composePath . '/docker-compose.yaml');
 
-        $this->ssh->exec("cd {$composePath} && docker-compose up -d");
+        $this->ssh->exec("cd {$composePath} && " . get_compose_cmd() . " up -d");
     }
 
     /**
@@ -410,6 +417,42 @@ class RouterManager
             false
         );
         return trim($result) === 'YES';
+    }
+
+    /**
+     * 检测可用的 Docker Compose 命令（v2 docker compose / v1 docker-compose）
+     */
+    protected function detectComposeCommand(): string
+    {
+        // 先检测 docker compose（v2）
+        $result = $this->ssh->exec(
+            "docker compose version >/dev/null 2>&1 && echo 'docker compose' || echo ''",
+            false
+        );
+        $cmd = trim($result);
+        if (!empty($cmd)) {
+            return $cmd;
+        }
+
+        // 再检测 docker-compose（v1）
+        $result = $this->ssh->exec(
+            "docker-compose --version >/dev/null 2>&1 && echo 'docker-compose' || echo ''",
+            false
+        );
+        return trim($result);
+    }
+
+    /**
+     * 缓存 compose 命令名到本地
+     */
+    protected function cacheComposeCommand(string $cmd): void
+    {
+        $cacheDir = deploy_base_path() . '/.cache';
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0755, true);
+        }
+        file_put_contents($cacheDir . '/compose-cmd.txt', $cmd);
+        deploy_log("Compose 命令已缓存: {$cmd}", 'ok');
     }
 
     /**

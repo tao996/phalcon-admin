@@ -117,7 +117,7 @@ class ProjectDeployer
             $composeFile = $this->routerMode === RouterManager::MODE_HOST
                 ? 'docker-compose.ports.yaml'
                 : 'docker-compose.yaml';
-            $this->ssh->exec("cd {$projectPath} && docker-compose -f {$composeFile} up -d");
+            $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} up -d");
 
             // 6. 更新 Router
             deploy_log('步骤 6/7: 更新 Router', 'step');
@@ -244,7 +244,7 @@ class ProjectDeployer
                 ? 'docker-compose.ports.yaml'
                 : 'docker-compose.yaml';
 
-            $this->ssh->exec("cd {$projectPath} && docker-compose -f {$composeFile} restart");
+            $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} restart");
 
             deploy_log("=== 项目容器重启完成 ===", 'ok');
         } catch (Exception $e) {
@@ -327,7 +327,7 @@ class ProjectDeployer
             $composeFile = $this->routerMode === RouterManager::MODE_HOST
                 ? 'docker-compose.ports.yaml'
                 : 'docker-compose.yaml';
-            $this->ssh->exec("cd {$projectPath} && docker-compose -f {$composeFile} restart");
+            $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} restart");
 
             // 如果域名有调整，同步 Router
             if (!empty($domains)) {
@@ -605,7 +605,7 @@ class ProjectDeployer
 
             // Docker 容器状态
             deploy_log('容器状态:', 'info');
-            $this->ssh->exec("cd {$projectPath} && docker-compose ps 2>/dev/null || echo 'Docker 未运行'");
+            $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " ps 2>/dev/null || echo 'Docker 未运行'");
 
             // 磁盘使用
             deploy_log('磁盘使用:', 'info');
