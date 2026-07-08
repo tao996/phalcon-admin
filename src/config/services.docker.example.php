@@ -1,6 +1,5 @@
 <?php
-// docker image 前缀
-define('ENV_APP_NAME', env('APP_NAME') ? env('APP_NAME') . '-' : '');
+
 return [
     // https://docs.phalcon.io/5.0/en/cache
     'cache' => [
@@ -13,7 +12,7 @@ return [
             'redis' => [
                 'defaultSerializer' => 'Json',
                 'lifetime' => 7200,
-                'host' => env('REDIS_HOST', ENV_APP_NAME.'redis'),
+                'host' => env('REDIS_HOST', 'redis'),
                 'port' => 6379,
                 'auth' => env('REDIS_PASSWORD'),
                 'index' => env('REDIS_CACHE_INDEX', 0),
@@ -56,7 +55,7 @@ return [
         'default' => 'mysql',// env('DB_CONNECTION', 'mysql'),
         'stores' => [
             'mysql' => [
-                'host' => env('MYSQL_HOST', ENV_APP_NAME . 'mysql'),
+                'host' => env('MYSQL_HOST', 'mysql'),
                 'port' => 3306,
                 'dbname' => env('MYSQL_DATABASE', 'forge'),
                 'username' => env('MYSQL_USER', 'forge'),
@@ -72,7 +71,7 @@ return [
                 ],
             ],
             'postgresql' => [
-                'host' => env('POSTGRES_HOST', ENV_APP_NAME.'postgres'),
+                'host' => env('POSTGRES_HOST', 'postgres'),
                 'port' => 5432,
                 'dbname' => env('POSTGRES_DB', 'forge'),
                 'username' => env('POSTGRES_USER', 'forge'),
@@ -81,7 +80,7 @@ return [
             ],
             'sqlite' => [
                 // https://www.php.net/manual/en/ref.pdo-sqlite.connection.php
-                'dbname' => env('DB_DATABASE', PATH_STORAGE_DATA.'database.db'),
+                'dbname' => env('DB_DATABASE', PATH_STORAGE_DATA . 'database.db'),
             ]
         ],
         // 是否记录 SQL 语句
@@ -91,7 +90,7 @@ return [
         ],
     ],
     'redis' => [
-        'host' => env('REDIS_HOST', ENV_APP_NAME. 'redis'),
+        'host' => env('REDIS_HOST', 'redis'),
         'port' => 6379,
         'auth' => env('REDIS_PASSWORD'),
         'index' => (int)env('REDIS_CACHE_INDEX', 0),
@@ -141,7 +140,7 @@ return [
                 ],
             ],
             'redis' => [
-                'host' => env('REDIS_HOST', ENV_APP_NAME.'redis'),
+                'host' => env('REDIS_HOST', 'redis'),
                 'port' => 6379,
                 'auth' => env('REDIS_PASSWORD'),
                 'index' => (int)env('REDIS_SESSION_INDEX', 0),
@@ -176,7 +175,7 @@ return [
             'memcached' => [
                 'servers' => [
                     0 => [
-                        'host' => env('MEMCACHED_HOST', ENV_APP_NAME.'memcached'),
+                        'host' => env('MEMCACHED_HOST', 'memcached'),
                         'port' => 11211,
                         'weight' => 1,
                     ],
@@ -185,7 +184,7 @@ return [
                 'prefix' => '',
             ],
             'redis' => [
-                'host' => env('REDIS_HOST', ENV_APP_NAME.'redis'),
+                'host' => env('REDIS_HOST', 'redis'),
                 'port' => 6379,
                 'auth' => env('REDIS_PASSWORD'),
                 'index' => 1,

@@ -25,14 +25,4 @@ $data['app'] = array_merge($data['app'] ?? [], [
     ],
 ]);
 
-// 数据库配置（使用 Docker 内部网络）
-$data['database']['host'] = 'mysql';
-$data['database']['dbname'] = '{{MYSQL_DATABASE}}';
-$data['database']['username'] = '{{MYSQL_USER}}';
-$data['database']['password'] = '{{MYSQL_PASSWORD}}';
-
-// Redis 配置
-$data['redis']['host'] = 'redis';
-$data['redis']['password'] = '{{REDIS_PASSWORD}}';
-
 return $data;

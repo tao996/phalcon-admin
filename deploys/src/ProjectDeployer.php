@@ -186,6 +186,7 @@ class ProjectDeployer
             'TZ' => 'Asia/Shanghai',
             'DATA_PATH_HOST' => $projectPath . '/docker/storage',
             'NGINX_PORT' => $nginxPort,
+            'MYSQL_USER' => $projectName,
         ], $this->config->getEnvOverrides());
 
         // 合并应用配置覆盖到模板变量（如 app.title → APP_TITLE）
@@ -304,6 +305,7 @@ class ProjectDeployer
             'TZ' => 'Asia/Shanghai',
             'DATA_PATH_HOST' => $projectPath . '/docker/storage',
             'NGINX_PORT' => $nginxPort,
+            'MYSQL_USER' => $projectName,
         ], $this->config->getEnvOverrides());
 
         // 合并应用配置覆盖到模板变量（如 app.title → APP_TITLE）
@@ -439,7 +441,6 @@ class ProjectDeployer
             'APP_HTTPS' => 'true',
             'JWT_SECRET' => '',
             'APP_SITES' => '',
-            'MYSQL_USER' => $this->config->getProjectName(),
         ];
 
         return $vars;

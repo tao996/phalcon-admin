@@ -26,6 +26,7 @@ services:
 
   php:
     image: authus/phalcon:5.13.0
+    # registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.13.0
     container_name: ${APP_NAME}-php
     working_dir: /var/www
     restart: on-failure
