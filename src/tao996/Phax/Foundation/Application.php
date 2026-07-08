@@ -77,7 +77,11 @@ class Application
 
 
         // IP 白名单检查
-        $ipWhitelist = $di->get('config')->path('app.ipWhitelist', [])->toArray();
+        /**
+         * @var Config $config
+         */
+        $config = $di->get('config');
+        $ipWhitelist = $config->getArray('app.ipWhitelist');
         if (!empty($ipWhitelist)) {
             $clientIP = $_SERVER['REMOTE_ADDR'] ?? '';
             if (!$this->checkIpWhitelist($clientIP, $ipWhitelist)) {

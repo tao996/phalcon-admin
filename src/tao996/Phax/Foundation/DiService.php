@@ -69,7 +69,7 @@ class DiService
         return $this;
     }
 
-    public function getConfig(): Config
+    private function getConfig(): Config
     {
         return $this->di->get('config');
     }
