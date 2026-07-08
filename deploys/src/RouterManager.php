@@ -309,10 +309,19 @@ class RouterManager
             $mode = $this->detectCachedMode();
         }
 
+        // 根据模式设置配置目录
+        if ($mode === self::MODE_HOST && $this->configDir !== '/etc/nginx/conf.d') {
+            $this->configDir = '/etc/nginx/conf.d';
+        }
+
         // 决定转发的目标地址
-        if ($mode === self::MODE_DOCKER || empty($nginxPort)) {
+        if ($mode === self::MODE_DOCKER) {
             $target = $projectName . '-nginx:80';
         } else {
+            // 宿主机模式：需要端口，缺省 8071
+            if (empty($nginxPort)) {
+                $nginxPort = 8071;
+            }
             $target = '127.0.0.1:' . $nginxPort;
         }
 
