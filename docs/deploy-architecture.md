@@ -116,9 +116,9 @@
 
 ---
 
-## 四、环境检测（init:router 不带 -y）
+## 四、环境检测（server:init 不带 -y）
 
-`php deploy init:router`（不加 `-y`）只检测不执行。检测后打印报告并退出。
+`php deploy server:init`（不加 `-y`）只检测不执行。检测后打印报告并退出。
 
 ### 检测项及执行命令
 
@@ -153,14 +153,14 @@
   ℹ Docker Router: 未运行
 
   → 推荐模式:   宿主机 Nginx
-  ⚠ 使用 -y 参数执行安装：php deploy init:router -y
+  ⚠ 使用 -y 参数执行安装：php deploy server:init -y
 ```
 
 ---
 
-## 五、init:router -y 执行流程
+## 五、server:init -y 执行流程
 
-`php deploy init:router -y` 先检测，然后根据模式执行对应的安装步骤。
+`php deploy server:init -y` 先检测，然后根据模式执行对应的安装步骤。
 
 ### Docker Router 模式执行流程
 
@@ -234,12 +234,12 @@
 ### 预览/执行两阶段（v2 新增）
 
 ```
-php deploy init <项目>           # 预览模式（无 -y）
+php deploy app:init <项目>           # 预览模式（无 -y）
   └─ 本地渲染所有配置文件到 deploys/projects/<name>/
   └─ 不连接远程服务器
-  └─ 输出：请检查后执行 php deploy init <项目> -y
+  └─ 输出：请检查后执行 php deploy app:init <项目> -y
 
-php deploy init <项目> -y        # 执行模式
+php deploy app:init <项目> -y        # 执行模式
   └─ 优先读取本地已生成的配置文件 → SFTP 上传
   └─ 无本地文件时回退到模板渲染
   └─ 完整部署流程（git clone + docker up + router）
@@ -409,7 +409,7 @@ return [
 01. 读取 deploys/server.php + projects/<name>/server.php
 02. 检测 Router 模式（本地缓存 → 默认 host_nginx，不连远程）
 03. 渲染配置文件到本地 deploys/projects/<name>/
-04. 输出：请检查后执行 php deploy init <name> -y
+04. 输出：请检查后执行 php deploy app:init <name> -y
 ```
 
 ### 执行模式（-y）
@@ -438,17 +438,17 @@ return [
 | 命令 | 功能说明 | 新增于 |
 |------|---------|--------|
 | `php deploy --help` | 显示帮助 | v1 |
-| `php deploy init:router` | 检测服务器环境，打印报告后退出 | v1 |
-| `php deploy init:router -y` | 检测 + 自动选择模式并执行安装 | v1 |
-| `php deploy init:router -y mode=host_nginx` | 强制宿主机 Nginx 模式 | v1 |
-| `php deploy init <project>` | 预览（无 -y）或完整部署（加 -y） | v1→v2 增强 |
-| `php deploy upgrade <project>` | 更新已有项目（git pull + 重启） | v1 |
-| `php deploy restart <project>` | 重启项目 Docker 容器 | v2 |
-| `php deploy config:push <project>` | 推送本地配置文件到远程（覆盖已有） | v2 |
-| `php deploy nginx:reload` | 验证 nginx 语法后重载（全局） | v2 |
-| `php deploy nginx:add <project>` | 将项目域名添加到 Router | v1 |
-| `php deploy nginx:remove <project>` | 从 Router 移除项目域名 | v1 |
-| `php deploy status <project>` | 查看项目容器运行状态 | v1 |
+| `php deploy server:init` | 检测服务器环境，打印报告后退出 | v1 |
+| `php deploy server:init -y` | 检测 + 自动选择模式并执行安装 | v1 |
+| `php deploy server:init -y mode=host_nginx` | 强制宿主机 Nginx 模式 | v1 |
+| `php deploy app:init <project>` | 预览（无 -y）或完整部署（加 -y） | v1→v2 增强 |
+| `php deploy app:upgrade <project>` | 更新已有项目（git pull + 重启） | v1 |
+| `php deploy app:restart <project>` | 重启项目 Docker 容器 | v2 |
+| `php deploy app:push <project>` | 推送本地配置文件到远程（覆盖已有） | v2 |
+| `php deploy server:reload` | 验证 nginx 语法后重载（全局） | v2 |
+| `php deploy app:nginx:add <project>` | 将项目域名添加到 Router | v1 |
+| `php deploy app:nginx:remove <project>` | 从 Router 移除项目域名 | v1 |
+| `php deploy app:status <project>` | 查看项目容器运行状态 | v1 |
 | `php deploy db:proxy <project>` | SSH 隧道转发：本地 → 远程 MySQL | v1 |
 | `php deploy db:pma <project>` | 部署临时 phpMyAdmin | v1 |
 | `php deploy db:pma-rm <project>` | 删除临时 phpMyAdmin | v1 |
@@ -457,10 +457,10 @@ return [
 
 | 参数 | 作用于 | 说明 |
 |------|--------|------|
-| `-y` | `init:router`, `init` | 自动执行；`init:router` 默认只检测，`init` 默认预览 |
+| `-y` | `server:init`, `app:init` | 自动执行；`server:init` 默认只检测，`app:init` 默认预览 |
 | `env=prod` | 所有命令 | 选择服务器配置 `server.{env}.php` |
-| `mode=host_nginx` | `init:router -y`, `init` | 强制宿主机模式 |
-| `port=8071` | `init` | 手动指定项目 nginx 端口（宿主机模式） |
+| `mode=host_nginx` | `server:init -y`, `app:init` | 强制宿主机模式 |
+| `port=8071` | `app:init` | 手动指定项目 nginx 端口（宿主机模式） |
 | `local=13306` | `db:proxy` | SSH 隧道本地监听端口 |
 | `host=13307` | `db:pma` | phpMyAdmin 宿主机暴露端口 |
 
@@ -548,7 +548,7 @@ php deploy db:pma-rm yihe
 | `ConfigTest.php` | 12 | 配置加载、合并、各 getter 方法 |
 | `TemplateRendererTest.php` | 16 | 单文件渲染、`renderToFile`、`renderDir` 目录渲染、跳过 `_` 文件、子目录结构保持、边界情况 |
 
-未测（需真实 SSH 连接）：`SSH.php`、`GitHelper.php`、`RouterManager.php` 远程部分、`ProjectDeployer.php` 编排部分。这些在 `php deploy init <project>` 实际运行时验证。
+未测（需真实 SSH 连接）：`SSH.php`、`GitHelper.php`、`RouterManager.php` 远程部分、`ProjectDeployer.php` 编排部分。这些在 `php deploy app:init <project>` 实际运行时验证。
 
 ---
 
@@ -566,43 +566,43 @@ cp deploys/projects/.example/server.php deploys/projects/yihe/server.php
 # 编辑 deploys/projects/yihe/server.php 填入项目名、路径、域名
 
 # 3. 检测服务器环境
-php deploy init:router
+php deploy server:init
 
 # 4. 如果报告满意，执行安装
-php deploy init:router -y
+php deploy server:init -y
 
 # 5. 预览项目配置
-php deploy init yihe
+php deploy app:init yihe
 # 检查 deploys/projects/yihe/ 下的配置文件
 
 # 6. 确认无误后部署
-php deploy init yihe -y
+php deploy app:init yihe -y
 ```
 
 ### 更新配置
 
 ```bash
 # 修改本地配置后推送
-php deploy init yihe                # 重新预览生成
+php deploy app:init yihe                # 重新预览生成
 # 手动编辑 deploys/projects/yihe/* 中的文件
-php deploy config:push yihe         # 仅推送配置到远程
-php deploy restart yihe             # 重启容器使配置生效
+php deploy app:push yihe         # 仅推送配置到远程
+php deploy app:restart yihe             # 重启容器使配置生效
 ```
 
 ### 日常更新
 
 ```bash
-php deploy upgrade yihe
+php deploy app:upgrade yihe
 ```
 
 ### Nginx 操作
 
 ```bash
 # 添加域名到 Router
-php deploy nginx:add yihe
+php deploy app:nginx:add yihe
 
 # 全局重载 Nginx（先验证语法）
-php deploy nginx:reload
+php deploy server:reload
 ```
 
 ### 数据库操作
