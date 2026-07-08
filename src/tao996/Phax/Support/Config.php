@@ -66,7 +66,8 @@ class Config
 
     /**
      * @param string $path
-     * @param mixed|null $default 如果 path 是一个多组数组，则返回 \Phalcon\Config\Config；如果是普通数组，则返回 array
+     * @param mixed|null $default 如果 path 是一个多组数组，则返回 \Phalcon\Config\Config；如果是普通数组，则返回 array；
+     * 只要有定义，就会返回值：比如设置的字符串为空，则返回空字符串
      * @return \Phalcon\Config\Config|string|bool|int|null
      */
     public function path(string $path, mixed $default = null): mixed
@@ -98,10 +99,10 @@ class Config
     public function getString(string $path, string $default = ''): string
     {
         $obj = self::path($path, $default);
-        if (is_string($obj)) {
+        if (is_string($obj) && !empty($obj)) {
             return $obj;
         }
-        return '';
+        return $default;
     }
     public function getInt(string $path, int $default = 0): int
     {

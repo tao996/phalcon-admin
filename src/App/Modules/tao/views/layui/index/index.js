@@ -139,12 +139,16 @@ const tabs = {
         this.iframeElements()[index].classList.add('layui-show');
     },
     remove: function (index) {
-        this.elements()[index].removeActive();
-        this.iframeElements()[index].removeActive();
+        this.elements().eq(index).remove();
+        var iframeItem = this.iframeElements().eq(index);
+        var iframe = iframeItem.find('iframe')[0];
+        if (iframe) {
+            iframe.src = 'about:blank';
+        }
+        iframeItem.remove();
     },
     // 关闭一个标签
     close: function (href) {
-        window.event.cancelBubble = true;
         const ids = this.ids();
         const index = ids.indexOf(href);
         if (href === this.activeLayHref) {
@@ -181,7 +185,7 @@ const tabs = {
             return;
         }
         const oldInfo = tabsCache.read()['active'];
-        this.leftMenu(oldInfo,false);
+        this.leftMenu(oldInfo, false);
         this.activeLayHref = info.href;
         if (cache) {
             tabsCache.saveActiveTab(info);
@@ -199,10 +203,9 @@ const tabs = {
             if (this.debug) {
                 console.log('index == -1, 添加标签', info)
             }
-            tabs.container.append(`<li lay-id="${info.href}" class="layui-this" onclick="tabs.append({id:'${info.id}',title:'${info.title}',href:'${info.href}'})">
-<span>${info.title}</span>
-<i class="layui-icon layui-icon-close layui-unselect layui-tab-close"
-onclick="tabs.close('${info.href}')"></i>
+            tabs.container.append(`<li lay-id="${this.eschtml(info.href)}" data-id="${this.eschtml(info.id)}" class="layui-this">
+<span>${this.eschtml(info.title)}</span>
+<i class="layui-icon layui-icon-close layui-unselect layui-tab-close"></i>
 </li>`);
             admin.layer.load();
             // 添加 iframe
@@ -215,8 +218,14 @@ onclick="tabs.close('${info.href}')"></i>
                 console.log('index > -1, 激活标签', index, info)
             }
             this.addActiveClass(index);
-            this.leftMenu(info,true);
+            this.leftMenu(info, true);
         }
+    },
+    // HTML 转义
+    eschtml: function (str) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(String(str)));
+        return d.innerHTML;
     },
     // 激活左边标签
     activeLeft: function () {
@@ -296,8 +305,8 @@ onclick="tabs.close('${info.href}')"></i>
         if (bMenu) {
             this.activeSidebar(data.menuId, true);
         }
-        if(sMenu || bMenu){
-            this.leftMenu(data['active'],true);
+        if (sMenu || bMenu) {
+            this.leftMenu(data['active'], true);
         }
     },
     /**
@@ -347,6 +356,18 @@ layui.util.on('layadmin-event', {
         tabs.removeAll();
         tabs.addActiveClass(0)
     },
+});
+
+// Tab 点击/关闭事件委托
+tabs.container.on('click', 'li', function () {
+    var href = this.getAttribute('lay-id');
+    var id = parseInt(this.getAttribute('data-id') || '0');
+    var title = this.querySelector('span').textContent;
+    tabs.append({id: id, title: title, href: href});
+}).on('click', '.layui-tab-close', function (e) {
+    e.stopPropagation();
+    var href = this.parentNode.getAttribute('lay-id');
+    tabs.close(href);
 });
 
 function bindPageEvents() {
