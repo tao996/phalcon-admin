@@ -55,7 +55,7 @@ class DiService
 
     /**
      * 读取配置信息
-     * @param callable{\Phalcon\Config\Config} $handle 通常用于初始化数据
+     * @param callable{\Phax\Support\Config} $handle 通常用于初始化数据
      * @param bool $shared
      * @return $this
      */
@@ -64,7 +64,8 @@ class DiService
         // 配置文件
         $cc = new Config($this->di);
         $this->di->set('config', $cc, $shared);
-        $handle($cc->load());
+        $cc->load();
+        $handle($cc);
         return $this;
     }
 
@@ -127,7 +128,7 @@ class DiService
         // 注册加密
         $this->di->set('crypt', function () {
             $cc = $this->getConfig();
-            $data = $cc->path('crypt')->toArray();
+            $data = $cc->getArray('crypt');
 
             $crypt = new \Phalcon\Encryption\Crypt();
             if ($data['key']) {
@@ -147,7 +148,7 @@ class DiService
         // https://docs.phalcon.io/5.0/en/db-models-metadata
         $this->di->set('modelsMetadata', function () {
             $cc = $this->getConfig();
-            $data = $cc->path('metadata')->toArray();
+            $data = $cc->getArray('metadata');
             switch ($data['driver']) {
                 case 'apcu':
                     $factory = new \Phalcon\Storage\SerializerFactory();
@@ -193,12 +194,12 @@ class DiService
     {
         $di = $this->di;
         $this->di->set('db', function () use ($di) {
-            $driver = $this->getConfig()->path('database.default');
+            $driver = $this->getConfig()->getString('database.default');
             $class = 'Phalcon\Db\Adapter\Pdo\\' . $driver;
-            $params = $this->getConfig()->path('database.stores.' . $driver)->toArray();
+            $params = $this->getConfig()->getArray('database.stores.' . $driver);
             $db = new $class($params);
 
-            $dbLogDriver = $this->getConfig()->path('database.log.driver');
+            $dbLogDriver = $this->getConfig()->getString('database.log.driver');
             if ('file' === $dbLogDriver) {
                 Db::attach($di, $db);
             } elseif ('profiler' === $dbLogDriver) {
@@ -213,8 +214,8 @@ class DiService
     public function pdo(bool $shared = true): static
     {
         $this->di->set('pdo', function () {
-            $driver = $this->getConfig()->path('database.default');
-            $params = $this->getConfig()->path('database.stores.' . $driver)->toArray();
+            $driver = $this->getConfig()->getString('database.default');
+            $params = $this->getConfig()->getArray('database.stores.' . $driver);
 
             switch ($driver) {
                 case 'mysql':
@@ -260,7 +261,7 @@ class DiService
     {
         // redis
         $this->di->set('redis', function () {
-            $cc = $this->getConfig()->path('redis')->toArray();
+            $cc = $this->getConfig()->getArray('redis');
             $redis = new \Redis();
             $redis->connect($cc['host'], $cc['port']);
             if (!empty($cc['auth'])) {
@@ -279,7 +280,7 @@ class DiService
         // https://docs.phalcon.io/5.0/en/cache
         $this->di->set('cache', function () {
             $factory = new \Phalcon\Storage\SerializerFactory();
-            $cc = $this->getConfig()->path('cache')->toArray();
+            $cc = $this->getConfig()->getArray('cache');
             $options = $cc['stores'][$cc['driver']];
             switch ($cc['driver']) {
                 case 'redis':
@@ -309,8 +310,8 @@ class DiService
     public function cookies(bool $shared = true): static
     {
         $this->di->set('cookies', function () {
-            $cc = $this->getConfig()->path('cookie');
-            if ($cc['key']) {
+            $cc = $this->getConfig()->getArray('cookie');
+            if (!empty($cc['key'])) {
                 $cookie = new \Phalcon\Http\Response\Cookies(true, md5($cc['key']));
             } else {
                 $cookie = new \Phalcon\Http\Response\Cookies();
@@ -335,7 +336,7 @@ class DiService
     {
         $this->di->set('flash', function () {
             $escaper = new \Phalcon\Html\Escaper();
-            $driver = '\Phalcon\Flash\\' . $this->getConfig()->path('flash');
+            $driver = '\Phalcon\Flash\\' . $this->getConfig()->getString('flash');
             $flash = new $driver($escaper);
             $flash->setImplicitFlush(false);
             return $flash;
@@ -402,7 +403,7 @@ class DiService
          * @link https://docs.phalcon.io/5.0/en/session
          */
         $this->di->set('session', function () {
-            $cc = $this->getConfig()->path('session')->toArray();
+            $cc = $this->getConfig()->getArray('session');
             // https://stackoverflow.com/questions/8311320/how-to-change-the-session-timeout-in-php
             $sessionConfig = $cc['stores'][$cc['driver']];
 //            ddd($sessionConfig);

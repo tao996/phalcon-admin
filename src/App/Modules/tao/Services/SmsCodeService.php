@@ -448,7 +448,7 @@ class SmsCodeService
 
             $link = $this->mvc->urlWith('/m/tao/auth/password', [
                 'type' => 'forgot',
-                'sign' => md5($code->code . $row['id'] . $this->mvc->config()->path('app.key', 'tao-default-secret')),
+                'sign' => md5($code->code . $row['id'] . $this->mvc->config()->getString('app.key', 'tao-default-secret')),
                 'id' => $code->id,
             ]);
 
@@ -488,7 +488,7 @@ HTML;
             throw new BusinessException('重置密码验证码不存在或过期');
         }
 
-        if ($sign !== md5($code->code . $code->user_id . $this->mvc->config()->path('app.key', 'tao-default-secret'))) {
+        if ($sign !== md5($code->code . $code->user_id . $this->mvc->config()->getString('app.key', 'tao-default-secret'))) {
             throw new BusinessException('签名参数不匹配');
         }
         if ($code->user_id < 1) {

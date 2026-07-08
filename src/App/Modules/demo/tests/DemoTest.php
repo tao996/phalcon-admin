@@ -9,7 +9,7 @@ class DemoTest extends MyTestCaseHelper
     public function testDb()
     {
         $mvc = $this->getMyMvc();
-        $mysql = $mvc->config()->path('database.stores.mysql')->toArray();
+        $mysql = $mvc->config()->getArray('database.stores.mysql');
         $this->assertNotEmpty($mysql['dbname']);
     }
 }

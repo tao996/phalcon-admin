@@ -375,7 +375,7 @@ class MyMvc
         if ($language = $this->dispatcher()->getParam('language')) {
             return $language;
         }
-        return $this->config()->path('app.locale', 'en');
+        return $this->config()->getString('app.locale', 'en');
     }
 
     /**

@@ -98,9 +98,9 @@ class HtmlHelper
     {
         $title = $this->get('html_title');
         if ($title) {
-            return $title . ' - ' . $this->mvc->config()->path('app.title');
+            return $title . ' - ' . $this->mvc->config()->getString('app.title');
         } else {
-            return $this->mvc->config()->path('app.title');
+            return $this->mvc->config()->getString('app.title');
         }
     }
 

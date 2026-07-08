@@ -31,7 +31,7 @@ class HtmlAssets
              * @var Config $config
              */
             $config = Application::di()->get('config');
-            $cdnLocate = $config->path('app.cdn_locate', 'self');
+            $cdnLocate = $config->getString('app.cdn_locate', 'self');
         }
 
         switch ($cdnLocate) {

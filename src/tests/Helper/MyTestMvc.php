@@ -29,7 +29,7 @@ class MyTestMvc extends MyMvc
 
     public function getLoginUser(string $token = 'tao')
     {
-        $tokens = $this->config()->path('app.test.tokens')->toArray();
+        $tokens = $this->config()->getArray('app.test.tokens');
         if ($userId = $tokens[$token]) {
             return SystemUser::findFirst($userId);
         } else {

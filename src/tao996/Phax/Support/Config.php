@@ -22,7 +22,7 @@ class Config
     /**
      * 加载配置
      */
-    public function load(): \Phalcon\Config\Config
+    public function load(): void
     {
         $global_config_file = '';
         $configList = [
@@ -43,23 +43,21 @@ class Config
         if (empty($global_config_file)) {
             throw new \Exception('could not find global config file');
         }
-        self::$config = $this->parse($global_config_file);
+        self::$config = $this->_parse($global_config_file);
 
         if ($this->current_project = $this->getProject()) {
             $configFilePath = PATH_APP_PROJECTS . $this->current_project . '/Config/config.php';
             if (file_exists($configFilePath)) {
-                $project_cc = $this->parse($configFilePath);
+                $project_cc = $this->_parse($configFilePath);
                 self::$config->merge($project_cc);
             }
         }
-
-        return self::$config;
     }
 
     /**
      * @throws Exception
      */
-    private function parse(string $filepath): \Phalcon\Config\Config
+    private function _parse(string $filepath): \Phalcon\Config\Config
     {
         $cc = new \Phalcon\Config\Config();
         $cc->merge(include_once $filepath);
@@ -68,7 +66,7 @@ class Config
 
     /**
      * @param string $path
-     * @param mixed|null $default
+     * @param mixed|null $default 如果 path 是一个多组数组，则返回 \Phalcon\Config\Config；如果是普通数组，则返回 array
      * @return \Phalcon\Config\Config|string|bool|int|null
      */
     public function path(string $path, mixed $default = null): mixed
@@ -81,15 +79,15 @@ class Config
      * @param string $path
      * @return array
      */
-    public function getArray(string $path): array
+    public function getArray(string $path, array $default = []): array
     {
-        $obj = self::path($path, []);
+        $obj = self::path($path, $default);
         if ($obj instanceof \Phalcon\Config\Config) {
             return $obj->toArray();
         } elseif (is_array($obj)) {
             return $obj;
         }
-        return [];
+        return $default;
     }
 
     /**
@@ -97,13 +95,18 @@ class Config
      * @param string $path
      * @return string
      */
-    public function getString(string $path): string
+    public function getString(string $path, string $default = ''): string
     {
-        $obj = self::path($path, '');
+        $obj = self::path($path, $default);
         if (is_string($obj)) {
             return $obj;
         }
         return '';
+    }
+    public function getInt(string $path, int $default = 0): int
+    {
+        $obj = self::path($path, $default);
+        return (int) $obj;
     }
 
     /**
@@ -111,9 +114,9 @@ class Config
      * @param string $path
      * @return bool
      */
-    public function getBoolean(string $path): bool
+    public function getBoolean(string $path, bool $default = false): bool
     {
-        $obj = self::path($path, false);
+        $obj = self::path($path, $default);
         if (is_bool($obj)) {
             return $obj;
         } elseif (is_string($obj)) {
@@ -121,7 +124,7 @@ class Config
         } elseif (is_numeric($obj)) {
             return $obj > 0;
         }
-        return false;
+        return $default;
     }
 
 

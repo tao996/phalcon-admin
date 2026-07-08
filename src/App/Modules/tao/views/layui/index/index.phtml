@@ -29,7 +29,7 @@ $vv->layui();
         <?php include __DIR__.'/admin.css'?>
 
         .layadmin-side-shrink .layui-logo {
-            background-image: url(<?php echo $vv->config()->path('app.logo') ?>)
+            background-image: url(<?php echo $vv->config()->getString('app.logo') ?>)
         }
 
         .layui-logo {
@@ -149,7 +149,7 @@ $vv->layui();
                 if ($vv->isDemo()) { ?>
                     <li class="layui-nav-item" lay-unselect>
                         <a href="javascript:void;" style="color: orangered" title="警告：当前处于演示模式">
-                            db:<?php echo $vv->config()->path('database.stores.mysql.dbname','NONE') ?>
+                            db:<?php echo $vv->config()->getString('database.stores.mysql.dbname','NONE') ?>
                         </a>
                     </li>
                 <?php
@@ -224,7 +224,7 @@ $vv->layui();
             <div class="layui-side-scroll">
                 <div class="layui-logo" lay-href="<?php
                 echo $vv->urlModule('tao') ?>">
-                    <span><?= $vv->config()->path('app.title') ?></span>
+                    <span><?= $vv->config()->getString('app.title') ?></span>
                 </div>
                 <!-- 显示模块菜单 -->
                 <div id="menuTree">

@@ -650,7 +650,7 @@ class Validate
     {
         static $hosts = null;
         if (is_null($hosts)) {
-            $hosts = $this->mvc->config()->path('app.hosts')->toArray();
+            $hosts = $this->mvc->config()->getArray('app.hosts');
         }
         return $hosts;
     }

@@ -25,14 +25,14 @@ class MyBaseUri
     {
 
         if (empty($this->origin)) {
-            if ($baseUri = $this->config->path('app.origin', '')) {
+            if ($baseUri = $this->config->getString('app.origin', '')) {
                 $this->origin = $baseUri;
                 return $this->origin;
             }
             $scheme = $this->request->hasServer('HTTPS')
             && (($this->request->getServer('HTTPS') == 'on') || ($this->request->getServer('HTTPS') == 1))
                 ? 'https' : 'http';
-            if ($this->config->path('app.https')) {
+            if ($this->config->getBoolean('app.https')) {
                 $scheme = 'https';
             }
             $port = '';

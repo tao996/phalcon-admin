@@ -28,7 +28,7 @@ class LoginSessionAuthAdapter extends LoginAuthAdapter
             // 每小时最多刷新一次 cookie，避免每次请求都 setcookie
             $lastRefresh = (int)$this->mvc->session()->get('_cookie_refresh', 0);
             if (time() - $lastRefresh > 3600) {
-                $lifetime = (int)$this->mvc->config()->path('session.cookie_lifetime', 86400);
+                $lifetime = $this->mvc->config()->getInt('session.cookie_lifetime', 86400);
                 $params = session_get_cookie_params();
                 setcookie(
                     session_name(),

@@ -182,8 +182,8 @@ class IndexController extends BaseController
         $ms = $this->vv->loginUserHelper();
         $data = [
             'logoInfo' => [
-                'title' => $this->vv->config()->path('app.title'),
-                'image' => $this->vv->config()->path('app.logo'),
+                'title' => $this->vv->config()->getString('app.title'),
+                'image' => $this->vv->config()->getString('app.logo'),
                 'href' => $this->vv->urlModule('tao')
             ],
             'homeInfo' => $ms->getHomeInfo(),

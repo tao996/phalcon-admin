@@ -20,7 +20,7 @@ class Db
          */
         $config = $di->get('config');
 
-        $path = $config->path('database.log.path');
+        $path = $config->getString('database.log.path');
         preg_match('|{(\w+)}|',$path, $matches);
         if (!empty($matches)) {
             $path = str_replace($matches[0], date($matches[1]), $path);

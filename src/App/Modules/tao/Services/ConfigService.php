@@ -110,7 +110,7 @@ $data['tao'] = [
     // ... 其它配置
 ];
  */
-            if ($uploadcc = $this->mvc->config()->path('tao.upload')?->toArray()) {
+            if ($uploadcc = $this->mvc->config()->getArray('tao.upload')) {
                 foreach ($uploadcc as $key => $value) {
                     if (!empty($value)) {
                         $config[$key] = $value;

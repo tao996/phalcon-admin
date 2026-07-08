@@ -86,7 +86,7 @@ class ResponseHelper
      */
     public function cookieSet(string $name, $value, int $expire = 0): void
     {
-        $cc = $this->mvc->config()->path('cookie')->toArray();
+        $cc = $this->mvc->config()->getArray('cookie');
         $this->mvc->cookies()->set(
             $name,
             $value,

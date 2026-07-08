@@ -15,8 +15,8 @@ abstract class LoginAuthAdapter
     {
         $this->is_redis_adapter = $mvc->session()->getAdapter() instanceof \Phalcon\Session\Adapter\Redis;
         if ($this->is_redis_adapter) {
-            $this->session_prefix = $mvc->config()->path('session.stores.redis.prefix');
-            $this->lifetime = $mvc->config()->path('session.stores.redis.lifetime');
+            $this->session_prefix = $mvc->config()->getString('session.stores.redis.prefix');
+            $this->lifetime = $mvc->config()->getInt('session.stores.redis.lifetime');
         }
     }
 

@@ -43,13 +43,13 @@ class Application
         }
 
         DiService::with($di)
-            ->config(function (\Phalcon\Config\Config $config) {
-                date_default_timezone_set($config->path('app.timezone'));
-                if ($namespaces = $config->path('app.loader.namespaces', [])->toArray()) {
+            ->config(function (\Phax\Support\Config $config) {
+                date_default_timezone_set($config->getString('app.timezone'));
+                if ($namespaces = $config->getArray('app.loader.namespaces')) {
                     loader()->setNamespaces($namespaces, true)
                         ->register();
                 }
-                foreach ($config->path('app.loader.includes', [])->toArray() as $f) {
+                foreach ($config->getArray('app.loader.includes') as $f) {
                     include_once $f;
                 }
             })
@@ -123,7 +123,7 @@ class Application
          * @var Config $config
          */
         $config = self::di()->get('config');
-        $errClass = $config->path('app.error', 'App\Http\AppErrorResponse');
+        $errClass = $config->getString('app.error', 'App\Http\AppErrorResponse');
 
         if (class_exists($errClass)) {
             /**
@@ -170,7 +170,7 @@ class Application
          * @var Config $config
          */
         $config = $di->get('config');
-        $defaultApp = $config->path('app.defaultApp')->toArray();
+        $defaultApp = $config->getArray('app.defaultApp');
         $project = $config->getProjectWithConfig();
 
         $options = [
