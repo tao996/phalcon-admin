@@ -114,4 +114,19 @@ return [
     {
         return \Phax\Support\I18nService::translate($key, $default, $params, $namespace);
     }
+
+    /**
+     * 深度合并两个数组（同名标量键覆盖，递归合并数组）
+     */
+    function array_merge_deep(array $base, array $override): array
+    {
+        foreach ($override as $key => $value) {
+            if (isset($base[$key]) && is_array($base[$key]) && is_array($value)) {
+                $base[$key] = array_merge_deep($base[$key], $value);
+            } else {
+                $base[$key] = $value;
+            }
+        }
+        return $base;
+    }
 }
