@@ -77,7 +77,15 @@ class DiService
     {
         $this->di->set('logger', function () {
             $cc = $this->getConfig();
-            $cc = $cc->path('logger')->toArray();
+            $loggerConfig = $cc->path('logger');
+            if ($loggerConfig === null) {
+                // config 尚未就绪时输出到 stderr（CLI/测试时可见，不丢失信息）
+                return new \Phalcon\Logger\Logger(
+                    'DEBUG',
+                    ['main' => new \Phalcon\Logger\Adapter\Stream('php://stderr')]
+                );
+            }
+            $cc = $loggerConfig->toArray();
             $params = $cc['stores'][$cc['driver']];
 
             switch (strtolower($cc['driver'])) {

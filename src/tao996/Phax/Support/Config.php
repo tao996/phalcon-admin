@@ -77,14 +77,51 @@ class Config
     }
 
     /**
-     * 读取全局配置文件
+     * 查询数组值
      * @param string $path
-     * @param mixed|null $default
-     * @return \Phalcon\Config\Config|string|bool|int|null
+     * @return array
      */
-    private function globalPath(string $path, mixed $default = null): mixed
+    public function getArray(string $path): array
     {
-        return static::$config->path($path, $default);
+        $obj = self::path($path, []);
+        if ($obj instanceof \Phalcon\Config\Config) {
+            return $obj->toArray();
+        } elseif (is_array($obj)) {
+            return $obj;
+        }
+        return [];
+    }
+
+    /**
+     * 查询字符串值
+     * @param string $path
+     * @return string
+     */
+    public function getString(string $path): string
+    {
+        $obj = self::path($path, '');
+        if (is_string($obj)) {
+            return $obj;
+        }
+        return '';
+    }
+
+    /**
+     * 查询布尔值
+     * @param string $path
+     * @return bool
+     */
+    public function getBoolean(string $path): bool
+    {
+        $obj = self::path($path, false);
+        if (is_bool($obj)) {
+            return $obj;
+        } elseif (is_string($obj)) {
+            return !empty($obj);
+        } elseif (is_numeric($obj)) {
+            return $obj > 0;
+        }
+        return false;
     }
 
 
@@ -94,7 +131,7 @@ class Config
      */
     public function isDemo(): bool
     {
-        return $this->globalPath('app.demo', false);
+        return $this->getBoolean('app.demo');
     }
 
     /**
@@ -103,17 +140,17 @@ class Config
      */
     public function isTest(): bool
     {
-        return $this->globalPath('app.test.open', false);
+        return $this->getBoolean('app.test.open');
     }
 
     public function getTestUsers(): array
     {
-        return $this->globalPath('app.test.tokens', [])?->toArray() ?: [];
+        return $this->getArray('app.test.tokens');
     }
 
     public function getSuperAdminIds(): array
     {
-        return $this->globalPath('app.superAdmin', [])?->toArray() ?: [];
+        return $this->getArray('app.superAdmin');
     }
 
     /**
@@ -128,7 +165,7 @@ class Config
             return $this->buildProjectConfig($this->current_project);
         }
         if ($host = $this->getHost()) {
-            if ($sites = $this->globalPath('app.sites', [])?->toArray()) {
+            if ($sites = $this->getArray('app.sites')) {
                 foreach ($sites as $project => $hosts) {
                     $domains = is_array($hosts) && isset($hosts['domains']) ? $hosts['domains'] : $hosts;
                     if (in_array($host, (array)$domains)) {
@@ -137,7 +174,7 @@ class Config
                 }
             }
         }
-        $default = $this->globalPath('app.default') ?: '';
+        $default = $this->getString('app.default');
         return $default ? $this->buildProjectConfig($default) : ['name' => '', 'namespace' => '', 'viewpath' => ''];
     }
 
