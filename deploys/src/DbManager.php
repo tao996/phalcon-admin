@@ -149,12 +149,10 @@ class DbManager
 
         // 拉取并启动 phpMyAdmin 容器
         $cmd = sprintf(
-            'docker run -d --rm --name %s --network %s -p %d:80 -e PMA_HOST=mysql -e PMA_PORT=3306 -e PMA_USER=%s -e PMA_PASSWORD=%s phpmyadmin/phpmyadmin',
+            'docker run -d --rm --name %s --network %s -p %d:80 -e PMA_HOST=mysql -e PMA_PORT=3306 phpmyadmin/phpmyadmin',
             escapeshellarg($containerName),
             escapeshellarg($networkName),
-            $hostPort,
-            escapeshellarg($dbUser),
-            escapeshellarg($dbPassword)
+            $hostPort
         );
 
         $output = $this->ssh->exec($cmd);
