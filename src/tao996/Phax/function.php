@@ -115,6 +115,8 @@ return [
         return \Phax\Support\I18nService::translate($key, $default, $params, $namespace);
     }
 
+}
+if (!function_exists('array_merge_deep')) {
     /**
      * 深度合并两个数组（同名标量键覆盖，递归合并数组）
      */

@@ -177,6 +177,7 @@ class ProjectDeployer
         $this->ensureLocalDir($localDir);
 
         // 构建模板变量
+        $dockerImages = $this->config->getMerged()['docker']['images'] ?? [];
         $projectPath = $this->config->getProjectPath();
         $vars = array_merge([
             'APP_NAME' => $projectName,
@@ -187,6 +188,11 @@ class ProjectDeployer
             'DATA_PATH_HOST' => $projectPath . '/docker/storage',
             'NGINX_PORT' => $nginxPort,
             'MYSQL_USER' => $projectName,
+            // 镜像地址（可从 server.php docker.images 覆盖）
+            'NGINX_IMAGE' => $dockerImages['nginx'] ?? '',
+            'PHP_IMAGE' => $dockerImages['php'] ?? '',
+            'MYSQL_IMAGE' => $dockerImages['mysql'] ?? '',
+            'REDIS_IMAGE' => $dockerImages['redis'] ?? '',
         ], $this->config->getEnvOverrides());
 
         // 合并应用配置覆盖（嵌套数组，直接注入 config.php 模板）
@@ -358,6 +364,7 @@ class ProjectDeployer
         $projectName = $this->config->getProjectName();
 
         // 构建模板变量
+        $dockerImages = $this->config->getMerged()['docker']['images'] ?? [];
         $vars = array_merge([
             'APP_NAME' => $projectName,
             'PROJECT_NAME' => $projectName,
@@ -367,6 +374,11 @@ class ProjectDeployer
             'DATA_PATH_HOST' => $projectPath . '/docker/storage',
             'NGINX_PORT' => $nginxPort,
             'MYSQL_USER' => $projectName,
+            // 镜像地址（可从 server.php docker.images 覆盖）
+            'NGINX_IMAGE' => $dockerImages['nginx'] ?? '',
+            'PHP_IMAGE' => $dockerImages['php'] ?? '',
+            'MYSQL_IMAGE' => $dockerImages['mysql'] ?? '',
+            'REDIS_IMAGE' => $dockerImages['redis'] ?? '',
         ], $this->config->getEnvOverrides());
 
         // 合并应用配置覆盖（嵌套数组，直接注入 config.php 模板）

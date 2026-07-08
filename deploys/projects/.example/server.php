@@ -33,13 +33,19 @@ return [
         // 'REDIS_PASSWORD' => 'myapp_redis_pwd',
         // 'MYSQL_PASSWORD' => 'myapp_db_pwd',
     ],
-    'config' => [                                // 应用配置覆盖
-        'app.title' => 'My App',
-        'app.origin' => 'https://myapp.example.com/',
-        'app.jwt.secret' => 'change-this-secret',
-        'app.https' => true,
-        'app.demo' => false,
-        'app.superAdmin' => [1],
+    'config' => [
+        'app' => [
+            'title' => 'Your app name',
+            'origin' => 'https://myapp.example.com/',
+            'jwt.secret' => 'change-this-secret',
+            'https' => true,
+            'demo' => false,
+            'superAdmin' => [1],
+            'default' => '',
+            'defaultApp' => [
+                'namespace' => '', // 默认首页，示例 App\Modules\yihe\Controllers
+            ],
+        ],// 应用配置覆盖
     ],
     // 钩子命令：初始化/更新后执行（可选）
     'hooks' => [
@@ -49,6 +55,15 @@ return [
         ],
         'afterUpgrade' => [
             // 'shell:php artisan migration',
+        ],
+    ],
+    // Docker 镜像覆盖（可选，缺省使用 compose 模板中的默认值）
+    'docker' => [
+        'images' => [
+            // 'php' => 'registry.example.com/phalcon:5.13.0',
+            // 'nginx' => 'registry.example.com/nginx:stable-alpine',
+            // 'mysql' => 'registry.example.com/mysql:8.1.0',
+            // 'redis' => 'registry.example.com/redis:7.2-alpine',
         ],
     ],
 ];
