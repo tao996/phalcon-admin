@@ -93,7 +93,7 @@ function showHelp(): void
   \033[33mnginx:log:access\033[0m         查看 Nginx 访问日志（--save 下载到本地）
 
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
-  \033[33mapp:upgrade\033[0m <项目名>      更新已有项目
+  \033[33mapp:upgrade\033[0m <项目名>      更新已有项目（加 -y 同时更新配置）
   \033[33mapp:dc:restart\033[0m <项目名>   重启 Docker 容器（首次自动拉取镜像）
   \033[33mapp:dc:status\033[0m <项目名>    查看容器状态
   \033[33mapp:dc:log\033[0m <项目名>          查看全部容器日志
@@ -434,6 +434,13 @@ function handleUpgrade(string $serverConfigFile, string $projectName, array $par
     }
 
     $deployer = new ProjectDeployer($config);
+
+    // 无 -y 时仅拉取代码，不上传配置不重启
+    if (!isset($params['y'])) {
+        $deployer->upgradeCodeOnly();
+        return;
+    }
+
     $deployer->upgrade($options);
 }
 

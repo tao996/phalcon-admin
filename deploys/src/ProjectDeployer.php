@@ -292,6 +292,47 @@ class ProjectDeployer
     }
 
     /**
+     * 仅拉取代码（不更新配置，不重启容器）
+     */
+    public function upgradeCodeOnly(): void
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+        $modules = $this->config->getModules();
+
+        deploy_log("=== 更新代码: {$projectName} ===", 'step');
+
+        try {
+            $this->ssh->connect();
+
+            // 检查项目是否存在
+            $exists = $this->ssh->exec("[ -d {$projectPath}/.git ] && echo 'YES' || echo 'NO'", false);
+            if (trim($exists) !== 'YES') {
+                deploy_log("项目目录不存在或不是 git 仓库: {$projectPath}", 'error');
+                deploy_log("请先执行: php deploy app:init {$projectName} -y", 'info');
+                exit(1);
+            }
+
+            // 1. 拉取主仓库
+            deploy_log('拉取主仓库代码', 'step');
+            $this->git->pull($projectPath);
+
+            // 2. 更新子模块
+            deploy_log('更新子模块', 'step');
+            $this->git->cloneModules($modules, $projectPath);
+
+            deploy_log("=== 代码更新完成: {$projectName} ===", 'ok');
+
+        } catch (Exception $e) {
+            deploy_log("更新失败: " . $e->getMessage(), 'error');
+            $this->ssh->disconnect();
+            exit(1);
+        }
+
+        $this->ssh->disconnect();
+    }
+
+    /**
      * 更新已有项目
      */
     public function upgrade(array $options = []): void
