@@ -94,7 +94,8 @@ function showHelp(): void
 
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目（加 -y 同时更新配置）
-  \033[33mapp:dc:restart\033[0m <项目名>   重启 Docker 容器（首次自动拉取镜像）
+  \033[33mapp:dc:restart\033[0m <项目名>          重启 Docker 容器
+  \033[33mapp:dc:restart:<容器>\033[0m <项目名>    重启指定容器（如 php/mysql）
   \033[33mapp:dc:status\033[0m <项目名>    查看容器状态
   \033[33mapp:dc:log\033[0m <项目名>          查看全部容器日志
   \033[33mapp:dc:log:<容器名称>\033[0m <项目名>       查看容器日志
@@ -165,6 +166,14 @@ if (str_starts_with($command, 'app:dc:log:')) {
     $namedParams['container'] = $container;
 }
 
+// 处理 app:dc:restart:<容器> 类命令
+if (str_starts_with($command, 'app:dc:restart:')) {
+    $parts = explode(':', $command, 4);
+    $container = $parts[3] ?? '';
+    $command = 'app:dc:restart';
+    $namedParams['service'] = $container;
+}
+
 try {
     switch ($command) {
         case 'server:init':
@@ -204,10 +213,11 @@ try {
         case 'app:dc:restart':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:restart <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:restart[:<容器>] <项目名>\n");
                 exit(1);
             }
-            handleRestart($serverConfigFile, $projectName);
+            $service = $namedParams['service'] ?? '';
+            handleRestart($serverConfigFile, $projectName, $service);
             break;
 
         case 'app:dc:status':
@@ -376,14 +386,14 @@ function handleConfigPush(string $serverConfigFile, string $projectName, array $
     $deployer->pushConfig();
 }
 
-function handleRestart(string $serverConfigFile, string $projectName): void
+function handleRestart(string $serverConfigFile, string $projectName, string $service = ''): void
 {
     $config = new DeployConfig();
     $config->loadServer($serverConfigFile);
     $config->loadProject($projectName);
 
     $deployer = new ProjectDeployer($config);
-    $deployer->restart();
+    $deployer->restart($service);
 }
 
 function handleNginxReload(string $serverConfigFile): void
