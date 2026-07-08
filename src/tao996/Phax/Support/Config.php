@@ -9,10 +9,10 @@ use Phalcon\Di\Di;
 class Config
 {
     /**
-     * 当前项目
+     * 当前处于活动状态的项目名称
      * @var string
      */
-    private string $current_project = '';
+    private string $activeProject = '';
     private static \Phalcon\Config\Config $config;
 
     public function __construct(public Di $di)
@@ -45,8 +45,8 @@ class Config
         }
         self::$config = $this->_parse($global_config_file);
 
-        if ($this->current_project = $this->getProject()) {
-            $configFilePath = PATH_APP_PROJECTS . $this->current_project . '/Config/config.php';
+        if ($this->activeProject = $this->projectName()) {
+            $configFilePath = PATH_APP_PROJECTS . $this->activeProject . '/Config/config.php';
             if (file_exists($configFilePath)) {
                 $project_cc = $this->_parse($configFilePath);
                 self::$config->merge($project_cc);
@@ -157,34 +157,32 @@ class Config
     }
 
     /**
-     * 获取当前访问的项目及站点配置
+     * 当前访问的项目名称
+     * @return string
+     */
+    public function projectName(): string
+    {
+        return $this->projectConfig()['name'] ?? '';
+    }
+    /**
+     * 当前访问的项目及站点配置
      * 返回 ['name' => 'family', 'namespace' => '...', 'viewpath' => '...']
      * 如果未匹配到项目，name 为空字符串
      * @return array{name:string,namespace:string,viewpath:string}
      */
-    public function getProjectWithConfig(): array
+    public function projectConfig(): array
     {
-        if (!empty($this->current_project)) {
-            return $this->buildProjectConfig($this->current_project);
-        }
-        if ($host = $this->getHost()) {
-            if ($sites = $this->getArray('app.sites')) {
-                foreach ($sites as $project => $hosts) {
-                    $domains = is_array($hosts) && isset($hosts['domains']) ? $hosts['domains'] : $hosts;
-                    if (in_array($host, (array)$domains)) {
-                        return $this->buildProjectConfig($project, $hosts);
-                    }
-                }
-            }
+        if ($this->activeProject) {
+            return $this->resolveProjectConfig($this->activeProject);
         }
         $default = $this->getString('app.default');
-        return $default ? $this->buildProjectConfig($default) : ['name' => '', 'namespace' => '', 'viewpath' => ''];
+        return $default ? $this->resolveProjectConfig($default) : ['name' => '', 'namespace' => '', 'viewpath' => ''];
     }
 
     /**
-     * 构建项目的配置
+     * 根据项目名称解析出完整的项目配置
      */
-    private function buildProjectConfig(string $project, array $entry = []): array
+    private function resolveProjectConfig(string $project, array $entry = []): array
     {
         $defaultNamespace = 'App\\Projects\\' . $project . '\\Controllers';
         $defaultViewpath = PATH_APP_PROJECTS . $project . DIRECTORY_SEPARATOR . 'views';
@@ -206,33 +204,4 @@ class Config
         ];
     }
 
-    /**
-     * 获取当前访问的项目（仅名称，兼容旧代码）
-     * @return string
-     */
-    public function getProject(): string
-    {
-        return $this->getProjectWithConfig()['name'] ?? '';
-    }
-
-    /**
-     * 获取当前访问的域名
-     * @return string
-     */
-    private function getHost(): string
-    {
-        if (IS_WEB) {
-            /**
-             * @var \Phalcon\Http\Request $request
-             */
-            $request = $this->di->getShared('request');
-            if ($request->hasServer('HTTP_X_FORWARDED_HOST')) {
-                return str_replace('www.', '', $request->getServer('HTTP_X_FORWARDED_HOST'));
-            }
-            if ($request->hasServer('HTTP_HOST')) {
-                return preg_replace('|:\d+$|', '', $request->getServer('HTTP_HOST'));
-            }
-        }
-        return '';
-    }
 }

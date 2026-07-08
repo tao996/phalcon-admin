@@ -3,68 +3,24 @@
 namespace Phax\Helper;
 
 use Phalcon\Di\Di;
-use Phalcon\Http\RequestInterface;
-use Phax\Support\Config;
-use Phax\Utils\MyData;
+use Phax\Foundation\AppService;
 
 class MyBaseUri
 {
     private string $origin = '';
-    private RequestInterface $request;
-    private Config $config;
 
     public function __construct(Di $di)
     {
-        if ($di->has('request')) {
-            $this->request = $di->get('request');
-        }
-        $this->config = $di->get('config');
     }
 
     public function getOrigin(): string
     {
 
         if (empty($this->origin)) {
-            if ($baseUri = $this->config->getString('app.origin', '')) {
-                $this->origin = $baseUri;
-                return $this->origin;
+            $this->origin = AppService::config()->getString('app.origin');
+            if (empty($this->origin)) {
+                throw new \Exception("app.origin not configured");
             }
-            $scheme = $this->request->hasServer('HTTPS')
-            && (($this->request->getServer('HTTPS') == 'on') || ($this->request->getServer('HTTPS') == 1))
-                ? 'https' : 'http';
-            if ($this->config->getBoolean('app.https')) {
-                $scheme = 'https';
-            }
-            $port = '';
-            $server_port = $this->request->getServer('SERVER_PORT') ?: MyData::getInt($_SERVER, 'OPEN_PORT', '80');
-            if ($server_port != '80' && $server_port != '443') {
-                $port = ':' . $server_port;
-            }
-
-            $host = '';
-            foreach (
-                [
-                    $this->request->getHeader('X-Forwarded-Host'),
-                    $this->request->getServer('HTTP_X_FORWARDED_HOST'),
-                    $this->request->getHeader('HOST'),
-                    $this->request->getServer('HTTP_HOST'),
-                    $this->request->getServer('SERVER_NAME'),
-                ] as $v
-            ) {
-                if ($v) {
-                    $host = $v;
-                    break;
-                }
-            }
-            if (empty($host)) {
-                $host = 'localhost';
-            }
-            if (str_contains($host,':')){
-                $host = explode(':',$host)[0];
-            }
-        //    ddd($scheme, $host, $port);
-
-            $this->origin = "{$scheme}://{$host}{$port}/";
         }
         return $this->origin;
     }

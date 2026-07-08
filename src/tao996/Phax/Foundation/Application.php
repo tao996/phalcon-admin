@@ -5,7 +5,6 @@ namespace Phax\Foundation;
 use Phalcon\Di\Di;
 use Phalcon\Http\ResponseInterface;
 use Phax\Mvc\Controller;
-use Phax\Support\Config;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
@@ -77,11 +76,7 @@ class Application
 
 
         // IP 白名单检查
-        /**
-         * @var Config $config
-         */
-        $config = $di->get('config');
-        $ipWhitelist = $config->getArray('app.ipWhitelist');
+        $ipWhitelist = AppService::config()->getArray('app.ipWhitelist');
         if (!empty($ipWhitelist)) {
             $clientIP = $_SERVER['REMOTE_ADDR'] ?? '';
             if (!$this->checkIpWhitelist($clientIP, $ipWhitelist)) {
@@ -123,11 +118,7 @@ class Application
             Logger::exception($e, $e->getContext());
         }
 
-        /**
-         * @var Config $config
-         */
-        $config = self::di()->get('config');
-        $errClass = $config->getString('app.error', 'App\Http\AppErrorResponse');
+        $errClass = AppService::config()->getString('app.error', 'App\Http\AppErrorResponse');
 
         if (class_exists($errClass)) {
             /**
@@ -170,12 +161,9 @@ class Application
         $route = new Route($requestURL, $di);
         $di->setShared('route', $route);
 //        ddd($requestURL, $di->getServices());
-        /**
-         * @var Config $config
-         */
-        $config = $di->get('config');
+        $config = AppService::config();
         $defaultApp = $config->getArray('app.defaultApp');
-        $project = $config->getProjectWithConfig();
+        $project = $config->projectConfig();
 
         $options = [
             'module' => Router::$moduleKeyword,

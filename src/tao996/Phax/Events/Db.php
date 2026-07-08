@@ -3,7 +3,7 @@
 namespace Phax\Events;
 
 use Phalcon\Logger\Exception;
-use Phax\Support\Config;
+use Phax\Foundation\AppService;
 
 class Db
 {
@@ -15,12 +15,8 @@ class Db
     public static function attach(\Phalcon\Di\Di $di,\Phalcon\Db\Adapter\Pdo\AbstractPdo $db): void
     {
         $em = $di->get('eventsManager');
-        /**
-         * @var $config Config
-         */
-        $config = $di->get('config');
 
-        $path = $config->getString('database.log.path');
+        $path = AppService::config()->getString('database.log.path');
         preg_match('|{(\w+)}|',$path, $matches);
         if (!empty($matches)) {
             $path = str_replace($matches[0], date($matches[1]), $path);

@@ -9,7 +9,6 @@ $data['database']['log']['driver'] = 'file';
 $data['app'] = [
     'title' => 'Phalcon Admin Dev', // 应用标题/名称
     'origin' => 'http://localhost:8071/', // 必须以 / 结尾，用于生成链接地址；默认从 $_SERVER['HTTP_HOST'] 或其它参数中获取
-    'https' => false, // 是否将 http 转为 https，线上的时候需要设置为 true
     'logo' => '/assets/logo.png', // 30*30
     'timezone' => env('TZ', 'UTC'),
     'locale' => 'cn', // 默认的语言（总是2位）[a-z]{2}
@@ -59,21 +58,6 @@ $data['app'] = [
             'tao' => 1, // 'tokenValue' => userId
             'house' => 1000, // just an example: token for src/Projects/house
         ],
-    ],
-    // '项目'=>'域名不需要添加 www.' 如 ['abc' => ['abc.test','abc.com']]
-    // 简单格式（默认命名空间 App\Projects\{name}\Controllers）：
-    //   'family' => ['family.test', 'family.com']
-    // 扩展格式（自定义命名空间和视图目录）：
-    //   'family' => [
-    //       'domains' => ['family.test', 'family.com'],
-    //       'namespace' => 'App\Projects\family\Controllers',
-    //       'viewpath' => PATH_APP . 'Projects/family/views',
-    //   ]
-    // abc 是项目名，位于 src/App/Projects/abc
-    // 可查看 src/tao996/Phax/Support/Config.php
-    'sites' => [
-//        'demo' => ['demo1.test', 'demo2.test'],
-//        'aabb' => ['a1.com', 'b1.org']
     ],
     // IP 白名单，支持三种格式：
     //   '192.168.1.1'       — 精确匹配

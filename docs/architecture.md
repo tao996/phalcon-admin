@@ -63,7 +63,7 @@ Application::runWeb($requestURL)
   │
   ├── routeWith($requestURL, $di)       // 路由解析与分发
   │    │
-  │    ├── Config::getProjectWithConfig()  // 一次遍历获取项目名+配置
+  │    ├── Config::projectConfig()  // 一次遍历获取项目名+配置
   │    │    ├── name → project
   │    │    ├── namespace → projectNamespace
   │    │    └── viewpath → projectViewpath
@@ -209,7 +209,7 @@ src/App/Projects/
 请求 → family.test/order/list
         │
         ▼
-Config::getProjectWithConfig()
+Config::projectConfig()
   ├── 从请求头取 HTTP_HOST / X_FORWARDED_HOST
   ├── 遍历 app.sites，匹配返回 project 完整配置
   │    ├── 简单格式: ['name', 'namespace', 'viewpath']（默认值）

@@ -377,7 +377,6 @@ return [
         'app.title' => 'My App',
         'app.origin' => 'https://myapp.example.com/',
         'app.jwt.secret' => 'change-this-secret',
-        'app.https' => true,
         'app.demo' => false,
         'app.superAdmin' => [1],
     ],

@@ -26,13 +26,6 @@ class ConfigTest extends TestCase
                 ],
                 'superAdmin' => [1, 2, 1000],
                 'default' => 'defaultProject',
-                'sites' => [
-                    'projectA' => [
-                        'domains' => ['example.com', 'test.example.com'],
-                        'namespace' => 'App\Projects\ProjectA\Controllers',
-                    ],
-                    'projectB' => ['simple-project.com'],
-                ],
                 'timezone' => 'UTC',
                 'cdn_locate' => 'cn',
             ],
@@ -89,13 +82,6 @@ class ConfigTest extends TestCase
     public function testGetArrayReturnsEmptyForMissing(): void
     {
         $this->assertEquals([], self::$config->getArray('not.exists'));
-    }
-
-    public function testGetArrayConvertsConfigToArray(): void
-    {
-        $result = self::$config->getArray('app.sites');
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('projectA', $result);
     }
 
     // ============================================================
@@ -191,17 +177,124 @@ class ConfigTest extends TestCase
     //  getProject() / getProjectWithConfig()
     // ============================================================
 
-    public function testGetProjectReturnsDefault(): void
+    public function testProjectNameReturnsDefault(): void
     {
-        $this->assertEquals('defaultProject', self::$config->getProject());
+        $this->assertEquals('defaultProject', self::$config->projectName());
     }
 
-    public function testGetProjectWithConfigReturnsDefaultsNoHost(): void
+    public function testProjectConfigReturnsDefaultsNoHost(): void
     {
-        $result = self::$config->getProjectWithConfig();
+        $result = self::$config->projectConfig();
         $this->assertIsArray($result);
         $this->assertEquals('defaultProject', $result['name']);
         $this->assertStringContainsString('defaultProject', $result['namespace']);
         $this->assertStringContainsString('defaultProject', $result['viewpath']);
+    }
+
+    // ============================================================
+    //  getInt()
+    // ============================================================
+
+    public function testGetIntReturnsInt(): void
+    {
+        $this->assertSame(3306, self::$config->getInt('db.port'));
+    }
+
+    public function testGetIntReturnsDefaultForMissing(): void
+    {
+        $this->assertSame(0, self::$config->getInt('not.exists'));
+        $this->assertSame(42, self::$config->getInt('not.exists', 42));
+    }
+
+    // ============================================================
+    //  projectName() / projectConfig() — edge cases
+    // ============================================================
+
+    public function testProjectNameReturnsEmptyWhenDefaultMissing(): void
+    {
+        $ref = new \ReflectionClass(\Phax\Support\Config::class);
+        $prop = $ref->getProperty('config');
+        $prop->setAccessible(true);
+        $original = $prop->getValue(null);
+
+        $prop->setValue(null, new \Phalcon\Config\Config([
+            'app' => ['title' => 'no default'],
+        ]));
+
+        $this->assertEquals('', self::$config->projectName());
+
+        $result = self::$config->projectConfig();
+        $this->assertEquals('', $result['name']);
+        $this->assertEquals('', $result['namespace']);
+        $this->assertEquals('', $result['viewpath']);
+
+        $prop->setValue(null, $original);
+        $prop->setAccessible(false);
+    }
+
+    public function testProjectConfigFromActiveProject(): void
+    {
+        $ref = new \ReflectionClass(\Phax\Support\Config::class);
+        $prop = $ref->getProperty('activeProject');
+        $prop->setAccessible(true);
+        $prop->setValue(self::$config, 'customProject');
+        $prop->setAccessible(false);
+
+        $result = self::$config->projectConfig();
+        $this->assertEquals('customProject', $result['name']);
+        $this->assertEquals('App\\Projects\\customProject\\Controllers', $result['namespace']);
+        $this->assertStringContainsString('customProject', $result['viewpath']);
+
+        $this->assertEquals('customProject', self::$config->projectName());
+
+        $prop->setAccessible(true);
+        $prop->setValue(self::$config, '');
+        $prop->setAccessible(false);
+    }
+
+    // ============================================================
+    //  resolveProjectConfig (private, via reflection)
+    // ============================================================
+
+    public function testResolveProjectConfigSimpleFormat(): void
+    {
+        $ref = new \ReflectionClass(\Phax\Support\Config::class);
+        $method = $ref->getMethod('resolveProjectConfig');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(self::$config, 'myProject');
+        $this->assertEquals('myProject', $result['name']);
+        $this->assertEquals('App\\Projects\\myProject\\Controllers', $result['namespace']);
+        $this->assertStringContainsString('myProject', $result['viewpath']);
+    }
+
+    public function testResolveProjectConfigExtendedFormat(): void
+    {
+        $ref = new \ReflectionClass(\Phax\Support\Config::class);
+        $method = $ref->getMethod('resolveProjectConfig');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(self::$config, 'myProject', [
+            'domains' => ['my.test.com'],
+            'namespace' => 'Custom\\Ns',
+            'viewpath' => '/custom/path',
+        ]);
+        $this->assertEquals('myProject', $result['name']);
+        $this->assertEquals('Custom\\Ns', $result['namespace']);
+        $this->assertEquals('/custom/path', $result['viewpath']);
+    }
+
+    public function testResolveProjectConfigExtendedPartial(): void
+    {
+        $ref = new \ReflectionClass(\Phax\Support\Config::class);
+        $method = $ref->getMethod('resolveProjectConfig');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(self::$config, 'partialProj', [
+            'domains' => ['partial.test.com'],
+        ]);
+        $this->assertEquals('partialProj', $result['name']);
+        $this->assertEquals('App\\Projects\\partialProj\\Controllers', $result['namespace']);
+        $this->assertStringContainsString('partialProj', $result['viewpath']);
     }
 }

@@ -4,7 +4,6 @@ namespace Phax\Foundation;
 
 use Phalcon\Di\Di;
 use Phax\Helper\MyBaseUri;
-use Phax\Support\Config;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
 
@@ -306,11 +305,7 @@ class Route
         if (!empty($this->routerOptions['project'])) {
             return $this->routerOptions['project'];
         }
-        /**
-         * @var Config $config
-         */
-        $config = $this->di->get('config');
-        return $config->getProject() ?: $default;
+        return AppService::config()->projectName() ?: $default;
     }
 
     public function getControllerClass(): string

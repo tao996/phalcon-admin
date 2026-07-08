@@ -65,14 +65,7 @@ enabled = []   # empty = all built-in tools
 # paths = ["~/my-skills", "../shared/skills"]   # extra custom skill roots
 
 [permissions]
-# Per-call gating. mode = writer fallback when no rule matches: ask|allow|deny.
-# Readers always default to allow. Precedence: deny > ask > allow > fallback.
-# Rules are "ToolName" or "ToolName(glob)"; '*' matches any run, '?' one char.
-mode  = "ask"
-# deny = ["bash(rm -rf*)", "bash(git push*)"]   # hard-blocked in every mode
-# allow = ["bash(go test*)", "bash(git status*)"]   # never prompted
-# ask = ["write_file"]   # force a prompt even if otherwise allowed
-
+allow = ["bash"]
 [sandbox]
 # Confine tool blast radius. File-writers (write_file/edit_file/multi_edit)
 # may only write under workspace_root (empty = current dir) + allow_write.

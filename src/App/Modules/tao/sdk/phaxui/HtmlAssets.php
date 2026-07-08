@@ -2,8 +2,7 @@
 
 namespace App\Modules\tao\sdk\phaxui;
 
-use Phax\Foundation\Application;
-use Phax\Support\Config;
+use Phax\Foundation\AppService;
 
 class HtmlAssets
 {
@@ -27,11 +26,7 @@ class HtmlAssets
     public static function initWithCdn(string $cdnLocate = ''): void
     {
         if (empty($cdnLocate)) {
-            /**
-             * @var Config $config
-             */
-            $config = Application::di()->get('config');
-            $cdnLocate = $config->getString('app.cdn_locate', 'self');
+            $cdnLocate = AppService::config()->getString('app.cdn_locate', 'self');
         }
 
         switch ($cdnLocate) {
