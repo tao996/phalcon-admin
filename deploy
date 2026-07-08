@@ -83,6 +83,7 @@ function showHelp(): void
   \033[33minit:router -y\033[0m          执行初始化（自动选择 Docker Router 或宿主机 Nginx）
   \033[33minit\033[0m <项目名>          预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mupgrade\033[0m <项目名>       更新已有项目
+  \033[33mconfig:push\033[0m <项目名>    推送本地配置文件到远程（覆盖已有配置）
   \033[33mnginx:add\033[0m <项目名>     为项目添加域名到 Router
   \033[33mnginx:remove\033[0m <项目名>  从 Router 移除域名
   \033[33mstatus\033[0m <项目名>        查看项目容器状态
@@ -153,6 +154,15 @@ try {
                 exit(1);
             }
             handleInit($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'config:push':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy config:push <项目名>\n");
+                exit(1);
+            }
+            handleConfigPush($serverConfigFile, $projectName, $namedParams);
             break;
 
         case 'upgrade':
@@ -290,6 +300,16 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
 
     // 有 -y 时执行完整部署，优先使用本地已生成的配置文件
     $deployer->init($options, true);
+}
+
+function handleConfigPush(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->pushConfig();
 }
 
 function handleUpgrade(string $serverConfigFile, string $projectName, array $params): void

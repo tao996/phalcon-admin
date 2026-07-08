@@ -225,6 +225,35 @@ class ProjectDeployer
     }
 
     /**
+     * 推送本地配置文件到远程（覆盖已有配置，不重启容器）
+     */
+    public function pushConfig(): void
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+
+        // 检测模式（使用本地缓存）
+        $this->routerMode = $this->detectRouterMode();
+        $nginxPort = $this->assignNginxPort();
+
+        deploy_log("=== 推送配置: {$projectName} ===", 'step');
+        deploy_log("Router 模式: {$this->routerMode}", 'info');
+        if ($this->routerMode === RouterManager::MODE_HOST) {
+            deploy_log("Nginx 端口: {$nginxPort}", 'info');
+        }
+
+        try {
+            $this->ssh->connect();
+            $this->uploadLocalConfigs($projectPath, $nginxPort);
+            deploy_log("=== 配置推送完成 ===", 'ok');
+        } catch (Exception $e) {
+            deploy_log("推送失败: " . $e->getMessage(), 'error');
+        }
+
+        $this->ssh->disconnect();
+    }
+
+    /**
      * 更新已有项目
      */
     public function upgrade(array $options = []): void
