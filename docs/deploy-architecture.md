@@ -443,12 +443,16 @@ return [
 | `php deploy server:init -y mode=host_nginx` | 强制宿主机 Nginx 模式 | v1 |
 | `php deploy app:init <project>` | 预览（无 -y）或完整部署（加 -y） | v1→v2 增强 |
 | `php deploy app:upgrade <project>` | 更新已有项目（git pull + 重启） | v1 |
-| `php deploy app:restart <project>` | 重启项目 Docker 容器 | v2 |
+| `php deploy app:dc:restart <project>` | 启动/重启 Docker 容器（首次拉取镜像） | v2 |
+| `php deploy app:dc:status <project>` | 查看项目容器状态 | v2 |
+| `php deploy app:dc:log <project>` | 查看全部容器日志 | v2 |
+| `php deploy app:dc:log:php <project>` | 查看 PHP 容器日志 | v2 |
 | `php deploy app:push <project>` | 推送本地配置文件到远程（覆盖已有） | v2 |
-| `php deploy server:reload` | 验证 nginx 语法后重载（全局） | v2 |
 | `php deploy app:nginx:add <project>` | 将项目域名添加到 Router | v1 |
 | `php deploy app:nginx:remove <project>` | 从 Router 移除项目域名 | v1 |
-| `php deploy app:status <project>` | 查看项目容器运行状态 | v1 |
+| `php deploy nginx:reload` | 验证语法后重载 Nginx（全局） | v2 |
+| `php deploy nginx:log:error` | 查看 Nginx 错误日志（--save 下载） | v2 |
+| `php deploy nginx:log:access` | 查看 Nginx 访问日志（--save 下载） | v2 |
 | `php deploy db:proxy <project>` | SSH 隧道转发：本地 → 远程 MySQL | v1 |
 | `php deploy db:pma <project>` | 部署临时 phpMyAdmin | v1 |
 | `php deploy db:pma-rm <project>` | 删除临时 phpMyAdmin | v1 |
@@ -586,7 +590,7 @@ php deploy app:init yihe -y
 php deploy app:init yihe                # 重新预览生成
 # 手动编辑 deploys/projects/yihe/* 中的文件
 php deploy app:push yihe         # 仅推送配置到远程
-php deploy app:restart yihe             # 重启容器使配置生效
+php deploy app:dc:restart yihe           # 重启容器使配置生效
 ```
 
 ### 日常更新
@@ -602,7 +606,11 @@ php deploy app:upgrade yihe
 php deploy app:nginx:add yihe
 
 # 全局重载 Nginx（先验证语法）
-php deploy server:reload
+# 查看日志
+php deploy app:dc:log yihe              # 查看全部容器日志
+php deploy app:dc:log:php yihe          # 查看 PHP 容器日志
+php deploy nginx:log:error              # 查看 Nginx 错误日志
+php deploy nginx:log:access             # 查看 Nginx 访问日志
 ```
 
 ### 数据库操作
