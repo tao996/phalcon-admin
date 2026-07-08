@@ -102,7 +102,7 @@
 │   │   ├── nginx/default.conf      — 项目内部 nginx 站点配置
 │   │   ├── php/php.ini             — 生产环境 PHP 配置（同步自 docker/php/php.prod.ini）
 │   │   ├── mysql/my.cnf
-│   │   └── config.php.template     — 应用主配置模板（.template 避免 IDE 误解析）
+│   │   └── config.php.template     — 应用主配置模板（{{CONFIG_OVERRIDES}} 注入）
 │   ├── projects/                   — 项目配置
 │   │   ├── .example/server.php     — 项目配置模板
 │   │   └── yihe/                   — 示例项目
@@ -271,40 +271,48 @@ $vars = [
     // server.php env 覆盖（array_merge）
     'MYSQL_DATABASE', 'MYSQL_PASSWORD', 'REDIS_PASSWORD' 等,
 
-    // server.php config 覆盖（getConfigTemplateVars）
-    'APP_TITLE' → app.title,
-    'APP_ORIGIN' → app.origin,
-    'JWT_SECRET' → app.jwt.secret,
-    'APP_HTTPS' → app.https (boolean → "true"/"false"),
+    // server.php config 覆盖（深层合并到 config.php）
+    'CONFIG_OVERRIDES' => server.php 的 config 段 → 嵌套数组直接注入
 ]
 ```
 
-### config.php 简化（v2）
+### config.php 深层合并（v2）
 
-**之前**：config.php.template 覆盖 database 和 redis 配置：
-```php
-// 冗余 —— services.docker.example.php 已通过 env() 读取
-$data['database']['host'] = 'mysql';
-$data['database']['dbname'] = '{{MYSQL_DATABASE}}';
-$data['redis']['host'] = 'redis';
-$data['redis']['password'] = '{{REDIS_PASSWORD}}';
-```
+config.php.template 使用 `{{CONFIG_OVERRIDES}}` 注入 server.php 的 config 段，
+通过 `array_merge_deep()`（定义在 `src/tao996/Phax/function.php`）递归合并到
+`services.docker.example.php` 的默认配置上：
 
-**之后**：config.php 只覆盖 app 配置，database/redis 继承 services.docker.example.php：
 ```php
 $data = include __DIR__ . '/services.docker.example.php';
-// services.docker.example.php 通过 env() 从 .env 读取：
-//   database.host → env('MYSQL_HOST', 'mysql')
-//   redis.password → env('REDIS_PASSWORD')
-// 因此 .env 中正确填充的值自动生效
-
-$data['app'] = array_merge($data['app'] ?? [], [
-    'title' => '{{APP_TITLE}}',     // 来自 server.php config
-    'origin' => '{{APP_ORIGIN}}',
-    'secret' => '{{JWT_SECRET}}',
-    // ...
+$data = array_merge_deep($data, [
+    'app' => [
+        'title' => '义和环保',            // 来自 config.app.title
+        'origin' => 'https://yihe.gu19.cn/',
+        'jwt' => ['secret' => '...'],    // 点键自动展开
+        'https' => true,
+        'demo' => false,
+        'superAdmin' => [1],
+    ],
 ]);
+return $data;
 ```
+
+不再需要手动维护 `{{APP_TITLE}}` → `JWT_SECRET` 之类的模板变量映射。
+
+### 自定义 Docker 镜像
+
+通过 `server.php` 的 `docker.images` 段覆盖 compose 模板中的镜像地址：
+
+```php
+'docker' => [
+    'images' => [
+        'php' => 'registry.example.com/phalcon:5.13.0',
+        'nginx' => 'registry.example.com/nginx:stable-alpine',
+    ],
+],
+```
+
+compose 模板使用 `${VAR:-默认值}` 语法，不设置时自动回退到默认镜像。
 
 ---
 
@@ -383,7 +391,7 @@ return [
 
 ### 配置合并规则
 
-`Config::getMerged()` 通过 `array_merge_deep()` 合并 `server.php` + 项目 `server.php`。
+`Config::getMerged()` 通过 `array_merge_deep()`（定义在 `src/tao996/Phax/function.php`）合并 `server.php` + 项目 `server.php`。
 
 ```php
 // server.php 配置
