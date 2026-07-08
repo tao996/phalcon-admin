@@ -338,6 +338,53 @@ class ProjectDeployer
     }
 
     /**
+     * 重置远程代码到最新提交（丢弃主仓库和模块目录的全部修改）
+     */
+    public function reset(): void
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+        $modules = $this->config->getModules();
+
+        deploy_log("=== 重置代码: {$projectName} ===", 'step');
+        deploy_log("警告: 将丢弃主仓库和模块目录的所有本地修改！", 'warn');
+
+        try {
+            $this->ssh->connect();
+
+            // 检查项目是否存在
+            $exists = $this->ssh->exec("[ -d {$projectPath}/.git ] && echo 'YES' || echo 'NO'", false);
+            if (trim($exists) !== 'YES') {
+                deploy_log("项目目录不存在或不是 git 仓库: {$projectPath}", 'error');
+                exit(1);
+            }
+
+            // 1. 重置主仓库
+            deploy_log('重置主仓库', 'step');
+            $this->ssh->exec("cd {$projectPath} && git reset --hard && git clean -fd");
+
+            // 2. 重置子模块
+            foreach ($modules as $moduleName => $moduleRepo) {
+                $modulePath = $projectPath . '/src/App/Modules/' . $moduleName;
+                $moduleExists = $this->ssh->exec("[ -d {$modulePath}/.git ] && echo 'YES' || echo 'NO'", false);
+                if (trim($moduleExists) === 'YES') {
+                    deploy_log("重置模块: {$moduleName}", 'step');
+                    $this->ssh->exec("cd {$modulePath} && git reset --hard && git clean -fd");
+                }
+            }
+
+            deploy_log("=== 代码重置完成: {$projectName} ===", 'ok');
+
+        } catch (Exception $e) {
+            deploy_log("重置失败: " . $e->getMessage(), 'error');
+            $this->ssh->disconnect();
+            exit(1);
+        }
+
+        $this->ssh->disconnect();
+    }
+
+    /**
      * 更新已有项目
      */
     public function upgrade(array $options = []): void

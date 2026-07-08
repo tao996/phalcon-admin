@@ -100,6 +100,7 @@ function showHelp(): void
   \033[33mapp:dc:log\033[0m <项目名>          查看全部容器日志
   \033[33mapp:dc:log:<容器名称>\033[0m <项目名>       查看容器日志
   \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
+  \033[33mapp:reset\033[0m <项目名>         重置远程代码到最新提交（丢弃所有修改）
   \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
   \033[33mapp:nginx:remove\033[0m <项目名> 从 Router 移除域名
 
@@ -208,6 +209,15 @@ try {
                 exit(1);
             }
             handleConfigPush($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'app:reset':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:reset <项目名>\n");
+                exit(1);
+            }
+            handleReset($serverConfigFile, $projectName);
             break;
 
         case 'app:dc:restart':
@@ -427,6 +437,16 @@ function handleNginxLog(string $serverConfigFile, string $type, array $params): 
     $router->nginxLog($type, $download);
 
     $ssh->disconnect();
+}
+
+function handleReset(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->reset();
 }
 
 function handleUpgrade(string $serverConfigFile, string $projectName, array $params): void
