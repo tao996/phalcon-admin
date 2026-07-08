@@ -96,7 +96,8 @@ function showHelp(): void
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目
   \033[33mapp:dc:restart\033[0m <项目名>   重启 Docker 容器（首次自动拉取镜像）
   \033[33mapp:dc:status\033[0m <项目名>    查看容器状态
-  \033[33mapp:dc:log\033[0m <项目名> [容器名]  查看容器日志（最新 50 条）
+  \033[33mapp:dc:log\033[0m <项目名>          查看全部容器日志
+  \033[33mapp:dc:log:php\033[0m <项目名>       查看 PHP 容器日志
   \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
   \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
   \033[33mapp:nginx:remove\033[0m <项目名> 从 Router 移除域名
@@ -155,6 +156,15 @@ if (!file_exists($serverConfigFile)) {
 
 // ---------- 执行命令 ----------
 
+// 处理 app:dc:log:<容器> 类命令
+$container = '';
+if (str_starts_with($command, 'app:dc:log:')) {
+    $parts = explode(':', $command, 4);
+    $container = $parts[3] ?? '';
+    $command = 'app:dc:log';
+    $namedParams['container'] = $container;
+}
+
 try {
     switch ($command) {
         case 'server:init':
@@ -212,11 +222,11 @@ try {
         case 'app:dc:log':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log <项目名> [容器名]\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log[:<容器>] <项目名>\n");
                 exit(1);
             }
-            $service = $positionalArgs[2] ?? '';
-            handleDcLog($serverConfigFile, $projectName, $service);
+            $container = $namedParams['container'] ?? '';
+            handleDcLog($serverConfigFile, $projectName, $container);
             break;
 
         case 'app:upgrade':
