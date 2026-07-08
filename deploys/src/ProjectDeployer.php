@@ -347,7 +347,7 @@ class ProjectDeployer
         $modules = $this->config->getModules();
 
         deploy_log("=== 重置代码: {$projectName} ===", 'step');
-        deploy_log("警告: 将丢弃主仓库和模块目录的所有本地修改！", 'warn');
+        deploy_log("警告: 将丢弃主仓库和模块目录的已跟踪文件修改（不会删除配置文件）！", 'warn');
 
         try {
             $this->ssh->connect();
@@ -361,7 +361,7 @@ class ProjectDeployer
 
             // 1. 重置主仓库
             deploy_log('重置主仓库', 'step');
-            $this->ssh->exec("cd {$projectPath} && git reset --hard && git clean -fd");
+            $this->ssh->exec("cd {$projectPath} && git reset --hard");
 
             // 2. 重置子模块
             foreach ($modules as $moduleName => $moduleRepo) {
@@ -369,7 +369,7 @@ class ProjectDeployer
                 $moduleExists = $this->ssh->exec("[ -d {$modulePath}/.git ] && echo 'YES' || echo 'NO'", false);
                 if (trim($moduleExists) === 'YES') {
                     deploy_log("重置模块: {$moduleName}", 'step');
-                    $this->ssh->exec("cd {$modulePath} && git reset --hard && git clean -fd");
+                    $this->ssh->exec("cd {$modulePath} && git reset --hard");
                 }
             }
 
