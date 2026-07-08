@@ -189,8 +189,10 @@ class ProjectDeployer
             'MYSQL_USER' => $projectName,
         ], $this->config->getEnvOverrides());
 
-        // 合并应用配置覆盖到模板变量（如 app.title → APP_TITLE）
-        $vars = array_merge($vars, $this->getConfigTemplateVars());
+        // 合并应用配置覆盖（嵌套数组，直接注入 config.php 模板）
+        $vars = array_merge($vars, [
+            'CONFIG_OVERRIDES' => $this->getConfigOverridesArray(),
+        ]);
 
         $composeTemplate = $this->routerMode === RouterManager::MODE_HOST
             ? 'docker-compose.ports.yaml'
@@ -367,8 +369,10 @@ class ProjectDeployer
             'MYSQL_USER' => $projectName,
         ], $this->config->getEnvOverrides());
 
-        // 合并应用配置覆盖到模板变量（如 app.title → APP_TITLE）
-        $vars = array_merge($vars, $this->getConfigTemplateVars());
+        // 合并应用配置覆盖（嵌套数组，直接注入 config.php 模板）
+        $vars = array_merge($vars, [
+            'CONFIG_OVERRIDES' => $this->getConfigOverridesArray(),
+        ]);
 
         // 根据模式选择 docker-compose 模板
         $composeTemplate = $this->routerMode === RouterManager::MODE_HOST
@@ -465,44 +469,39 @@ class ProjectDeployer
     }
 
     /**
-     * 将项目配置覆盖（server.php 的 config 段）映射为模板变量
-     * config.php.template 使用 {{APP_TITLE}}、{{JWT_SECRET}} 等占位符
+     * 将项目配置覆盖（server.php 的 config 段）转为嵌套数组的 PHP 代码
+     * 自动展开内部的点键（如 jwt.secret → jwt→secret）
      */
-    protected function getConfigTemplateVars(): array
+    protected function getConfigOverridesArray(): string
     {
-        $cfg = $this->config->getConfigOverrides();
-        $vars = [];
+        return var_export($this->expandDotKeys($this->config->getConfigOverrides()), true);
+    }
 
-        // 映射 config 覆盖到 config.php.template 所需的变量名
-        $map = [
-            'app.title' => 'APP_TITLE',
-            'app.origin' => 'APP_ORIGIN',
-            'app.https' => 'APP_HTTPS',
-            'app.jwt.secret' => 'JWT_SECRET',
-            'app.sites' => 'APP_SITES',
-        ];
-
-        foreach ($map as $configKey => $varName) {
-            $value = $cfg[$configKey] ?? null;
-            if ($value !== null) {
-                // 布尔值转字符串
-                if (is_bool($value)) {
-                    $value = $value ? 'true' : 'false';
+    /**
+     * 递归展开数组中的点键名
+     */
+    protected function expandDotKeys(array $data): array
+    {
+        $result = [];
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $value = $this->expandDotKeys($value);
+            }
+            if (str_contains($key, '.')) {
+                $keys = explode('.', $key);
+                $current = &$result;
+                foreach ($keys as $k) {
+                    if (!isset($current[$k])) {
+                        $current[$k] = [];
+                    }
+                    $current = &$current[$k];
                 }
-                $vars[$varName] = $value;
+                $current = $value;
+            } else {
+                $result[$key] = $value;
             }
         }
-
-        // 确保所有必需变量都有默认值
-        $vars += [
-            'APP_TITLE' => $this->config->getProjectName(),
-            'APP_ORIGIN' => '',
-            'APP_HTTPS' => 'true',
-            'JWT_SECRET' => '',
-            'APP_SITES' => '',
-        ];
-
-        return $vars;
+        return $result;
     }
 
     /**

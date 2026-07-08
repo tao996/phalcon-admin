@@ -80,9 +80,9 @@ class Config
      * 读取全局配置文件
      * @param string $path
      * @param mixed|null $default
-     * @return \Phalcon\Config\Config|string|bool|int
+     * @return \Phalcon\Config\Config|string|bool|int|null
      */
-    private function globalPath(string $path, mixed $default = null): \Phalcon\Config\Config|string|bool|int
+    private function globalPath(string $path, mixed $default = null): mixed
     {
         return static::$config->path($path, $default);
     }

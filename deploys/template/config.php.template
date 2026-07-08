@@ -2,27 +2,23 @@
 
 /**
  * 应用主配置 — 由 deploy 工具生成
- *
- * 从 config.example.php 渲染而来，覆盖生产环境值
  */
 $data = include __DIR__ . '/services.docker.example.php';
 
-// 生产安全设置
-$data['app'] = array_merge($data['app'] ?? [], [
-    'title' => '{{APP_TITLE}}',
-    'origin' => '{{APP_ORIGIN}}',
-    'https' => {{APP_HTTPS}},
-    'demo' => false,
-    'superAdmin' => [1],
-    'jwt' => [
-        'hmac' => 'sha256',
-        'secret' => '{{JWT_SECRET}}',
-        'expire' => 3600 * 24,
-        'subject' => 'jwt',
-    ],
-    'sites' => [
-{{APP_SITES}}
-    ],
-]);
+/**
+ * 深度合并（同名标量键覆盖，递归合并数组）
+ */
+function array_merge_deep(array $base, array $override): array {
+    foreach ($override as $key => $value) {
+        if (isset($base[$key]) && is_array($base[$key]) && is_array($value)) {
+            $base[$key] = array_merge_deep($base[$key], $value);
+        } else {
+            $base[$key] = $value;
+        }
+    }
+    return $base;
+}
+
+$data = array_merge_deep($data, {{CONFIG_OVERRIDES}});
 
 return $data;
