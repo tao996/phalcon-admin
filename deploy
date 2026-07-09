@@ -86,52 +86,35 @@ function showHelp(): void
   php deploy \033[33m<命令>\033[0m [参数...] [-key=value]
 
 \033[33m  服务器\033[0m
-  server:init                   检测环境（无 -y 只报告，加 -y 执行安装）
-  nginx:reload                  验证语法并重载 Nginx（全局）
-  nginx:log:error               查看错误日志（加 --save 下载到本地）
-  nginx:log:access              查看访问日志（加 --save 下载到本地）
-    参数: -y                     自动执行
-          mode=host_nginx       强制宿主机模式
-          --save                 下载日志到本地
+  server:init [-y] [mode=host_nginx]  检测环境（无 -y 只报告，加 -y 执行安装）
+  nginx:reload                        验证语法并重载 Nginx（全局）
+  nginx:log:error [--save]            查看错误日志（加 --save 下载到本地）
+  nginx:log:access [--save]           查看访问日志（加 --save 下载到本地）
 
 \033[33m  项目 — 部署\033[0m
-  app:init <项目>               预览（无 -y）或完整部署（加 -y）
-  app:upgrade <项目>            更新代码（加 -y 同时更新配置并重启）
-  app:push <项目>               推送本地配置文件到远程
-  app:script:push <项目>        推送分析脚本到远程
-  app:run <项目> <脚本> [参数]   远程执行分析脚本
-  app:reset <项目>              重置远程代码到最新提交
-    参数: -y                     自动执行（app:init 默认预览，app:upgrade 默认仅代码）
-          mode=host_nginx       强制宿主机模式
-          port=8071             手动指定 nginx 端口
-    示例: app:init myapp           app:init myapp -y
-          app:push myapp           app:script:push myapp
-          app:run myapp doctor     app:upgrade myapp -y
+  app:init <项目> [-y] [mode=...] [port=...]   预览/部署
+  app:upgrade <项目> [-y]                      更新代码（加 -y 同时更新配置）
+  app:push <项目>                               推送本地配置到远程
+  app:script:push <项目>                        推送分析脚本到远程
+  app:run <项目> <脚本> [参数...]               远程执行分析脚本
+  app:reset <项目>                              重置代码到最新提交
 
 \033[33m  项目 — Docker 容器\033[0m
-  app:dc:restart <项目>         重启容器（首次自动拉取镜像）
-  app:dc:restart:<容器> <项目>  重启指定容器（如 php/mysql/nginx）
-  app:dc:status <项目>          查看容器状态
-  app:dc:log <项目>             查看全部容器日志
-  app:dc:log:<容器> <项目>      查看指定容器日志
-    示例: app:dc:restart myapp     app:dc:restart:php myapp
-          app:dc:status myapp      app:dc:log:php myapp
+  app:dc:restart <项目>                         重启容器
+  app:dc:restart:<容器> <项目>                  重启指定容器
+  app:dc:status <项目>                          查看容器状态
+  app:dc:log <项目>                             查看全部容器日志
+  app:dc:log:<容器> <项目>                      查看指定容器日志
 
 \033[33m  项目 — Nginx 域名\033[0m
-  app:nginx:add <项目>          添加域名到 Router
-  app:nginx:remove <项目>       从 Router 移除域名
-  app:nginx:ssl <项目>          申请 SSL 证书并启用 HTTPS
-    参数: -email=xx@xx.com       SSL 申请邮箱（必填）
-    示例: app:nginx:add myapp      app:nginx:ssl myapp -email=a@b.com
+  app:nginx:add <项目>                          添加域名到 Router
+  app:nginx:remove <项目>                       从 Router 移除域名
+  app:nginx:ssl <项目> -email=xx@xx.com         申请 SSL 证书
 
 \033[33m  数据库\033[0m
-  db:proxy <项目>               SSH 隧道转发（本地 → 远程 MySQL）
-  db:pma <项目>                 部署临时 phpMyAdmin
-  db:pma-rm <项目>              删除临时 phpMyAdmin
-    参数: local=13306            SSH 隧道本地端口（db:proxy）
-          host=13307             phpMyAdmin 宿主机端口（db:pma）
-    示例: db:proxy myapp          db:proxy myapp local=13308
-          db:pma myapp            db:pma-rm myapp
+  db:proxy <项目> [local=13306]                 SSH 隧道转发
+  db:pma <项目> [host=13307]                    部署临时 phpMyAdmin
+  db:pma-rm <项目>                              删除临时 phpMyAdmin
 
 HELP;
 }
