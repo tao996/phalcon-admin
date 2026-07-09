@@ -2,6 +2,9 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+
+use App\Modules\tao\Services\ConfigService;
+
 ?>
 <form class="layui-form">
 
@@ -10,7 +13,7 @@
         <div class="layui-input-block">
             <input type="text" name="contact_address" class="layui-input"
                    placeholder="请输入公司的联系地址"
-                   value="<?php echo $vv->configService()->getWith('contact.contact_address') ?>">
+                   value="<?php echo ConfigService::getWith('contact.contact_address') ?>">
         </div>
     </div>
 
@@ -19,7 +22,7 @@
         <div class="layui-input-block">
             <input type="text" name="contact_email" class="layui-input"
                    placeholder="请输入公司的电子邮箱"
-                   value="<?php echo $vv->configService()->getWith('contact.contact_email') ?>">
+                   value="<?php echo ConfigService::getWith('contact.contact_email') ?>">
             <div class="hint">公司电子邮箱，多个邮箱填写示例。<br>
                 技术支持|a@exam.com, 客服支持|b@exam.com
             </div>
@@ -31,7 +34,7 @@
         <div class="layui-input-block">
             <input type="text" name="contact_tel" class="layui-input"
                    placeholder="请输入公司的联系电话号码"
-                   value="<?php echo $vv->configService()->getWith('contact.contact_tel') ?>">
+                   value="<?php echo ConfigService::getWith('contact.contact_tel') ?>">
             <div class="hint">公司联系电话号码，多个电话号码填写示例。<br>
                 技术支持|0768-12345678, 客服支持|0768-87654321
             </div>
@@ -42,7 +45,7 @@
         <div class="layui-input-block">
             <input type="text" name="contact_fax" class="layui-input"
                    placeholder="请输入公司的传真号码"
-                   value="<?php echo $vv->configService()->getWith('contact.contact_fax') ?>">
+                   value="<?php echo ConfigService::getWith('contact.contact_fax') ?>">
         </div>
     </div>
 
@@ -52,12 +55,12 @@
         <div class="layui-input-block">
             <input type="text" name="wechat_name" class="layui-input"
                    placeholder="微信公众号账号名称"
-                   value="<?php echo $vv->configService()->getWith('contact.wechat_name') ?>">
+                   value="<?php echo ConfigService::getWith('contact.wechat_name') ?>">
         </div>
     </div>
 
     <?php echo $vv->userHtmlHelper()->upload('二维码', 'wechat_qrcode',
-            value: $vv->configService()->getWith('contact.wechat_qrcode', ''),
+            value: ConfigService::getWith('contact.wechat_qrcode', ''),
             class: 'mb10',
     ); ?>
     <div class="layui-form-item">
@@ -65,11 +68,11 @@
         <div class="layui-input-block">
             <input type="text" name="wework_link" class="layui-input"
                    placeholder="请输入您的微信企业号客户链接地址"
-                   value="<?php echo $vv->configService()->getWith('contact.wework_link') ?>">
+                   value="<?php echo ConfigService::getWith('contact.wework_link') ?>">
         </div>
     </div>
     <?php echo $vv->userHtmlHelper()->upload('二维码', 'wework_qrcode',
-            value: $vv->configService()->getWith('contact.wework_qrcode', ''),
+            value: ConfigService::getWith('contact.wework_qrcode', ''),
             class: 'mb10'
     ); ?>
 
@@ -78,7 +81,7 @@
         <div class="layui-input-block">
             <input type="text" name="whatsapp" class="layui-input"
                    placeholder="whatsapp 账号"
-                   value="<?php echo $vv->configService()->getWith('contact.whatsapp') ?>">
+                   value="<?php echo ConfigService::getWith('contact.whatsapp') ?>">
         </div>
     </div>
 
@@ -88,7 +91,7 @@
         <div class="layui-input-block">
             <input type="text" name="facebook" class="layui-input"
                    placeholder="facebook 账号"
-                   value="<?php echo $vv->configService()->getWith('contact.facebook') ?>">
+                   value="<?php echo ConfigService::getWith('contact.facebook') ?>">
         </div>
     </div>
 

@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers\user;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\sdk\qiniu\QiniuDriver;
+use App\Modules\tao\Services\ConfigService;
 
 class QiniuController extends BaseController
 {
@@ -19,9 +20,9 @@ class QiniuController extends BaseController
     {
 
         $this->jsonResponse = true;
-        $this->vv->configService()->forceCache();
+        ConfigService::forceCache();
 
-        $qiniu = new QiniuDriver($this->vv->configService()->uploadConfig());
+        $qiniu = new QiniuDriver(ConfigService::uploadConfig());
         return [
             'token' => $qiniu->imageToken(),
             'expire' => time() + 7100,

@@ -4,21 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\tao\Services;
 
-
-use App\Modules\tao\Helper\MyMvcHelper;
-
 class LogService
 {
-
-    public function __construct(public MyMvcHelper $mvc)
-    {
-    }
 
     /**
      * 添加一条操作日志
      * @throws \Exception
      */
-    public function insert(string $title, string $action): void
+    public static function insert(string $title, string $action): void
     {
         return;
         // todo 暫時不記錄日誌

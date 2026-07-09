@@ -2,14 +2,10 @@
 
 namespace App\Modules\tao\Services;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemRole;
 
 class RoleService
 {
-    public function __construct(public MyMvcHelper $mvc)
-    {
-    }
 
     /**
      * 获取角色 ID
@@ -17,10 +13,10 @@ class RoleService
      * @return array{int}
      * @throws \Exception
      */
-    public function getIds(array $roles): array
+    public static function getIds(array $roles): array
     {
         if (!empty($roles)) {
-            $rows = SystemRole::queryBuilder($this->mvc->getDi())
+            $rows = SystemRole::queryBuilder()
                 ->in('name', $roles)
                 ->where(['status' => 1])->columns('id')->find();
             return array_column($rows, 'id');
@@ -54,9 +50,9 @@ class RoleService
      * @return array{array{id:int,title:string}
      * @throws \Exception
      */
-    public function getActiveList(): array
+    public static function getActiveList(): array
     {
-        return SystemRole::queryBuilder($this->mvc->getDi())
+        return SystemRole::queryBuilder()
             ->int('status', 1)
             ->findColumn(['id', 'title'], key:'id');
     }

@@ -6,6 +6,7 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemRoleNode;
+use App\Modules\tao\Services\NodeService;
 use Phax\Db\QueryBuilder;
 
 /**
@@ -72,7 +73,7 @@ class RoleController extends BaseController
 
         if ($this->isApiRequest()) {
             if ($this->request->isGet()) {
-                $list = $this->vv->nodeService()->getAuthorizeNodeListByRoleId($role->id);
+                $list = NodeService::getAuthorizeNodeListByRoleId($role->id);
                 return $this->success('', $list);
             } elseif ($this->request->isPost()) {
                 $nodes = $this->getRequestInts('node', false); // 授权节点

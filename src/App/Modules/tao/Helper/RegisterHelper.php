@@ -2,13 +2,15 @@
 
 namespace App\Modules\tao\Helper;
 
+use App\Modules\tao\Services\ConfigService;
+
 class RegisterHelper
 {
     public array $cache = [];
 
     public function __construct(public MyMvcHelper $mvc)
     {
-        $this->cache = $this->mvc->configService()->groupRows('oauth');
+        $this->cache = ConfigService::groupRows('oauth');
     }
 
 
@@ -30,7 +32,7 @@ class RegisterHelper
      */
     public function supportCnPhone(): bool
     {
-        return $this->mvc->configService()->activeValue($this->cache['cn_phone']);
+        return ConfigService::activeValue($this->cache['cn_phone']);
     }
 
     /**
@@ -39,7 +41,7 @@ class RegisterHelper
      */
     public function supportEmail(): bool
     {
-        return $this->mvc->configService()->activeValue($this->cache['email']);
+        return ConfigService::activeValue($this->cache['email']);
     }
 
     /**
@@ -48,7 +50,7 @@ class RegisterHelper
      */
     public function supportRegister(): bool
     {
-        return $this->mvc->configService()->activeValue($this->cache['register']);
+        return ConfigService::activeValue($this->cache['register']);
     }
 
     /**
@@ -57,7 +59,7 @@ class RegisterHelper
      */
     public function supportGoogle(): bool
     {
-        return $this->mvc->configService()->activeValue($this->cache['google_oauth']);
+        return ConfigService::activeValue($this->cache['google_oauth']);
     }
 
     public function googleProvider(): array

@@ -8,6 +8,7 @@ use App\Modules\tao\sdk\aliyun\oss\AliyunDriver;
 use App\Modules\tao\sdk\OssDriverInterface;
 use App\Modules\tao\sdk\qiniu\QiniuDriver;
 use App\Modules\tao\sdk\tencent\cos\QcloudDriver;
+use App\Modules\tao\Services\ConfigService;
 use OSS\Core\OssException;
 use Phalcon\Http\Request\File;
 use Phax\Support\Exception\BusinessException;
@@ -31,7 +32,7 @@ class FileUploadHelper
         if (!empty($config)) {
             $this->_config = $config;
         } else {
-            $this->_config = $mvc->configService()->uploadConfig();
+            $this->_config = ConfigService::uploadConfig();
         }
     }
 

@@ -2,6 +2,9 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+
+use App\Modules\tao\Services\ConfigService;
+
 ?>
 <form class="layui-form">
 
@@ -11,14 +14,14 @@
         <div class="layui-input-inline">
             <input type="text" name="baidu_appid" class="layui-input"
                    placeholder="请输入百度翻译 appid"
-                   value="<?php echo $vv->configService()->getWith('translate.baidu_appid') ?>">
+                   value="<?php echo ConfigService::getWith('translate.baidu_appid') ?>">
         </div>
 
         <label class="layui-form-label">secret</label>
         <div class="layui-input-inline">
             <input type="text" name="baidu_secret" class="layui-input"
                    placeholder="请输入百度翻译 secrent"
-                   value="<?php echo $vv->configService()->getWith('translate.baidu_secret') ?>">
+                   value="<?php echo ConfigService::getWith('translate.baidu_secret') ?>">
         </div>
     </div>
 

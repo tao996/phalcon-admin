@@ -8,6 +8,7 @@ use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use App\Modules\tao\Services\MenuService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
 use Phax\Utils\MyData;
@@ -50,7 +51,7 @@ class MenuController extends BaseController
 
         foreach ($rows as $index => $item) {
             if ($item['href']) {
-                $rows[$index]['href'] = $this->vv->menuService()->href($item['href'], $item['type'], $item['params']);
+                $rows[$index]['href'] = MenuService::href($item['href'], $item['type'], $item['params']);
             }
         }
         return LayuiData::treeTable($rows);
@@ -60,7 +61,7 @@ class MenuController extends BaseController
     public function addAction()
     {
         $pid = $this->getRequestInt('pid', false);
-        $homeId = $this->vv->menuService()->homeId();
+        $homeId = MenuService::homeId();
         if ($pid == $homeId) {
             return $this->error('首页不能添加子菜单');
         }
@@ -142,7 +143,7 @@ class MenuController extends BaseController
 
     protected function beforeDeleteQuery(QueryBuilder $queryBuilder, array $ids)
     {
-        $homeId = $this->vv->menuService()->homeId();
+        $homeId = MenuService::homeId();
         if (in_array($homeId, $ids)) {
             throw new BusinessException('不允许删除后台首页');
         }

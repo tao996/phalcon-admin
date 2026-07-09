@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper;
 
 use App\Modules\tao\sdk\qiniu\QiniuDriver;
+use App\Modules\tao\Services\ConfigService;
 
 class OssUploadHelper
 {
@@ -24,7 +25,7 @@ class OssUploadHelper
      */
     public function qiniu(): QiniuDriver
     {
-        return new QiniuDriver($this->helper->configService()->uploadConfig());
+        return new QiniuDriver(ConfigService::uploadConfig());
     }
 
     /**

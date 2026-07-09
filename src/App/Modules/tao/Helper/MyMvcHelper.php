@@ -10,14 +10,6 @@ use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiFormSearch;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
 use App\Modules\tao\sdk\phaxui\TaoHtmlHelper;
-use App\Modules\tao\Services\ConfigService;
-use App\Modules\tao\Services\LogService;
-use App\Modules\tao\Services\MenuService;
-use App\Modules\tao\Services\MigrationService;
-use App\Modules\tao\Services\NodeService;
-use App\Modules\tao\Services\RoleService;
-use App\Modules\tao\Services\SmsCodeService;
-use App\Modules\tao\Services\UploadfileService;
 use Phax\Foundation\AppService;
 use Phax\Helper\MyMvc;
 
@@ -39,14 +31,6 @@ class MyMvcHelper extends MyMvc
         $this->injectServices();
     }
 
-    /**
-     * 超级管理员 ID
-     * @return array
-     */
-    public function superAdminIds(): array
-    {
-        return AppService::superAdminIds();
-    }
 
     public function isJsonBodyRequest(): bool
     {
@@ -58,7 +42,7 @@ class MyMvcHelper extends MyMvc
         if ($currentUserId == $recordUserId) {
             return true;
         }
-        $superAdminIds = $this->superAdminIds();
+        $superAdminIds = AppService::superAdminIds();
         if (in_array($recordUserId, $superAdminIds)) { // 待修改记录是超级管理员记录
             if (in_array($currentUserId, $superAdminIds)) { //自己也必须是超级管理员
                 $recordIndex = array_search($recordUserId, $superAdminIds);
@@ -152,30 +136,6 @@ class MyMvcHelper extends MyMvc
             $html = $mvc->html();
             return new Layui($html);
         });
-        $this->di->setShared('tao.configService', function () use ($mvc) {
-            return new ConfigService($mvc);
-        });
-        $this->di->setShared('tao.smsCodeService', function () use ($mvc) {
-            return new SmsCodeService($mvc);
-        });
-
-        $this->di->setShared('tao.uploadfileService', function () use ($mvc) {
-            return new UploadfileService($mvc);
-        });
-        $this->di->setShared('tao.nodeService', function () use ($mvc) {
-            return new NodeService($mvc);
-        });
-
-        $this->di->setShared('tao.roleService', function () use ($mvc) {
-            return new RoleService($mvc);
-        });
-        $this->di->setShared('tao.migrationService', function () use ($mvc) {
-            return new MigrationService($mvc);
-        });
-
-        $this->di->setShared('tao.menuService', function () use ($mvc) {
-            return new MenuService($mvc);
-        });
 
         $this->di->setShared('tao.captchaHelper', function () use ($mvc) {
             return new CaptchaHelper($mvc);
@@ -199,9 +159,6 @@ class MyMvcHelper extends MyMvc
         $this->di->setShared('tao.loginAuthHelper', function () use ($mvc) {
             return new LoginAuthHelper($mvc);
         });
-        $this->di->setShared('tao.logService', function () use ($mvc) {
-            return new LogService($mvc);
-        });
         $this->di->setShared('tao.layuiHtml', function () use ($mvc) {
             return new LayuiHtml($mvc);
         });
@@ -221,41 +178,6 @@ class MyMvcHelper extends MyMvc
         $this->di->setShared('tao.a0.openHelper', function () use ($mvc) {
             return new MyOpenMvcHelper($mvc);
         });
-    }
-
-    public function configService(): ConfigService
-    {
-        return $this->di->getShared('tao.configService');
-    }
-
-    public function smsCodeService(): SmsCodeService
-    {
-        return $this->di->getShared('tao.smsCodeService');
-    }
-
-    public function uploadfileService(): UploadfileService
-    {
-        return $this->di->getShared('tao.uploadfileService');
-    }
-
-    public function nodeService(): NodeService
-    {
-        return $this->di->getShared('tao.nodeService');
-    }
-
-    public function roleService(): RoleService
-    {
-        return $this->di->getShared('tao.roleService');
-    }
-
-    public function migrationService(): MigrationService
-    {
-        return $this->di->getShared('tao.migrationService');
-    }
-
-    public function menuService(): MenuService
-    {
-        return $this->di->getShared('tao.menuService');
     }
 
     public function captchaHelper(): CaptchaHelper
@@ -303,18 +225,9 @@ class MyMvcHelper extends MyMvc
         return $this->loginUserHelper()->user();
     }
 
-    public function logService(): LogService
-    {
-        return $this->di->getShared('tao.logService');
-    }
-
     public function a0openHelper(): MyOpenMvcHelper
     {
         return $this->di->getShared('tao.a0.openHelper');
     }
 
-    public function limitRate(string $action, int $userId = 0): LimitRateHelper
-    {
-        return new LimitRateHelper($this->redis(), $action, $userId);
-    }
 }

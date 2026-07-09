@@ -2,6 +2,9 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+
+use App\Modules\tao\Services\ConfigService;
+
 ?>
 <form class="layui-form">
     <h3 class="mb10">高德地图</h3>
@@ -10,7 +13,7 @@
         <div class="layui-input-block">
             <input type="text" name="gaode_key" class="layui-input"
                    placeholder="请输入高德地图 key"
-                   value="<?php echo $vv->configService()->getWith('map.gaode_key') ?>">
+                   value="<?php echo ConfigService::getWith('map.gaode_key') ?>">
         </div>
     </div>
     <h3 class="mb10">谷歌地图</h3>
@@ -19,7 +22,7 @@
         <div class="layui-input-block">
             <input type="text" name="gmap_key" class="layui-input"
                    placeholder="请输入谷歌地图 key"
-                   value="<?php echo $vv->configService()->getWith('map.gmap_key') ?>">
+                   value="<?php echo ConfigService::getWith('map.gmap_key') ?>">
         </div>
     </div>
 
@@ -28,7 +31,7 @@
         <div class="layui-input-block">
             <input type="text" name="gmap_proxy" class="layui-input"
                    placeholder="谷歌地图代理地址"
-                   value="<?php echo $vv->configService()->getWith('map.gmap_proxy') ?>">
+                   value="<?php echo ConfigService::getWith('map.gmap_proxy') ?>">
             <div class="hint">[可选]请输入谷歌地图代理地址</div>
         </div>
     </div>

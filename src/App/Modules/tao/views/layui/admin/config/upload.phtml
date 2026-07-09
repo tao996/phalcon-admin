@@ -5,6 +5,7 @@
  */
 
 use App\Modules\tao\Helper\OssUploadHelper;
+use App\Modules\tao\Services\ConfigService;
 use Phax\Utils\MyData;
 
 $ccUpload = $vv->config()->getArray('tao.upload');
@@ -47,7 +48,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                    placeholder="请输入允许类型"
                    lay-affix="clear"
                    value="<?php
-                   echo $vv->configService()->getWith('upload.upload_allow_ext') ?>">
+                   echo ConfigService::getWith('upload.upload_allow_ext') ?>">
             <div class="hint">服务端允许上传的文件类型，使用英文逗号做分隔符</div>
         </div>
     </div>
@@ -57,14 +58,14 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
             <input type="number" name="upload_allow_size" class="layui-input"
                    lay-affix="clear"
                    value="<?php
-                   echo $vv->configService()->getWith('upload.upload_allow_size') ?>">
+                   echo ConfigService::getWith('upload.upload_allow_size') ?>">
         </div>
         <div class="layui-form-mid layui-text-em">单位 mb，默认为 5</div>
     </div>
 
     <h3 class="mb10"><input type="checkbox" name="oss_frontend" class="layui-input" value="1"
             <?php
-            $vv->configService()->compare('upload.oss_frontend', 'checked'); ?>
+            ConfigService::compare('upload.oss_frontend', 'checked'); ?>
                             title="Web 端直传"
         ></h3>
     <div class="layui-form-item">
@@ -74,7 +75,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                    placeholder="文件在云上存储的子目录"
                    lay-affix="clear"
                    value="<?php
-                   echo $vv->configService()->getWith('upload.oss_dir') ?>">
+                   echo ConfigService::getWith('upload.oss_dir') ?>">
         </div>
         <div class="layui-form-mid layui-text-em">存储子目录</div>
         <label class="layui-form-label">文件类型</label>
@@ -82,7 +83,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
             <input type="text" name="oss_mimeLimit" class="layui-input"
                    placeholder="允许的文件类型"
                    value="<?php
-                   echo $vv->configService()->getWith('upload.oss_mimeLimit') ?>">
+                   echo ConfigService::getWith('upload.oss_mimeLimit') ?>">
         </div>
     </div>
     <div class="layui-form-item">
@@ -91,7 +92,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
             <input type="number" name="sso_size" class="layui-input"
                    lay-affix="clear"
                    value="<?php
-                   echo $vv->configService()->getWith('upload.oss_size') ?>">
+                   echo ConfigService::getWith('upload.oss_size') ?>">
         </div>
         <div class="layui-form-mid layui-text-em">单位 mb，默认为 5</div>
 
@@ -101,7 +102,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                    placeholder="有效期(秒)"
                    lay-affix="clear"
                    value="<?php
-                   echo $vv->configService()->getWith('upload.oss_seconds') ?>">
+                   echo ConfigService::getWith('upload.oss_seconds') ?>">
         </div>
         <div class="layui-form-mid layui-text-em">默认为 3600 秒</div>
     </div>
@@ -127,7 +128,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                                title="<?php
                                echo $val ?>"
                             <?php
-                            $vv->configService()->compare('upload.upload_type', 'checked', $key) ?>
+                            ConfigService::compare('upload.upload_type', 'checked', $key) ?>
                         >
                         <?php
                     } ?>
@@ -144,7 +145,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="qnoss_access_key" class="layui-input"
                        placeholder="请输入 AccessKey"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.qnoss_access_key') ?>">
+                       echo ConfigService::getWith('upload.qnoss_access_key') ?>">
             </div>
 
             <label class="layui-form-label">私钥信息</label>
@@ -152,7 +153,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="qnoss_secret_key" class="layui-input"
                        placeholder="请输入 SecretKey"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.qnoss_secret_key') ?>">
+                       echo ConfigService::getWith('upload.qnoss_secret_key') ?>">
 
             </div>
         </div>
@@ -162,7 +163,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="qnoss_bucket" class="layui-input"
                        placeholder="请输入存储桶地域"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.qnoss_bucket') ?>">
+                       echo ConfigService::getWith('upload.qnoss_bucket') ?>">
             </div>
 
             <label class="layui-form-label">访问域名 Domain</label>
@@ -170,7 +171,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="qnoss_domain" class="layui-input"
                        placeholder="请输入访问域名"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.qnoss_domain') ?>">
+                       echo ConfigService::getWith('upload.qnoss_domain') ?>">
             </div>
         </div>
 
@@ -184,7 +185,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="alioss_access_key_id" class="layui-input"
                        placeholder="请输入公钥信息"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.alioss_access_key_id') ?>">
+                       echo ConfigService::getWith('upload.alioss_access_key_id') ?>">
             </div>
 
             <label class="layui-form-label">私钥信息</label>
@@ -192,7 +193,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="alioss_access_key_secret" class="layui-input"
                        placeholder="请输入私钥信息"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.alioss_access_key_secret') ?>">
+                       echo ConfigService::getWith('upload.alioss_access_key_secret') ?>">
             </div>
 
             <label class="layui-form-label">空间名称</label>
@@ -200,7 +201,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="alioss_bucket" class="layui-input"
                        placeholder="请输入空间名称"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.alioss_bucket') ?>">
+                       echo ConfigService::getWith('upload.alioss_bucket') ?>">
             </div>
         </div>
         <div class="layui-form-item">
@@ -209,7 +210,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="alioss_endpoint" class="layui-input"
                        placeholder="请输入数据中心"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.alioss_endpoint') ?>">
+                       echo ConfigService::getWith('upload.alioss_endpoint') ?>">
             </div>
             <div class="hint">例子：https://oss-cn-shenzhen.aliyuncs.com</div>
         </div>
@@ -219,7 +220,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="alioss_domain" class="layui-input"
                        placeholder="请输入访问域名"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.alioss_domain') ?>">
+                       echo ConfigService::getWith('upload.alioss_domain') ?>">
             </div>
             <div class="hint">例子：phax.oss-cn-shenzhen.aliyuncs.com</div>
         </div>
@@ -233,7 +234,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="txcos_secret_id" class="layui-input"
                        placeholder="请输入公钥信息"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.txcos_secret_id') ?>">
+                       echo ConfigService::getWith('upload.txcos_secret_id') ?>">
             </div>
 
             <label class="layui-form-label">私钥信息</label>
@@ -241,7 +242,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="txcos_secret_key" class="layui-input"
                        placeholder="请输入私钥信息"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.txcos_secret_key') ?>">
+                       echo ConfigService::getWith('upload.txcos_secret_key') ?>">
             </div>
         </div>
         <div class="layui-form-item">
@@ -250,7 +251,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="txcos_region" class="layui-input"
                        placeholder="请输入存储桶地域"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.txcos_region') ?>">
+                       echo ConfigService::getWith('upload.txcos_region') ?>">
             </div>
 
             <label class="layui-form-label">存储桶名称</label>
@@ -258,7 +259,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <input type="text" name="txcos_bucket" class="layui-input"
                        placeholder="请输入存储桶名称"
                        value="<?php
-                       echo $vv->configService()->getWith('upload.txcos_bucket') ?>">
+                       echo ConfigService::getWith('upload.txcos_bucket') ?>">
             </div>
         </div>
     </div>

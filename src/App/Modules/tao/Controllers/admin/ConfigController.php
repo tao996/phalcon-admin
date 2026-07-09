@@ -5,6 +5,8 @@ namespace App\Modules\tao\Controllers\admin;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemConfig;
+use App\Modules\tao\Services\ConfigService;
+use App\Modules\tao\Services\LogService;
 
 #[RBAC(title: '配置管理')]
 class ConfigController extends BaseController
@@ -29,12 +31,12 @@ class ConfigController extends BaseController
     public function saveAction(string $gname): array
     {
         $this->mustPostMethod();
-        $gnames = $this->vv->configService()->findGname();
+        $gnames = ConfigService::findGname();
 
         if (!in_array($gname, $gnames)) {
             return $this->error('不允许修改的群组属性');
         }
-        $configRows = $this->vv->configService()->groupRows($gname); // 全部配置信息
+        $configRows = ConfigService::groupRows($gname); // 全部配置信息
         $model = SystemConfig::getObject();
         // 有提交值的才修改
         $hasChange = false;
@@ -45,8 +47,8 @@ class ConfigController extends BaseController
             }
         }
         if ($hasChange) {
-            $this->vv->configService()->forceCache();
-            $this->vv->logService()->insert($model->tableTitle(), '修改配置');
+            ConfigService::forceCache();
+            LogService::insert($model->tableTitle(), '修改配置');
         }
 
         return $this->success('更新成功');
@@ -55,7 +57,7 @@ class ConfigController extends BaseController
     #[RBAC(title: '重载缓存')]
     public function reloadAction(): array
     {
-        $this->vv->configService()->forceCache();
+        ConfigService::forceCache();
         return $this->success('更新配置成功');
     }
 }

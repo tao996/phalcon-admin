@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Controllers\user;
 
 use App\Modules\tao\BaseController;
+use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\LogException;
@@ -68,7 +69,7 @@ class IndexController extends BaseController
             $data = $this->request->getPost();
             MyData::mustHasSet($data, ['phone', 'vercode']);
 
-            $code = $this->vv->smsCodeService()->checkChangeAccountCode(
+            $code = SmsCodeService::checkChangeAccountCode(
                 $this->loginUser()->id,
                 $data['phone'],
                 $data['vercode']
@@ -82,7 +83,7 @@ class IndexController extends BaseController
                 if ($user->save() === false) {
                     throw new LogException('更新手机号码状态失败', ['user' => $user->toArray(), 'errors' => $user->getErrors()]);
                 }
-                $this->vv->smsCodeService()->done($code);
+                SmsCodeService::done($code);
             });
             $this->vv->loginUserHelper()->updateUserInfo($user->toArray());
             return $this->success('修改手机号成功');
@@ -105,7 +106,7 @@ class IndexController extends BaseController
         $user = $this->loginUser();
         UserService::mustAllowChangeAccount('phone', $data['phone'], $user);
 
-        if ($this->vv->smsCodeService()->sendChangeAccountCode(
+        if (SmsCodeService::sendChangeAccountCode(
             $user->id,
             $data['phone'],
             $this->smsConfig,
@@ -127,7 +128,7 @@ class IndexController extends BaseController
             $data = $this->request->getPost();
             MyData::mustHasSet($data, ['email', 'vercode']);
 
-            $code = $this->vv->smsCodeService()->checkChangeAccountCode(
+            $code = SmsCodeService::checkChangeAccountCode(
                 $this->loginUser()->id,
                 $data['email'],
                 $data['vercode']
@@ -141,7 +142,7 @@ class IndexController extends BaseController
                 if ($user->save() === false) {
                     throw new LogException('更新邮箱状态失败', ['user' => $user->toArray(), 'err' => $user->getErrors()]);
                 }
-                $this->vv->smsCodeService()->done($code);
+                SmsCodeService::done($code);
             });
             $this->vv->loginUserHelper()->updateUserInfo($user->toArray());
             return $this->success('修改邮箱成功');
@@ -164,7 +165,7 @@ class IndexController extends BaseController
         $user = $this->loginUser();
         UserService::mustAllowChangeAccount('email', $data['email'], $user);
 
-        if ($this->vv->smsCodeService()->sendChangeAccountCode(
+        if (SmsCodeService::sendChangeAccountCode(
             $user->id,
             $data['email'],
             $this->smsConfig,

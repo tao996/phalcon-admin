@@ -2,6 +2,9 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+
+use App\Modules\tao\Services\ConfigService;
+
 ?>
 <form class="layui-form">
     <h3 class="mb10">Mock</h3>
@@ -15,7 +18,7 @@
             <div class="layui-input-block">
                 <?php foreach ([0 => '禁用', 1 => '启用'] as $v => $t) { ?>
                     <input type="radio" name="sms_mock" value="<?php echo $v ?>"
-                           title="<?php echo $t ?>" <?php $vv->configService()->compare('sms.sms_mock', 'checked', $v); ?>>
+                           title="<?php echo $t ?>" <?php ConfigService::compare('sms.sms_mock', 'checked', $v); ?>>
                 <?php } ?>
             </div>
         </div>
@@ -23,13 +26,13 @@
             <label class="layui-form-label">发送结果</label>
             <div class="layui-input-block">
                 <input type="radio" name="sms_mock_result" value="0" title="随机结果"
-                    <?php $vv->configService()->compare('sms.sms_mock_result', 'checked', 0) ?>
+                    <?php ConfigService::compare('sms.sms_mock_result', 'checked', 0) ?>
                 >
                 <input type="radio" name="sms_mock_result" value="1" title="发送成功"
-                    <?php $vv->configService()->compare('sms.sms_mock_result', 'checked', '1') ?>
+                    <?php ConfigService::compare('sms.sms_mock_result', 'checked', '1') ?>
                 >
                 <input type="radio" name="sms_mock_result" value="2" title="发送失败"
-                    <?php $vv->configService()->compare('sms.sms_mock_result', 'checked', 2) ?>
+                    <?php ConfigService::compare('sms.sms_mock_result', 'checked', 2) ?>
                 >
 
             </div>
@@ -43,14 +46,14 @@
         <div class="layui-input-inline">
             <input type="text" name="alisms_access_key" class="layui-input"
                    placeholder="阿里 AccessKey ID"
-                   value="<?php echo $vv->configService()->getWith('sms.alisms_access_key') ?>">
+                   value="<?php echo ConfigService::getWith('sms.alisms_access_key') ?>">
         </div>
 
         <label class="layui-form-label">Secret</label>
         <div class="layui-input-inline">
             <input type="text" name="alisms_access_secret" class="layui-input"
                    placeholder="阿里 AccessKey Secret"
-                   value="<?php echo $vv->configService()->getWith('sms.alisms_access_secret') ?>">
+                   value="<?php echo ConfigService::getWith('sms.alisms_access_secret') ?>">
         </div>
     </div>
 
@@ -59,7 +62,7 @@
         <div class="layui-input-block">
             <?php foreach ([0 => '禁用', 1 => '启用'] as $v => $t) { ?>
                 <input type="radio" name="alisms" value="<?php echo $v ?>"
-                       title="<?php echo $t ?>" <?php $vv->configService()->compare('sms.alisms', 'checked', $v); ?>>
+                       title="<?php echo $t ?>" <?php ConfigService::compare('sms.alisms', 'checked', $v); ?>>
             <?php } ?>
         </div>
     </div>
@@ -69,14 +72,14 @@
         <div class="layui-input-inline">
             <input type="text" name="alisms_signname" class="layui-input"
                    placeholder="阿里短信签名"
-                   value="<?php echo $vv->configService()->getWith('sms.alisms_signname') ?>">
+                   value="<?php echo ConfigService::getWith('sms.alisms_signname') ?>">
         </div>
 
         <label class="layui-form-label">短信条数</label>
         <div class="layui-input-inline">
             <input type="text" name="alisms_num" class="layui-input"
                    placeholder="阿里短信条数"
-                   value="<?php echo $vv->configService()->getWith('sms.alisms_num') ?>">
+                   value="<?php echo ConfigService::getWith('sms.alisms_num') ?>">
         </div>
         <div class="hint layui-form-mid">当条数为0时，将会停用当前平台短信发送功能</div>
     </div>
@@ -86,7 +89,7 @@
         <div class="layui-input-block">
             <?php foreach ([0 => '禁用', 1 => '启用'] as $v => $t) { ?>
                 <input type="radio" name="aliemail" value="<?php echo $v ?>"
-                       title="<?php echo $t ?>" <?php $vv->configService()->compare('sms.aliemail', 'checked', $v); ?>>
+                       title="<?php echo $t ?>" <?php ConfigService::compare('sms.aliemail', 'checked', $v); ?>>
             <?php } ?>
         </div>
     </div>
@@ -97,13 +100,13 @@
         <div class="layui-input-inline">
             <input type="text" name="aliemail_fromalias" class="layui-input"
                    placeholder="邮件发件人名称"
-                   value="<?php echo $vv->configService()->getWith('sms.aliemail_fromalias') ?>">
+                   value="<?php echo ConfigService::getWith('sms.aliemail_fromalias') ?>">
         </div>
         <label class="layui-form-label">发送账号</label>
         <div class="layui-input-inline">
             <input type="text" name="aliemail_account" class="layui-input"
                    placeholder="邮件发送账号"
-                   value="<?php echo $vv->configService()->getWith('sms.aliemail_account') ?>">
+                   value="<?php echo ConfigService::getWith('sms.aliemail_account') ?>">
         </div>
     </div>
 

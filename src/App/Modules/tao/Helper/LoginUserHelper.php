@@ -6,7 +6,11 @@ use App\Modules\tao\Config\Data;
 use App\Modules\tao\Helper\Libs\MenuLibHelper;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Services\MenuService;
+use App\Modules\tao\Services\NodeService;
+use App\Modules\tao\Services\RoleService;
 use App\Modules\tao\Services\UserService;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 
 /**
@@ -95,7 +99,7 @@ class LoginUserHelper
         if (empty($this->user)) {
             throw new BusinessException('用户未登录或登录信息失效');
         }
-        if (in_array($this->user->id, $this->mvc->superAdminIds())) {
+        if (in_array($this->user->id, AppService::superAdminIds())) {
             return true;
         }
 
@@ -109,7 +113,7 @@ class LoginUserHelper
     public function getNodeList(): array
     {
         if (is_null($this->nodeList)) {
-            $this->nodeList = $this->mvc->nodeService()->findNodeListByRoleIds($this->user->role_ids) ?: [];
+            $this->nodeList = NodeService::findNodeListByRoleIds($this->user->role_ids) ?: [];
         }
         return $this->nodeList;
     }
@@ -125,7 +129,7 @@ class LoginUserHelper
             throw new BusinessException('待检查的角色不能为空');
         }
         if (!is_integer(end($roles))) {
-            $roles = $this->mvc->roleService()->getIds($roles);
+            $roles = RoleService::getIds($roles);
         }
         return !empty(array_intersect($this->user->roleIds(), $roles));
     }
@@ -143,7 +147,7 @@ class LoginUserHelper
             ->findFirstArray();
         if ($row) {
             if ($row['href']) {
-                $row['href'] = $this->mvc->menuService()->href($row['href'], $row['type'], $row['params']);
+                $row['href'] = MenuService::href($row['href'], $row['type'], $row['params']);
             }
         }
         return $row;
@@ -165,7 +169,7 @@ class LoginUserHelper
         $tree = MenuLibHelper::getSystemMenuTree(0, $systemMenus);
         // 第二遍：权限剪枝
         // 超级管理员不受节点权限限制
-        $isSuperAdmin = in_array($this->user->id, $this->mvc->superAdminIds());
+        $isSuperAdmin = in_array($this->user->id, AppService::superAdminIds());
         $userNodes = $isSuperAdmin ? [] : $this->getNodeList();
         $userTree = MenuLibHelper::filterMenuTree($tree, $userNodes, $isSuperAdmin);
         // 处理 href（需要 MenuService，由调用方处理）
@@ -180,7 +184,7 @@ class LoginUserHelper
     private function processMenuHref(array $menu): array
     {
         if ($menu['href']) {
-            $menu['href'] = $this->mvc->menuService()->href($menu['href'], $menu['type'], $menu['params']);
+            $menu['href'] = MenuService::href($menu['href'], $menu['type'], $menu['params']);
         }
         if (!empty($menu['child'])) {
             $menu['child'] = array_map(fn($c) => $this->processMenuHref($c), $menu['child']);

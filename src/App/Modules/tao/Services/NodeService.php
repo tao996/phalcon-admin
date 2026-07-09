@@ -3,24 +3,21 @@
 namespace App\Modules\tao\Services;
 
 use App\Modules\tao\Helper\Libs\NodeLibHelper;
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\Models\SystemRoleNode;
+use Phax\Foundation\AppService;
 use Phax\Support\Facade\MyHelperFacade;
 use Phax\Utils\MyData;
 
 class NodeService
 {
-    public function __construct(public MyMvcHelper $mvc)
-    {
-    }
 
     /**
      * 获取指定角色的可访问节点
      * @param string|array $role_ids 用户的角色 ID
      * @return array ['ca1', 'ca2', 'ca3', ...]
      */
-    public function findNodeListByRoleIds(string|array $role_ids): array
+    public static function findNodeListByRoleIds(string|array $role_ids): array
     {
         $nodeList = [];
         if (is_array($role_ids)) {
@@ -30,7 +27,7 @@ class NodeService
         }
         if (!empty($role_ids)) {
             $nodeListSQL = 'SELECT node FROM tao_system_node WHERE id IN (SELECT node_id FROM tao_system_role_node WHERE role_id IN (SELECT id FROM tao_system_role WHERE id IN (' . $role_ids . ')))';
-            $rows = $this->mvc->db()->query($nodeListSQL)->fetchAll(\PDO::FETCH_ASSOC);
+            $rows = AppService::db()->query($nodeListSQL)->fetchAll(\PDO::FETCH_ASSOC);
             $nodeList = MyHelperFacade::pluck($rows, 'node');
         }
         return $nodeList;
@@ -42,17 +39,17 @@ class NodeService
      * @return array
      * @throws \Exception
      */
-    public function getAuthorizeNodeListByRoleId(int $roleId): array
+    public static function getAuthorizeNodeListByRoleId(int $roleId): array
     {
         if (empty($roleId)) {
             return [];
         }
-        $bindNodes = SystemRoleNode::queryBuilder($this->mvc->getDi())
+        $bindNodes = SystemRoleNode::queryBuilder()
             ->int('role_id', $roleId)->columns('node_id')
             ->find();
         $bindNodeIds = array_column($bindNodes, 'node_id');
 // 全部的的节点
-        $nodeList = SystemNode::queryBuilder($this->mvc->getDi())
+        $nodeList = SystemNode::queryBuilder()
             ->int('is_auth', 1)
             ->field('id,node,title,type,is_auth')
             ->find();
@@ -104,7 +101,7 @@ class NodeService
      * @param array $newNodes
      * @return array [delete=>需要删除的节点, update=>需要更新的节点, append=>新增的节点]
      */
-    public function nodesCompare(array $dbNodes, array $newNodes): array
+    public static function nodesCompare(array $dbNodes, array $newNodes): array
     {
         return NodeLibHelper::compare($dbNodes, $newNodes);
     }
@@ -115,17 +112,18 @@ class NodeService
      * @param $node2
      * @return bool
      */
-    public  function sameNode($node1, $node2): bool
+    public static function sameNode($node1, $node2): bool
     {
         return NodeLibHelper::sameNode($node1, $node2);
     }
+
     /**
      * 将一维节点列表转为 Layui.Tree 格式的节点
      * @param array $nodes
      * @return array
      * @throws \Exception
      */
-    public  function nodeTree(array $nodes): array
+    public static function nodeTree(array $nodes): array
     {
         return NodeLibHelper::nodeTree($nodes);
     }

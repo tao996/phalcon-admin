@@ -2,6 +2,9 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+
+use App\Modules\tao\Services\ConfigService;
+
 ?>
 <form class="layui-form">
 
@@ -10,7 +13,7 @@
         <div class="layui-input-block">
             <textarea name="header" class="layui-textarea"
                       placeholder=""><?php
-                echo $vv->configService()->getWith('html.header') ?></textarea>
+                echo ConfigService::getWith('html.header') ?></textarea>
         </div>
     </div>
 
@@ -19,7 +22,7 @@
         <div class="layui-input-block">
             <textarea name="footer" class="layui-textarea"
                       placeholder=""><?php
-                echo $vv->configService()->getWith('html.footer') ?></textarea>
+                echo ConfigService::getWith('html.footer') ?></textarea>
         </div>
         <div class="hint">页脚通常填写统计代码</div>
     </div>

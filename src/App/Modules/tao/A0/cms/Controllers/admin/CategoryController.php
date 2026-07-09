@@ -9,6 +9,7 @@ use App\Modules\tao\A0\cms\Services\CmsContentService;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use App\Modules\tao\Services\UploadfileService;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
@@ -82,7 +83,7 @@ class CategoryController extends BaseController
         }
         $row = $this->model->toArray();
         $row['content'] = CmsContentService::getContentById($this->model->content_id);
-        $row['images'] = $this->vv->uploadfileService()->getImages($this->model->image_ids);
+        $row['images'] = UploadfileService::getImages($this->model->image_ids);
 
         return [
             'row' => $row,

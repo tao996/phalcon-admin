@@ -7,6 +7,7 @@ use App\Modules\tao\A0\cms\Services\CmsCategoryService;
 use App\Modules\tao\A0\cms\Services\CmsContentService;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
+use App\Modules\tao\Services\UploadfileService;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
@@ -107,7 +108,7 @@ class ArticleController extends BaseController
         }
 
         $row = $this->model->toArray();
-        $row['images'] = $this->vv->uploadfileService()->getImages($this->model->image_ids);
+        $row['images'] = UploadfileService::getImages($this->model->image_ids);
         $row['content'] = CmsContentService::getContentById($this->model->content_id);
 
         return [
@@ -162,7 +163,7 @@ class ArticleController extends BaseController
         $id = $this->getRequestInt('id');
         $this->model = CmsArticle::mustFindFirst($id);
         $row = $this->model->toArray();
-        $row['images'] = $this->vv->uploadfileService()->getImages($this->model->image_ids);
+        $row['images'] = UploadfileService::getImages($this->model->image_ids);
         $row['content'] = CmsContentService::getContentById($this->model->content_id);
         return $row;
     }

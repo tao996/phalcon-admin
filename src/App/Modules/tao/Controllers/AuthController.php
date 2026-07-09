@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
@@ -61,8 +62,8 @@ class AuthController extends BaseController
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
             MyData::mustHasSet($data, ['account', 'vercode']);
-            $isEmail = $this->vv->smsCodeService()->mustReceiver($data['account']);
-            $this->vv->smsCodeService()->checkLoginCode($data['account'], $data['vercode']);
+            $isEmail = SmsCodeService::mustReceiver($data['account']);
+            SmsCodeService::checkLoginCode($data['account'], $data['vercode']);
 
             // 查询用户
             if ($user = SystemUser::queryBuilder($this->getDI())
@@ -92,7 +93,7 @@ class AuthController extends BaseController
         $data = $this->request->getPost();
         MyData::mustHasSet($data, ['captcha', 'account']);
 
-        $this->vv->smsCodeService()->mustReceiver($data['account']);
+        SmsCodeService::mustReceiver($data['account']);
         $this->vv->captchaHelper()->compare($data['captcha']);
 
         // 账号检测
@@ -106,7 +107,7 @@ class AuthController extends BaseController
         }
 
         // 发送验证码
-        if (!$this->vv->smsCodeService()->sendLoginCode($data['account'])) {
+        if (!SmsCodeService::sendLoginCode($data['account'])) {
             return $this->error('发送失败，请稍后再试');
         }
         return $this->success('登录验证码已发送，请注意查收');
@@ -124,7 +125,7 @@ class AuthController extends BaseController
 
             UserService::mustAccountString($data['account']);
             UserService::mustCanRegister($data['account']);
-            $code = $this->vv->smsCodeService()->checkRegisterCode($data['account'], $data['vercode']);
+            $code = SmsCodeService::checkRegisterCode($data['account'], $data['vercode']);
 
             // 账号注册
             Transaction::db(function () use ($data, $code) {
@@ -137,7 +138,7 @@ class AuthController extends BaseController
                     ]);
                 }
 
-                $this->vv->smsCodeService()->done($code);
+                SmsCodeService::done($code);
             });
 
             return $this->success('账号注册成功');
@@ -171,7 +172,7 @@ class AuthController extends BaseController
         }
 
         // 发送验证码
-        if (!$this->vv->smsCodeService()->sendRegisterCode($data['account'])) {
+        if (!SmsCodeService::sendRegisterCode($data['account'])) {
             return $this->error('发送失败，请稍后再试');
         }
 
@@ -190,7 +191,7 @@ class AuthController extends BaseController
 
             $this->vv->captchaHelper()->compare($data['captcha']);
 
-            $this->vv->smsCodeService()->sendForgotPasswordEmail($data['account']);
+            SmsCodeService::sendForgotPasswordEmail($data['account']);
 
             return $this->success('重置密码邮件已发送，请注意查收');
         }
@@ -208,7 +209,7 @@ class AuthController extends BaseController
         if ('forgot' != $data['type']) {
             throw new BusinessException('参数错误');
         }
-        $code = $this->vv->smsCodeService()->checkForgotPasswordEmail($data['id'], $data['sign']);
+        $code = SmsCodeService::checkForgotPasswordEmail($data['id'], $data['sign']);
 
         if ($this->request->isPost()) {
             $d2 = $this->request->getPost();
@@ -223,7 +224,7 @@ class AuthController extends BaseController
                 ]);
             }
 
-            $this->vv->smsCodeService()->done($code);
+            SmsCodeService::done($code);
             return $this->success('重置密码成功');
         }
 

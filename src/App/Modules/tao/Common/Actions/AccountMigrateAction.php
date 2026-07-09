@@ -25,7 +25,6 @@ use Phax\Support\Logger;
  */
 class AccountMigrateAction
 {
-    private SmsCodeService $smsCodeService;
     public int $max_count = 2;
 
     public function __construct(
@@ -34,7 +33,6 @@ class AccountMigrateAction
         public string      $appid,
     )
     {
-        $this->smsCodeService = $this->helper->smsCodeService();
     }
 
     protected function getAccountInfo(string $account): array
@@ -67,17 +65,17 @@ class AccountMigrateAction
             throw new BusinessException('重复绑定');
         }
 
-        $history = $this->smsCodeService->getLast($condition);
+        $history = SmsCodeService::getLast($condition);
         if ($history && $history->isActive()) {
             return true;
         }
-        $count = $this->smsCodeService->todayCount($condition);
+        $count = SmsCodeService::todayCount($condition);
         if ($count >= $this->max_count) {
             throw new BusinessException('今日发送次数过多');
         }
         $condition['receiver'] = $account;
-        $mSer = $this->smsCodeService->getMessageHelper();
-        $code = $this->smsCodeService->insertOne($condition);
+        $mSer = SmsCodeService::getMessageHelper();
+        $code = SmsCodeService::insertOne($condition);
 
         if ('email' == $type) {
             $email = $mSer->email();
@@ -86,14 +84,14 @@ class AccountMigrateAction
                 ->setAddress($account)
                 ->setHtmlBody('您好，当前账号关联验证码为：' . $code->code)
                 ->send();
-            return $this->smsCodeService->updateSendStatus($email, $code, $rst);
+            return SmsCodeService::updateSendStatus($email, $code, $rst);
         } else {
             $sms = $mSer->sms();;
             $rst = $sms->addTemplateCode(SmsCodeService::$code['change_account'])
                 ->addPhoneNumber($account)
                 ->addTemplateParams(['code' => $code->code])
                 ->send();
-            return $this->smsCodeService->updateSendStatus($sms, $code, $rst);
+            return SmsCodeService::updateSendStatus($sms, $code, $rst);
         }
     }
 
@@ -112,8 +110,7 @@ class AccountMigrateAction
             throw new BusinessException('请填写验证码');
         }
         list($type, $condition) = $this->getAccountInfo($account);
-        $codeModel = $this->smsCodeService
-            ->checkCode($account, $this->user_id, $condition['kind'], $verCode);
+        $codeModel = SmsCodeService::checkCode($account, $this->user_id, $condition['kind'], $verCode);
         Transaction::db(function () use ($account, $type, $codeModel, $successMove) {
             if ($user = UserService::findByAccount($account, $type)) {
                 // 已经存在，则需要迁移；
@@ -146,7 +143,7 @@ class AccountMigrateAction
                     ]);
                 }
             }
-            $this->smsCodeService->done($codeModel);
+            SmsCodeService::done($codeModel);
         });
     }
 

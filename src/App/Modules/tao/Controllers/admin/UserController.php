@@ -9,8 +9,11 @@ use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Models\SystemUserBind;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use App\Modules\tao\Services\LogService;
+use App\Modules\tao\Services\RoleService;
 use App\Modules\tao\Services\UserService;
 use Phax\Db\QueryBuilder;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
@@ -55,7 +58,7 @@ class UserController extends BaseController
         }
 
         return [
-            'auth_list' => $this->vv->roleService()->getActiveList()
+            'auth_list' => RoleService::getActiveList()
         ];
     }
 
@@ -159,20 +162,20 @@ class UserController extends BaseController
 
         $data = $user->toArray();
         $data['role_ids'] = explode(',', $data['role_ids']);
-        $data['auth_list'] = $this->vv->roleService()->getActiveList();
+        $data['auth_list'] = RoleService::getActiveList();
         return $data;
     }
 
     protected function beforeModifyData(array $data): void
     {
-        if (in_array($data['id'], $this->vv->superAdminIds()) && $data['field'] == 'status') {
+        if (in_array($data['id'], AppService::superAdminIds()) && $data['field'] == 'status') {
             throw new BusinessException('不允许修改超级管理员状态');
         }
     }
 
     protected function beforeDeleteQuery($queryBuilder, array $ids)
     {
-        if (array_intersect($this->vv->superAdminIds(), $ids)) {
+        if (array_intersect(AppService::superAdminIds(), $ids)) {
             throw new BusinessException('不允许删除超级管理员');
         }
     }
@@ -207,7 +210,7 @@ class UserController extends BaseController
             }
             UserService::newPassword($data['password'], $user);
             if ($user->save()) {
-                $this->vv->logService()->insert($user->tableTitle(), '修改密码');
+                LogService::insert($user->tableTitle(), '修改密码');
                 return self::success('修改密码成功');
             } else {
                 return self::error($user->getErrors());

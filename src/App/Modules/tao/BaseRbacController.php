@@ -5,6 +5,7 @@ namespace App\Modules\tao;
 use App\Modules\tao\Helper\Auth\LoginAuthAdapter;
 use App\Modules\tao\Helper\LoginAuthHelper;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Services\RoleService;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
@@ -272,7 +273,7 @@ class BaseRbacController extends BaseResponseController
         }
 
         if ($this->otherActionRoles) {
-            $roleIds = $this->vv->roleService()->getIds($this->otherActionRoles);
+            $roleIds = RoleService::getIds($this->otherActionRoles);
             if ($user->inRoles($roleIds)) {
                 return;
             } else {

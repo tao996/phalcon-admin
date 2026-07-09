@@ -3,6 +3,7 @@
 namespace App\Modules\tao;
 
 use App\Modules\tao\Helper\Libs\RBAC;
+use App\Modules\tao\Services\LogService;
 use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
 
@@ -448,7 +449,7 @@ class BaseController extends BaseRbacController
             }
         });
 
-        $this->vv->logService()->insert($this->model->tableTitle(), 'modify');
+        LogService::insert($this->model->tableTitle(), 'modify');
         return $this->success('保存成功');
     }
 
@@ -585,7 +586,7 @@ class BaseController extends BaseRbacController
         } catch (\Throwable $e) {
             return $this->error($e->getMessage());
         }
-        $this->vv->logService()->insert($this->model->tableTitle(), 'delete');
+        LogService::insert($this->model->tableTitle(), 'delete');
         return $this->success('删除成功');
     }
 

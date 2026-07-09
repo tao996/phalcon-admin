@@ -3,6 +3,8 @@
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 
+use Phax\Foundation\AppService;
+
 $indexWelcome = $vv->urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = $vv->user();
@@ -196,7 +198,7 @@ $vv->layui();
                                 $user->nickname,
                                 \Phax\Utils\MyData::subtext($user->phone, 3),
                                 \Phax\Utils\MyData::subtext($user->email, 3)
-                        ], in_array($user->id, $vv->superAdminIds()) ? '管理员' : '会员');
+                        ], in_array($user->id, AppService::superAdminIds()) ? '管理员' : '会员');
                         ?>
                         <cite><?php
                             echo $nickname ?></cite>

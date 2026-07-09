@@ -3,18 +3,14 @@
 namespace App\Modules\tao\Services;
 
 use App\Modules\tao\Config\Data;
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemNode;
 use Phax\Support\Router;
 
 class MenuService
 {
-    public function __construct(public MyMvcHelper $mvc)
-    {
-    }
 
-    public function href($href, $type = 0, string|array $params = []): string
+    public static function href($href, $type = 0, string|array $params = []): string
     {
         if ($href) {
             if (SystemNode::KIND_MODULE == $type) {
@@ -33,11 +29,11 @@ class MenuService
         return $href;
     }
 
-    public function homeId(): int
+    public static function homeId(): int
     {
         static $homeId = null;
         if (is_null($homeId)) {
-            $homeId = SystemMenu::queryBuilder($this->mvc->getDi())
+            $homeId = SystemMenu::queryBuilder()
                 ->int('pid', Data::HOME_PID)
                 ->value('id');
         }

@@ -7,6 +7,7 @@ use App\Modules\tao\Helper\Libs\RbacAnnotation;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\Models\SystemRoleNode;
+use App\Modules\tao\Services\NodeService;
 use Phax\Db\QueryBuilder;
 use Phax\Utils\MyFileSystem;
 
@@ -37,7 +38,7 @@ class NodeController extends BaseController
     protected function buildIndexResult(int $count, QueryBuilder $queryBuilder): array
     {
         $rows = $this->getSystemNodes($queryBuilder);
-        return $this->vv->nodeService()->nodeTree($rows);
+        return NodeService::nodeTree($rows);
     }
 
     private function getSystemNodes(QueryBuilder $queryBuilder = null): array
@@ -82,7 +83,7 @@ class NodeController extends BaseController
 
 
         $dbNodes = $this->getSystemNodes(); // 原节点
-        $rows = $this->vv->nodeService()->nodesCompare($dbNodes, $nodes);
+        $rows = NodeService::nodesCompare($dbNodes, $nodes);
 
         if ($todb) {
             // append, update, delete
@@ -132,7 +133,7 @@ class NodeController extends BaseController
         } else {
             foreach ($rows['append'] as $row) {
                 foreach ($nodes as $index => $node) {
-                    if ($this->vv->nodeService()->sameNode($row, $node)) {
+                    if (NodeService::sameNode($row, $node)) {
                         $nodes[$index]['ac'] = SystemNode::AC_INSERT;
                         break;
                     }
@@ -140,13 +141,13 @@ class NodeController extends BaseController
             }
             foreach ($rows['update'] as $row) {
                 foreach ($nodes as $index => $node) {
-                    if ($this->vv->nodeService()->sameNode($row, $node)) {
+                    if (NodeService::sameNode($row, $node)) {
                         $nodes[$index]['ac'] = SystemNode::AC_UPDATE;
                         break;
                     }
                 }
             }
-            $rows = $this->vv->nodeService()->nodeTree($nodes);
+            $rows = NodeService::nodeTree($nodes);
         }
         return $this->successPagination(count($rows), $rows);
     }

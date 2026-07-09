@@ -2,18 +2,13 @@
 
 namespace App\Modules\tao\Services;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemMigration;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Support\Logger;
 
 class MigrationService
 {
-    public function __construct(public MyMvcHelper $mvc)
-    {
-    }
 
     /**
      * 执行版本更新 <br>
@@ -26,7 +21,7 @@ class MigrationService
      * @return bool 是否执行成功
      * @throws \Exception
      */
-    public function upgrade(string $version, string $summary, callable $handle): bool
+    public static function upgrade(string $version, string $summary, callable $handle): bool
     {
         if (empty($version)) {
             throw new BusinessException('必须指定 version');
@@ -59,9 +54,9 @@ class MigrationService
      * 版本号是否存在
      * @throws \Exception
      */
-    public function versionExits($version): bool
+    public static function versionExits($version): bool
     {
-        return SystemMigration::queryBuilder($this->mvc->getDi())
+        return SystemMigration::queryBuilder()
             ->string('version', $version)
             ->exits();
     }

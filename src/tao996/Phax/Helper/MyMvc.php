@@ -5,11 +5,11 @@ namespace Phax\Helper;
 use Phalcon\Encryption\Security;
 use Phalcon\Http\Response\Cookies;
 use Phalcon\Mvc\View;
+use Phax\Foundation\AppService;
 use Phax\Foundation\Route;
 use Phax\Support\Config;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Validate;
-use Phax\Utils\MyData;
 
 class MyMvc
 {
@@ -214,37 +214,7 @@ class MyMvc
      */
     public function url(array $options): string
     {
-        $builder = MyUrlBuilder::new();
-
-        $builder->language($this->route()->urlOptions['language']);
-
-        if (!empty($options['api'])) {
-            $builder->asApi();
-        }
-
-        $path = MyData::getString($options, 'path');
-        if (!empty($options['module'])) {
-            $builder->withModule(ltrim($path, '/'));
-        } elseif (!empty($options['project'])) {
-            $builder->withProject(ltrim($path, '/'));
-        } else {
-            $builder->path($path);
-        }
-
-        if (!empty($options['query'])) {
-            $builder->queryParams($options['query']);
-        }
-        if (isset($options['origin'])) {
-            if (is_string($options['origin']) && !empty($options['origin'])) {
-                $builder->origin($options['origin']);
-            } elseif ($options['origin']) {
-                $builder->origin($this->route()->appOrigin());
-            }
-        } else {
-            $builder->origin($this->route()->appOrigin());
-        }
-
-        return $builder->build();
+        return AppService::url($options);
     }
 
     /**
@@ -255,7 +225,7 @@ class MyMvc
      */
     public function urlWith(string $path, array $query = []): string
     {
-        return $this->url(['path' => $path, 'query' => $query]);
+        return AppService::urlWith($path, $query);
     }
 
     /**
