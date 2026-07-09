@@ -85,55 +85,53 @@ function showHelp(): void
 用法:
   php deploy \033[33m<命令>\033[0m [参数...] [-key=value]
 
-命令:
-  \033[33mserver:init\033[0m              检测服务器环境（默认只报告，加 -y 才执行）
-  \033[33mserver:init -y\033[0m           执行初始化（自动选择 Docker Router 或宿主机 Nginx）
-  \033[33mnginx:reload\033[0m             验证配置语法并重载 Nginx（全局）
-  \033[33mnginx:log:error\033[0m          查看 Nginx 错误日志（--save 下载到本地）
-  \033[33mnginx:log:access\033[0m         查看 Nginx 访问日志（--save 下载到本地）
+\033[33m  服务器\033[0m
+  server:init                   检测环境（无 -y 只报告，加 -y 执行安装）
+  nginx:reload                  验证语法并重载 Nginx（全局）
+  nginx:log:error               查看错误日志（加 --save 下载到本地）
+  nginx:log:access              查看访问日志（加 --save 下载到本地）
+    参数: -y                     自动执行
+          mode=host_nginx       强制宿主机模式
+          --save                 下载日志到本地
 
-  \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
-  \033[33mapp:upgrade\033[0m <项目名>      更新已有项目（加 -y 同时更新配置）
-  \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
-  \033[33mapp:script:push\033[0m <项目名>  推送分析脚本到远程
-  \033[33mapp:run\033[0m <项目名> <脚本> [参数]  远程执行分析脚本
-  \033[33mapp:reset\033[0m <项目名>         重置远程代码到最新提交（丢弃所有修改）
-  \033[33mapp:dc:restart\033[0m <项目名>          重启 Docker 容器
-  \033[33mapp:dc:restart:<容器>\033[0m <项目名>    重启指定容器（如 php/mysql）
-  \033[33mapp:dc:status\033[0m <项目名>    查看容器状态
-  \033[33mapp:dc:log\033[0m <项目名>          查看全部容器日志
-  \033[33mapp:dc:log:<容器名称>\033[0m <项目名>       查看容器日志
-  \033[33mapp:nginx:add\033[0m <项目名>    为项目添加域名到 Router
-  \033[33mapp:nginx:remove\033[0m <项目名> 从 Router 移除域名
-  \033[33mapp:nginx:ssl\033[0m <项目名>     申请 SSL 证书并启用 HTTPS（-email=xxx）
+\033[33m  项目 — 部署\033[0m
+  app:init <项目>               预览（无 -y）或完整部署（加 -y）
+  app:upgrade <项目>            更新代码（加 -y 同时更新配置并重启）
+  app:push <项目>               推送本地配置文件到远程
+  app:script:push <项目>        推送分析脚本到远程
+  app:run <项目> <脚本> [参数]   远程执行分析脚本
+  app:reset <项目>              重置远程代码到最新提交
+    参数: -y                     自动执行（app:init 默认预览，app:upgrade 默认仅代码）
+          mode=host_nginx       强制宿主机模式
+          port=8071             手动指定 nginx 端口
+    示例: app:init myapp           app:init myapp -y
+          app:push myapp           app:script:push myapp
+          app:run myapp doctor     app:upgrade myapp -y
 
-  \033[33mdb:proxy\033[0m <项目名>         SSH 隧道转发（本地 → 远程 MySQL）
-  \033[33mdb:pma\033[0m <项目名>          部署临时 phpMyAdmin
-  \033[33mdb:pma-rm\033[0m <项目名>       删除临时 phpMyAdmin
-  \033[33m--help\033[0m                  显示此帮助
+\033[33m  项目 — Docker 容器\033[0m
+  app:dc:restart <项目>         重启容器（首次自动拉取镜像）
+  app:dc:restart:<容器> <项目>  重启指定容器（如 php/mysql/nginx）
+  app:dc:status <项目>          查看容器状态
+  app:dc:log <项目>             查看全部容器日志
+  app:dc:log:<容器> <项目>      查看指定容器日志
+    示例: app:dc:restart myapp     app:dc:restart:php myapp
+          app:dc:status myapp      app:dc:log:php myapp
 
-参数:
-  env=prod              选择服务器配置文件 (server.prod.php)
-  -y                    自动执行（server:init 默认只检测，加 -y 才安装；app:init 默认预览，加 -y 执行远程部署）
-  mode=host_nginx       强制宿主机模式（仅 server:init -y 时生效）
-  port=8071             手动指定项目 nginx 端口（宿主机模式 app:init 时可选）
-  local=13306           SSH 隧道本地端口（db:proxy 时指定）
-  host=13307            phpMyAdmin 宿主机端口（db:pma 时指定）
-  --save                下载日志到本地（nginx:log:* 时使用）
-  -email=xx@xx.com      SSL 证书申请邮箱（app:nginx:ssl 时必填）
+\033[33m  项目 — Nginx 域名\033[0m
+  app:nginx:add <项目>          添加域名到 Router
+  app:nginx:remove <项目>       从 Router 移除域名
+  app:nginx:ssl <项目>          申请 SSL 证书并启用 HTTPS
+    参数: -email=xx@xx.com       SSL 申请邮箱（必填）
+    示例: app:nginx:add myapp      app:nginx:ssl myapp -email=a@b.com
 
-示例:
-  php deploy server:init              # 只检测环境
-  php deploy server:init -y           # 检测 + 自动安装
-  php deploy server:init -y mode=host_nginx  # 强制宿主机模式
-  php deploy app:init myapp
-  php deploy app:upgrade myapp
-  php deploy app:dc:status myapp
-  php deploy db:proxy myapp           # SSH 隧道到 MySQL
-  php deploy db:proxy myapp local=13307 # 指定本地端口
-  php deploy db:pma myapp             # 部署临时 phpMyAdmin
-  php deploy db:pma myapp host=13308  # 指定宿主机端口
-  php deploy db:pma-rm myapp          # 清理 phpMyAdmin
+\033[33m  数据库\033[0m
+  db:proxy <项目>               SSH 隧道转发（本地 → 远程 MySQL）
+  db:pma <项目>                 部署临时 phpMyAdmin
+  db:pma-rm <项目>              删除临时 phpMyAdmin
+    参数: local=13306            SSH 隧道本地端口（db:proxy）
+          host=13307             phpMyAdmin 宿主机端口（db:pma）
+    示例: db:proxy myapp          db:proxy myapp local=13308
+          db:pma myapp            db:pma-rm myapp
 
 HELP;
 }
