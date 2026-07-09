@@ -141,8 +141,9 @@ class Application
                     return call_user_func_array([$errObj, 'exception',], [$e]) ?: 'sorry ...';
                 } catch (\Phax\Support\Exception\BlankException $e) {
                     return ''; // JSON 响应已由 $this->json() 通过 send() 发送，无需追加内容
-                } catch (\Throwable $_) {
-                    return '系统繁忙，请稍后再试2';
+                } catch (\Throwable $e) {
+//                    ddd($e->getMessage(),$e->getTrace());
+                    return '系统繁忙，请稍后再试';
                 }
             }
         } else {

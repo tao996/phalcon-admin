@@ -81,6 +81,7 @@ class BaseRbacController extends BaseResponseController
             $this->loginAdapter = $authAdapter;
         }
     }
+
     public function getLoginAdapter(): LoginAuthAdapter
     {
         return $this->tryGetLoginAuth()->getAdapter();
@@ -195,10 +196,18 @@ class BaseRbacController extends BaseResponseController
             return;
         }
         if ($this->disableActions && in_array($this->action, $this->disableActions)) {
-            throw new BusinessException('不允许访问的操作列表中');
+            throw new BusinessException('不允许访问的操作列表中',[
+                'action' => $this->action,
+                'disableActions' => $this->disableActions,
+                'route' => $this->route->urlOptions
+            ]);
         }
         if ($this->enableActions && !in_array($this->action, $this->enableActions)) {
-            throw new BusinessException('不在允许访问的操作列表中');
+            throw new BusinessException('不在允许访问的操作列表中', [
+                'action' => $this->action,
+                'enableActions' => $this->enableActions,
+                'route' => $this->route->urlOptions
+            ]);
         }
         // 开放接口
         if ($this->openActions == '*') {
@@ -206,7 +215,11 @@ class BaseRbacController extends BaseResponseController
                 $this->disableUpdateActions = true;
             }
             if ($this->disableUpdateActions && in_array($this->action, $this->updateActions)) {
-                throw new BusinessException('not allow disableUpdateActions in open access');
+                throw new BusinessException('not allow disableUpdateActions in open access',[
+                    'action'=>$this->action,
+                    'updateActions'=>$this->updateActions,
+                    'route'=>$this->route->urlOptions,
+                ]);
             }
             return;
         } elseif (in_array(
@@ -217,7 +230,11 @@ class BaseRbacController extends BaseResponseController
         }
 
         if ($this->disableUpdateActions && in_array($this->action, $this->updateActions)) {
-            throw new BusinessException('not allow disableUpdateActions');
+            throw new BusinessException('not allow disableUpdateActions',[
+                'action'=>$this->action,
+                'updateActions'=>$this->updateActions,
+                'route'=>$this->route->urlOptions,
+            ]);
         }
 
         // 非公共节点都需要登录
@@ -235,7 +252,7 @@ class BaseRbacController extends BaseResponseController
         // 超级管理员节点
         if ($this->isSuperAdminAction()) {
             if (!$this->vv->loginUserHelper()->isSuperAdmin()) {
-                $this->accessDenyResponse('非超级管理员，无权访问',403);
+                $this->accessDenyResponse('非超级管理员，无权访问', 403);
             }
             return;
         }

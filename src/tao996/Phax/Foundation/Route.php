@@ -3,9 +3,9 @@
 namespace Phax\Foundation;
 
 use Phalcon\Di\Di;
-use Phax\Helper\MyBaseUri;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
+use Phax\Utils\MyData;
 
 require_once PATH_ROOT . 'routes/web.php';
 
@@ -70,9 +70,47 @@ class Route
     public function appOrigin(): string
     {
         if (empty($this->origin)) {
-            $baseUri = new MyBaseUri($this->di);
-            $this->origin = $baseUri->getOrigin();
+            //  app.origin 域名没有配置，示例 https://localhost:8080/
+            $this->origin = AppService::config()->getString('app.origin');
+            if (!empty($this->origin)) {
+                return $this->origin;
+            }
+
+            $request = AppService::request();
+
+            $scheme = $request->hasServer('HTTPS')
+            && (($request->getServer('HTTPS') == 'on') || ($request->getServer('HTTPS') == 1))
+                ? 'https' : 'http';
+            $port = '';
+            $server_port = $request->getServer('SERVER_PORT') ?: MyData::getInt($_SERVER, 'OPEN_PORT', '80');
+            if ($server_port != '80' && $server_port != '443') {
+                $port = ':' . $server_port;
+            }
+
+            $host = '';
+            foreach (
+                [
+                    $request->getHeader('X-Forwarded-Host'),
+                    $request->getServer('HTTP_X_FORWARDED_HOST'),
+                    $request->getHeader('HOST'),
+                    $request->getServer('HTTP_HOST'),
+                    $request->getServer('SERVER_NAME'),
+                ] as $v
+            ) {
+                if ($v) {
+                    $host = $v;
+                    break;
+                }
+            }
+            if (empty($host)) {
+                $host = 'localhost';
+            }
+            if (str_contains($host, ':')) {
+                $host = explode(':', $host)[0];
+            }
+            $this->origin = "{$scheme}://{$host}{$port}/";
         }
+//        ddd($this->origin);
         return $this->origin;
     }
 

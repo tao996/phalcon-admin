@@ -4,13 +4,12 @@ namespace App\Http;
 
 use Phax\Mvc\Controller;
 
-
+/**
+ * 注意：这个类不是正经初始化的
+ */
 class AppErrorResponse extends Controller
 {
-    private function isDebug(): bool
-    {
-        return defined('IS_DEBUG') && IS_DEBUG;
-    }
+
 
     /**
      * 异常时响应
@@ -20,11 +19,10 @@ class AppErrorResponse extends Controller
     public function exception(\Throwable $e): string
     {
         // 日志已由 handleException() 统一处理，此处只负责渲染响应
-
         if ($this->isApiRequest()) {
-            $code = intval($e->getCode()) ?: 500;
-            $msg = $this->isDebug() ? $e->getMessage() : '系统繁忙，请稍后再试';
-            $data = $this->isDebug() ? [
+            $code = $e->getCode() ?: 500;
+            $msg = IS_DEBUG ? $e->getMessage() : '系统繁忙，请稍后再试';
+            $data = IS_DEBUG ? [
                 'type' => get_class($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -57,7 +55,7 @@ class AppErrorResponse extends Controller
     public function notFound(\Throwable $e): string
     {
         if ($this->isApiRequest()) {
-            $data = $this->isDebug() ? [
+            $data = IS_DEBUG ? [
                 'uri' => $_SERVER['REQUEST_URI'] ?? '',
                 'message' => $e->getMessage(),
             ] : null;
