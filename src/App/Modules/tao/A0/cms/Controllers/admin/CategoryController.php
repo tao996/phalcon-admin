@@ -13,6 +13,7 @@ use App\Modules\tao\Services\UploadfileService;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 /**
@@ -93,7 +94,7 @@ class CategoryController extends BaseController
 
     protected function save($data): bool
     {
-        $this->vv->validate()->check($data, [
+        Validate::checkData($data, [
             'title|栏目名称' => 'required',
             'kind|栏目类型' => 'required'
         ]);

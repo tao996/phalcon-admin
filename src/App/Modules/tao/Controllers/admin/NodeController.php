@@ -9,6 +9,7 @@ use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\Models\SystemRoleNode;
 use App\Modules\tao\Services\NodeService;
 use Phax\Db\QueryBuilder;
+use Phax\Foundation\AppService;
 use Phax\Utils\MyFileSystem;
 
 /**
@@ -62,7 +63,7 @@ class NodeController extends BaseController
         $nodes = [];
 
         // 当前项目
-        $project = $this->vv->route()->getProject();
+        $project = AppService::route()->getProject();
         if (!empty($project)) {
             $baseInfo = RbacAnnotation::projectBaseInfo($project);
             $nodes = array_merge($nodes, RbacAnnotation::getNodes($baseInfo));
@@ -91,7 +92,7 @@ class NodeController extends BaseController
             foreach ($rows['delete'] as $row) {
                 $deleteIds[] = $row['id'];
             }
-            $pdo = $this->vv->pdo();
+            $pdo = AppService::pdo();
             try {
                 $pdo->beginTransaction();
                 $stmt = $pdo->prepare(

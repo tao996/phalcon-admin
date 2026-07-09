@@ -3,7 +3,7 @@
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 
-$captchaURL = $vv->urlModule('tao/captcha');
+$captchaURL = \Phax\Foundation\AppService::urlModule('tao/captcha');
 $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
 ?>
 
@@ -81,7 +81,7 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
             account: field.account, vercode: field.vercode,
         }
         admin.ajax.post({
-            url: '<?php echo $vv->urlModule("tao/auth/signin", true) ?>',
+            url: '<?php echo \Phax\Foundation\AppService::urlModule("tao/auth/signin", true) ?>',
             data: postData
         }, function () {
             auth.afterLogin();
@@ -130,7 +130,7 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
                             });
 
                             admin.ajax.post({
-                                url: '<?php echo $vv->urlModule("tao/auth/signin-code", true) ?>',
+                                url: '<?php echo \Phax\Foundation\AppService::urlModule("tao/auth/signin-code", true) ?>',
                                 data: postData,
                             }, function (res) {
 
@@ -157,7 +157,7 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
     });
 
     auth.bindButtons({
-        prefix: "<?php echo $vv->urlModule('/tao/auth/') ?>"
+        prefix: "<?php echo \Phax\Foundation\AppService::urlModule('/tao/auth/') ?>"
     });
 
 </script>

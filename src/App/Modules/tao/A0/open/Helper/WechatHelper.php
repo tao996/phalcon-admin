@@ -7,6 +7,7 @@ use App\Modules\tao\sdk\SdkHelper;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
@@ -23,7 +24,7 @@ class WechatHelper
      */
     public function isMicroMessengerBrowser(): bool
     {
-        $ua = $this->helper->mvc->request()->getUserAgent();
+        $ua = AppService::request()->getUserAgent();
         return str_contains($ua, 'MicroMessenger');
     }
 
@@ -55,7 +56,7 @@ class WechatHelper
 
         $writer = new PngWriter();
         $result = $writer->write($qrCode);
-        $this->helper->mvc->responseMimeType([
+        AppService::responseMimeType([
             'Content-Type'=> $result->getMimeType()
         ],$result->getString());
     }

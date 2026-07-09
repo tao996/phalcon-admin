@@ -7,6 +7,7 @@ use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
@@ -36,7 +37,7 @@ class AuthController extends BaseController
              * @var $user SystemUser
              */
             $user = null;
-            if ($this->vv->isDemo()) {
+            if (AppService::isDemo()) {
                 if ($data['account'] == 'admin' && $data['password'] == '123456') {
                     $user = SystemUser::findFirst(1);
                 }

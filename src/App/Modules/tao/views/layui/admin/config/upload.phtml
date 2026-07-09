@@ -6,9 +6,10 @@
 
 use App\Modules\tao\Helper\OssUploadHelper;
 use App\Modules\tao\Services\ConfigService;
+use Phax\Foundation\AppService;
 use Phax\Utils\MyData;
 
-$ccUpload = $vv->config()->getArray('tao.upload');
+$ccUpload = AppService::config()->getArray('tao.upload');
 $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
 ?>
 <style type="text/css">

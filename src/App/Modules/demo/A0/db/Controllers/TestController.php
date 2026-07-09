@@ -6,8 +6,10 @@ use App\Modules\demo\Models\Cat;
 use App\Modules\demo\Models\User;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phalcon\Mvc\Model\ResultsetInterface;
+use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Validate;
 
 #[RBAC(title: 'demo.A0.DbTest')]
 class TestController extends Controller
@@ -34,7 +36,7 @@ class TestController extends Controller
     #[RBAC(title: '时间戳和添加记录')]
     public function insertAction()
     {
-        $this->vv->isDemo(true);
+        AppService::isDemo(true);
         $cat = new Cat();
         if (!$cat->assign([
             'name' => 'gray',
@@ -57,7 +59,7 @@ class TestController extends Controller
      */
     public function removeAction()
     {
-        $this->vv->isDemo(true);
+        AppService::isDemo(true);
         /**
          * @var ResultsetInterface $cats
          */
@@ -99,8 +101,8 @@ class TestController extends Controller
     public function formAction()
     {
         if ($this->request->isPost()) {
-            if ($this->vv->security()->checkToken()) {
-                $this->vv->validate()->check($this->request->getPost(), [
+            if (AppService::security()->checkToken()) {
+                Validate::checkData($this->request->getPost(), [
                     'accept' => 'accepted',
                     'email' => 'eq:abc@test.com',
                 ], [

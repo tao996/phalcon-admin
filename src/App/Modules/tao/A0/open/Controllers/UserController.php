@@ -5,6 +5,7 @@ namespace App\Modules\tao\A0\open\Controllers;
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\A0\open\Models\OpenUserOpenid;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Validate;
 
 
 class UserController extends BaseOpenMiniController
@@ -33,7 +34,7 @@ class UserController extends BaseOpenMiniController
                 'openid'
             ]);
         } elseif ($this->request->isPost()) {
-            $this->vv->validate()->check($this->requestData, ['name' => 'required', 'value' => 'required']);
+            Validate::checkData($this->requestData, ['name' => 'required', 'value' => 'required']);
             if (!in_array($this->requestData['name'], ['avatar_url', 'nickname'])) {
                 throw new BusinessException('不允许修改的字段');
             }

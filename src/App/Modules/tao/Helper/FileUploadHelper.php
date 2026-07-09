@@ -11,6 +11,7 @@ use App\Modules\tao\sdk\tencent\cos\QcloudDriver;
 use App\Modules\tao\Services\ConfigService;
 use OSS\Core\OssException;
 use Phalcon\Http\Request\File;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Facade\MyHelperFacade;
 use Phax\Utils\MyFormat;
@@ -42,10 +43,10 @@ class FileUploadHelper
      */
     public function fromRequest(): static
     {
-        if (!$this->mvc->request()->isPost()) {
+        if (!AppService::request()->isPost()) {
             throw new BusinessException('非法请求');
         }
-        if (!$this->mvc->request()->hasFiles()) {
+        if (!AppService::request()->hasFiles()) {
             throw new BusinessException('必须指定上传文件');
         }
         return $this;
@@ -55,7 +56,7 @@ class FileUploadHelper
     {
         if (is_null($file)) {
             if (empty($this->_file)) {
-                $this->_file = $this->mvc->request()->getUploadedFiles()[0];
+                $this->_file = AppService::request()->getUploadedFiles()[0];
             }
         } else {
             $this->_file = $file;
@@ -116,7 +117,7 @@ class FileUploadHelper
     private function moveToLocal(): SystemUploadfile
     {
         // 上传到当前项目目录
-        $subDir = 'upload/' . $this->mvc->route()->getProject('phax') . '/' . date('ymd') . '/';
+        $subDir = 'upload/' . AppService::route()->getProject('phax') . '/' . date('ymd') . '/';
         $pathUploadDir = MyHelperFacade::dirSeparator(PATH_PUBLIC . $subDir);
         if (!file_exists($pathUploadDir)) {
             mkdir($pathUploadDir, 0777, true);
@@ -221,7 +222,7 @@ class FileUploadHelper
                 return $this->moveToLocal();
             default:
                 $oss = $this->getOssDriver($uploadType, $this->_config);
-                return $this->ossUpload($oss, $this->_config['oss_dir'] ?: $this->mvc->route()->getProject('phax'));
+                return $this->ossUpload($oss, $this->_config['oss_dir'] ?: AppService::route()->getProject('phax'));
         }
     }
 

@@ -19,6 +19,7 @@ use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
+use Phax\Support\Validate;
 
 /**
  * 账号迁移
@@ -40,9 +41,9 @@ class AccountMigrateAction
         if (empty($account)) {
             throw new BusinessException('请填写账号');
         }
-        if ($this->helper->validate()->isPhone($account)) {
+        if (Validate::isPhone($account)) {
             $type = 'phone';
-        } elseif ($this->helper->validate()->isEmail($account)) {
+        } elseif (Validate::isEmail($account)) {
             $type = 'email';
         } else {
             throw new BusinessException('不支持的账号类型');

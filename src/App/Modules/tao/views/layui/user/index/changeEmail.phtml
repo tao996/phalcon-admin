@@ -68,7 +68,7 @@
                     return;
                 }
                 admin.ajax.postLimit({
-                    url: '<?php echo $vv->urlModule('tao/user.index/email-code', true) ?>',
+                    url: '<?php echo \Phax\Foundation\AppService::urlModule('tao/user.index/email-code', true) ?>',
                     data: {email: emailE.val()},
                 }, function () {
                     seconds = 60;

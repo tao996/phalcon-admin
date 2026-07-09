@@ -4,6 +4,7 @@ namespace App\Modules\tao\Helper\Auth;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Foundation\AppService;
 
 class LoginSessionAuthAdapter extends LoginAuthAdapter
 {
@@ -28,7 +29,7 @@ class LoginSessionAuthAdapter extends LoginAuthAdapter
             // 每小时最多刷新一次 cookie，避免每次请求都 setcookie
             $lastRefresh = (int)$this->mvc->session()->get('_cookie_refresh', 0);
             if (time() - $lastRefresh > 3600) {
-                $lifetime = $this->mvc->config()->getInt('session.cookie_lifetime', 86400);
+                $lifetime = AppService::config()->getInt('session.cookie_lifetime', 86400);
                 $params = session_get_cookie_params();
                 setcookie(
                     session_name(),

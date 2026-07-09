@@ -46,7 +46,7 @@
 $vv->layui()->addWindowConfig([])->footer();
 ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao/admin.menu", false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao/admin.menu", false) ?>';
 
     const inst = admin.treeTable.render({
         tree: {

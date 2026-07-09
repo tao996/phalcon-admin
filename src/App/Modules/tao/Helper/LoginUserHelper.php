@@ -141,7 +141,7 @@ class LoginUserHelper
      */
     public function getHomeInfo(): array
     {
-        $row = SystemMenu::queryBuilder($this->mvc->getDi())
+        $row = SystemMenu::queryBuilder()
             ->columns(['title', 'icon', 'href', 'type', 'params'])
             ->int('pid', Data::HOME_PID)
             ->findFirstArray();

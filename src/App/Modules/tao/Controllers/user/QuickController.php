@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers\user;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemQuick;
+use Phax\Support\Validate;
 
 /**
  * @property SystemQuick $model
@@ -34,7 +35,7 @@ class QuickController extends BaseController
 
     protected function beforeModelAssign(array $data): array
     {
-        $this->vv->validate()->check($data, [
+        Validate::checkData($data, [
             'href|链接地址' => 'require',
             'title|快捷名称' => 'require',
         ]);

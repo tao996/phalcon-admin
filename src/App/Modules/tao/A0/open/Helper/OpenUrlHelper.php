@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Helper;
 
 use App\Modules\tao\A0\open\Service\OpenConfigService;
+use Phax\Foundation\AppService;
 
 readonly class  OpenUrlHelper
 {
@@ -14,7 +15,7 @@ readonly class  OpenUrlHelper
 
     public function __construct(public MyOpenMvcHelper $helper)
     {
-        $this->origin = OpenConfigService::getWith('proxy_origin', $this->helper->mvc->route()->appOrigin());
+        $this->origin = OpenConfigService::getWith('proxy_origin', AppService::route()->appOrigin());
     }
 
     /**
@@ -25,7 +26,7 @@ readonly class  OpenUrlHelper
      */
     public function moduleUrl(string $path, array $query = []): string
     {
-        return $this->helper->mvc->url([
+        return AppService::url([
             'path' => $path,
             'query' => $query,
             'module' => true,
@@ -41,7 +42,7 @@ readonly class  OpenUrlHelper
      */
     public function url(string $path, array $query = []): string
     {
-        return $this->helper->mvc->url([
+        return AppService::url([
             'path' => $path,
             'query' => $query,
             'origin' => $this->origin,

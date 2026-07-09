@@ -4,15 +4,15 @@ namespace App\Modules\tao\sdk;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use Phalcon\Cache\Exception\InvalidArgumentException;
+use Phax\Foundation\AppService;
 use Psr\SimpleCache\CacheInterface;
 
 class RedisCache implements CacheInterface
 {
-    private \Phalcon\Cache\Cache $cache;
 
     public function __construct(protected MyMvcHelper $helper)
     {
-        $this->cache = $this->helper->cache();
+
     }
 
     /**
@@ -20,9 +20,9 @@ class RedisCache implements CacheInterface
      * @param mixed|null $default
      * @throws InvalidArgumentException
      */
-    public function get($key, $default = null): mixed
+    public function get(string $key, $default = null): mixed
     {
-        return $this->cache->get($key, $default);
+        return AppService::cache()->get($key, $default);
     }
 
     /**
@@ -31,23 +31,23 @@ class RedisCache implements CacheInterface
      * @param \DateInterval|int|null $ttl
      * @throws InvalidArgumentException
      */
-    public function set($key, $value, $ttl = null): bool
+    public function set(string $key, mixed $value, \DateInterval|int $ttl = null): bool
     {
-        return $this->cache->set($key, $value, $ttl);
+        return AppService::cache()->set($key, $value, $ttl);
     }
 
     /**
      * @param string $key
      * @throws InvalidArgumentException
      */
-    public function delete($key): bool
+    public function delete(string $key): bool
     {
-        return $this->cache->delete($key);
+        return AppService::cache()->delete($key);
     }
 
     public function clear(): bool
     {
-        return $this->cache->clear();
+        return AppService::cache()->clear();
     }
 
     /**
@@ -55,10 +55,9 @@ class RedisCache implements CacheInterface
      * @param mixed|null $default
      * @return iterable
      */
-    public function getMultiple($keys, $default = null): iterable
+    public function getMultiple(iterable $keys, $default = null): iterable
     {
-        $values = $this->cache->getMultiple($keys, $default);
-        return $values;
+        return AppService::cache()->getMultiple($keys, $default);
     }
 
     /**
@@ -66,26 +65,26 @@ class RedisCache implements CacheInterface
      * @param \DateInterval|int|null $ttl
      * @return bool
      */
-    public function setMultiple($values, $ttl = null): bool
+    public function setMultiple(iterable $values, \DateInterval|int $ttl = null): bool
     {
-        return $this->cache->setMultiple($values, $ttl);
+        return AppService::cache()->setMultiple($values, $ttl);
     }
 
     /**
      * @param iterable $keys
      * @return bool
      */
-    public function deleteMultiple($keys): bool
+    public function deleteMultiple(iterable $keys): bool
     {
-        return $this->cache->deleteMultiple($keys);
+        return AppService::cache()->deleteMultiple($keys);
     }
 
     /**
      * @param string $key
      * @throws InvalidArgumentException
      */
-    public function has($key): bool
+    public function has(string $key): bool
     {
-        return $this->cache->has($key);
+        return AppService::cache()->has($key);
     }
 }

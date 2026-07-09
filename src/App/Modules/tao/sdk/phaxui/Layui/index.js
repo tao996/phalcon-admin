@@ -1349,11 +1349,11 @@ const admin = {
          *         const query = '?search=1&month=' + data['month'] + '&customer_id=' + customerId;
          *         switch (d.event) {
          *             case 'payment':
-         *                 const url1 = 'echo $vv->urlModule("yihe/payment")' + query;
+         *                 const url1 = 'echo \Phax\Foundation\AppService::urlModule("yihe/payment")' + query;
          *                 admin.iframe.open(url1, {title: '客户付款记录'});
          *                 break;
          *             case 'trip':
-         *                 const url2 = 'echo $vv->urlModule("yihe/trip")' + query;
+         *                 const url2 = 'echo \Phax\Foundation\AppService::urlModule("yihe/trip")' + query;
          *                 admin.iframe.open(url2, {title: '客户出车记录'});
          *         }
          *     }

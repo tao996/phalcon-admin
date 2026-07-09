@@ -5,6 +5,7 @@ namespace App\Modules\tao\Helper\Auth;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
 
@@ -20,7 +21,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
 
     public static function check(MyMvcHelper $mvc): bool
     {
-        return $mvc->request()->hasHeader('Authorization');
+        return AppService::request()->hasHeader('Authorization');
     }
 
     /**
@@ -28,7 +29,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
      */
     public function data(): void
     {
-        $authData = $this->mvc->request()->getHeader('Authorization');
+        $authData = AppService::request()->getHeader('Authorization');
         if (!empty($authData)) {
             $this->data = json_decode($authData, true);
             try {
@@ -49,7 +50,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
     {
         if (!empty($this->data['token'])) {
             $userId = $this->mvc->authRedisData()->getUserId($this->data['token'], 'app');
-            if ('logout' != $this->mvc->route()->getAction()) {
+            if ('logout' != AppService::route()->getAction()) {
                 $secret = $this->mvc->authRedisData()->getTokenValue($this->data['token']);
                 if (!$secret) {
                     throw new BusinessException('登录凭证过期或不存在', [

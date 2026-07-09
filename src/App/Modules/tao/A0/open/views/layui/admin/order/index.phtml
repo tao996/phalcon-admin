@@ -66,7 +66,7 @@ use App\Modules\tao\A0\open\Models\OpenOrder;
 
 <?php $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.open/admin.order") ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.open/admin.order") ?>';
 
     const mapChannel = <?php echo json_encode(OpenOrder::MapChannel)?>;
     const mapTradeType = <?php echo json_encode(OpenOrder::MapTradeType) ?>;

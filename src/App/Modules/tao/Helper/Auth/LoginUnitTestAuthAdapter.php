@@ -4,6 +4,7 @@ namespace App\Modules\tao\Helper\Auth;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Foundation\AppService;
 
 class LoginUnitTestAuthAdapter extends LoginAuthAdapter
 {
@@ -13,12 +14,12 @@ class LoginUnitTestAuthAdapter extends LoginAuthAdapter
 
     public static function check(MyMvcHelper $mvc): bool
     {
-        return $mvc->request()->hasHeader(self::HeaderKeyName);
+        return AppService::request()->hasHeader(self::HeaderKeyName);
     }
 
     public function data(): void
     {
-        $this->userId = (int)$this->mvc->request()->getHeader(self::HeaderKeyName);
+        $this->userId = (int)AppService::request()->getHeader(self::HeaderKeyName);
     }
 
     public function getUser(): SystemUser|null

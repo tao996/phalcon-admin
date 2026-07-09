@@ -7,6 +7,7 @@ use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use App\Modules\tao\A0\open\Service\OpenMchService;
 use App\Modules\tao\A0\open\Service\OpenUserService;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
@@ -43,7 +44,7 @@ class PayController extends BaseOpenController
         }
         $this->helper->wechatHelper()->quickOpenid([
             'appid' => $appid,
-            'target' => $this->vv->urlModule('tao.wechat/demo.pay/jsapi')
+            'target' => AppService::urlModule('tao.wechat/demo.pay/jsapi')
         ]);
         throw new BlankException();
     }

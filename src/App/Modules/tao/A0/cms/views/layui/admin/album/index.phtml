@@ -65,7 +65,7 @@
 <?php
 $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.cms/admin.album", false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.cms/admin.album", false) ?>';
     admin.table.with({url: prefix})
         .render({
             toolbar: '#toolbar',
@@ -99,7 +99,7 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
             events: function (obj) {
                 if ('preview' === obj.event) {
                     const d = obj.data;
-                    admin.iframe.open("<?php echo $vv->urlModule('tao.cms/admin.album/preview') ?>?id=" + d.id, {
+                    admin.iframe.open("<?php echo \Phax\Foundation\AppService::urlModule('tao.cms/admin.album/preview') ?>?id=" + d.id, {
                         title: '图集预览',
                         full: true,
                     })

@@ -7,8 +7,10 @@ use App\Modules\tao\A0\open\Service\OpenAppService;
 use App\Modules\tao\A0\open\Service\OpenUserService;
 use App\Modules\tao\Models\SystemUser;
 
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 class MiniController extends BaseOpenMiniController
@@ -27,7 +29,7 @@ class MiniController extends BaseOpenMiniController
         $this->mustPostMethod();
 
         // 用户传上来的资料信息
-        $this->vv->validate()->check($this->requestData, ['code' => 'required']);
+        Validate::checkData($this->requestData, ['code' => 'required']);
         $code = $this->requestData['code'];
         if (empty($code)) {
             throw new BusinessException('code 参数不能为空');
@@ -58,7 +60,7 @@ class MiniController extends BaseOpenMiniController
     public function qRCodeAction()
     {
         $appid = $this->getAppid();
-        $this->vv->validate()->check($this->requestData, [
+        Validate::checkData($this->requestData, [
             'scene|场景值' => 'required|strlenmax:32'
         ]);
         /*
@@ -80,6 +82,6 @@ class MiniController extends BaseOpenMiniController
         $app = $this->openMvcHelper->application()->getMini($appid);
         $response = $app->getClient()->postJson('/wxa/getwxacodeunlimit', $data);
 
-        $this->openMvcHelper->mvc->responseMimeType(['Content-Type' => 'image/jpeg'], $response->getContent());
+        AppService::responseMimeType(['Content-Type' => 'image/jpeg'], $response->getContent());
     }
 }

@@ -6,6 +6,7 @@ use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Service\OpenAppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
+use Phax\Support\Validate;
 
 /**
  * 公众号授权
@@ -66,7 +67,7 @@ class AuthController extends BaseOpenController
     public function codeAction()
     {
         $data = $this->request->getQuery();
-        $this->vv->validate()->check($data, ['appid' => 'required', 'code' => 'required']);
+        Validate::checkData($data, ['appid' => 'required', 'code' => 'required']);
         $appid = $data['appid'];
         $code = $data['code'];
         $app = $this->helper->application()->getOfficial($appid);

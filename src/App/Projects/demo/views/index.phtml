@@ -3,7 +3,9 @@
 /**
  * @var \Phax\Helper\MyMvc $vv
  */
-$config = $vv->config();
+
+use Phax\Foundation\AppService;
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -13,7 +15,7 @@ $config = $vv->config();
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title><?php
-        echo $config->getString('app.title') ?> - 应用</title>
+        echo AppService::config()->getString('app.title') ?> - 应用</title>
 </head>
 <body>
 
@@ -29,11 +31,11 @@ echo $this->getContent() ?>
 <pre>
 <?php
 echo '<h2>route->routerOptions</h2>';
-print_r($vv->route()->routerOptions);
+print_r(AppService::route()->routerOptions);
 echo '<h2>route->urlOptions</h2>';
-print_r($vv->route()->urlOptions);
+print_r(AppService::route()->urlOptions);
 echo '<h2>route->origin()</h2>';
-print_r($vv->route()->appOrigin());
+print_r(AppService::route()->appOrigin());
 ?>
 </pre>
 </body>

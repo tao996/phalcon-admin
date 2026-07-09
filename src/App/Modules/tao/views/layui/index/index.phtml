@@ -5,7 +5,7 @@
 
 use Phax\Foundation\AppService;
 
-$indexWelcome = $vv->urlWith(\App\Modules\tao\Config\Config::indexWelcome());
+$indexWelcome = AppService::urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = $vv->user();
 $vv->layui();
@@ -31,7 +31,7 @@ $vv->layui();
         <?php include __DIR__.'/admin.css'?>
 
         .layadmin-side-shrink .layui-logo {
-            background-image: url(<?php echo $vv->config()->getString('app.logo') ?>)
+            background-image: url(<?php echo AppService::config()->getString('app.logo') ?>)
         }
 
         .layui-logo {
@@ -156,10 +156,10 @@ $vv->layui();
                     </a>
                 </li>
                 <?php
-                if ($vv->isDemo()) { ?>
+                if (AppService::isDemo()) { ?>
                     <li class="layui-nav-item" lay-unselect>
                         <a href="javascript:void;" style="color: orangered" title="警告：当前处于演示模式">
-                            db:<?php echo $vv->config()->getString('database.stores.mysql.dbname', 'NONE') ?>
+                            db:<?php echo AppService::config()->getString('database.stores.mysql.dbname', 'NONE') ?>
                         </a>
                     </li>
                     <?php
@@ -205,11 +205,11 @@ $vv->layui();
                     </a>
                     <dl class="layui-nav-child" style="text-align: center;">
                         <dd><a lay-href="<?php
-                            echo $vv->urlModule('tao/user.index/index') ?>"
+                            echo \Phax\Foundation\AppService::urlModule('tao/user.index/index') ?>"
                                data-tips="基本資料">基本资料 <span
                                         class="layui-badge-dot"></span></a></dd>
                         <dd><a lay-href="<?php
-                            echo $vv->urlModule('tao/user.index/password') ?>"
+                            echo \Phax\Foundation\AppService::urlModule('tao/user.index/password') ?>"
                                data-tips="修改密碼">修改密码</a></dd>
                         <hr>
                         <dd lay-on="logout" style="text-align: center;"><a href="javascript:;">退出</a></dd>
@@ -233,8 +233,8 @@ $vv->layui();
             </div>
             <div class="layui-side-scroll">
                 <div class="layui-logo" lay-href="<?php
-                echo $vv->urlModule('tao') ?>">
-                    <span><?= $vv->config()->getString('app.title') ?></span>
+                echo \Phax\Foundation\AppService::urlModule('tao') ?>">
+                    <span><?= AppService::config()->getString('app.title') ?></span>
                 </div>
                 <!-- 显示模块菜单 -->
                 <div id="menuTree">
@@ -355,12 +355,12 @@ $vv->layui()->footer();
         },
         clear: function () {
             admin.ajax.get({
-                url: '<?= $vv->urlModule("tao/user.index/clear", true) ?>'
+                url: '<?= \Phax\Foundation\AppService::urlModule("tao/user.index/clear", true) ?>'
             })
         },
         logout: function () {
             admin.ajax.get({
-                url: '<?= $vv->urlModule("tao/user.index/logout", true) ?>'
+                url: '<?= \Phax\Foundation\AppService::urlModule("tao/user.index/logout", true) ?>'
             }, function (rst) {
                 admin.cache.clear();
                 setTimeout(function () {

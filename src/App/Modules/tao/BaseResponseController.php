@@ -5,6 +5,7 @@ namespace App\Modules\tao;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
 use Phax\Db\QueryBuilder;
+use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
@@ -66,7 +67,7 @@ class BaseResponseController extends Controller
     {
         if ($data instanceof \Psr\Http\Message\ResponseInterface) {
             $responseBody = $data->getBody()->getContents();
-            $this->vv->response()->setStatusCode($data->getStatusCode())
+            AppService::response()->setStatusCode($data->getStatusCode())
                 ->setContent($responseBody)
                 ->send();
             return true;
@@ -160,7 +161,7 @@ class BaseResponseController extends Controller
         HtmlAssets::initWithCdn();
         // 渲染视图所需要用到的常量： PATH_TAO 的相关路径
         require_once __DIR__ . '/Common/common.php';
-        $this->vv->route()->theme = $this->theme;
+        AppService::route()->theme = $this->theme;
         if ($this->disabledMainLayout) {
             $this->view->disableLevel(\Phalcon\Mvc\View::LEVEL_MAIN_LAYOUT);
         }
@@ -181,7 +182,7 @@ class BaseResponseController extends Controller
         }
         // 如果定义了移动版模板
         if (isset($this->mobileTemplate[$action]) && $this->vv->isMobile()) {
-            $this->vv->route()->setPickView($this->mobileTemplate[$action]);
+            AppService::route()->setPickView($this->mobileTemplate[$action]);
         }
         return parent::beforeViewResponse($data);
     }

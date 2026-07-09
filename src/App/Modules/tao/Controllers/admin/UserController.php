@@ -203,7 +203,7 @@ class UserController extends BaseController
                     throw new BusinessException('必须提供旧密码');
                 }
                 if (!empty($user->password)) {
-                    if (!$this->vv->security()->checkHash($data['old_password'], $user->password)) {
+                    if (!AppService::security()->checkHash($data['old_password'], $user->password)) {
                         throw new BusinessException('旧密码错误');
                     }
                 }

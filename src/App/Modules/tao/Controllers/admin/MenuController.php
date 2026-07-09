@@ -11,6 +11,7 @@ use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use App\Modules\tao\Services\MenuService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 use Phax\Db\QueryBuilder;
 
@@ -76,7 +77,7 @@ class MenuController extends BaseController
 
     private function saveData(SystemMenu $model, array $data)
     {
-        $this->vv->validate()->check($data, [
+        Validate::checkData($data, [
             'pid|上级菜单' => 'require',
             'title|菜单名称' => 'require',
         ]);

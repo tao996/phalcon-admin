@@ -68,7 +68,7 @@
                     return;
                 }
                 admin.ajax.postLimit({
-                    url: '<?php echo $vv->urlModule('tao/user.index/phone-code', true) ?>',
+                    url: '<?php echo \Phax\Foundation\AppService::urlModule('tao/user.index/phone-code', true) ?>',
                     data: {phone: phoneE.val()},
                 }, function (data) {
                     seconds = 60;

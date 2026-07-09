@@ -41,7 +41,7 @@ use App\Modules\tao\A0\cms\Models\CmsCategory;
 <?php
 $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.cms/admin.category", false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.cms/admin.category", false) ?>';
     const mapKind = <?php echo json_encode(CmsCategory::mapKind()) ?>;
 
     // https://layui.dev/docs/2/treeTable

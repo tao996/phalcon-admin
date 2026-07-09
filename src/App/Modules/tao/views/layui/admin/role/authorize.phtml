@@ -2,6 +2,9 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+
+use Phax\Foundation\AppService;
+
 ?>
 <form class="layui-form">
 
@@ -37,7 +40,7 @@ $vv->layui()->addWindowConfig([])->footer();
 ?>
 <script type="text/javascript">
     const treeId = 'nodeDataId';
-    const id = <?php echo $vv->request()->getQuery('id', 'int', 0) ?>;
+    const id = <?php echo AppService::request()->getQuery('id', 'int', 0) ?>;
     // 获取节点列表
     admin.ajax.get({
         url: window.location.href,

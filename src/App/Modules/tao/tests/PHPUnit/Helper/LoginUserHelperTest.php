@@ -73,7 +73,7 @@ class LoginUserHelperTest extends TestCase
     public function testMenuCountMatch(): void
     {
         $titles = $this->getMenuTreeTitles();
-        $totalMenus = SystemMenu::queryBuilder(self::$mvc->getDi())
+        $totalMenus = SystemMenu::queryBuilder()
             ->int('status', 1)
             ->notEqual('pid', 99999999) // HOME_PID
             ->findColumn('id, pid');

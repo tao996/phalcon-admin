@@ -14,6 +14,7 @@ use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\UserService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
+use Phax\Support\Validate;
 
 class AuthController extends BaseOpenMiniController
 {
@@ -121,7 +122,7 @@ class AuthController extends BaseOpenMiniController
      */
     public function loginAction(): array
     {
-        $this->vv->validate()->check($this->requestData, [
+        Validate::checkData($this->requestData, [
             'account|账号' => 'required',
             'password|密码' => 'required'
         ]);

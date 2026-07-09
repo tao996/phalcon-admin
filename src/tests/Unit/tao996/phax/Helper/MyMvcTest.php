@@ -3,6 +3,7 @@
 namespace Tests\Unit\tao996\phax\Helper;
 
 use Phax\Foundation\Application;
+use Phax\Foundation\AppService;
 use Phax\Foundation\Route;
 use Phax\Helper\MyMvc;
 use PHPUnit\Framework\TestCase;
@@ -30,19 +31,19 @@ class MyMvcTest extends TestCase
 
     public function testUrlModuleWithApi(): void
     {
-        $url = $this->myMvc->urlModule('a/b/c', true);
+        $url = AppService::urlModule('a/b/c', true);
         $this->assertEquals('http://localhost:8071/en/api/m/a/b/c', $url);
     }
 
     public function testUrlModuleWithoutOrigin(): void
     {
-        $url = $this->myMvc->urlModule('a/b/c', false);
+        $url = AppService::urlModule('a/b/c', false);
         $this->assertEquals('/en/m/a/b/c', $url);
     }
 
     public function testUrlModuleWithQuery(): void
     {
-        $url = $this->myMvc->urlModule('a/b/c', ['page' => 1]);
+        $url = AppService::urlModule('a/b/c', ['page' => 1]);
         $this->assertEquals('http://localhost:8071/en/m/a/b/c?page=1', $url);
     }
 
@@ -66,13 +67,13 @@ class MyMvcTest extends TestCase
 
     public function testUrlWith(): void
     {
-        $url = $this->myMvc->urlWith('/search', ['q' => 'test']);
+        $url = AppService::urlWith('/search', ['q' => 'test']);
         $this->assertEquals('http://localhost:8071/en/search?q=test', $url);
     }
 
     public function testUrlWithNoQuery(): void
     {
-        $url = $this->myMvc->urlWith('/about');
+        $url = AppService::urlWith('/about');
         $this->assertEquals('http://localhost:8071/en/about', $url);
     }
 }

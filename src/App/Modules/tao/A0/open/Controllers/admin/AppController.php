@@ -8,6 +8,7 @@ use App\Modules\tao\A0\open\Models\OpenApp;
 use App\Modules\tao\A0\open\Service\OpenAppService;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 /**
@@ -40,7 +41,7 @@ class AppController extends BaseOpenController
 
     protected function beforeModelAssign($data): array
     {
-        $this->vv->validate()->check($data, [
+        Validate::checkData($data, [
             'appid' => 'required',
             'platform|平台' => 'required',
             'title|应用名称' => 'required',
@@ -67,7 +68,7 @@ class AppController extends BaseOpenController
         $this->mustPostMethod();
         $data = $this->request->getPost();
 
-        $this->vv->validate()->check($data, [
+        Validate::checkData($data, [
             'id' => 'required|int',
             'name' => 'required|in:public_key,rsa_public_key,rsa_private_key',
         ]);

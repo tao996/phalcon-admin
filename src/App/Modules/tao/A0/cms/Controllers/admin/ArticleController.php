@@ -11,6 +11,7 @@ use App\Modules\tao\Services\UploadfileService;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 /**
@@ -70,7 +71,7 @@ class ArticleController extends BaseController
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
 
-            $this->vv->validate()->check($data, [
+            Validate::checkData($data, [
                 'cate_id|栏目' => 'required',
                 'title|标题' => 'required',
                 'content|内容' => 'required'
@@ -141,7 +142,7 @@ class ArticleController extends BaseController
     {
         $this->mustPostMethod();
         $data = $this->request->getPost();
-        $this->vv->validate()->check($data, [
+        Validate::checkData($data, [
             'id' => 'required|int',
             'cstatus' => 'in:' . join(',', array_keys(CmsArticle::mapCheckStatus())),
         ]);

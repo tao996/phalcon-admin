@@ -207,7 +207,7 @@ Three view types:
 <table id="table" class="layui-hide"></table>
 <?php $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.module/controller", false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.module/controller", false) ?>';
     admin.table.with({url: prefix}).render({toolbar: '#toolbar', cols: [[
         {type: 'checkbox'},
         {field: 'id', title: 'ID', width: 50},
@@ -245,7 +245,7 @@ The `add.phtml` is typically just `<?php require_once __DIR__ . '/edit.phtml'; ?
 | Expression | Purpose |
 |---|---|
 | `$vv->pick('field')` | Output field value from controller return array |
-| `$vv->urlModule("tao.module/ctrl", false)` | Generate URL prefix for AJAX calls |
+| `\Phax\Foundation\AppService::urlModule("tao.module/ctrl", false)` | Generate URL prefix for AJAX calls |
 | `$vv->html()->pickCompare('field', 'checked')` | Output `checked` if field is truthy (checkboxes/switches) |
 | `$vv->layui()->addWindowConfig([])->footer()` | Required footer for admin modals |
 | `admin.table.with({url})` | Layui table binding JS helper |

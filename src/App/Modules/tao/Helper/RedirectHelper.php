@@ -2,6 +2,7 @@
 
 namespace App\Modules\tao\Helper;
 
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 
 class RedirectHelper
@@ -16,7 +17,7 @@ class RedirectHelper
     {
         if (!empty($redirect)) {
             if (in_array('cookie', $drivers)) {
-                $this->mvc->cookies()->set(self::$keyRedirect, $redirect);
+                AppService::cookies()->set(self::$keyRedirect, $redirect);
 //                cookies()->send(); 你需要自己调用
                 return true;
             } elseif (in_array('session', $drivers)) {
@@ -29,7 +30,7 @@ class RedirectHelper
 
     public function query(string $defaultValue = ''): string
     {
-        return $this->mvc->request()->getQuery(self::$keyRedirect, null, $defaultValue);
+        return AppService::request()->getQuery(self::$keyRedirect, null, $defaultValue);
     }
 
     /**
@@ -39,12 +40,12 @@ class RedirectHelper
      */
     public function read(bool $response = true, array $drivers = ['session']): string
     {
-        $redirect = $this->mvc->request()->getQuery(self::$keyRedirect);
+        $redirect = AppService::request()->getQuery(self::$keyRedirect);
 
         if (empty($redirect) && in_array('cookie', $drivers)) {
-            if ($this->mvc->cookies()->has(self::$keyRedirect)) {
-                $redirect = $this->mvc->cookies()->get(self::$keyRedirect)->getValue();
-                $this->mvc->cookies()->delete(self::$keyRedirect);
+            if (AppService::cookies()->has(self::$keyRedirect)) {
+                $redirect = AppService::cookies()->get(self::$keyRedirect)->getValue();
+                AppService::cookies()->delete(self::$keyRedirect);
             }
         }
         if (empty($redirect) && in_array('session', $drivers)) {
@@ -53,7 +54,7 @@ class RedirectHelper
             }
         }
 
-        $href = $redirect ? urldecode($redirect) : $this->mvc->urlWith('/m/tao/index/index');
+        $href = $redirect ? urldecode($redirect) : AppService::urlWith('/m/tao/index/index');
         if ($response) {
             $this->mvc->responseHelper()->redirect($href);
             throw new BlankException();

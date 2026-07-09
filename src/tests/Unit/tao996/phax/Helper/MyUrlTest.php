@@ -1,6 +1,7 @@
 <?php
 namespace Tests\Unit\tao996\phax\Helper;
 
+use Phax\Foundation\AppService;
 use Phax\Foundation\Route;
 use Phax\Helper\MyMvc;
 use Phax\Helper\MyUrlBuilder;
@@ -158,6 +159,6 @@ class MyUrlTest extends TestCase
     public function testUrlWithBuilder(array $options, string $expected): void
     {
         $this->setUpMyMvc();
-        $this->assertEquals($expected, $this->myMvc->url($options));
+        $this->assertEquals($expected, AppService::url($options));
     }
 }

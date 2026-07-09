@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper\Auth;
 
 use App\Modules\tao\Helper\MyMvcHelper;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 
 
@@ -21,17 +22,17 @@ class AuthRedisData
     public function delToken(string $token): void
     {
         $gToken = $this->getRedisKey($token);
-        $this->mvc->redis()->del($gToken);
+       AppService::redis()->del($gToken);
     }
 
     public function setToken(string $token, mixed $value, $options = null)
     {
-        $this->mvc->redis()->set($this->getRedisKey($token), $value, $options);
+        AppService::redis()->set($this->getRedisKey($token), $value, $options);
     }
 
     public function setTokenExpire(string $token, int $seconds)
     {
-        $this->mvc->redis()->expire($this->getRedisKey($token), $seconds);
+        AppService::redis()->expire($this->getRedisKey($token), $seconds);
     }
 
     /**
@@ -42,13 +43,13 @@ class AuthRedisData
      */
     public function getTtl(string $token): int
     {
-        return $this->mvc->redis()->ttl($this->getRedisKey($token)) ?: 0;
+        return AppService::redis()->ttl($this->getRedisKey($token)) ?: 0;
     }
 
     public function getTokenValue(string $token)
     {
         $gToken = $this->getRedisKey($token);
-        return $this->mvc->redis()->get($gToken);
+        return AppService::redis()->get($gToken);
     }
 
     /**

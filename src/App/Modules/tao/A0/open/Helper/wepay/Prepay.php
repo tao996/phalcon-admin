@@ -6,6 +6,7 @@ use App\Modules\tao\A0\open\Models\OpenOrder;
 use App\Modules\tao\A0\open\Service\OpenUserService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
+use Phax\Support\Validate;
 
 /**
  * 微信下单服务
@@ -70,7 +71,7 @@ class Prepay extends AbstractWepay
      */
     public function prepay(OpenOrder $order, array $jsapiData, bool $demo = false): array
     {
-        $this->helper->mvc->validate()->check($jsapiData, [
+        Validate::checkData($jsapiData, [
             'description|商品描述' => 'required',
         ]);
         $notify_url = $this->notify_url;

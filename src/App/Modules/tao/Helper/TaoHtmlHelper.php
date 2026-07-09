@@ -14,11 +14,11 @@ class TaoHtmlHelper
      * jsCaptcha(captcha => {
      *      const postData = Object.assign(data.field, {captcha});
      *      admin.ajax.post({
-     *          url: '<?php echo $vv->urlModule('tao/auth/forgot') ?>', data: postData,
+     *          url: '<?php echo \Phax\Foundation\AppService::urlModule('tao/auth/forgot') ?>', data: postData,
      *      }, function () {
      *          admin.layer.success('邮件已发送，请查收');
      *          setTimeout(function () {
-     *          location.href = '<?php echo $vv->urlModule('tao/auth') ?>';
+     *          location.href = '<?php echo \Phax\Foundation\AppService::urlModule('tao/auth') ?>';
      *      }, 1500);
      * });
      * </pre>

@@ -73,25 +73,17 @@ class MyMvcHelper extends MyMvc
      */
     public function appendTemplateJs(): bool
     {
-        $theme = $this->route()->theme;
-        $pickName = $this->pickName ?: $this->route()->getPickView(true);
+        $theme = AppService::route()->theme;
+        $pickName = $this->pickName ?: AppService::route()->getPickView(true);
         $jsFile = join(
                 '/',
                 $theme
-                    ? [$this->route()->getViewDIR(), $theme, $pickName]
-                    : [$this->route()->getViewDIR(), $pickName]
+                    ? [AppService::route()->getViewDIR(), $theme, $pickName]
+                    : [AppService::route()->getViewDIR(), $pickName]
             ) . '.js';
         return $this->html()->includeAssetsFile($jsFile, 'js');
     }
 
-    /**
-     * 模板目录
-     * @return string
-     */
-    public function viewsDir(): string
-    {
-        return $this->view()->getViewsDir();
-    }
 
     public function layui(): Layui
     {

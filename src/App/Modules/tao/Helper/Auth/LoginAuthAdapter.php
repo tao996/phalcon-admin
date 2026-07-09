@@ -4,6 +4,7 @@ namespace App\Modules\tao\Helper\Auth;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Foundation\AppService;
 
 abstract class LoginAuthAdapter
 {
@@ -15,8 +16,8 @@ abstract class LoginAuthAdapter
     {
         $this->is_redis_adapter = $mvc->session()->getAdapter() instanceof \Phalcon\Session\Adapter\Redis;
         if ($this->is_redis_adapter) {
-            $this->session_prefix = $mvc->config()->getString('session.stores.redis.prefix');
-            $this->lifetime = $mvc->config()->getInt('session.stores.redis.lifetime');
+            $this->session_prefix = AppService::config()->getString('session.stores.redis.prefix');
+            $this->lifetime = AppService::config()->getInt('session.stores.redis.lifetime');
         }
     }
 

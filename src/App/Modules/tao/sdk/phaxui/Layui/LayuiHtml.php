@@ -3,6 +3,7 @@
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\Helper\MyMvcHelper;
+use Phax\Foundation\AppService;
 
 class LayuiHtml
 {
@@ -74,7 +75,7 @@ JS,
         $options = array_merge([
             'name' => 'captcha',
             'placeholder' => '验证码',
-            'src' => $this->mvc->urlModule('tao/captcha'),
+            'src' => AppService::urlModule('tao/captcha'),
             'title' => '点击刷新验证码图片'
         ], $options);
 

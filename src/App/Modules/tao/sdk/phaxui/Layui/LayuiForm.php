@@ -4,6 +4,7 @@ namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\Config\Data;
 use App\Modules\tao\Helper\MyMvcHelper;
+use Phax\Foundation\AppService;
 
 class LayuiForm
 {
@@ -387,8 +388,8 @@ JS;
     // CSRF 令牌
     public function csrf(): string
     {
-        $csrfKey = $this->mvc->security()->getTokenKey();
-        $csrfToken = $this->mvc->security()->getToken();
+        $csrfKey = AppService::security()->getTokenKey();
+        $csrfToken = AppService::security()->getToken();
         return '<input type="hidden" name="' . $csrfKey . '" value="' . $csrfToken . '">';
     }
 

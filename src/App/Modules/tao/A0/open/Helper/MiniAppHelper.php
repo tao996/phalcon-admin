@@ -3,8 +3,10 @@
 namespace App\Modules\tao\A0\open\Helper;
 
 use App\Modules\tao\Data\UserBindPlatform;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 class MiniAppHelper
@@ -55,7 +57,7 @@ class MiniAppHelper
      */
     public function sendTemplateMessage(string $appid, array $options): \EasyWeChat\Kernel\HttpClient\Response
     {
-        $this->helper->mvc->validate()->check($options, [
+        Validate::checkData($options, [
             'template_id|模板ID' => 'required',
             'touser|接收者（用户）的 openid' => 'required',
             'data|模板内容' => 'required',
@@ -65,9 +67,9 @@ class MiniAppHelper
         $app = $this->helper->application()->getMini($appid);
         // 测试环境为 $app 提供记录引擎
         if (IS_DEBUG) {
-            $logger = $this->helper->mvc->logger();
+            $logger = AppService::logger();
             if ($logger instanceof \Psr\Log\LoggerInterface) {
-                $app->setLogger($this->helper->mvc->logger());
+                $app->setLogger($logger);
             }
         }
         $api = $app->getClient();

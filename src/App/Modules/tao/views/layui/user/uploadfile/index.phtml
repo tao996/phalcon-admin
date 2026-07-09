@@ -76,7 +76,7 @@
 <?php
 $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao/user.uploadfile", false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao/user.uploadfile", false) ?>';
     const ss = {
         local: '本地', alioss: '阿里云', qnoss: '七牛云', txcos: '腾讯云'
     };

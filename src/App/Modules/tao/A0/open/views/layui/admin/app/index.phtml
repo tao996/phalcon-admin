@@ -51,8 +51,8 @@
 <?php
 $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.open/admin.app", false) ?>';
-    const certURL = '<?php echo $vv->urlModule("tao.open/admin.app/cert", true) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.open/admin.app", false) ?>';
+    const certURL = '<?php echo \Phax\Foundation\AppService::urlModule("tao.open/admin.app/cert", true) ?>';
     const mapKeyTitle = {
         public_key: '平台公钥',
         rsa_public_key: '应用公钥',

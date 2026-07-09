@@ -4,6 +4,7 @@ namespace App\Modules\tao\Helper\Auth;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Foundation\AppService;
 
 class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
 {
@@ -13,18 +14,18 @@ class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
 
     public static function check(MyMvcHelper $mvc): bool
     {
-        return $mvc->isTest() && $mvc->request()->hasHeader(self::HeaderKeyName);
+        return AppService::isTest() && AppService::request()->hasHeader(self::HeaderKeyName);
     }
 
     public function data(): void
     {
-        $authData = $this->mvc->request()->getHeader(self::HeaderKeyName);
+        $authData = AppService::request()->getHeader(self::HeaderKeyName);
 //        pr(
 //            $this->mvc->request()->getHeaders(),
 //            ['authData' => $authData, 'users' => $this->mvc->config()->getTestUsers()]
 //        );
         if ($authData) {
-            $users = $this->mvc->config()->getTestUsers();
+            $users = AppService::config()->getTestUsers();
             if (isset($users[$authData])) {
                 $this->userId = $users[$authData];
                 $this->testUsers = $users;

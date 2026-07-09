@@ -2,6 +2,7 @@
 
 namespace App\Modules\tao\Helper;
 
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 
 class ResponseHelper
@@ -16,10 +17,9 @@ class ResponseHelper
     public function redirectIn(string $action, string $controller = ''): void
     {
         if ($controller == '') {
-            $controller = $this->mvc->router()->getControllerName();
+            $controller = AppService::router()->getControllerName();
         }
-        $this->mvc->response()
-            ->redirect($controller . '/' . $action)
+        AppService::response()->redirect($controller . '/' . $action)
             ->send();
     }
 
@@ -32,8 +32,7 @@ class ResponseHelper
      */
     public function redirect($location = null, bool $externalRedirect = false, int $statusCode = 302): void
     {
-        $this->mvc->response()
-            ->redirect($location, $externalRedirect, $statusCode)
+        AppService::response()->redirect($location, $externalRedirect, $statusCode)
             ->send();
     }
 
@@ -45,8 +44,7 @@ class ResponseHelper
      */
     public function send(mixed $data, int $code = 200)
     {
-        return $this->mvc->response()
-            ->setStatusCode($code)
+        return AppService::response()->setStatusCode($code)
             ->setContent(is_array($data) ? json_encode($data) : $data)
             ->send();
     }
@@ -61,8 +59,8 @@ class ResponseHelper
      */
     public function cookieRemove(string $delName = ''): void
     {
-        if ($this->mvc->request()->hasServer('HTTP_COOKIE')) {
-            $cookies = explode(';', $this->mvc->request()->getServer('HTTP_COOKIE'));
+        if (AppService::request()->hasServer('HTTP_COOKIE')) {
+            $cookies = explode(';', AppService::request()->getServer('HTTP_COOKIE'));
             $delAll = empty($delName);
             foreach ($cookies as $cookie) {
                 $parts = explode('=', $cookie);
@@ -86,8 +84,8 @@ class ResponseHelper
      */
     public function cookieSet(string $name, $value, int $expire = 0): void
     {
-        $cc = $this->mvc->config()->getArray('cookie');
-        $this->mvc->cookies()->set(
+        $cc = AppService::config()->getArray('cookie');
+        AppService::cookies()->set(
             $name,
             $value,
             $expire,
@@ -112,8 +110,7 @@ class ResponseHelper
 
     function json($data): \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
     {
-        $this->mvc->response()
-            ->setContentType('application/json', 'UTF-8')
+        AppService::response()->setContentType('application/json', 'UTF-8')
             ->setContent(json_encode($data))
             ->send();
         throw new BlankException('');

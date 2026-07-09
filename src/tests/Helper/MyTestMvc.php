@@ -4,6 +4,7 @@ namespace Tests\Helper;
 
 use App\Modules\tao\Models\SystemUser;
 use Phax\Foundation\Application;
+use Phax\Foundation\AppService;
 use Phax\Helper\MyMvc;
 
 class MyTestMvc extends MyMvc
@@ -29,7 +30,7 @@ class MyTestMvc extends MyMvc
 
     public function getLoginUser(string $token = 'tao')
     {
-        $tokens = $this->config()->getArray('app.test.tokens');
+        $tokens = AppService::config()->getArray('app.test.tokens');
         if ($userId = $tokens[$token]) {
             return SystemUser::findFirst($userId);
         } else {

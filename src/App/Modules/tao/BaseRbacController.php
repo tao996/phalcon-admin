@@ -6,6 +6,7 @@ use App\Modules\tao\Helper\Auth\LoginAuthAdapter;
 use App\Modules\tao\Helper\LoginAuthHelper;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\RoleService;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
@@ -127,11 +128,11 @@ class BaseRbacController extends BaseResponseController
     public function initialize(): void
     {
         parent::initialize();
-        if ($action = $this->vv->router()->getActionName()) {
+        if ($action = AppService::router()->getActionName()) {
             $this->action = Router::formatNodeName($action);
         } else {
             if ($this->vv->di->has('route')) {
-                $this->action = $this->vv->route()->getAction();
+                $this->action = AppService::route()->getAction();
             }
         }
     }
@@ -242,7 +243,7 @@ class BaseRbacController extends BaseResponseController
         if (!$this->isLogin()) {
             $msg = $this->isApiRequest() ? '您还没有登录' : '您还没有登录，前往登录?';
             // ddd( $this->vv->urlWith('/m/tao/auth/index'));
-            $this->accessDenyResponse($msg, 303, $this->vv->urlWith('/m/tao/auth/index'));
+            $this->accessDenyResponse($msg, 303, AppService::urlWith('/m/tao/auth/index'));
             return;
         }
 
@@ -280,7 +281,7 @@ class BaseRbacController extends BaseResponseController
                 $this->accessDenyResponse('没有访问权限');
             }
         }
-        if (!$user->access($this->vv->route()->getNode())) {
+        if (!$user->access(AppService::route()->getNode())) {
             $this->accessDenyResponse('没有访问节点的权限');
         }
     }

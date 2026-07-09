@@ -6,7 +6,9 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\LogException;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 /**
@@ -30,7 +32,7 @@ class IndexController extends BaseController
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
             $newHeadImg = MyData::getString($data, 'head_img');
-            $this->vv->validate()->hostValidate($newHeadImg);
+            Validate::hostValidate($newHeadImg);
             $user->head_img = $newHeadImg;
             $user->signature = MyData::getString($data, 'signature');
             if ($user->save()) {
@@ -184,9 +186,9 @@ class IndexController extends BaseController
         $ms = $this->vv->loginUserHelper();
         $data = [
             'logoInfo' => [
-                'title' => $this->vv->config()->getString('app.title'),
-                'image' => $this->vv->config()->getString('app.logo'),
-                'href' => $this->vv->urlModule('tao')
+                'title' => AppService::config()->getString('app.title'),
+                'image' => AppService::config()->getString('app.logo'),
+                'href' => AppService::urlModule('tao')
             ],
             'homeInfo' => $ms->getHomeInfo(),
             'menuInfo' => $ms->getMenuTree(),

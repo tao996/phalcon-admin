@@ -32,7 +32,9 @@
 <?php
 /**
  * @var $vv \Phax\Helper\MyMvc
- */ ?>
+ */
+
+use Phax\Foundation\AppService; ?>
 <div style="color: orangered;">
     <div>Flash Message:</div>
     <?php
@@ -54,8 +56,8 @@
 <h5>表单验证</h5>
 <form method="post">
     <?php
-    $tokenKey = $vv->security()->getTokenKey();
-    $tokenValue = $vv->security()->getToken();
+    $tokenKey = AppService::security()->getTokenKey();
+    $tokenValue = AppService::security()->getToken();
 //    \Phax\Support\Logger::info('form', $tokenKey, $tokenValue);
     ?>
     <input type="hidden" name="<?php

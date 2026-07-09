@@ -6,6 +6,7 @@ use App\Modules\demo\Models\Cat;
 
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\Transaction;
+use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
@@ -33,7 +34,7 @@ class TestController extends Controller
     #[RBAC(title: 'RBAC事务')]
     public function transAction(): array
     {
-        $this->vv->isDemo(true);
+        AppService::isDemo(true);
 
         Transaction::db(function () {
             $cat = Cat::findFirst(1);

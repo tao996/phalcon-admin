@@ -10,6 +10,7 @@
 namespace Phax\Helper;
 
 use Phalcon\Mvc\View;
+use Phax\Foundation\AppService;
 use Phax\Support\Logger;
 
 class HtmlHelper
@@ -27,8 +28,8 @@ class HtmlHelper
 
     public function __construct(public MyMvc $mvc)
     {
-        if ($this->mvc->di->has('route') && !$this->mvc->route()->isApiRequest()) {
-            $this->view = $this->mvc->view();
+        if (AppService::has('route') && !AppService::route()->isApiRequest()) {
+            $this->view = AppService::view();
             $this->view->setVar('vv', $this->mvc);
         }
     }
@@ -98,9 +99,9 @@ class HtmlHelper
     {
         $title = $this->get('html_title');
         if ($title) {
-            return $title . ' - ' . $this->mvc->config()->getString('app.title');
+            return $title . ' - ' . AppService::config()->getString('app.title');
         } else {
-            return $this->mvc->config()->getString('app.title');
+            return AppService::config()->getString('app.title');
         }
     }
 
@@ -153,7 +154,7 @@ class HtmlHelper
      */
     public function doneViewResponse(): void
     {
-        $route = $this->mvc->route();
+        $route = AppService::route();
         $route->doneView();
     }
 

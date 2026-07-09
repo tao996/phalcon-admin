@@ -132,7 +132,7 @@ $user = $vv->user();
             maxmin: true, //开启最大化最小化按钮
             area: ['440px', '270px'],
             offset: '20px',
-            content: ['<?php echo $vv->urlModule('tao/user.index/change-phone') ?>', 'no']
+            content: ['<?php echo \Phax\Foundation\AppService::urlModule('tao/user.index/change-phone') ?>', 'no']
         });
     })
     $('#bindChangeEmail').bind('click', function () {
@@ -143,7 +143,7 @@ $user = $vv->user();
             maxmin: true, //开启最大化最小化按钮
             area: ['440px', '270px'],
             offset: '20px',
-            content: ['<?php echo $vv->urlModule('tao/user.index/change-email') ?>', 'no']
+            content: ['<?php echo \Phax\Foundation\AppService::urlModule('tao/user.index/change-email') ?>', 'no']
         });
     });
 

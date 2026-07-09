@@ -2,15 +2,33 @@
 
 namespace Phax\Foundation;
 
-use App\Modules\tao\Helper\LimitRateHelper;
 use Phalcon\Encryption\Security;
 use Phalcon\Http\Request;
+use Phalcon\Http\Response\Cookies;
+use Phalcon\Mvc\View;
+use Phax\Helper\HtmlHelper;
 use Phax\Helper\MyUrlBuilder;
 use Phax\Support\Config;
+use Phax\Support\Exception\BlankException;
 use Phax\Utils\MyData;
 
 class AppService
 {
+    public static function has(string $serviceName): bool
+    {
+        return Application::di()->has($serviceName);
+    }
+
+    public static function getDi(): \Phalcon\Di\Di
+    {
+        return Application::di();
+    }
+
+    public static function view(): View
+    {
+        return Application::di()->getShared('view');
+    }
+
     /**
      * @return Config
      */
@@ -24,9 +42,20 @@ class AppService
         return Application::di()->get('request');
     }
 
+    public static function response(): \Phalcon\Http\ResponseInterface
+    {
+        return Application::di()->getShared('response');
+    }
+
     public static function cache(): \Phalcon\Cache\Cache
     {
         return Application::di()->getShared('cache');
+    }
+
+
+    public static function cookies(): Cookies
+    {
+        return Application::di()->getShared('cookies');
     }
 
     /**
@@ -57,9 +86,32 @@ class AppService
     }
 
 
+    public function router(): \Phalcon\Mvc\Router|\Phalcon\Cli\Router
+    {
+        return Application::di()->getShared('router');
+    }
+
+
     public static function db(): \Phalcon\Db\Adapter\Pdo\AbstractPdo
     {
         return Application::di()->getShared('db');
+    }
+
+
+    public static function pdo(): \PDO
+    {
+        return Application::di()->getShared('pdo');
+    }
+
+    public static function logger(): \Phalcon\Logger\Logger
+    {
+        return Application::di()->getShared('logger');
+    }
+
+
+    public static function metadata(): \Phalcon\Mvc\Model\MetaData
+    {
+        return Application::di()->getShared('modelsMetadata');
     }
 
     /**
@@ -119,9 +171,138 @@ class AppService
         return Application::di()->getShared('redis');
     }
 
-
-    public static function limitRate(string $action, int $userId = 0): LimitRateHelper
+    /**
+     * 是否开启了测试环境
+     * @return bool
+     */
+    public static function isTest(): bool
     {
-        return new LimitRateHelper(self::redis(), $action, $userId);
+        return self::request()->getQuery('test', 'string', '') === 'on'
+            && self::config()->isTest();
+    }
+
+    /**
+     * 是否为演示环境
+     * @return bool
+     */
+    public static function isDemo(bool $must = false): bool
+    {
+        $rst = self::config()->isDemo();
+        if ($must && !$rst) {
+            throw new \Exception('only support in demo mode');
+        }
+        return $rst;
+    }
+
+
+    public static function html(): HtmlHelper
+    {
+        static $obj = null;
+        if (is_null($obj)) {
+            $obj = new HtmlHelper(); // TODO 暂时有问题
+        }
+        return $obj;
+    }
+
+
+    public static function eventsManager(): \Phalcon\Events\Manager
+    {
+        return Application::di()->getShared('eventsManager');
+    }
+
+
+    public static function helper(): \Phalcon\Support\HelperFactory
+    {
+        return Application::di()->getShared('helper');
+    }
+
+
+    /**
+     * 用于返回一些特殊格式的数据，如图片
+     * <pre>
+     * // 输出图片
+     * responseMimeType(['Content-Type' => 'image/jpeg'], $response->getContent())
+     * </pre>
+     * @param array $kvHeaders
+     * @param string $content
+     * @return mixed
+     * @throws BlankException
+     */
+    public static function responseMimeType(array $kvHeaders, string $content): mixed
+    {
+        foreach ($kvHeaders as $k => $v) {
+            header("$k: $v");
+        }
+        echo $content;
+        throw new BlankException();
+    }
+
+
+    /**
+     * 返回 Project 资源路径
+     * @param string $project 应用名称
+     * @param string $pathInView 资源在 views/ 目录下的路径
+     * @return string
+     */
+    public static function projectAsset(string $project, string $pathInView): string
+    {
+        return "/pstatic/{$project}/{$pathInView}";
+    }
+
+    /**
+     * 返回 Module 资源路径
+     * @param string $module 模块名称
+     * @param string $pathInView 资源在 views/ 目录下的路径
+     * @return string
+     */
+    public static function moduleAsset(string $module, string $pathInView): string
+    {
+        return "/mstatic/{$module}/{$pathInView}";
+    }
+
+    /**
+     * 生成一个 module 请求链接
+     * @param string $path 路径
+     * @param array|bool $mixed 如果为 `true` 则表示 `api` 请求；<br>
+     * 如果为 `false` 则表示`不需要 origin`；<br>
+     * 如果为 `array`，则是请求参数
+     * @return string
+     */
+    public static function urlModule(string $path, array|bool $mixed = []): string
+    {
+        $options = [
+            'path' => $path,
+            'module' => true,
+            'origin' => true,
+        ];
+        if ($mixed === true) {
+            $options['api'] = true;
+        } elseif ($mixed === false) {
+            $options['origin'] = '';
+        } elseif (!empty($mixed)) {
+            if (is_array($mixed)) {
+                $mixed = array_filter($mixed, function ($v) {
+                    return $v != '' && $v != 'null' && $v != '0' && $v != 'undefined';
+                });
+            }
+            $options['query'] = $mixed;
+        }
+        return self::url($options);
+    }
+
+
+    /**
+     * 重新整理参数，通常用于 `admin.table.with({url: prefix, query:})` 中
+     * @return array
+     */
+    public static function queryParams(): array
+    {
+        $query = [];
+        foreach (self::request()->getQuery() as $k => $v) {
+            if ($k != '_url' && $v != '' && $v != 'null' && $v != '0' && $v != 'undefined') {
+                $query[$k] = $v;
+            }
+        }
+        return $query;
     }
 }

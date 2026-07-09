@@ -58,7 +58,7 @@
 <?php
 $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.cms/admin.link", false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.cms/admin.link", false) ?>';
     admin.table.with({url: prefix})
         .render({
             toolbar: '#toolbar',

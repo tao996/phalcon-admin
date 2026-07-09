@@ -2,8 +2,11 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
-$csrfToken = $vv->security()->getToken();
-$csrfKey = $vv->security()->getTokenKey();
+
+use Phax\Foundation\AppService;
+
+$csrfToken = AppService::security()->getToken();
+$csrfKey = AppService::security()->getTokenKey();
 ?>
 <blockquote class="layui-elem-quote">
     Demo 表单测试 — 提交后验证数字是否为偶数

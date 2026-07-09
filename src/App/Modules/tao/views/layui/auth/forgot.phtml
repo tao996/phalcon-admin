@@ -3,7 +3,7 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
-$captchaURL = $vv->urlModule('tao/captcha');
+$captchaURL = \Phax\Foundation\AppService::urlModule('tao/captcha');
 $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
 ?>
 
@@ -58,11 +58,11 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
         jsCaptcha(captcha => {
             const postData = Object.assign(data.field, {captcha});
             admin.ajax.post({
-                url: '<?php echo $vv->urlModule('tao/auth/forgot') ?>', data: postData,
+                url: '<?php echo \Phax\Foundation\AppService::urlModule('tao/auth/forgot') ?>', data: postData,
             }, function () {
                 admin.layer.success('邮件已发送，请查收');
                 setTimeout(function () {
-                    location.href = '<?php echo $vv->urlModule('tao/auth') ?>';
+                    location.href = '<?php echo \Phax\Foundation\AppService::urlModule('tao/auth') ?>';
                 }, 1500)
 
             })
@@ -72,7 +72,7 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
     });
 
     auth.bindButtons({
-        prefix: "<?php echo $vv->urlModule('/tao/auth/') ?>"
+        prefix: "<?php echo \Phax\Foundation\AppService::urlModule('/tao/auth/') ?>"
     });
 
 </script>

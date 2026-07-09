@@ -98,7 +98,7 @@ use App\Modules\tao\A0\cms\Models\CmsArticle;
 <?php
 $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.cms/admin.article", false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.cms/admin.article", false) ?>';
     const mapCStatus = <?php echo json_encode(CmsArticle::mapCheckStatus()) ?>;
     admin.table.with({url: prefix})
         .render({
@@ -172,7 +172,7 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
                                 form.on('submit(article-check)', data => {
                                     const field = data.field;
                                     admin.ajax.post({
-                                        url: "<?php echo $vv->urlModule('tao.cms/admin.article/cstatus', true) ?>",
+                                        url: "<?php echo \Phax\Foundation\AppService::urlModule('tao.cms/admin.article/cstatus', true) ?>",
                                         data: Object.assign({id: article.id}, field)
                                     }, function () {
                                         admin.layer.close(index)
@@ -190,7 +190,7 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
                             shadeClose: true,
                             maxmin: true, //开启最大化最小化按钮
                             area: ['900px', '600px'],
-                            content: "<?php echo $vv->urlModule(
+                            content: "<?php echo \Phax\Foundation\AppService::urlModule(
                                 'tao.cms/admin.article/preview',
                                 false
                             ) ?>?id=" + article.id,

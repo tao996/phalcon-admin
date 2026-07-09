@@ -65,8 +65,8 @@
 $vv->layui()->addWindowConfig([])->footer();
 ?>
 <script>
-    const prefix = '<?php echo $vv->urlModule("tao.open/admin.mch") ?>';
-    const certURL = '<?php echo $vv->urlModule("tao.open/admin.mch/cert", true) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.open/admin.mch") ?>';
+    const certURL = '<?php echo \Phax\Foundation\AppService::urlModule("tao.open/admin.mch/cert", true) ?>';
 
     admin.table.with({url: prefix})
         .render({

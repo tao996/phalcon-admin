@@ -8,6 +8,7 @@ use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
 
 use Phax\Db\Transaction;
+use Phax\Foundation\AppService;
 use Phax\Mvc\Model;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
@@ -94,7 +95,7 @@ class BaseController extends BaseRbacController
         if ($this->modelQueryColumns) {
             $queryBuilder->columns($this->modelQueryColumns);
         } elseif ($this->modelHiddenColumns) {
-            $columns = $this->vv->metadata()->getAttributes($this->model);
+            $columns = AppService::metadata()->getAttributes($this->model);
             $queryBuilder->columns(
                 array_diff(
                     $columns,
@@ -412,7 +413,7 @@ class BaseController extends BaseRbacController
             'id|ID' => 'int',
             'field|字段' => 'require',
         ];
-        $this->vv->validate()->check($post, $rules);
+        Validate::checkData($post, $rules);
         $rows = array_merge($this->allowModifyFields, $this->appendModifyFields);
 
         if (!in_array($post['field'], $rows)) {
@@ -611,7 +612,7 @@ class BaseController extends BaseRbacController
                 }
             } else {
                 // 检查是否有修改节点的权限
-                if (!$this->vv->loginUserHelper()->access($this->vv->route()->getNode())) {
+                if (!$this->vv->loginUserHelper()->access(AppService::route()->getNode())) {
                     throw new BusinessException('没有修改记录的权限');
                 }
             }

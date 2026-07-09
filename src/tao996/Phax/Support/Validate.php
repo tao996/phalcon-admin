@@ -3,7 +3,6 @@
 namespace Phax\Support;
 
 use Phax\Foundation\AppService;
-use Phax\Helper\MyMvc;
 use Phax\Support\Exception\BusinessException;
 
 /**
@@ -11,7 +10,7 @@ use Phax\Support\Exception\BusinessException;
  */
 class Validate
 {
-    public function __construct(public ?MyMvc $mvc = null)
+    public function __construct()
     {
     }
 
@@ -106,88 +105,181 @@ class Validate
     }
 
     /** 必填 */
-    public function require(): static { return $this->addRule('require', []); }
-    public function required(): static { return $this->addRule('require', []); }
+    public function require(): static
+    {
+        return $this->addRule('require', []);
+    }
+
+    public function required(): static
+    {
+        return $this->addRule('require', []);
+    }
 
     /** 字符串最小长度 */
-    public function min(int|string $min): static { return $this->addRule('min', [(string)$min]); }
+    public function min(int|string $min): static
+    {
+        return $this->addRule('min', [(string)$min]);
+    }
 
     /** 字符串最大长度 */
-    public function max(int|string $max): static { return $this->addRule('max', [(string)$max]); }
+    public function max(int|string $max): static
+    {
+        return $this->addRule('max', [(string)$max]);
+    }
 
     /** 字符串长度范围 */
-    public function len(int|string $min, int|string $max): static { return $this->addRule('strlen', [(string)$min, (string)$max]); }
+    public function len(int|string $min, int|string $max): static
+    {
+        return $this->addRule('strlen', [(string)$min, (string)$max]);
+    }
 
     /** 数值范围 */
-    public function between(int|string $min, int|string $max): static { return $this->addRule('between', [(string)$min, (string)$max]); }
+    public function between(int|string $min, int|string $max): static
+    {
+        return $this->addRule('between', [(string)$min, (string)$max]);
+    }
 
     /** 不在数值范围内 */
-    public function notBetween(int|string $min, int|string $max): static { return $this->addRule('notbetween', [(string)$min, (string)$max]); }
+    public function notBetween(int|string $min, int|string $max): static
+    {
+        return $this->addRule('notbetween', [(string)$min, (string)$max]);
+    }
 
     /** 值必须在列表中 */
-    public function in(array $values): static { return $this->addRule('in', $values); }
+    public function in(array $values): static
+    {
+        return $this->addRule('in', $values);
+    }
 
     /** 值不能在列表中 */
-    public function notIn(array $values): static { return $this->addRule('notin', $values); }
+    public function notIn(array $values): static
+    {
+        return $this->addRule('notin', $values);
+    }
 
     /** 电子邮件格式 */
-    public function email(): static { return $this->addRule('email', []); }
+    public function email(): static
+    {
+        return $this->addRule('email', []);
+    }
 
     /** URL 格式 */
-    public function url(): static { return $this->addRule('url', []); }
+    public function url(): static
+    {
+        return $this->addRule('url', []);
+    }
 
     /** 纯字母 */
-    public function alpha(): static { return $this->addRule('alpha', []); }
+    public function alpha(): static
+    {
+        return $this->addRule('alpha', []);
+    }
 
     /** 字母数字 */
-    public function alnum(): static { return $this->addRule('alnum', []); }
+    public function alnum(): static
+    {
+        return $this->addRule('alnum', []);
+    }
 
     /** 纯数字字符串 */
-    public function digit(): static { return $this->addRule('digit', []); }
+    public function digit(): static
+    {
+        return $this->addRule('digit', []);
+    }
 
     /** 整数 */
-    public function int(): static { return $this->addRule('int', []); }
-    public function integer(): static { return $this->addRule('int', []); }
+    public function int(): static
+    {
+        return $this->addRule('int', []);
+    }
+
+    public function integer(): static
+    {
+        return $this->addRule('int', []);
+    }
 
     /** 浮点数 */
-    public function float(): static { return $this->addRule('float', []); }
+    public function float(): static
+    {
+        return $this->addRule('float', []);
+    }
 
     /** 布尔值 */
-    public function bool(): static { return $this->addRule('bool', []); }
-    public function boolean(): static { return $this->addRule('bool', []); }
+    public function bool(): static
+    {
+        return $this->addRule('bool', []);
+    }
+
+    public function boolean(): static
+    {
+        return $this->addRule('bool', []);
+    }
 
     /** 日期格式 */
-    public function date(string $format = 'Y-m-d'): static { return $this->addRule('date', [$format]); }
+    public function date(string $format = 'Y-m-d'): static
+    {
+        return $this->addRule('date', [$format]);
+    }
 
     /** 正则匹配 */
-    public function regex(string $pattern): static { return $this->addRule('regex', [$pattern]); }
+    public function regex(string $pattern): static
+    {
+        return $this->addRule('regex', [$pattern]);
+    }
 
     /** 等于另一字段的值 */
-    public function confirm(string $field): static { return $this->addRule('confirm', [$field]); }
+    public function confirm(string $field): static
+    {
+        return $this->addRule('confirm', [$field]);
+    }
 
     /** 不等于另一字段的值 */
-    public function different(string $field): static { return $this->addRule('different', [$field]); }
+    public function different(string $field): static
+    {
+        return $this->addRule('different', [$field]);
+    }
 
     /** 等于指定值 */
-    public function equal(string $value): static { return $this->addRule('equal', [$value]); }
+    public function equal(string $value): static
+    {
+        return $this->addRule('equal', [$value]);
+    }
 
     /** 接受（yes/on/1） */
-    public function accepted(): static { return $this->addRule('accepted', []); }
+    public function accepted(): static
+    {
+        return $this->addRule('accepted', []);
+    }
 
     /** 手机号码（通用） */
-    public function phone(): static { return $this->addRule('phone', []); }
+    public function phone(): static
+    {
+        return $this->addRule('phone', []);
+    }
 
     /** 中国大陆手机号码 */
-    public function cnPhone(): static { return $this->addRule('cnphone', []); }
+    public function cnPhone(): static
+    {
+        return $this->addRule('cnphone', []);
+    }
 
     /** IP 地址 */
-    public function ip(): static { return $this->addRule('ip', []); }
+    public function ip(): static
+    {
+        return $this->addRule('ip', []);
+    }
 
     /** 在指定日期之后 */
-    public function after(string $date): static { return $this->addRule('after', [$date]); }
+    public function after(string $date): static
+    {
+        return $this->addRule('after', [$date]);
+    }
 
     /** 在指定日期之前 */
-    public function before(string $date): static { return $this->addRule('before', [$date]); }
+    public function before(string $date): static
+    {
+        return $this->addRule('before', [$date]);
+    }
 
     /**
      * 通用规则（当没有专用方法时使用）
@@ -536,6 +628,12 @@ class Validate
         }
     }
 
+    public static function checkData(array $data, array $rules = [], array $messages = []): void
+    {
+        $obj = new Validate();
+        $obj->check($data, $rules, $messages);
+    }
+
     /**
      * 返回错误验证信息
      * @param array $data
@@ -553,48 +651,48 @@ class Validate
                 // 使用显式 __() 调用，使翻译 key 可被静态提取工具（如 xgettext）发现
                 $message = $messages[$item['name'] . '.' . $row[0]]
                     ?? match ($rr[0]) {
-                        'accepted'    => __('validate.accepted', ':field 的值必须为 yes,on 或者 1'),
-                        'after'       => __('validate.after', ':field 不能晚于 :date'),
-                        'alnum'       => __('validate.alnum', ':field 只能包含字母数字'),
-                        'alpha'       => __('validate.alpha', ':field 只能包含字母'),
-                        'before'      => __('validate.before', ':field 不能早于 :date'),
-                        'between'     => __('validate.between', ':field 值必须在 :min 和 :max 之间'),
-                        'bool'        => __('validate.bool', ':field 值只能是 true 或者 false'),
-                        'cnPhone'     => __('validate.cnPhone', ':field 不是一个有效的 +86 手机号码'),
-                        'phone'       => __('validate.phone', ':field 不是一个有效的手机号码'),
-                        'confirm'     => __('validate.confirm', ':field 值不匹配'),
-                        'creditCard'  => __('validate.creditCard', '不是一个有效的信用卡'),
-                        'date'        => __('validate.date', ':field 不是一个有效的日期'),
-                        'different'   => __('validate.different', ':field 值不能等于 :with'),
-                        'digit'       => __('validate.digit', ':field 必须是一个数字'),
-                        'email'       => __('validate.email', ':field 不是一个有效的电子邮箱地址'),
-                        'equal'       => __('validate.equal', ':field 必须等于指定的值 :accepted'),
-                        'expire'      => __('validate.expire', ':field 必须在指定的时间范围内 :min ~ :max'),
-                        'file.mine'         => __('validate.file.mine', '文件类型错误 :types'),
-                        'file.resolution'   => __('validate.file.resolution', '文件尺寸必须为 :resolution'),
+                        'accepted' => __('validate.accepted', ':field 的值必须为 yes,on 或者 1'),
+                        'after' => __('validate.after', ':field 不能晚于 :date'),
+                        'alnum' => __('validate.alnum', ':field 只能包含字母数字'),
+                        'alpha' => __('validate.alpha', ':field 只能包含字母'),
+                        'before' => __('validate.before', ':field 不能早于 :date'),
+                        'between' => __('validate.between', ':field 值必须在 :min 和 :max 之间'),
+                        'bool' => __('validate.bool', ':field 值只能是 true 或者 false'),
+                        'cnPhone' => __('validate.cnPhone', ':field 不是一个有效的 +86 手机号码'),
+                        'phone' => __('validate.phone', ':field 不是一个有效的手机号码'),
+                        'confirm' => __('validate.confirm', ':field 值不匹配'),
+                        'creditCard' => __('validate.creditCard', '不是一个有效的信用卡'),
+                        'date' => __('validate.date', ':field 不是一个有效的日期'),
+                        'different' => __('validate.different', ':field 值不能等于 :with'),
+                        'digit' => __('validate.digit', ':field 必须是一个数字'),
+                        'email' => __('validate.email', ':field 不是一个有效的电子邮箱地址'),
+                        'equal' => __('validate.equal', ':field 必须等于指定的值 :accepted'),
+                        'expire' => __('validate.expire', ':field 必须在指定的时间范围内 :min ~ :max'),
+                        'file.mine' => __('validate.file.mine', '文件类型错误 :types'),
+                        'file.resolution' => __('validate.file.resolution', '文件尺寸必须为 :resolution'),
                         'file.maxResolution' => __('validate.file.maxResolution', '文件最大尺寸为 :resolution'),
                         'file.minResolution' => __('validate.file.minResolution', '文件最小尺寸为 :resolution'),
-                        'file.size'         => __('validate.file.size', '文件大小必须为 :size'),
-                        'file.maxSize'      => __('validate.file.maxSize', '文件大小最多为 :size'),
-                        'file.minSize'      => __('validate.file.minSize', '文件大小最少为 :size'),
-                        'float'       => __('validate.float', ':field 必须是一个浮点/整数数字'),
-                        'idCard'      => __('validate.idCard', ':field 不是一个有效的中国身份证号'),
-                        'in'          => __('validate.in', ':field 值必须在指定范围内 :domain'),
-                        'int'         => __('validate.int', ':field 必须是一个整数'),
-                        'id'          => __('validate.id', ':field 必须是一个整数'),
-                        'ip'          => __('validate.ip', ':field 不是一个有效的 IP 地址'),
-                        'mac'         => __('validate.mac', ':field 不是一个有效的 Mac 地址'),
-                        'notBetween'  => __('validate.notBetween', ':field 值不能在 :min 和 :max 之间'),
-                        'notin'       => __('validate.notin', ':field 值不能在指定范围内 :domain'),
-                        'regex'       => __('validate.regex', ':field 与指定的正则表达式 :pattern 不匹配'),
-                        'require'     => __('validate.require', ':field 值不能为空'),
-                        'strlen'      => __('validate.strlen', ':field 字符数必须在 :min 到 :max 之间'),
-                        'strlenMax'   => __('validate.strlenMax', ':field 最多 :max 个字符'),
-                        'strlenMin'   => __('validate.strlenMin', ':field 至少 :min 个字符'),
-                        'unique'      => __('validate.unique', ':field 的值已被占用'),
-                        'url'         => __('validate.url', ':field 不是一个有效的 url 地址'),
-                        'zip'         => __('validate.zip', ':field 不是一个有效的邮政编码'),
-                        default       => __('validate.' . $rr[0], ':field 校验未通过'),
+                        'file.size' => __('validate.file.size', '文件大小必须为 :size'),
+                        'file.maxSize' => __('validate.file.maxSize', '文件大小最多为 :size'),
+                        'file.minSize' => __('validate.file.minSize', '文件大小最少为 :size'),
+                        'float' => __('validate.float', ':field 必须是一个浮点/整数数字'),
+                        'idCard' => __('validate.idCard', ':field 不是一个有效的中国身份证号'),
+                        'in' => __('validate.in', ':field 值必须在指定范围内 :domain'),
+                        'int' => __('validate.int', ':field 必须是一个整数'),
+                        'id' => __('validate.id', ':field 必须是一个整数'),
+                        'ip' => __('validate.ip', ':field 不是一个有效的 IP 地址'),
+                        'mac' => __('validate.mac', ':field 不是一个有效的 Mac 地址'),
+                        'notBetween' => __('validate.notBetween', ':field 值不能在 :min 和 :max 之间'),
+                        'notin' => __('validate.notin', ':field 值不能在指定范围内 :domain'),
+                        'regex' => __('validate.regex', ':field 与指定的正则表达式 :pattern 不匹配'),
+                        'require' => __('validate.require', ':field 值不能为空'),
+                        'strlen' => __('validate.strlen', ':field 字符数必须在 :min 到 :max 之间'),
+                        'strlenMax' => __('validate.strlenMax', ':field 最多 :max 个字符'),
+                        'strlenMin' => __('validate.strlenMin', ':field 至少 :min 个字符'),
+                        'unique' => __('validate.unique', ':field 的值已被占用'),
+                        'url' => __('validate.url', ':field 不是一个有效的 url 地址'),
+                        'zip' => __('validate.zip', ':field 不是一个有效的邮政编码'),
+                        default => __('validate.' . $rr[0], ':field 校验未通过'),
                     };
                 if ($item['title']) {
                     $message = str_replace(':field', $item['title'], $message);

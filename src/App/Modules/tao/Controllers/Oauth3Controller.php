@@ -6,6 +6,7 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\sdk\SdkHelper;
 use App\Modules\tao\Services\UserService;
 use Hybridauth\Hybridauth;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
@@ -30,7 +31,7 @@ class Oauth3Controller extends BaseController
             $this->vv->redirectHelper()->read(true);
             return $this->error('请先退出登录');
         }
-        if (!$this->vv->request()->hasQuery('state')) {
+        if (!AppService::request()->hasQuery('state')) {
             if ($redirect = $this->request->getQuery('_redirect')) {
                 // 防止开放重定向攻击：仅允许相对路径或同源绝对路径
                 $decoded = urldecode($redirect);
@@ -46,7 +47,7 @@ class Oauth3Controller extends BaseController
         }
         $driver = strtolower($this->request->getQuery('d'));
         $config = [
-            'callback' => $this->vv->urlModule('tao/oauth3', ['d' => $driver]),
+            'callback' => AppService::urlModule('tao/oauth3', ['d' => $driver]),
             'providers' => [
                 'Google' => $this->vv->registerHelper()->googleProvider(),
             ]

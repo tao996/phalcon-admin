@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Helper;
 
 use App\Modules\tao\sdk\captcha\ImageCaptcha;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 
@@ -20,7 +21,7 @@ class CaptchaHelper
 
     public function __construct(public MyMvcHelper $mvc)
     {
-        $this->local_test = $this->mvc->isTest() || $this->mvc->isDemo();
+        $this->local_test = AppService::isTest() || AppService::isDemo();
         if ($this->local_test && !IS_DEBUG) {
             Logger::warning('验证码在非 DEBUG 模式下被跳过，请检查 isTest/isDemo 配置');
         }
@@ -39,7 +40,7 @@ class CaptchaHelper
             $this->mvc->session()
                 ->set($this->key, $this->secret($captcha->getText()));
         }
-        $captcha->output($this->mvc->response());
+        $captcha->output(AppService::response());
     }
 
     /**

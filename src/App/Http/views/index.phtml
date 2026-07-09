@@ -4,6 +4,8 @@
  * @var \Phax\Helper\MyMvc $vv
  */
 
+use Phax\Foundation\AppService;
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -20,29 +22,29 @@
 <h4>App/Http is the default home page for DEMO</h4>
 <ul>
     <li><a href="<?php
-        echo $vv->urlWith('/') ?>">首页</a></li>
+        echo AppService::urlWith('/') ?>">首页</a></li>
     <li><a href="<?php
-        echo $vv->urlWith('/index/about') ?>">/index/about</a></li>
+        echo AppService::urlWith('/index/about') ?>">/index/about</a></li>
     <li><a href="<?php
-        echo $vv->urlWith('/index/about/phax/5') ?>">/index/about/phax/5</a> 带参数
+        echo AppService::urlWith('/index/about/phax/5') ?>">/index/about/phax/5</a> 带参数
     </li>
     <li><a href="<?php
-        echo $vv->urlWith('/sub.test/abc') ?>">/sub.test/abc</a> 子目录
+        echo AppService::urlWith('/sub.test/abc') ?>">/sub.test/abc</a> 子目录
     </li>
     <li><a href="<?php
-        echo $vv->urlWith('/sub/sub1.me/say') ?>">/sub/sub1.me/say</a> 子模块+子目录
+        echo AppService::urlWith('/sub/sub1.me/say') ?>">/sub/sub1.me/say</a> 子模块+子目录
     </li>
 </ul>
 <h5>App/Projects 多应用</h5>
 <ul>
     <li><a href="<?php
-        echo $vv->urlWith('/p/demo') ?>">/p/demo</a> => /p/demo/index/index => src/App/Projects/demo
+        echo AppService::urlWith('/p/demo') ?>">/p/demo</a> => /p/demo/index/index => src/App/Projects/demo
     </li>
 </ul>
 <h5>App/Modules 多模块</h5>
 <ul>
     <li><a href="<?php
-        echo $vv->urlWith('/m/demo') ?>">/m/demo</a> => /m/demo/index/index => src/App/Modules/demo
+        echo AppService::urlWith('/m/demo') ?>">/m/demo</a> => /m/demo/index/index => src/App/Modules/demo
     </li>
 </ul>
 <h6>~~~~~ start ~~~</h6>
@@ -52,11 +54,11 @@ echo $this->getContent() ?>
 <pre>
 <?php
 echo '<h2>route->routerOptions</h2>';
-print_r($vv->route()->routerOptions);
+print_r(AppService::route()->routerOptions);
 echo '<h2>route->urlOptions</h2>';
-print_r($vv->route()->urlOptions);
+print_r(AppService::route()->urlOptions);
 echo '<h2>route->origin()</h2>';
-print_r($vv->route()->appOrigin());
+print_r(AppService::route()->appOrigin());
 ?>
 </pre>
 </body>

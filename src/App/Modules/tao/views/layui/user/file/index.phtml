@@ -3,6 +3,8 @@
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 
+use Phax\Foundation\AppService;
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -80,12 +82,12 @@ $vv->layui()->footer();
     })
 
 
-    const apiUrl = '<?php echo $vv->urlModule("tao/user.file", false) ?>';
+    const apiUrl = '<?php echo \Phax\Foundation\AppService::urlModule("tao/user.file", false) ?>';
     const tt = admin.table.with({url: apiUrl})
         .render({
             defaultToolbar: '-',
             cols: [[
-                {type: "<?php echo $vv->request()->getQuery('type') === 'checkbox' ? 'checkbox' : 'radio' ?>"},
+                {type: "<?php echo AppService::request()->getQuery('type') === 'checkbox' ? 'checkbox' : 'radio' ?>"},
                 {
                     field: 'created_at',
                     width: 120,

@@ -4,6 +4,7 @@ namespace App\Modules\tao\Helper\Auth;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
+use Phax\Foundation\AppService;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -18,7 +19,7 @@ class LoginCookieAuthAdapter extends LoginAuthAdapter
 
     public static function check(MyMvcHelper $mvc): bool
     {
-        return $mvc->cookies()->has('Authorization');
+        return AppService::cookies()->has('Authorization');
     }
 
     public function data(): void
@@ -67,7 +68,7 @@ class LoginCookieAuthAdapter extends LoginAuthAdapter
     {
         if ($this->authValue) {
             $this->mvc->authRedisData()->delToken($this->authValue);
-            $this->mvc->cookies()->get('Authorization')->delete();
+            AppService::cookies()->get('Authorization')->delete();
         }
         $this->mvc->responseHelper()->cookieRemove();
     }

@@ -3,7 +3,7 @@
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 
-$captchaURL = $vv->urlModule('tao/captcha');
+$captchaURL = \Phax\Foundation\AppService::urlModule('tao/captcha');
 $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
 ?>
 
@@ -73,7 +73,7 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
                            title="同意">
                 </div>
                 <div class="layui-col-xs10" style="padding-top: 9px">
-                    <a href="<?php echo $vv->urlModule('tao.cms/open/page') ?>?name=terms" target="_blank">
+                    <a href="<?php echo \Phax\Foundation\AppService::urlModule('tao.cms/open/page') ?>?name=terms" target="_blank">
                         <ins>《用户协议》</ins>
                     </a>
                 </div>
@@ -123,11 +123,11 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
             account: field.account, vercode: field.vercode, password: field.password,
         }
         admin.ajax.post({
-            url: '<?php echo $vv->urlModule("tao/auth/signup", true) ?>',
+            url: '<?php echo \Phax\Foundation\AppService::urlModule("tao/auth/signup", true) ?>',
             data: postData
         }, function () {
             auth.afterSignup({
-                url: '<?php echo $vv->urlModule("tao/auth/login") ?>'
+                url: '<?php echo \Phax\Foundation\AppService::urlModule("tao/auth/login") ?>'
             });
         })
 
@@ -174,7 +174,7 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
                             });
 
                             admin.ajax.post({
-                                url: '<?php echo $vv->urlModule("tao/auth/signup-code", true) ?>',
+                                url: '<?php echo \Phax\Foundation\AppService::urlModule("tao/auth/signup-code", true) ?>',
                                 data: postData,
                             }, function () {
                                 admin.layer.close(index);
@@ -200,7 +200,7 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
     });
 
     auth.bindButtons({
-        prefix: "<?php echo $vv->urlModule('tao/auth/') ?>"
+        prefix: "<?php echo \Phax\Foundation\AppService::urlModule('tao/auth/') ?>"
     })
 
 </script>

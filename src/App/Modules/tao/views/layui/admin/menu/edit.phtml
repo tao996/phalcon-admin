@@ -4,12 +4,13 @@ use App\Modules\tao\Config\Data;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use Phax\Foundation\AppService;
 
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 //$vv->print();
-$list = SystemMenu::queryBuilder($vv->getDi())
+$list = SystemMenu::queryBuilder()
 //    ->int('status', 1) 允许显示隐藏的菜单（否则隐藏子菜单会丢失关联）
         ->notEqual('pid', Data::HOME_PID)
         ->columns('id,pid,title')
@@ -22,7 +23,7 @@ $menuList = array_merge([
                 'title' => '顶级菜单'
         ]
 ], $optionList);
-$pid = $vv->pick('pid', $vv->request()->getQuery('pid', 0));
+$pid = $vv->pick('pid', AppService::request()->getQuery('pid', 0));
 $id = $vv->pick('id', 0);
 $html = $vv->html();
 ?>

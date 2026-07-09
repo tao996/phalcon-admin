@@ -3,6 +3,8 @@
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 
+use Phax\Foundation\AppService;
+
 ?>
 <?php
 if (file_exists(__DIR__ . '/welcome.main.phtml')) {
@@ -11,7 +13,7 @@ if (file_exists(__DIR__ . '/welcome.main.phtml')) {
 
     <h5>欢迎界面</h5>
     <?php
-    if ($vv->isDemo()) { ?>
+    if (AppService::isDemo()) { ?>
         <div class="text-danger" style="margin-top: 15px;">当前为演示系统，数据不定期清空，请不要填写重要数据</div>
         <?php
     } ?>

@@ -7,6 +7,7 @@ use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
 use App\Modules\tao\A0\open\Models\OpenMch;
 use App\Modules\tao\A0\open\Service\OpenMchService;
 use App\Modules\tao\Helper\Libs\RBAC;
+use Phax\Support\Validate;
 use Phax\Utils\MyData;
 
 /**
@@ -37,7 +38,7 @@ class MchController extends BaseOpenController
 
     protected function beforeModelAssign($data): array
     {
-        $this->vv->validate()->check($data, [
+        Validate::checkData($data, [
             'mchid|商户号ID' => 'required',
             'secret_key|V3 api 秘钥' => 'required',
             'pubkey_id|微信支付公钥' => 'required'
