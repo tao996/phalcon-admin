@@ -2,9 +2,10 @@
 
 namespace App\Modules\tao\A0\cms\Controllers\admin;
 
-
-use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsArticle;
+use App\Modules\tao\A0\cms\Services\CmsCategoryService;
+use App\Modules\tao\A0\cms\Services\CmsContentService;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
@@ -15,16 +16,16 @@ use Phax\Utils\MyData;
  * @property CmsArticle $model
  */
 #[RBAC(title: '文章管理')]
-class ArticleController extends BaseTaoA0CmsController
+class ArticleController extends BaseController
 {
     protected array $cateOptions = [];
     protected array $appendModifyFields = ['top'];
     protected string $htmlTitle = '文章';
 
-    public function localInitialize(): void
+    public function afterInitialize(): void
     {
         $this->model = new CmsArticle();
-        $this->cateOptions = $this->helper->categoryService()->options();
+        $this->cateOptions = CmsCategoryService::options();
         if ($this->vv->loginUserHelper()->isSuperAdmin()) {
             $this->appendModifyFields = array_merge($this->appendModifyFields, ['hits', 'hot', 'cstatus']);
         }
@@ -73,7 +74,7 @@ class ArticleController extends BaseTaoA0CmsController
                 'title|标题' => 'required',
                 'content|内容' => 'required'
             ]);
-            $row = $this->helper->categoryService()->getRecord($data['cate_id'], ['kind']); // 查询栏目类型
+            $row = CmsCategoryService::getRecord($data['cate_id'], ['kind']); // 查询栏目类型
 
             $this->model->assign([
                 'user_id' => $this->loginUser()->id,
@@ -107,7 +108,7 @@ class ArticleController extends BaseTaoA0CmsController
 
         $row = $this->model->toArray();
         $row['images'] = $this->vv->uploadfileService()->getImages($this->model->image_ids);
-        $row['content'] = $this->helper->contentService()->getContentById($this->model->content_id);
+        $row['content'] = CmsContentService::getContentById($this->model->content_id);
 
         return [
             'options' => $this->cateOptions,
@@ -122,7 +123,7 @@ class ArticleController extends BaseTaoA0CmsController
 
         Transaction::db(function () use ($data) {
             if (isset($data['content']) || $this->model->content_id > 0) {
-                $cc1 = $this->helper->contentService()->saveContentDataById($this->model->content_id, $data['content']);
+                $cc1 = CmsContentService::saveContentDataById($this->model->content_id, $data['content']);
                 $this->model->content_id = $cc1->id;
             }
 
@@ -162,7 +163,7 @@ class ArticleController extends BaseTaoA0CmsController
         $this->model = CmsArticle::mustFindFirst($id);
         $row = $this->model->toArray();
         $row['images'] = $this->vv->uploadfileService()->getImages($this->model->image_ids);
-        $row['content'] = $this->helper->contentService()->getContentById($this->model->content_id);
+        $row['content'] = CmsContentService::getContentById($this->model->content_id);
         return $row;
     }
 }

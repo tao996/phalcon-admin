@@ -2,8 +2,8 @@
 
 namespace App\Modules\tao\A0\cms\Controllers\admin;
 
-use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsAd;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Utils\MyData;
@@ -12,13 +12,13 @@ use Phax\Utils\MyData;
  * @property CmsAd $model
  */
 #[RBAC(title: '广告管理')]
-class AdController extends BaseTaoA0CmsController
+class AdController extends BaseController
 {
 
     protected string $htmlTitle = '广告';
     protected array $appendModifyFields = ['at_banner', 'at_index', 'at_list', 'at_page', 'tag', 'gname'];
 
-    public function localInitialize(): void
+    public function afterInitialize(): void
     {
         $this->model = new CmsAd();
     }

@@ -2,20 +2,20 @@
 
 namespace App\Modules\tao\A0\cms\Controllers\admin;
 
-use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsAlbum;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 
 /**
  * @property CmsAlbum $model
  */
 #[RBAC(title: '图集管理')]
-class AlbumController extends BaseTaoA0CmsController
+class AlbumController extends BaseController
 {
     protected string $htmlTitle = '图集';
     protected array $appendModifyFields = ['tag'];
 
-    public function localInitialize(): void
+    public function afterInitialize(): void
     {
         $this->model = new CmsAlbum();
     }

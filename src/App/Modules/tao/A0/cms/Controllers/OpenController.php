@@ -2,11 +2,12 @@
 
 namespace App\Modules\tao\A0\cms\Controllers;
 
-use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
+use App\Modules\tao\A0\cms\Services\CmsPageService;
+use App\Modules\tao\BaseController;
 use Phax\Support\Exception\BusinessException;
 
 
-class OpenController extends BaseTaoA0CmsController
+class OpenController extends BaseController
 {
     protected array|string $openActions = ['page', 'terms'];
     protected bool $disabledMainLayout = true;
@@ -22,7 +23,7 @@ class OpenController extends BaseTaoA0CmsController
             throw new BusinessException('page name is empty');
         }
         $tag = $this->request->getQuery('tag', 'string', $this->vv->route()->getProject());
-        $page = $this->helper->pageService()->findFirst($tag, $name);
+        $page = CmsPageService::findFirst($tag, $name);
         if (empty($page)) {
             throw new BusinessException('page not found for ' . $name);
         }

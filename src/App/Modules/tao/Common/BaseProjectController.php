@@ -2,9 +2,6 @@
 
 namespace App\Modules\tao\Common;
 
-
-use App\Modules\tao\A0\cms\Helper\MyCmsMvcHelper;
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
 
 /**
@@ -32,15 +29,6 @@ class BaseProjectController extends \App\Modules\tao\BaseController
      */
     protected array|string $breadcrumb = '';
 
-    public function cmsHelper(): MyCmsMvcHelper
-    {
-        return $this->vv->a0cmsHelper();
-    }
-
-    public function openHelper(): MyOpenMvcHelper
-    {
-        return $this->vv->a0openHelper();
-    }
 
     protected function beforeViewResponse(mixed $data)
     {

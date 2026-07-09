@@ -2,11 +2,11 @@
 
 namespace App\Modules\tao\A0\cms\Controllers\user;
 
-use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUploadfile;
 use Phax\Utils\MyData;
 
-class HelperController extends BaseTaoA0CmsController
+class HelperController extends BaseController
 {
     protected array|string $userActions = '*';
     public array $enableActions = ['select', 'edit'];

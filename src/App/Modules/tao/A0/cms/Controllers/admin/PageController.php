@@ -3,9 +3,11 @@
 namespace App\Modules\tao\A0\cms\Controllers\admin;
 
 
-use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsContent;
 use App\Modules\tao\A0\cms\Models\CmsPage;
+use App\Modules\tao\A0\cms\Services\CmsContentService;
+use App\Modules\tao\A0\cms\Services\CmsPageService;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
@@ -16,9 +18,9 @@ use Phax\Utils\MyData;
  * @property CmsPage $model
  */
 #[RBAC(title: '单页管理')]
-class PageController extends BaseTaoA0CmsController
+class PageController extends BaseController
 {
-    public function localInitialize(): void
+    public function afterInitialize(): void
     {
         $this->model = new CmsPage();
     }
@@ -44,7 +46,7 @@ class PageController extends BaseTaoA0CmsController
 
             $this->model->assign($data, $keys);
 
-            if ($this->helper->pageService()->isRepeat($this->model)) {
+            if (CmsPageService::isRepeat($this->model)) {
                 return $this->error('重复的 tag+name');
             }
 
@@ -81,7 +83,7 @@ class PageController extends BaseTaoA0CmsController
             MyData::mustHasSet($data, $keys, ['sort', 'tag']);
             $this->model->assign($data, ['tag', 'sort', 'title', 'name']);
 
-            $cc = $this->helper->contentService()->getById($this->model->content_id) ?: new CmsContent();
+            $cc = CmsContentService::getById($this->model->content_id) ?: new CmsContent();
             $cc->content = $data['content'];
 
             Transaction::db(function () use ($cc) {
@@ -97,7 +99,7 @@ class PageController extends BaseTaoA0CmsController
         }
 
         $data = $this->model->toArray();
-        $data['content'] = $this->helper->contentService()->getContentById($this->model->content_id);
+        $data['content'] = CmsContentService::getContentById($this->model->content_id);
         return $data;
     }
 }

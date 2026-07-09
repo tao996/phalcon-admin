@@ -3,8 +3,10 @@
 namespace App\Modules\tao\A0\cms\Controllers\admin;
 
 
-use App\Modules\tao\A0\cms\BaseTaoA0CmsController;
 use App\Modules\tao\A0\cms\Models\CmsCategory;
+use App\Modules\tao\A0\cms\Services\CmsCategoryService;
+use App\Modules\tao\A0\cms\Services\CmsContentService;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Db\QueryBuilder;
@@ -16,13 +18,13 @@ use Phax\Utils\MyData;
  * @property CmsCategory $model
  */
 #[RBAC(title: '栏目管理')]
-class CategoryController extends BaseTaoA0CmsController
+class CategoryController extends BaseController
 {
     protected array $appendModifyFields = ['navbar', 'name', 'tag'];
     protected string $htmlTitle = '栏目';
 
 
-    public function localInitialize(): void
+    public function afterInitialize(): void
     {
         $this->model = new CmsCategory();
     }
@@ -48,7 +50,7 @@ class CategoryController extends BaseTaoA0CmsController
                 'pid' => 0,
                 'title' => '一级栏目'
             ]
-        ], $this->helper->categoryService()->options());
+        ], CmsCategoryService::options());
     }
 
     #[RBAC(title: '添加栏目')]
@@ -79,7 +81,7 @@ class CategoryController extends BaseTaoA0CmsController
             return $this->saveModelResponse(true);
         }
         $row = $this->model->toArray();
-        $row['content'] = $this->helper->contentService()->getContentById($this->model->content_id);
+        $row['content'] = CmsContentService::getContentById($this->model->content_id);
         $row['images'] = $this->vv->uploadfileService()->getImages($this->model->image_ids);
 
         return [
@@ -130,7 +132,7 @@ class CategoryController extends BaseTaoA0CmsController
         Transaction::db(function () use ($data) {
             if ($this->model->kind == CmsCategory::KindList) {
                 if (!empty($data['content']) || $this->model->content_id > 0) {
-                    $cc1 = $this->helper->contentService()->saveContentDataById(
+                    $cc1 = CmsContentService::saveContentDataById(
                         $this->model->content_id,
                         MyData::getString($data, 'content', '')
                     );

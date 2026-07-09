@@ -9,31 +9,13 @@
 <fieldset class="table-search-fieldset" id="table-search">
     <legend>条件搜索</legend>
     <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
-        <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">状态</label>
-            <div class="layui-input-inline">
-                <select name="status">
-                    <option value="">全部</option>
-                    <option value="1">启用</option>
-                    <option value="2">禁用</option>
-                </select>
-            </div>
-        </div>
+        <?php
+        echo $vv->layuiFormSearch()->status();
 
+        echo $vv->layuiFormSearch()->input('组名');
 
-        <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">组名</label>
-            <div class="layui-input-inline">
-                <input name="tag" placeholder="" class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item layui-inline">
-            <a class="layui-btn layui-btn-normal"
-               lay-submit>搜索</a>
-            <button type="reset" class="layui-btn layui-btn-primary">
-                重置
-            </button>
-        </div>
+        echo $vv->layuiFormSearch()->submit();
+        ?>
     </form>
 </fieldset>
 

@@ -2,8 +2,8 @@
 
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
+use App\Modules\tao\Config\Data;
 use App\Modules\tao\Helper\MyMvcHelper;
-use App\Modules\tao\Helper\TaoHtmlHelper;
 
 class LayuiForm
 {
@@ -392,10 +392,33 @@ JS;
         return '<input type="hidden" name="' . $csrfKey . '" value="' . $csrfToken . '">';
     }
 
-    public function status(int $status = 0, bool $formItem = true): string
+    /**
+     * 状态选择
+     * @param string $title 标题
+     * @param string $name 名称
+     * @param mixed|null $value 如果为 null，则自动从 pick 中选择
+     * @param bool $formItem
+     * @return string
+     */
+    public function status(string $title = '状态', string $name = 'status', mixed $value = null, bool $formItem = true): string
     {
-        return TaoHtmlHelper::status($this->mvc, status: $status, formItem: $formItem);
+        return $this->select($title, $name,
+            vtOptions: Data::MAP_STATUS,
+            value: (int)($value == null ? $this->mvc->pick($name, 0) : $value), formItem: $formItem);
     }
+
+    /**
+     * @return string 表单提交/重置按钮
+     */
+    public function submit(): string
+    {
+        return '<div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>';
+    }
+
 
 }
 

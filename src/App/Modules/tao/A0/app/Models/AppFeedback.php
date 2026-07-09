@@ -15,4 +15,11 @@ class AppFeedback extends BaseTaoModel
     public string $images = '';
     public string $device = '';
     public string $ip = '';
+
+    public array $intColumns = [
+        'user_id', 'info_id', 'kind',
+    ];
+    public array $bool2IntColumns = [
+        'status',
+    ];
 }

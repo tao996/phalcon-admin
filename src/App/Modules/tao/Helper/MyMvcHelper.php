@@ -2,12 +2,12 @@
 
 namespace App\Modules\tao\Helper;
 
-use App\Modules\tao\A0\cms\Helper\MyCmsMvcHelper;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\Helper\Auth\AuthRedisData;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\sdk\phaxui\Layui\Layui;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiFormSearch;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
 use App\Modules\tao\sdk\phaxui\TaoHtmlHelper;
 use App\Modules\tao\Services\ConfigService;
@@ -119,9 +119,22 @@ class MyMvcHelper extends MyMvc
         return $this->di->getShared('tao.layuiHtml');
     }
 
+    /**
+     * 编辑页面快速生成表单组件
+     * @return LayuiForm
+     */
     public function layuiForm(): LayuiForm
     {
         return $this->di->getShared('tao.layuiForm');
+    }
+
+    /**
+     * 首页，快速生成搜索表单组件
+     * @return LayuiFormSearch
+     */
+    public function layuiFormSearch(): LayuiFormSearch
+    {
+        return $this->di->getShared('tao.layuiFormSearch');
     }
 
     public function userHtmlHelper(): TaoUserHtmlHelper
@@ -197,6 +210,9 @@ class MyMvcHelper extends MyMvc
         $this->di->setShared('tao.layuiForm', function () use ($mvc) {
             return new LayuiForm($mvc);
         });
+        $this->di->setShared('tao.layuiFormSearch', function () use ($mvc) {
+            return new LayuiFormSearch($mvc);
+        });
         $this->di->setShared('tao.userHtmlHelper', function () use ($mvc) {
             return new TaoUserHtmlHelper($mvc);
         });
@@ -204,9 +220,6 @@ class MyMvcHelper extends MyMvc
             return new OssUploadHelper($mvc);
         });
 
-        $this->di->setShared('tao.a0.cmsHelper', function () use ($mvc) {
-            return new MyCmsMvcHelper($mvc);
-        });
         $this->di->setShared('tao.a0.openHelper', function () use ($mvc) {
             return new MyOpenMvcHelper($mvc);
         });
@@ -300,16 +313,6 @@ class MyMvcHelper extends MyMvc
     public function logService(): LogService
     {
         return $this->di->getShared('tao.logService');
-    }
-
-    public function a0cmsHelper(): MyCmsMvcHelper
-    {
-        return $this->di->getShared('tao.a0.cmsHelper');
-    }
-
-    public function ossUploadHelper(): OssUploadHelper
-    {
-        return $this->di->getShared('tao.ossUploadHelper');
     }
 
     public function a0openHelper(): MyOpenMvcHelper
