@@ -361,11 +361,7 @@ function handleInitRouter(string $serverConfigFile, array $params): void
 
     // 保存模式到本地配置缓存（供后续 init 命令使用）
     if ($chosenMode !== null) {
-        $cacheDir = deploy_base_path() . '/.cache';
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0755, true);
-        }
-        file_put_contents($cacheDir . '/mode.txt', $chosenMode);
+        set_server_cache(['mode' => $chosenMode]);
         deploy_log("模式已缓存: {$chosenMode}", 'info');
     }
 }

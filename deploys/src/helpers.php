@@ -72,17 +72,73 @@ function deploy_log(string $message, string $type = 'info'): void
 }
 
 /**
+ * 缓存文件路径
+ */
+function cache_file_path(): string
+{
+    $dir = deploy_base_path() . '/.cache';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    return $dir . '/server.json';
+}
+
+/**
+ * 获取当前服务器标识（用于缓存指纹）
+ * 读取 server.php 中的 host:port，切换服务器时自动失效
+ */
+function cache_server_id(): string
+{
+    $path = DEPLOY_BASE . '/deploys/server.php';
+    if (!file_exists($path)) {
+        return 'unknown';
+    }
+    $cfg = require $path;
+    $host = $cfg['ssh']['host'] ?? '';
+    $port = $cfg['ssh']['port'] ?? 22;
+    return $host . ':' . $port;
+}
+
+/**
+ * 读取服务器缓存
+ */
+function get_server_cache(): array
+{
+    $file = cache_file_path();
+    if (!file_exists($file)) {
+        return [];
+    }
+    $data = json_decode(file_get_contents($file), true);
+    if (!is_array($data)) {
+        return [];
+    }
+    // 如果服务器指纹不匹配，清空缓存
+    if (($data['_server'] ?? '') !== cache_server_id()) {
+        unlink($file);
+        return [];
+    }
+    return $data;
+}
+
+/**
+ * 写入服务器缓存
+ */
+function set_server_cache(array $values): void
+{
+    $data = get_server_cache();
+    $data['_server'] = cache_server_id();
+    $data['_updatedAt'] = date('c');
+    foreach ($values as $key => $value) {
+        $data[$key] = $value;
+    }
+    file_put_contents(cache_file_path(), json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+/**
  * 获取缓存的 Docker Compose 命令名
- * 优先级：本地缓存 → 'docker-compose'（默认兼容）
  */
 function get_compose_cmd(): string
 {
-    $cacheFile = deploy_base_path() . '/.cache/compose-cmd.txt';
-    if (file_exists($cacheFile)) {
-        $cmd = trim(file_get_contents($cacheFile));
-        if (!empty($cmd)) {
-            return $cmd;
-        }
-    }
-    return 'docker-compose';
+    $cache = get_server_cache();
+    return $cache['composeCmd'] ?? 'docker-compose';
 }

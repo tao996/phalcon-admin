@@ -30,13 +30,11 @@ class ProjectDeployer
      */
     protected function detectRouterMode(): string
     {
-        // 优先使用本地缓存
-        $cacheFile = deploy_base_path() . '/.cache/mode.txt';
-        if (file_exists($cacheFile)) {
-            $mode = trim(file_get_contents($cacheFile));
-            if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
-                return $mode;
-            }
+        // 优先使用本地缓存（含服务器指纹校验）
+        $cache = get_server_cache();
+        $mode = $cache['mode'] ?? '';
+        if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
+            return $mode;
         }
         // 远程检测
         return $this->router->getRecommendedMode();
@@ -151,12 +149,10 @@ class ProjectDeployer
         if (isset($options['mode'])) {
             $this->routerMode = $options['mode'];
         } else {
-            $cacheFile = deploy_base_path() . '/.cache/mode.txt';
-            if (file_exists($cacheFile)) {
-                $mode = trim(file_get_contents($cacheFile));
-                if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
-                    $this->routerMode = $mode;
-                }
+            $cache = get_server_cache();
+            $mode = $cache['mode'] ?? '';
+            if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
+                $this->routerMode = $mode;
             }
         }
         if (empty($this->routerMode)) {

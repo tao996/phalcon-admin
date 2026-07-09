@@ -456,11 +456,7 @@ class RouterManager
      */
     protected function cacheComposeCommand(string $cmd): void
     {
-        $cacheDir = deploy_base_path() . '/.cache';
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0755, true);
-        }
-        file_put_contents($cacheDir . '/compose-cmd.txt', $cmd);
+        set_server_cache(['composeCmd' => $cmd]);
         deploy_log("Compose 命令已缓存: {$cmd}", 'ok');
     }
 
