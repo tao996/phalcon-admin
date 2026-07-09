@@ -97,6 +97,10 @@ function showHelp(): void
   app:push <项目>                               推送本地配置到远程
   app:script:push <项目>                        推送分析脚本到远程
   app:run <项目> <脚本> [参数...]               远程执行分析脚本
+    脚本: doctor              一键健康检查
+          log-tail <类型> [行数]  查看日志（error/app/sql/nginx/access/mysql-slow）
+          log-errors [日期]       错误汇总
+          log-slow [阈值] [行数]  慢查询分析
   app:reset <项目>                              重置代码到最新提交
 
 \033[33m  项目 — Docker 容器\033[0m
