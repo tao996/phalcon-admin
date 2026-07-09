@@ -163,16 +163,18 @@ const tabs = {
      * @param isActive 是否激活
      */
     leftMenu: function (info, isActive) {
-        const dataId = info['id'] || '';
+        const dataId = String(info['id'] || '');
+        if (!dataId) return;
+        var id;
         if (dataId.split('-').length == 2) {
-            const id = 'layui-nav-item-' + dataId.split('-')[1];
-            if (isActive) {
-                $('#' + id).addClass('layui-this');
-            } else {
-                $('#' + id).removeClass('layui-this');
-            }
+            id = 'layui-nav-item-' + dataId.split('-')[1];
         } else {
-            console.log('leftMenu: 菜单ID错误', info);
+            id = 'layui-nav-item-' + dataId;
+        }
+        if (isActive) {
+            $('#' + id).addClass('layui-this');
+        } else {
+            $('#' + id).removeClass('layui-this');
         }
     },
     // 添加一个标签 {id,href,title} 到 iframe 中; 如果已经存在，则激活它
@@ -361,7 +363,7 @@ layui.util.on('layadmin-event', {
 // Tab 点击/关闭事件委托
 tabs.container.on('click', 'li', function () {
     var href = this.getAttribute('lay-id');
-    var id = parseInt(this.getAttribute('data-id') || '0');
+    var id = this.getAttribute('data-id') || '';
     var title = this.querySelector('span').textContent;
     tabs.append({id: id, title: title, href: href});
 }).on('click', '.layui-tab-close', function (e) {
