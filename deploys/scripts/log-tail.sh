@@ -16,10 +16,10 @@ case "$TYPE" in
     LOG="$PROJECT_DIR/docker/log/php/php_errors.log"
     ;;
   app)
-    LOG=$(ls -t "$PROJECT_DIR/src/storage/logs"/app-*.log 2>/dev/null | head -1)
+    LOG=$(ls -t "$PROJECT_DIR/src/storage/logs"/app-*.log "$PROJECT_DIR/src/storage/logs"/app_*.log 2>/dev/null | head -1)
     ;;
   sql)
-    LOG=$(ls -t "$PROJECT_DIR/src/storage/logs"/sql-*.log 2>/dev/null | head -1)
+    LOG=$(ls -t "$PROJECT_DIR/src/storage/logs"/sql-*.log "$PROJECT_DIR/src/storage/logs"/sql_*.log 2>/dev/null | head -1)
     ;;
   nginx)
     LOG="$PROJECT_DIR/docker/log/nginx/error.log"
