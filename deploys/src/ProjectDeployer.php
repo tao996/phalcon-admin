@@ -381,6 +381,70 @@ class ProjectDeployer
     }
 
     /**
+     * 推送分析脚本到远程
+     */
+    public function pushScripts(): void
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+        $scriptsDir = deploy_base_path() . '/scripts';
+
+        deploy_log("=== 推送脚本: {$projectName} ===", 'step');
+
+        try {
+            $this->ssh->connect();
+
+            $remoteDir = $projectPath . '/deploys/scripts';
+            $this->ssh->exec("mkdir -p {$remoteDir}", false);
+
+            $files = glob($scriptsDir . '/*.sh');
+            foreach ($files as $localFile) {
+                $name = basename($localFile);
+                $remoteFile = $remoteDir . '/' . $name;
+                $this->ssh->uploadContent(file_get_contents($localFile), $remoteFile);
+                $this->ssh->exec("chmod +x {$remoteFile}", false);
+                deploy_log("已上传: {$name}", 'ok');
+            }
+
+            deploy_log("=== 脚本推送完成 ===", 'ok');
+        } catch (Exception $e) {
+            deploy_log("推送失败: " . $e->getMessage(), 'error');
+        }
+
+        $this->ssh->disconnect();
+    }
+
+    /**
+     * 远程执行分析脚本
+     */
+    public function runScript(string $scriptName, array $args = []): void
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+
+        $scriptPath = $projectPath . '/deploys/scripts/' . $scriptName . '.sh';
+
+        deploy_log("=== 执行脚本: {$scriptName} ===", 'step');
+
+        try {
+            $this->ssh->connect();
+
+            // 拼装参数
+            $argStr = '';
+            foreach ($args as $a) {
+                $argStr .= ' ' . escapeshellarg($a);
+            }
+
+            $this->ssh->exec("bash {$scriptPath}{$argStr}");
+
+        } catch (Exception $e) {
+            deploy_log("执行失败: " . $e->getMessage(), 'error');
+        }
+
+        $this->ssh->disconnect();
+    }
+
+    /**
      * 更新已有项目
      */
     public function upgrade(array $options = []): void

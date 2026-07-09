@@ -95,6 +95,8 @@ function showHelp(): void
   \033[33mapp:init\033[0m <项目名>         预览并部署项目（无 -y 生成配置到本地，加 -y 执行远程部署）
   \033[33mapp:upgrade\033[0m <项目名>      更新已有项目（加 -y 同时更新配置）
   \033[33mapp:push\033[0m <项目名>         推送本地配置文件到远程（覆盖已有配置）
+  \033[33mapp:script:push\033[0m <项目名>  推送分析脚本到远程
+  \033[33mapp:run\033[0m <项目名> <脚本> [参数]  远程执行分析脚本
   \033[33mapp:reset\033[0m <项目名>         重置远程代码到最新提交（丢弃所有修改）
   \033[33mapp:dc:restart\033[0m <项目名>          重启 Docker 容器
   \033[33mapp:dc:restart:<容器>\033[0m <项目名>    重启指定容器（如 php/mysql）
@@ -220,6 +222,26 @@ try {
                 exit(1);
             }
             handleReset($serverConfigFile, $projectName);
+            break;
+
+        case 'app:script:push':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:script:push <项目名>\n");
+                exit(1);
+            }
+            handleScriptPush($serverConfigFile, $projectName);
+            break;
+
+        case 'app:run':
+            $projectName = $positionalArgs[1] ?? '';
+            $scriptName = $positionalArgs[2] ?? '';
+            if (empty($projectName) || empty($scriptName)) {
+                fwrite(STDERR, "错误: 用法: php deploy app:run <项目名> <脚本名> [参数...]\n");
+                exit(1);
+            }
+            $scriptArgs = array_slice($positionalArgs, 3);
+            handleRunScript($serverConfigFile, $projectName, $scriptName, $scriptArgs);
             break;
 
         case 'app:dc:restart':
@@ -454,6 +476,26 @@ function handleReset(string $serverConfigFile, string $projectName): void
 
     $deployer = new ProjectDeployer($config);
     $deployer->reset();
+}
+
+function handleScriptPush(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->pushScripts();
+}
+
+function handleRunScript(string $serverConfigFile, string $projectName, string $scriptName, array $args): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $deployer = new ProjectDeployer($config);
+    $deployer->runScript($scriptName, $args);
 }
 
 function handleUpgrade(string $serverConfigFile, string $projectName, array $params): void
