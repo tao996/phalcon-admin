@@ -199,14 +199,14 @@ class BaseRbacController extends BaseResponseController
             throw new BusinessException('不允许访问的操作列表中',[
                 'action' => $this->action,
                 'disableActions' => $this->disableActions,
-                'route' => $this->route->urlOptions
+                'route' => $this->route->routerOptions
             ]);
         }
         if ($this->enableActions && !in_array($this->action, $this->enableActions)) {
             throw new BusinessException('不在允许访问的操作列表中', [
                 'action' => $this->action,
                 'enableActions' => $this->enableActions,
-                'route' => $this->route->urlOptions
+                'route' => $this->route->routerOptions
             ]);
         }
         // 开放接口
@@ -218,7 +218,7 @@ class BaseRbacController extends BaseResponseController
                 throw new BusinessException('not allow disableUpdateActions in open access',[
                     'action'=>$this->action,
                     'updateActions'=>$this->updateActions,
-                    'route'=>$this->route->urlOptions,
+                    'route'=>$this->route->routerOptions,
                 ]);
             }
             return;
@@ -233,7 +233,7 @@ class BaseRbacController extends BaseResponseController
             throw new BusinessException('not allow disableUpdateActions',[
                 'action'=>$this->action,
                 'updateActions'=>$this->updateActions,
-                'route'=>$this->route->urlOptions,
+                'route'=>$this->route->routerOptions,
             ]);
         }
 
