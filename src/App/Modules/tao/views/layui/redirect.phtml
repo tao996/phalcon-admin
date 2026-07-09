@@ -157,8 +157,11 @@ $vv->layui()->footer();
                 admin.cache.remove('tabs');
                 return;
             }
-            var redirect = encodeURIComponent(location.href);
-            location.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_redirect=' + redirect;
+// 在测试的时候 http://localhost:8072/m/tao/auth/index?_redirect=http//192.168.0.108:8072/m/tao
+            // 域名不一致而导致的无限跳转（location 已登录，192.168.0.108 没有登录）
+            const redirect =  url + (url.indexOf('?') >= 0 ? '&' : '?') + '_redirect=' + encodeURIComponent(location.pathname);
+            // console.log('redirect:', redirect);
+            location.href = redirect;
         }
 
         document.getElementById('btnConfirm').onclick = function () {
