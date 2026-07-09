@@ -2,51 +2,56 @@
 
 namespace App\Modules\tao\A0\open\Service;
 
-
 use App\Modules\tao\A0\open\Helper\Libs\CertSecretHelper;
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenApp;
 use App\Modules\tao\Data\UserBindPlatform;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
 class OpenAppService
 {
-    private const cacheKey = 'tao_open_app';
-    private \Phalcon\Cache\Cache $cache;
+    const string cacheKey = 'tao_open_app';
 
-    public function __construct(private readonly MyOpenMvcHelper $helper)
+    /**
+     * 获取所有应用配置信息
+     */
+    public static function records(): array
     {
-        $this->cache = $this->helper->mvc->cache();
+        $cache = AppService::cache();
+        if ($cache->has(self::cacheKey)) {
+            return (array)$cache->get(self::cacheKey);
+        }
+        return self::findCache();
     }
 
     /**
-     * @throws \Exception
+     * 强制从数据库中查询记录，然后更新缓存
+     * @return array
+     * @throws LogException
      */
-    public function rows(): array
+    public static function findCache(): array
     {
-        if ($this->cache->has(self::cacheKey)) {
-            return (array)$this->cache->get(self::cacheKey);
-        }
-        return self::cache();
-    }
-
-    public function cache(): array
-    {
-        $rows = OpenApp::queryBuilder($this->helper->mvc->getDi())
+        $rows = OpenApp::queryBuilder()
             ->int('status', 1)
             ->findColumn(key: 'appid');
-        if (!$this->cache->set(self::cacheKey, $rows)) {
+        if (!AppService::cache()->set(self::cacheKey, $rows)) {
             throw new LogException('更新应用缓存失败');
         }
         return $rows;
     }
 
-    public function getWithAppid(string $appid, bool $must = true): ?array
+    /**
+     * @param string $appid
+     * @param bool $must
+     * @return array|null
+     * @throws BusinessException
+     */
+    public static function getWithAppid(string $appid, bool $must = true): ?array
     {
-        $data = $this->rows();
+        $data = self::records();
         if ($must && !isset($data[$appid])) {
             throw new BusinessException('没有找到(' . $appid . ')的应用配置');
         }
@@ -57,29 +62,29 @@ class OpenAppService
     /**
      * @throws \Exception
      */
-    public function kindCompare(string $appid, string $kind): bool
+    public static function kindCompare(string $appid, string $kind): bool
     {
         $wc = self::getWithAppid($appid);
         switch ($kind) {
             case 'mini':
-                return $this->isMini($wc['kind']);
+                return self::isMini($wc['kind']);
             case 'gzh':
-                return $this->isGzh($wc['kind']);
+                return self::isGzh($wc['kind']);
             case 'dyh':
                 return $wc['kind'] == 'dyh';
             case 'fwh':
                 return $wc['kind'] == 'fwh';
             case 'web':
-                return $this->isWeb($wc['kind']);
+                return self::isWeb($wc['kind']);
             case 'work':
-                return $this->isWork($wc['kind']);
+                return self::isWork($wc['kind']);
             default:
                 throw new BusinessException('kind value is not allow:' . $kind);
         }
     }
 
 
-    public function isMini($kind): bool
+    public static function isMini($kind): bool
     {
         return $kind == 'mini';
     }
@@ -88,7 +93,7 @@ class OpenAppService
      * 是否公众号
      * @return bool
      */
-    public function isGzh($kind): bool
+    public static function isGzh($kind): bool
     {
         return in_array($kind, ['dyh', 'fwh', 'gzh']);
     }
@@ -97,7 +102,7 @@ class OpenAppService
      * 是否网页应用
      * @return bool
      */
-    public function isWeb($kind): bool
+    public static function isWeb($kind): bool
     {
         return $kind == 'web';
     }
@@ -106,7 +111,7 @@ class OpenAppService
      * 是否企业微信
      * @return bool
      */
-    public function isWork($kind): bool
+    public static function isWork($kind): bool
     {
         return $kind == 'work';
     }
@@ -117,7 +122,7 @@ class OpenAppService
      * @return string
      * @throws \Exception
      */
-    public function newUserBind(array $app): string
+    public static function newUserBind(array $app): string
     {
         MyData::mustHasSet($app, ['platform', 'kind']);
         $bind = '';
@@ -133,7 +138,7 @@ class OpenAppService
     }
 
 
-    public function getPIndex(string $name): string
+    public static function getPIndex(string $name): string
     {
         static $dd = [
             'public_key' => 'pi0',
@@ -153,9 +158,9 @@ class OpenAppService
      * @param string $content 证书内容
      * @return boolean
      */
-    public function encrypt(OpenApp $app, string $name, string $content): bool
+    public static function encrypt(OpenApp $app, string $name, string $content): bool
     {
-        $pIndexName = $this->getPIndex($name);
+        $pIndexName = self::getPIndex($name);
         if (strlen($content) < 100) {
             throw new BusinessException('证书内容过短或不符合规范？');
         }
@@ -183,7 +188,7 @@ class OpenAppService
      * @param int $pIndex 来自 TiktokApp 中的 pi0|pi1|pi2
      * @return string 解密内容
      */
-    public function decrypt(string $filename, int $pIndex): string
+    public static function decrypt(string $filename, int $pIndex): string
     {
         if (empty($filename)) {
             throw new BusinessException('tiktok 证书文件名不能为空');

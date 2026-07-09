@@ -6,6 +6,7 @@ use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use App\Modules\tao\A0\open\Service\OpenOrderService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
@@ -23,7 +24,7 @@ class RefundNotify
         if (empty($outTradeNo)) {
             throw new BusinessException('wechat refund notify outTradeNo is empty');
         }
-        $this->order = $this->helper->orderService()->fromOutTradeNo($outTradeNo);
+        $this->order = OpenOrderService::fromOutTradeNo($outTradeNo);
     }
 
     public function getOrder(): OpenOrder

@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
@@ -41,7 +42,7 @@ class AuthController extends BaseController
             }
 
             if (!$user) {
-                $user = $this->vv->userService()->loginWithPassword($data['account'], $data['password']);
+                $user = UserService::loginWithPassword($data['account'], $data['password']);
             }
 
             $authResp = $this->vv->loginAuthHelper()->getAdapter()->saveUser($user);
@@ -96,7 +97,7 @@ class AuthController extends BaseController
 
         // 账号检测
         try {
-            $this->vv->userService()->mustCanLogin($data['account']);
+            UserService::mustCanLogin($data['account']);
         } catch (\Exception $e) {
             throw new LogException('账号异常', [
                 'msg' => '待接收验证码的账号存在异常',
@@ -121,15 +122,15 @@ class AuthController extends BaseController
             $data = $this->request->getPost();
             MyData::mustHasSet($data, ['account', 'vercode', 'password']);
 
-            $this->vv->userService()->mustAccountString($data['account']);
-            $this->vv->userService()->mustCanRegister($data['account']);
+            UserService::mustAccountString($data['account']);
+            UserService::mustCanRegister($data['account']);
             $code = $this->vv->smsCodeService()->checkRegisterCode($data['account'], $data['vercode']);
 
             // 账号注册
             Transaction::db(function () use ($data, $code) {
                 $user = new SystemUser();
-                $this->vv->userService()->newPassword($data['password'], $user);
-                $this->vv->userService()->newAccount($data['account'], $user);
+                UserService::newPassword($data['password'], $user);
+                UserService::newAccount($data['account'], $user);
                 if ($user->save() === false) {
                     throw new LogException('账号注册失败', [
                         'data' => $data, 'errors' => $user->getErrors()
@@ -155,13 +156,13 @@ class AuthController extends BaseController
         $data = $this->request->getPost();
         MyData::mustHasSet($data, ['captcha', 'account']);
 
-        $this->vv->userService()->mustAccountString($data['account']);
+        UserService::mustAccountString($data['account']);
         $this->vv->captchaHelper()->compare($data['captcha']);
 
         // TODO : ip 地址检查注册
 
         try {
-            $this->vv->userService()->mustCanRegister($data['account']);
+            UserService::mustCanRegister($data['account']);
         } catch (\Exception $e) {
             throw new LogException('注册验证码已发送，请注意查收', [
                 'msg' => '帐号注册失败',
@@ -212,9 +213,9 @@ class AuthController extends BaseController
         if ($this->request->isPost()) {
             $d2 = $this->request->getPost();
             MyData::mustHasSet($d2, ['password']);
-            $this->vv->userService()->mustPassword($d2['password']);
-            $user = $this->vv->userService()->mustGetUser(['id' => $code->user_id]);
-            $this->vv->userService()->newPassword($d2['password'], $user);
+            UserService::mustPassword($d2['password']);
+            $user = UserService::mustGetUser(['id' => $code->user_id]);
+            UserService::newPassword($d2['password'], $user);
             if ($user->save() === false) {
                 throw new LogException('重置密码失败', [
                     'errors' => $user->getErrors(),

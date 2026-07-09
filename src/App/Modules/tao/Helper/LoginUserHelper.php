@@ -6,6 +6,7 @@ use App\Modules\tao\Config\Data;
 use App\Modules\tao\Helper\Libs\MenuLibHelper;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Services\UserService;
 use Phax\Support\Exception\BusinessException;
 
 /**
@@ -57,7 +58,7 @@ class LoginUserHelper
 
     public function isSuperAdmin(): bool
     {
-        return $this->mvc->userService()->isSuperAdmin($this->user);
+        return UserService::isSuperAdmin($this->user);
     }
 
     /**

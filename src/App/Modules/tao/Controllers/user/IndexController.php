@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Controllers\user;
 
 use App\Modules\tao\BaseController;
+use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
@@ -102,7 +103,7 @@ class IndexController extends BaseController
         MyData::mustHasSet($data, ['phone']);
 
         $user = $this->loginUser();
-        $this->vv->userService()->mustAllowChangeAccount('phone', $data['phone'], $user);
+        UserService::mustAllowChangeAccount('phone', $data['phone'], $user);
 
         if ($this->vv->smsCodeService()->sendChangeAccountCode(
             $user->id,
@@ -161,7 +162,7 @@ class IndexController extends BaseController
         MyData::mustHasSet($data, ['email']);
 
         $user = $this->loginUser();
-        $this->vv->userService()->mustAllowChangeAccount('email', $data['email'], $user);
+        UserService::mustAllowChangeAccount('email', $data['email'], $user);
 
         if ($this->vv->smsCodeService()->sendChangeAccountCode(
             $user->id,
@@ -208,10 +209,10 @@ class IndexController extends BaseController
                 if (empty($oldPassword)) {
                     return $this->error('必须提供旧密码');
                 }
-                $this->vv->userService()->checkPassword($oldPassword, $user);
+                UserService::checkPassword($oldPassword, $user);
             }
 
-            $this->vv->userService()->newPassword($password, $user);
+            UserService::newPassword($password, $user);
             if ($user->save()) {
                 return $this->success('修改密码成功');
             } else {

@@ -11,6 +11,7 @@ namespace App\Modules\tao\A0\open\Controllers;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Services\UserService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 
@@ -174,7 +175,7 @@ class AuthController extends BaseOpenMiniController
             $this->vv->session()->remove($captchaKey);
         }
 
-        $user = $this->vv->userService()->loginWithPassword(
+        $user = UserService::loginWithPassword(
             $this->requestData['account'],
             $this->requestData['password']
         )->toArray();

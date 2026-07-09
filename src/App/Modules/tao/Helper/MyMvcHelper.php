@@ -18,7 +18,7 @@ use App\Modules\tao\Services\NodeService;
 use App\Modules\tao\Services\RoleService;
 use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UploadfileService;
-use App\Modules\tao\Services\UserService;
+use Phax\Foundation\AppService;
 use Phax\Helper\MyMvc;
 
 class MyMvcHelper extends MyMvc
@@ -45,7 +45,7 @@ class MyMvcHelper extends MyMvc
      */
     public function superAdminIds(): array
     {
-        return $this->config()->getSuperAdminIds();
+        return AppService::superAdminIds();
     }
 
     public function isJsonBodyRequest(): bool
@@ -158,9 +158,7 @@ class MyMvcHelper extends MyMvc
         $this->di->setShared('tao.smsCodeService', function () use ($mvc) {
             return new SmsCodeService($mvc);
         });
-        $this->di->setShared('tao.userService', function () use ($mvc) {
-            return new UserService($mvc);
-        });
+
         $this->di->setShared('tao.uploadfileService', function () use ($mvc) {
             return new UploadfileService($mvc);
         });
@@ -233,11 +231,6 @@ class MyMvcHelper extends MyMvc
     public function smsCodeService(): SmsCodeService
     {
         return $this->di->getShared('tao.smsCodeService');
-    }
-
-    public function userService(): UserService
-    {
-        return $this->di->getShared('tao.userService');
     }
 
     public function uploadfileService(): UploadfileService

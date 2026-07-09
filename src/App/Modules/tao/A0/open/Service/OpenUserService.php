@@ -2,30 +2,26 @@
 
 namespace App\Modules\tao\A0\open\Service;
 
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenUserOpenid;
 use App\Modules\tao\A0\open\Models\OpenUserUnionid;
 use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
 
-readonly class OpenUserService
+class OpenUserService
 {
-    public function __construct(private MyOpenMvcHelper $helper)
-    {
-    }
-
     /**
      * 查询 OpenUserOpenid 记录
      * @param string $appID
      * @param string $openid
      * @return OpenUserOpenid|null
      */
-    public function getOpenidRecord(string $appID, string $openid): OpenUserOpenid|null
+    public static function getOpenidRecord(string $appID, string $openid): OpenUserOpenid|null
     {
         if (empty($appID) || empty($openid)) {
             throw new BusinessException(' appID 或 openid 不能为空');
@@ -41,7 +37,7 @@ readonly class OpenUserService
      * @param int $userId
      * @return string
      */
-    public function getOpenidByUserId(string $appID, int $userId): string
+    public static function getOpenidByUserId(string $appID, int $userId): string
     {
         if (empty($appID) || empty($userId)) {
             throw new BusinessException('appID 或 userId 不能为空');
@@ -60,12 +56,12 @@ readonly class OpenUserService
      * @param string $unionid
      * @return OpenUserUnionid|null
      */
-    public function getUnionIDRecord(string $unionid): OpenUserUnionid|null
+    public static function getUnionIDRecord(string $unionid): OpenUserUnionid|null
     {
         if (empty($unionid)) {
             throw new BusinessException("unionID can't be empty");
         }
-        return OpenUserUnionid::queryBuilder($this->helper->mvc->getDi())
+        return OpenUserUnionid::queryBuilder()
             ->string('unionid', $unionid)
             ->findFirstModel();
     }
@@ -75,7 +71,7 @@ readonly class OpenUserService
      * @param array $userInfo
      * @return array{avatarUrl:string,nickname:string,gender:int}
      */
-    public function postUserInfo(array $userInfo): array
+    public static function postUserInfo(array $userInfo): array
     {
         $rst = [
             'avatarUrl' => '',
@@ -105,7 +101,7 @@ readonly class OpenUserService
      * @param array{openid:string,unionid:string} $data 用户在开放平台的数据
      * @return void
      */
-    public function bindUserInfo(
+    public static function bindUserInfo(
         SystemUser           $user,
         OpenUserOpenid       $openidRecord,
         OpenUserUnionid|null $unionidRecord,
@@ -138,7 +134,7 @@ readonly class OpenUserService
      * @param array{openid:string,unionid:string,session_key:string,subscripte:string,subscribe_time:int} $data 包含用户的关键信息
      * @return void
      */
-    public function createOpenidRecord(
+    public static function createOpenidRecord(
         OpenUserOpenid $openidRecord,
         array          $userInfo,
         string         $appid,
@@ -166,14 +162,14 @@ readonly class OpenUserService
      * 创建用户
      * @throws \Exception
      */
-    public function createUser(
+    public static function createUser(
         SystemUser           $user,
         OpenUserOpenid       $openidRecord,
         OpenUserUnionid|null $unionidRecord = null,
     ): void
     {
         Transaction::db(function () use ($user, $openidRecord, $unionidRecord) {
-            $this->helper->mvc->userService()->create($user);
+            UserService::create($user);
 
             $openidRecord->user_id = $user->id;
             if (!$openidRecord->save()) {
@@ -218,13 +214,13 @@ readonly class OpenUserService
      * @return array
      * @throws \Exception
      */
-    public function officialUser(\EasyWeChat\OfficialAccount\Application $application, string $openid): array
+    public static function officialUser(\EasyWeChat\OfficialAccount\Application $application, string $openid): array
     {
         $appid = $application->getConfig()->get('app_id');
         // 查询当前用户是否已经记录
-        $openidRecord = $this->getOpenidRecord($appid, $openid);
+        $openidRecord = self::getOpenidRecord($appid, $openid);
         if (!empty($openidRecord)) {
-            return $this->responseData($openidRecord);
+            return self::responseData($openidRecord);
         }
         // https://developers.weixin.qq.com/doc/offiaccount/User_Management/Get_users_basic_information_UnionID.html#UinonId
         $data = $application->getClient()
@@ -235,7 +231,7 @@ readonly class OpenUserService
             "openid": "o6_bmjrPTlm6_2sgVt7hMZOPfL2M",
             "unionid": " o6_bmasdasdsad6_2sgVt7hMZOPfL",
         } */
-        return $this->save([
+        return self::save([
             'appid' => $appid,
             'platform' => UserBindPlatform::PlatformWechat,
             'kind' => 'official'
@@ -247,9 +243,9 @@ readonly class OpenUserService
      * @param array{ToUserName:string,FromUserName:string} $data 接收微信发送的信息
      * @return void
      */
-    public function unsubscribe(array $data): void
+    public static function unsubscribe(array $data): void
     {
-        if ($record = $this->getOpenidRecord($data['ToUserName'], $data['FromUserName'])) {
+        if ($record = self::getOpenidRecord($data['ToUserName'], $data['FromUserName'])) {
             $record->sub = 0;
             $record->sub_at = time();
             if ($record->save() === false) {
@@ -268,7 +264,7 @@ readonly class OpenUserService
      * @param OpenUserOpenid $openidRecord
      * @return array{user_id:int,nickname:string,avatar_url:string,openid:string}
      */
-    public function responseData(OpenUserOpenid $openidRecord): array
+    public static function responseData(OpenUserOpenid $openidRecord): array
     {
         return [
             'user_id' => $openidRecord->user_id,
@@ -286,19 +282,19 @@ readonly class OpenUserService
      * @return array{user_id:int,nickname:string,avatar_url:string,openid:string,id?:int}
      * @throws \Exception
      */
-    public function save(array $app, array $data, array $userBaseInfo): array
+    public static function save(array $app, array $data, array $userBaseInfo): array
     {
         MyData::mustHasSet($app, ['appid', 'platform', 'kind']);
-        $userBind = $this->helper->appService()->newUserBind($app);
-        $userInfo = $this->helper->userService()->postUserInfo($userBaseInfo);
+        $userBind = OpenAppService::newUserBind($app);
+        $userInfo = self::postUserInfo($userBaseInfo);
 
         // 检查 unionid 是否存在
         if (!empty($data['unionid'])) {
-            $unionidRecord = $this->helper->userService()->getUnionIDRecord($data['unionid']);
+            $unionidRecord = self::getUnionIDRecord($data['unionid']);
             // 如果存在，则 userOpenid 必然存在
             if ($unionidRecord) {
                 // 不再处理，可直接返回数据
-                $responseData = OpenUserOpenid::queryBuilder($this->helper->mvc->getDi())
+                $responseData = OpenUserOpenid::queryBuilder()
                     ->string('appid', $app['appid'])
                     ->string('openid', $data['openid'])
                     ->columns(['id', 'user_id', 'nickname', 'avatar_url', 'openid'])
@@ -307,7 +303,7 @@ readonly class OpenUserService
                     $openidRecord = new OpenUserOpenid();
                     $openidRecord->platform = $app['platform'];
                     $openidRecord->user_id = $unionidRecord->user_id;
-                    $this->helper->userService()->createOpenidRecord($openidRecord, $userInfo, $app['appid'], $data);
+                    self::createOpenidRecord($openidRecord, $userInfo, $app['appid'], $data);
                     $responseData = [
                         'id' => $openidRecord->id,
                         'user_id' => $openidRecord->user_id,
@@ -318,7 +314,7 @@ readonly class OpenUserService
                 }
                 return $responseData;
             } else { // 用户没有注册过
-                $responseData = OpenUserOpenid::queryBuilder($this->helper->mvc->getDi())
+                $responseData = OpenUserOpenid::queryBuilder()
                     ->string('appid', $app['appid'])
                     ->string('openid', $data['openid'])
                     ->columns(['id', 'user_id', 'nickname', 'avatar_url', 'openid'])
@@ -339,7 +335,7 @@ readonly class OpenUserService
                 } else {
                     // Openid 和 Unionid 都没有，需要注册用户
                     $user = new SystemUser();
-                    $this->helper->mvc->userService()->addBinds($user, $userBind);
+                    UserService::addBinds($user, $userBind);
 
                     $openidRecord = new OpenUserOpenid();
                     $openidRecord->platform = $app['platform'];
@@ -347,7 +343,7 @@ readonly class OpenUserService
                     $unionidRecord = new OpenUserUnionid();
                     $unionidRecord->platform = $app['platform'];
 
-                    $this->helper->userService()->bindUserInfo(
+                    self::bindUserInfo(
                         $user,
                         $openidRecord,
                         $unionidRecord,
@@ -356,7 +352,7 @@ readonly class OpenUserService
                         $data
                     );
 
-                    $this->helper->userService()->createUser(
+                    self::createUser(
                         $user,
                         $openidRecord,
                         $unionidRecord
@@ -375,7 +371,7 @@ readonly class OpenUserService
             /**
              * @var OpenUserOpenid $openidRecord
              */
-            $openidRecord = OpenUserOpenid::queryBuilder($this->helper->mvc->getDi())
+            $openidRecord = OpenUserOpenid::queryBuilder()
                 ->string('appid', $app['appid'])
                 ->string('openid', $data['openid'])
                 ->columns(['id', 'user_id', 'nickname', 'avatar_url', 'openid'])
@@ -383,12 +379,12 @@ readonly class OpenUserService
             // 如果不存在，则需要注册
             if (empty($openidRecord)) {
                 $user = new SystemUser();
-                $this->helper->mvc->userService()->addBinds($user, $userBind);
+                UserService::addBinds($user, $userBind);
 
                 $openidRecord = new OpenUserOpenid();
                 $openidRecord->platform = $app['platform'];
 
-                $this->helper->userService()->bindUserInfo(
+                self::bindUserInfo(
                     $user,
                     $openidRecord,
                     null,
@@ -397,7 +393,7 @@ readonly class OpenUserService
                     $data
                 );
 
-                $this->helper->userService()->createUser(
+                self::createUser(
                     $user,
                     $openidRecord,
                 );
@@ -411,7 +407,7 @@ readonly class OpenUserService
                 ];
             } else {
                 // 如果存在
-                if ($this->helper->userService()->bindSubscribe($openidRecord, $data)) {
+                if (self::bindSubscribe($openidRecord, $data)) {
                     $openidRecord->save();
                 }
                 $responseData = $openidRecord->toArray([

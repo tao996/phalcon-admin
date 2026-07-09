@@ -5,6 +5,7 @@ namespace App\Modules\tao\A0\open\Controllers\admin;
 
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenApp;
+use App\Modules\tao\A0\open\Service\OpenAppService;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
@@ -71,7 +72,7 @@ class AppController extends BaseOpenController
             'name' => 'required|in:public_key,rsa_public_key,rsa_private_key',
         ]);
         $this->model = OpenApp::mustFindFirst($data['id']);
-        $pIndexName = $this->helper->appService()->getPIndex($data['name']);
+        $pIndexName = OpenAppService::getPIndex($data['name']);
 
         // 清除证书
         if (isset($data['value']) && empty($data['value'])) {
@@ -92,8 +93,8 @@ class AppController extends BaseOpenController
             $v = MyData::getString($data, 'value');
         }
 
-        if ($this->helper->appService()->encrypt($this->model, $data['name'], $v)) {
-            $this->helper->appService()->cache();
+        if (OpenAppService::encrypt($this->model, $data['name'], $v)) {
+            OpenAppService::findCache();
             return $this->success('保存证书成功');
         } else {
             return $this->error($this->model->getFirstError());
@@ -105,7 +106,7 @@ class AppController extends BaseOpenController
      */
     protected function afterModelChange(string $action): void
     {
-        $this->helper->appService()->cache();
+        OpenAppService::findCache();
     }
 
 }

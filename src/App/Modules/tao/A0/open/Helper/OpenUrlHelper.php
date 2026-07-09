@@ -2,6 +2,8 @@
 
 namespace App\Modules\tao\A0\open\Helper;
 
+use App\Modules\tao\A0\open\Service\OpenConfigService;
+
 readonly class  OpenUrlHelper
 {
     /**
@@ -12,8 +14,7 @@ readonly class  OpenUrlHelper
 
     public function __construct(public MyOpenMvcHelper $helper)
     {
-        $this->origin = $this->helper->configService()
-            ->getWith('proxy_origin', $this->helper->mvc->route()->appOrigin());
+        $this->origin = OpenConfigService::getWith('proxy_origin', $this->helper->mvc->route()->appOrigin());
     }
 
     /**

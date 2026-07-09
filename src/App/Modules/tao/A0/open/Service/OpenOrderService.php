@@ -2,22 +2,18 @@
 
 namespace App\Modules\tao\A0\open\Service;
 
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use Phax\Support\Exception\BusinessException;
 
 class OpenOrderService
 {
-    public function __construct(public MyOpenMvcHelper $helper)
-    {
-    }
     /**
      * 通过订单号查询订单
      * @param string $outTradeNo
      * @return OpenOrder
      * @throws \Exception
      */
-    public function fromOutTradeNo(string $outTradeNo): OpenOrder
+    public static function fromOutTradeNo(string $outTradeNo): OpenOrder
     {
         $data = explode('_', $outTradeNo);
         if (count($data) != 3) {
@@ -40,12 +36,12 @@ class OpenOrderService
         return $order;
     }
 
-    public function mustExits(int $orderId, int $userId): void
+    public static function mustExits(int $orderId, int $userId): void
     {
         if ($orderId < 1 || $userId < 1) {
             throw new BusinessException('检查订单时参数错误');
         }
-        if (OpenOrder::queryBuilder($this->helper->mvc->getDi())
+        if (OpenOrder::queryBuilder()
             ->int('id', $orderId)
             ->int('user_id', $userId)
             ->notExists()) {

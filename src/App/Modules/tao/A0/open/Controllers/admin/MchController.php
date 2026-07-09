@@ -5,6 +5,7 @@ namespace App\Modules\tao\A0\open\Controllers\admin;
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
 use App\Modules\tao\A0\open\Models\OpenMch;
+use App\Modules\tao\A0\open\Service\OpenMchService;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Utils\MyData;
 
@@ -79,6 +80,6 @@ class MchController extends BaseOpenController
 
     protected function afterModelChange(string $action): void
     {
-        $this->helper->mchService()->cache();
+        OpenMchService::findCache();
     }
 }

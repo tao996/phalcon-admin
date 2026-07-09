@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Controllers\weixin;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
+use App\Modules\tao\A0\open\Service\OpenUserService;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -48,10 +49,10 @@ class OfficialController extends BaseOpenMiniController
                 if ($message->MsgType == "event") {
                     switch ($message->Event) {
                         case "subscribe": // 订阅,需要 “设置与开发 - 基本配置 - IP白名单”
-                            $this->openMvcHelper->userService()->officialUser($app, $openid);
+                            OpenUserService::officialUser($app, $openid);
                             return "感谢关注";
                         case "unsubscribe":
-                            $this->openMvcHelper->userService()->unsubscribe($data);
+                            OpenUserService::unsubscribe($data);
                             return "";
                         case "CLICK": // 自定义菜单事件
                             break;

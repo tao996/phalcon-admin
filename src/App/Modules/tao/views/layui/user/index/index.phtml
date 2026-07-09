@@ -2,6 +2,9 @@
 /**
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
+
+use App\Modules\tao\Services\UserService;
+
 $user = $vv->user();
 ?>
 
@@ -68,7 +71,7 @@ $user = $vv->user();
             </div>
             <?php
 
-            $changePhone = $vv->userService()->enableChangePhoneAt($user->phone_at);
+            $changePhone = UserService::enableChangePhoneAt($user->phone_at);
             if ($changePhone) {
                 ?>
                 <div class="layui-form-mid" style="padding: 0!important;">
@@ -93,7 +96,7 @@ $user = $vv->user();
                        value="<?php echo $user->email ?>">
             </div>
             <?php
-            $changeEmail = $vv->userService()->enableChangeEmailAt($user->email_at);
+            $changeEmail = UserService::enableChangeEmailAt($user->email_at);
             if ($changeEmail) { ?>
                 <div class="layui-form-mid" style="padding: 0!important;">
                     <button type="button" class="layui-btn layui-btn-primary"

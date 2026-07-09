@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use App\Modules\tao\A0\open\Service\OpenOrderService;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 
@@ -21,7 +22,7 @@ class Notify extends AbstractWepay
      */
     public function handlePaid(array $data, callable $success = null): void
     {
-        $order = $this->helper->orderService()->fromOutTradeNo($data['out_trade_no']);
+        $order = OpenOrderService::fromOutTradeNo($data['out_trade_no']);
         $logic = WepayOrderLogic::createWithOrder($this->helper, $order);
         if ($logic->payResponse($data, true)) {
             if (is_callable($success)) {

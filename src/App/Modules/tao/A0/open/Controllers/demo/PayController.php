@@ -5,6 +5,8 @@ namespace App\Modules\tao\A0\open\Controllers\demo;
 
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use App\Modules\tao\A0\open\Service\OpenMchService;
+use App\Modules\tao\A0\open\Service\OpenUserService;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
@@ -31,7 +33,7 @@ class PayController extends BaseOpenController
 
         if ($this->vv->loginAuthHelper()->isLogin()) {
             $user = $this->loginUser();
-            if ($openid = $this->helper->userService()->getOpenidByUserId($appid, $user->id)) {
+            if ($openid = OpenUserService::getOpenidByUserId($appid, $user->id)) {
                 $redirectURL = $this->helper->openUrlHelper()->moduleUrl(
                     'tao.wechat/demo.pay/jsapi',
                     ['openid' => $openid, 'appid' => $appid],
@@ -67,7 +69,7 @@ class PayController extends BaseOpenController
             $money = isset($data['money']) ? (float)$data['money'] * 100 : 1; // 默认 1分
             $metadata = ['description' => 'WeTest Pay'];
 
-            $mchid = $this->helper->mchService()->getMchid();
+            $mchid = OpenMchService::getDefaultMchid();
 
             $prepay = $this->helper->wepayHelper()->prepay($appid, $mchid);
             $prepay->setOpenid($openid);

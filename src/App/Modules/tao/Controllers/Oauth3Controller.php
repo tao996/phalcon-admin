@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\sdk\SdkHelper;
+use App\Modules\tao\Services\UserService;
 use Hybridauth\Hybridauth;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
@@ -72,7 +73,7 @@ class Oauth3Controller extends BaseController
             ], previous: $e);
         }
 
-        $user = $this->vv->userService()->addUserProfile($userProfile);
+        $user = UserService::addUserProfile($userProfile);
         $this->getLoginAdapter()->saveUser($user);
         $this->vv->redirectHelper()->read();
 

@@ -2,6 +2,7 @@
 
 namespace Phax\Support;
 
+use Phax\Foundation\AppService;
 use Phax\Helper\MyMvc;
 use Phax\Support\Exception\BusinessException;
 
@@ -614,7 +615,7 @@ class Validate
         return $rows ?: null;
     }
 
-    public function isPhone(string $phone): bool
+    public static function isPhone(string $phone): bool
     {
         if (!empty($phone)) {
             return Validation\MobileCnValidation::match($phone);
@@ -622,14 +623,14 @@ class Validate
         return false;
     }
 
-    public function mustPhone(string $phone): void
+    public static function mustPhone(string $phone): void
     {
-        if (!$this->isPhone($phone)) {
+        if (!self::isPhone($phone)) {
             throw new BusinessException(__('validate.cnPhone', ':field 不是一个有效的 +86 手机号码', ['field' => $phone]));
         }
     }
 
-    public function isEmail(string $email): bool
+    public static function isEmail(string $email): bool
     {
         if (!empty($email)) {
             return filter_var($email, FILTER_VALIDATE_EMAIL);
@@ -638,24 +639,24 @@ class Validate
     }
 
 
-    public function mustEmail(string $email): void
+    public static function mustEmail(string $email): void
     {
-        if (!$this->isEmail($email)) {
+        if (!self::isEmail($email)) {
             throw new BusinessException(__('validate.email', ':field 不是一个有效的电子邮箱地址', ['field' => $email]));
         }
     }
 
 
-    private function hosts(): array
+    private static function hosts(): array
     {
         static $hosts = null;
         if (is_null($hosts)) {
-            $hosts = $this->mvc->config()->getArray('app.hosts');
+            $hosts = AppService::config()->getArray('app.hosts');
         }
         return $hosts;
     }
 
-    public function hostValidate(string $url): void
+    public static function hostValidate(string $url): void
     {
         if (empty($url)) {
             return;
@@ -667,7 +668,7 @@ class Validate
         }
     }
 
-    public function hostsValidate(array $urls): void
+    public static function hostsValidate(array $urls): void
     {
         if (empty($urls)) {
             return;

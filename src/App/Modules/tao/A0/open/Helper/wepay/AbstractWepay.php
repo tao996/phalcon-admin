@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
 use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
+use App\Modules\tao\A0\open\Service\OpenMchService;
 use Phax\Support\Exception\BusinessException;
 
 abstract class AbstractWepay
@@ -21,7 +22,7 @@ abstract class AbstractWepay
         }
 
         if (empty($this->mchid)) {
-            $this->mchid = $this->helper->mchService()->getMchid();
+            $this->mchid = OpenMchService::getDefaultMchid();
         }
     }
 

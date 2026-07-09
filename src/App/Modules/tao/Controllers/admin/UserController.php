@@ -9,6 +9,7 @@ use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Models\SystemUserBind;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use App\Modules\tao\Services\UserService;
 use Phax\Db\QueryBuilder;
 use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
@@ -31,18 +32,17 @@ class UserController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            $userSer = $this->vv->userService();
             $user = new SystemUser();
-            $userSer->newPassword(MyData::getString($data, 'password'), $user);
-            $userSer->mustUniqueEmail(MyData::getString($data, 'email'), $user, true);
-            $userSer->mustUniquePhone(MyData::getString($data, 'phone'), $user, true);
+            UserService::newPassword(MyData::getString($data, 'password'), $user);
+            UserService::mustUniqueEmail(MyData::getString($data, 'email'), $user, true);
+            UserService::mustUniquePhone(MyData::getString($data, 'phone'), $user, true);
             if ($user->email) {
                 $user->email_valid = (int)MyData::isTrueWith($data, 'email_valid');
             }
             if ($user->phone) {
                 $user->phone_valid = (int)MyData::isTrueWith($data, 'phone_valid');
             }
-            if (!$userSer->hasLoginAccount($user)) {
+            if (!UserService::hasLoginAccount($user)) {
                 return $this->error('必须设置一个登录账号');
             }
 
@@ -129,22 +129,21 @@ class UserController extends BaseController
 
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            $userSer = $this->vv->userService();
 
             if (!empty($data['phone'])) {
-                $userSer->mustUniquePhone($data['phone'], $user, true);
+                UserService::mustUniquePhone($data['phone'], $user, true);
                 $user->phone_valid = (int)MyData::isTrueWith($data, 'phone_valid');
             }
 
             if (!empty($data['email'])) {
-                $userSer->mustUniqueEmail($data['email'], $user, true);
+                UserService::mustUniqueEmail($data['email'], $user, true);
                 $user->email_valid = (int)MyData::isTrueWith($data, 'email_valid');
             }
 
             $user->assign($data, ['nickname', 'signature', 'head_img']);
 
             // 非超级管理员才需要设置权限
-            if (!$userSer->isSuperAdmin($user)) {
+            if (!UserService::isSuperAdmin($user)) {
                 if (!empty($this->request->get('role_ids'))) {
                     $user->role_ids = join(',', MyData::getIntsWith($data, 'role_ids'));
                 } else {
@@ -206,7 +205,7 @@ class UserController extends BaseController
                     }
                 }
             }
-            $this->vv->userService()->newPassword($data['password'], $user);
+            UserService::newPassword($data['password'], $user);
             if ($user->save()) {
                 $this->vv->logService()->insert($user->tableTitle(), '修改密码');
                 return self::success('修改密码成功');

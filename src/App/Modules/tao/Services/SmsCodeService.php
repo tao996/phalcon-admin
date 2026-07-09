@@ -11,6 +11,7 @@ use App\Modules\tao\sdk\EmailDriverInterface;
 use App\Modules\tao\sdk\SmsDriverInterface;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
+use Phax\Support\Validate;
 
 class SmsCodeService
 {
@@ -141,13 +142,13 @@ class SmsCodeService
      * @param string $receiver 接收账号
      * @return bool 是否为 email账号
      */
-    public function mustReceiver(string $receiver): bool
+    public static function mustReceiver(string $receiver): bool
     {
         if (empty($receiver)) {
             throw new BusinessException('接收账号不能为空');
         }
-        $isPhone = $this->mvc->validate()->isPhone($receiver);
-        $isEmail = $this->mvc->validate()->isEmail($receiver);
+        $isPhone = Validate::isPhone($receiver);
+        $isEmail = Validate::isEmail($receiver);
         if (!$isPhone && !$isEmail) {
             throw new BusinessException('只支持手机号或电子邮箱', [
                 'receive' => $receiver,

@@ -14,6 +14,7 @@ use App\Modules\tao\A0\open\Models\OpenUserUnionid;
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\SmsCodeService;
+use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
@@ -61,8 +62,7 @@ class AccountMigrateAction
         list($type, $condition) = $this->getAccountInfo($account);
 
         // 检查是否与账号一致
-        $user = $this->helper->userService()
-            ->mustGetUser(['id' => $this->user_id]);
+        $user = UserService::mustGetUser(['id' => $this->user_id]);
         if ($user->getAccountByType($type) === $account) {
             throw new BusinessException('重复绑定');
         }
@@ -115,7 +115,7 @@ class AccountMigrateAction
         $codeModel = $this->smsCodeService
             ->checkCode($account, $this->user_id, $condition['kind'], $verCode);
         Transaction::db(function () use ($account, $type, $codeModel, $successMove) {
-            if ($user = $this->helper->userService()->findByAccount($account, $type)) {
+            if ($user = UserService::findByAccount($account, $type)) {
                 // 已经存在，则需要迁移；
                 // 1. 将当前的应用 appid+user_id， open_user_openid/open_user_unionid 等账号迁移到新的账号 $user->id 上；
                 // 2. 将当前应用的数据迁移到指定账户下

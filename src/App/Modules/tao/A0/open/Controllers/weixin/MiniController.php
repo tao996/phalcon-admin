@@ -3,6 +3,8 @@
 namespace App\Modules\tao\A0\open\Controllers\weixin;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
+use App\Modules\tao\A0\open\Service\OpenAppService;
+use App\Modules\tao\A0\open\Service\OpenUserService;
 use App\Modules\tao\Models\SystemUser;
 
 use Phax\Support\Exception\BusinessException;
@@ -31,9 +33,9 @@ class MiniController extends BaseOpenMiniController
             throw new BusinessException('code 参数不能为空');
         }
         $appid = $this->getAppid();
-        $app = $this->openMvcHelper->appService()->getWithAppid($appid); // 应用配置信息
+        $app = OpenAppService::getWithAppid($appid); // 应用配置信息
         $data = $this->openMvcHelper->miniAppHelper()->code2Session($app, $code); // session_key, openid, unionid
-        $baseInfo = $this->openMvcHelper->userService()->save($app, $data, $this->requestData['userInfo'] ?? []);
+        $baseInfo = OpenUserService::save($app, $data, $this->requestData['userInfo'] ?? []);
         if (IS_DEBUG) {
             Logger::debug('code2SessionAction',$data, $baseInfo);
         }

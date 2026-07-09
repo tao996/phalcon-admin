@@ -2,10 +2,11 @@
 
 namespace App\Modules\tao\A0\open\Helper;
 
+use App\Modules\tao\A0\open\Service\OpenAppService;
+use App\Modules\tao\A0\open\Service\OpenMchService;
 use App\Modules\tao\sdk\SdkHelper;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
@@ -43,7 +44,7 @@ readonly class ApplicationHelper
         $this->tiktokSDK();
         MyData::mustHasSet($app, ['appid', 'secret', 'sandbox', 'kind']);
 
-        if (!$this->helper->appService()->isMini($app['kind'])) {
+        if (!OpenAppService::isMini($app['kind'])) {
             throw new BusinessException('tiktok mini appid is invalid');
         }
 
@@ -73,8 +74,8 @@ readonly class ApplicationHelper
             throw new BusinessException('wechat official appid is empty');
         }
 
-        $wa = $this->helper->appService()->getWithAppid($appid);
-        if (!$this->helper->appService()->isGzh($wa['kind'])) {
+        $wa = OpenAppService::getWithAppid($appid);
+        if (!OpenAppService::isGzh($wa['kind'])) {
             throw new BusinessException('不是公众号 appid');
         }
         try {
@@ -112,7 +113,7 @@ readonly class ApplicationHelper
             throw new BusinessException('必须指定微信支付商户号');
         }
         // $app = OpenAppService::getWithAppid($appid); // 应用配置信息
-        $mch = $this->helper->mchService()->getWith($mchid);
+        $mch = OpenMchService::getWithMchid($mchid);
         $certDir = PayCertHelper::dir();
         $config = [
             'app_id' => $appid,
@@ -153,12 +154,12 @@ readonly class ApplicationHelper
     public function getMini(array|string $app): MiniApplication
     {
         if (is_string($app)) {
-            $app = $this->helper->appService()->getWithAppid($app);
+            $app = OpenAppService::getWithAppid($app);
         }
         MyData::mustHasSet($app, ['appid', 'secret', 'kind'], ['token', 'aes_key']);
 
 
-        if (!$this->helper->appService()->isMini($app['kind'])) {
+        if (!OpenAppService::isMini($app['kind'])) {
             throw new BusinessException('不是小程序 appid');
         }
         try {

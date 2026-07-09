@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Models\OpenOrder;
+use App\Modules\tao\A0\open\Service\OpenUserService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 
@@ -18,7 +19,7 @@ class Prepay extends AbstractWepay
 
     public function addUser(int $userId): static
     {
-        $this->openid = $this->helper->userService()->getOpenidByUserId($this->appid, $userId);
+        $this->openid = OpenUserService::getOpenidByUserId($this->appid, $userId);
         if (empty($this->openid)) {
             throw new BusinessException('没有找到用户的 openid');
         }

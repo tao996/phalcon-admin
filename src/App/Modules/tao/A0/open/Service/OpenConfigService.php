@@ -2,53 +2,42 @@
 
 namespace App\Modules\tao\A0\open\Service;
 
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenConfig;
-use Phalcon\Cache\Exception\InvalidArgumentException;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\LogException;
 
 
 class OpenConfigService
 {
-    private const string cacheKey = 'tao_open_config';
-    private \Phalcon\Cache\Cache $cache;
+    const string cacheKey = 'tao_open_config';
 
-    public function __construct(private readonly MyOpenMvcHelper $helper)
+    public static function records(): array
     {
-        $this->cache = $this->helper->mvc->cache();
-    }
-
-    /**
-     * @throws InvalidArgumentException
-     */
-    public function rows(): array
-    {
-        if ($this->cache->has(self::cacheKey)) {
-            return (array)$this->cache->get(self::cacheKey);
+        $cache = AppService::cache();
+        if ($cache->has(self::cacheKey)) {
+            return (array)$cache->get(self::cacheKey);
         }
-        return self::cache();
+        return self::findCache();
     }
 
     /**
      * 强制缓存配置信息
      * @return array
-     * @throws \Exception
      */
-    public function cache(): array
+    public static function findCache(): array
     {
-        $data = OpenConfig::queryBuilder($this->helper->mvc->getDi())
+        $data = OpenConfig::queryBuilder()
             ->findColumn('name,value');
         $rows = array_column($data, 'value', 'name');
-        if (!$this->cache->set(self::cacheKey, $rows)) {
+        if (!AppService::cache()->set(self::cacheKey, $rows)) {
             throw new LogException('更新 open 模块缓存失败');
         }
         return $rows;
     }
 
-    public function getWith(string $name, int|string $default = '')
+    public static function getWith(string $name, int|string $default = '')
     {
-        $data = $this->rows();
-
+        $data = self::records();
         if (!empty($data[$name])) {
             if (trim($data[$name]) == "0") {
                 return $default;
@@ -59,7 +48,7 @@ class OpenConfigService
     }
 
 
-    public function updateValue(OpenConfig $model, $name, $value): bool
+    public static function updateValue(OpenConfig $model, $name, $value): bool
     {
         $sql = 'UPDATE ' . $model->getSource() . ' SET value=? WHERE name=?';
         return $model->getDI()->get('db')->execute(

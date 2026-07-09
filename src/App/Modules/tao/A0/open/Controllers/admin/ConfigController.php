@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Controllers\admin;
 
 use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenConfig;
+use App\Modules\tao\A0\open\Service\OpenConfigService;
 use App\Modules\tao\Helper\Libs\RBAC;
 
 
@@ -22,18 +23,18 @@ class ConfigController extends BaseOpenController
     #[RBAC(title: '公共配置')]
     public function indexAction()
     {
-        $rows = $this->helper->configService()->cache();
+        $rows = OpenConfigService::findCache();
         // 更新配置信息
         if ($this->request->isPost()) {
             $hasChange = false;
             foreach ($this->request->getPost() as $key => $value) {
                 if (key_exists($key, $rows) && $rows[$key] != $value) {
-                    $this->helper->configService()->updateValue($this->model, $key, $value);
+                    OpenConfigService::updateValue($this->model, $key, $value);
                     $hasChange = true;
                 }
             }
             if ($hasChange) {
-                $this->helper->configService()->cache();
+                OpenConfigService::findCache();
             }
             return $this->success('更新开放平台配置成功');
         }
@@ -46,6 +47,6 @@ class ConfigController extends BaseOpenController
      */
     protected function afterModelChange(string $action): void
     {
-        $this->helper->configService()->cache();
+        OpenConfigService::findCache();
     }
 }
