@@ -2,7 +2,6 @@
 
 namespace App\Modules\tao\A0\open;
 
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Data\UserBindPlatform;
 use App\Modules\tao\Helper\MyMvcHelper;
@@ -15,26 +14,6 @@ use Phax\Support\Exception\BusinessException;
 class BaseOpenMiniController extends BaseController
 {
     public int $userId = 0;
-
-    public MyOpenMvcHelper $openMvcHelper;
-
-    protected function afterInitialize(): void
-    {
-        $this->openMvcHelper = $this->vv->a0openHelper();
-        $this->localInitialize();
-    }
-
-    protected function localInitialize(): void
-    {
-    }
-
-    public function getUserId(): int
-    {
-        if ($this->userId < 1) {
-            $this->userId = $this->loginUser()->id;
-        }
-        return $this->userId;
-    }
 
     /**
      * 获取客户端请求的 ID

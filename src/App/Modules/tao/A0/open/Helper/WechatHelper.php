@@ -4,6 +4,8 @@ namespace App\Modules\tao\A0\open\Helper;
 
 
 use App\Modules\tao\sdk\SdkHelper;
+use App\Modules\tao\TaoAppService;
+use App\Modules\tao\utils\ResponseUtil;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
@@ -14,7 +16,7 @@ use Phax\Support\Exception\LocationException;
 
 class WechatHelper
 {
-    public function __construct(private MyOpenMvcHelper $helper)
+    public function __construct()
     {
     }
 
@@ -35,7 +37,7 @@ class WechatHelper
      */
     public function response(\Psr\Http\Message\ResponseInterface $response)
     {
-        return $this->helper->mvc->responseHelper()->send(
+        return ResponseUtil::send(
             $response->getBody()->getContents(),
             $response->getStatusCode()
         );
@@ -77,7 +79,7 @@ class WechatHelper
         if (empty($query['target'])) {
             throw new BusinessException('target should not empty');
         }
-        $redirectURL = $this->helper->openUrlHelper()->moduleUrl('tao.wechat/auth', $query);
+        $redirectURL = TaoAppService::openUrlHelper()->moduleUrl('tao.wechat/auth', $query);
         if ($qrcode && !self::isMicroMessengerBrowser()) {
             self::renderQrcode($redirectURL);
         }

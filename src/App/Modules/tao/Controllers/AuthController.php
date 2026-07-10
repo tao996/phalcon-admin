@@ -6,6 +6,8 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
+use App\Modules\tao\TaoAppService;
+use App\Modules\tao\utils\RedirectUtil;
 use Phax\Db\Transaction;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
@@ -20,7 +22,7 @@ class AuthController extends BaseController
     public function afterInitialize(): void
     {
         if ($this->isLogin()) {
-            $this->vv->redirectHelper()->read();
+            RedirectUtil::read();
         }
     }
 
@@ -32,7 +34,7 @@ class AuthController extends BaseController
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
             MyData::mustHasSet($data, ['account', 'password', 'captcha']);
-            $this->vv->captchaHelper()->compare($data['captcha']);
+            TaoAppService::captchaHelper()->compare($data['captcha']);
             /**
              * @var $user SystemUser
              */
@@ -47,7 +49,7 @@ class AuthController extends BaseController
                 $user = UserService::loginWithPassword($data['account'], $data['password']);
             }
 
-            $authResp = $this->vv->loginAuthHelper()->getAdapter()->saveUser($user);
+            $authResp = TaoAppService::loginAuthHelper()->getAdapter()->saveUser($user);
             return $this->success('登录成功', $authResp);
         }
         return [
@@ -77,7 +79,7 @@ class AuthController extends BaseController
                 return $this->error('没有找到符合条件的账号');
             }
 
-            $this->vv->captchaHelper()->destroy();
+            TaoAppService::captchaHelper()->destroy();
             return $this->success('登录成功', $token);
         }
         return [
@@ -95,7 +97,7 @@ class AuthController extends BaseController
         MyData::mustHasSet($data, ['captcha', 'account']);
 
         SmsCodeService::mustReceiver($data['account']);
-        $this->vv->captchaHelper()->compare($data['captcha']);
+        TaoAppService::captchaHelper()->compare($data['captcha']);
 
         // 账号检测
         try {
@@ -159,7 +161,7 @@ class AuthController extends BaseController
         MyData::mustHasSet($data, ['captcha', 'account']);
 
         UserService::mustAccountString($data['account']);
-        $this->vv->captchaHelper()->compare($data['captcha']);
+        TaoAppService::captchaHelper()->compare($data['captcha']);
 
         // TODO : ip 地址检查注册
 
@@ -190,7 +192,7 @@ class AuthController extends BaseController
             $data = $this->request->getPost();
             MyData::mustHasSet($data, ['account', 'captcha']);
 
-            $this->vv->captchaHelper()->compare($data['captcha']);
+            TaoAppService::captchaHelper()->compare($data['captcha']);
 
             SmsCodeService::sendForgotPasswordEmail($data['account']);
 

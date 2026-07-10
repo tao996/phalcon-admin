@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Modules\tao\Helper;
+namespace App\Modules\tao\utils;
 
-use App\Modules\tao\sdk\qiniu\QiniuDriver;
-use App\Modules\tao\Services\ConfigService;
+use App\Modules\tao\TaoAppService;
 
-class OssUploadHelper
+class OssUploadUtil
 {
     public const array TypeMap = [
         'local' => '本地存储',
@@ -13,20 +12,6 @@ class OssUploadHelper
         'alioss' => '阿里云 oss',
         'txcos' => '腾讯云 cos'
     ];
-    public function __construct(protected MyMvcHelper $helper)
-    {
-    }
-
-    /**
-     * 文件上传的 token
-     * https://developer.qiniu.com/kodo/manual/put-policy
-     * @return QiniuDriver
-     * @throws \Exception
-     */
-    public function qiniu(): QiniuDriver
-    {
-        return new QiniuDriver(ConfigService::uploadConfig());
-    }
 
     /**
      * 前端上传文件时，必须使用指定的前缀
@@ -35,9 +20,9 @@ class OssUploadHelper
      * @return array
      * @throws \Exception
      */
-    public function qiniuPrefix(string $appid, int $userId, array $options = []): array
+    public static function qiniuPrefix(string $appid, int $userId, array $options = []): array
     {
-        $qiniu = $this->qiniu();
+        $qiniu = TaoAppService::qiniuDriver();
         // 必须以 appid/yyyymmdd_userid_ 为前缀
         $filePrefix = $appid . '/' . date('Ym') . '/' . $userId . '_';
         $token = $qiniu->getAuth()->uploadToken(
@@ -67,9 +52,9 @@ class OssUploadHelper
      * @return array
      * @throws \Exception
      */
-    public function qiniuKey(string $appid, int $userId, array $options = [])
+    public static function qiniuKey(string $appid, int $userId, array $options = [])
     {
-        $qiniu = $this->qiniu();
+        $qiniu = TaoAppService::qiniuDriver();
         $token = $qiniu->getAuth()->uploadToken(
             $qiniu->getBucket(),
             null,

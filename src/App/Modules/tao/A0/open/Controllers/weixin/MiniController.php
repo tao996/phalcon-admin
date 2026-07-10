@@ -7,6 +7,7 @@ use App\Modules\tao\A0\open\Service\OpenAppService;
 use App\Modules\tao\A0\open\Service\OpenUserService;
 use App\Modules\tao\Models\SystemUser;
 
+use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
@@ -36,10 +37,10 @@ class MiniController extends BaseOpenMiniController
         }
         $appid = $this->getAppid();
         $app = OpenAppService::getWithAppid($appid); // 应用配置信息
-        $data = $this->openMvcHelper->miniAppHelper()->code2Session($app, $code); // session_key, openid, unionid
+        $data = TaoAppService::miniAppHelper()->code2Session($app, $code); // session_key, openid, unionid
         $baseInfo = OpenUserService::save($app, $data, $this->requestData['userInfo'] ?? []);
         if (IS_DEBUG) {
-            Logger::debug('code2SessionAction',$data, $baseInfo);
+            Logger::debug('code2SessionAction', $data, $baseInfo);
         }
 
         // token-secret
@@ -79,7 +80,7 @@ class MiniController extends BaseOpenMiniController
             'auto_color',
             'line_color'
         ]);
-        $app = $this->openMvcHelper->application()->getMini($appid);
+        $app = TaoAppService::applicationHelper()->getMini($appid);
         $response = $app->getClient()->postJson('/wxa/getwxacodeunlimit', $data);
 
         AppService::responseMimeType(['Content-Type' => 'image/jpeg'], $response->getContent());

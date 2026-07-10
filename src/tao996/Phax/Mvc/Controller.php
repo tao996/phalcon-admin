@@ -3,6 +3,7 @@
 namespace Phax\Mvc;
 
 use Phalcon\Mvc\Dispatcher;
+use Phax\Foundation\AppService;
 use Phax\Helper\MyMvc;
 use Phax\Support\Exception\BlankException;
 
@@ -105,7 +106,7 @@ class Controller extends \Phalcon\Mvc\Controller
             $this->json($data);
         } else {
             $this->vv->html()
-                ->setVar('language', $this->vv->getLanguage())
+                ->setVar('language', AppService::getLanguage())
                 ->setResponseVar($data)
                 ->doneViewResponse(); // 渲染视图
         }

@@ -4,8 +4,8 @@
  * @var \App\Modules\tao\Helper\MyMvcHelper $vv
  */
 
-use App\Modules\tao\Helper\OssUploadHelper;
 use App\Modules\tao\Services\ConfigService;
+use App\Modules\tao\utils\OssUploadUtil;
 use Phax\Foundation\AppService;
 use Phax\Utils\MyData;
 
@@ -23,7 +23,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
 <form class="layui-form">
     <?php
     if ($hasUploadDriver) {
-        $driverText = MyData::getMapDataByKey(OssUploadHelper::TypeMap, $ccUpload['driver']);
+        $driverText = MyData::getMapDataByKey(OssUploadUtil::TypeMap, $ccUpload['driver']);
         ?>
 
         <div class='layui-form-item'>
@@ -121,7 +121,7 @@ $hasUploadDriver = !empty($ccUpload) && !empty($ccUpload['driver']);
                 <div>
                     <?php
                     foreach (
-                        OssUploadHelper::TypeMap as $key => $val
+                            OssUploadUtil::TypeMap as $key => $val
                     ) { ?>
                         <input type="radio" name="upload_type" lay-filter="upload_type"
                                value="<?php

@@ -4,7 +4,6 @@ namespace App\Modules\tao\tests\PHPUnit\A0\open\Helper;
 
 use App\Modules\tao\tests\Helper\MyTestTaoControllerHelper;
 use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Helper\wepay\Notify;
 use App\Modules\tao\A0\open\Helper\wepay\Prepay;
 use App\Modules\tao\A0\open\Models\OpenOrder;
@@ -45,10 +44,9 @@ class WepayTest extends TestCase
             ],
         ];
 
-        $myOpenMvcHelper = new MyOpenMvcHelper($cc->vv);
         $wepayServer = \Mockery::mock(WepayServer::class);
 
-        $prepay = new Prepay($myOpenMvcHelper, $preData['appid'], $preData['mchid']);
+        $prepay = new Prepay($preData['appid'], $preData['mchid']);
         $prepay->wepayServer = $wepayServer;
         $prepay->setOpenid($preData['openid']);
 
@@ -113,10 +111,9 @@ class WepayTest extends TestCase
             ]
         ];
 
-        $myOpenMvcHelper = new MyOpenMvcHelper($cc->vv);
         $wepayServer = \Mockery::mock(WepayServer::class);
 
-        $notify = new Notify($myOpenMvcHelper, $order->appid, $order->mchid);
+        $notify = new Notify($order->appid, $order->mchid);
         $notify->wepayServer = $wepayServer;
 
         $wepayServer->allows('notify')->with(\Mockery::on(function () use ($notify, $responseData) {

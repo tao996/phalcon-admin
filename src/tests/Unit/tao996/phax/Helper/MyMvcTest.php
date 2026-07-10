@@ -49,19 +49,19 @@ class MyMvcTest extends TestCase
 
     public function testUrlProjectWithApi(): void
     {
-        $url = $this->myMvc->urlProject('house', true);
+        $url = AppService::urlProject('house', true);
         $this->assertEquals('http://localhost:8071/en/api/p/house', $url);
     }
 
     public function testUrlProjectWithoutOrigin(): void
     {
-        $url = $this->myMvc->urlProject('house', false);
+        $url = AppService::urlProject('house', false);
         $this->assertEquals('/en/p/house', $url);
     }
 
     public function testUrlProjectWithQuery(): void
     {
-        $url = $this->myMvc->urlProject('house', ['id' => 5]);
+        $url = AppService::urlProject('house', ['id' => 5]);
         $this->assertEquals('http://localhost:8071/en/p/house?id=5', $url);
     }
 

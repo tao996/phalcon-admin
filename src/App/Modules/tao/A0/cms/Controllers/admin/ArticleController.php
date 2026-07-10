@@ -8,6 +8,7 @@ use App\Modules\tao\A0\cms\Services\CmsContentService;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Services\UploadfileService;
+use App\Modules\tao\TaoAppService;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
@@ -28,7 +29,7 @@ class ArticleController extends BaseController
     {
         $this->model = new CmsArticle();
         $this->cateOptions = CmsCategoryService::options();
-        if ($this->vv->loginUserHelper()->isSuperAdmin()) {
+        if (TaoAppService::loginUserHelper()->isSuperAdmin()) {
             $this->appendModifyFields = array_merge($this->appendModifyFields, ['hits', 'hot', 'cstatus']);
         }
     }

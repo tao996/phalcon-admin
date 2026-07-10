@@ -4,6 +4,7 @@ namespace App\Modules\tao;
 
 use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
+use App\Modules\tao\utils\ResponseUtil;
 use Phax\Db\QueryBuilder;
 use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
@@ -274,8 +275,8 @@ class BaseResponseController extends Controller
             throw new BusinessException('simple view data must not have vv');
         }
         $data['vv'] = $this->vv;
-        echo $this->vv->responseHelper()->simpleView($tpl, $data);
-        throw new BlankException();
+        echo ResponseUtil::simpleView($tpl, $data);
+        exit;
     }
 
     /**

@@ -2,24 +2,20 @@
 
 namespace App\Modules\tao\A0\open\Controllers\demo;
 
-
-use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use App\Modules\tao\A0\open\Service\OpenMchService;
 use App\Modules\tao\A0\open\Service\OpenUserService;
+use App\Modules\tao\BaseController;
+use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
 
-class PayController extends BaseOpenController
+class PayController extends BaseController
 {
     protected array|string $openActions = '*';
     public bool $disableUpdateActions = true;
-
-    protected function localInitialize(): void
-    {
-    }
 
     /**
      * 一个简单的微信支付测试
@@ -32,17 +28,17 @@ class PayController extends BaseOpenController
             throw new BusinessException('必须指定支付公众号 ID');
         }
 
-        if ($this->vv->loginAuthHelper()->isLogin()) {
+        if (TaoAppService::loginAuthHelper()->isLogin()) {
             $user = $this->loginUser();
             if ($openid = OpenUserService::getOpenidByUserId($appid, $user->id)) {
-                $redirectURL = $this->helper->openUrlHelper()->moduleUrl(
+                $redirectURL = TaoAppService::openUrlHelper()->moduleUrl(
                     'tao.wechat/demo.pay/jsapi',
                     ['openid' => $openid, 'appid' => $appid],
                 );
                 throw new LocationException($redirectURL);
             }
         }
-        $this->helper->wechatHelper()->quickOpenid([
+        TaoAppService::wechatHelper()->quickOpenid([
             'appid' => $appid,
             'target' => AppService::urlModule('tao.wechat/demo.pay/jsapi')
         ]);
@@ -59,7 +55,7 @@ class PayController extends BaseOpenController
     public function jsapiAction()
     {
 
-        if (!$this->helper->wechatHelper()->isMicroMessengerBrowser()) {
+        if (!TaoAppService::wechatHelper()->isMicroMessengerBrowser()) {
             throw new BusinessException('只支持在微信浏览器中操作');
         }
         $appid = $this->request->getQuery('appid', 'string');
@@ -72,12 +68,12 @@ class PayController extends BaseOpenController
 
             $mchid = OpenMchService::getDefaultMchid();
 
-            $prepay = $this->helper->wepayHelper()->prepay($appid, $mchid);
+            $prepay = TaoAppService::wepayHelper()->prepay($appid, $mchid);
             $prepay->setOpenid($openid);
             $order = $prepay->createOrder($money, $metadata);
             $order->user_id = 1;
             $order->trade_type = OpenOrder::TradeTypeJsapi;
-            return $prepay->prepay($order, $metadata,true);
+            return $prepay->prepay($order, $metadata, true);
         }
         return [];
     }
@@ -90,7 +86,7 @@ class PayController extends BaseOpenController
     public function notifyAction(string $appid, string $mchid)
     {
         $this->autoResponse = false;
-        $payNotifyHelper = $this->helper->wepayHelper()->notify($appid, $mchid);
+        $payNotifyHelper = TaoAppService::wepayHelper()->notify($appid, $mchid);
         return $payNotifyHelper->response();
     }
 
@@ -102,7 +98,7 @@ class PayController extends BaseOpenController
     public function refundNotifyAction(string $outTradeNo)
     {
         $this->autoResponse = false;
-        $refundNotifyHelper = $this->helper->wepayHelper()->refundNotify($outTradeNo);
+        $refundNotifyHelper = TaoAppService::wepayHelper()->refundNotify($outTradeNo);
         return $refundNotifyHelper->response();
     }
 

@@ -3,7 +3,6 @@
 namespace App\Modules\tao\A0\open\Logic;
 
 use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use Phax\Db\QueryBuilder;
 use Phax\Support\Exception\BusinessException;
@@ -19,16 +18,16 @@ class WepayOrderLogic
     public OpenOrder $order;
     public WepayServer $helper;
 
-    protected function __construct(public MyOpenMvcHelper $mvc)
+    protected function __construct()
     {
     }
 
-    public static function createWithQB(MyOpenMvcHelper $mvc, QueryBuilder $openOrderQb, int $orderId): WepayOrderLogic
+    public static function createWithQB( QueryBuilder $openOrderQb, int $orderId): WepayOrderLogic
     {
         if ($orderId < 1) {
             throw new BusinessException('订单ID不能为空');
         }
-        $logic = new WepayOrderLogic($mvc);
+        $logic = new WepayOrderLogic();
         $logic->order = $openOrderQb->int('id', $orderId)->findFirstModel();
         if (empty($logic->order)) {
             throw new BusinessException('没有找到符合条件的订单');
@@ -36,12 +35,12 @@ class WepayOrderLogic
         return $logic;
     }
 
-    public static function createWithOrder(MyOpenMvcHelper $mvc, OpenOrder $order): WepayOrderLogic
+    public static function createWithOrder( OpenOrder $order): WepayOrderLogic
     {
         if ($order->id < 1) {
             throw new BusinessException('订单为空或数据错误');
         }
-        $logic = new WepayOrderLogic($mvc);
+        $logic = new WepayOrderLogic();
         $logic->order = $order;
         return $logic;
     }
@@ -49,7 +48,7 @@ class WepayOrderLogic
     public function getWechatPayHelper(): WepayServer
     {
         if (empty($this->helper)) {
-            $this->helper = new WepayServer($this->mvc, $this->order->appid, $this->order->mchid);
+            $this->helper = new WepayServer($this->order->appid, $this->order->mchid);
         }
         return $this->helper;
     }

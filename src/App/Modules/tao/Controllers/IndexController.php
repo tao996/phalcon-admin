@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Controllers;
 
 use App\Modules\tao\BaseController;
+use App\Modules\tao\TaoAppService;
 
 /**
  * 后台框架
@@ -16,7 +17,7 @@ class IndexController extends BaseController
     {
         $this->disabledMainLayout = true;
         $data = [
-            'menuTree' => $this->vv->loginUserHelper()->getMenuTree()
+            'menuTree' => TaoAppService::loginUserHelper()->getMenuTree()
         ];
         return $this->isApiRequest() ? $this->success('', $data) : $data;
     }

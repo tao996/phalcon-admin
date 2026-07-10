@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Controllers;
 
 use App\Modules\tao\BaseController;
+use App\Modules\tao\TaoAppService;
 use Phax\Support\Exception\BlankException;
 
 class CaptchaController extends BaseController
@@ -16,6 +17,6 @@ class CaptchaController extends BaseController
      */
     public function indexAction()
     {
-        $this->vv->captchaHelper()->output();
+        TaoAppService::captchaHelper()->output();
     }
 }

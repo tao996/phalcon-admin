@@ -6,15 +6,12 @@ use Phax\Support\Exception\BusinessException;
 
 class TiktokHelper
 {
-    public function __construct(private MyOpenMvcHelper $helper)
-    {
-    }
 
     /**
      * 对抖音服务端 OpenAPI 接口返回值进行判断
      * @return mixed
      */
-    public function openAPIResponseResult($response)
+    public function openAPIResponseResult($response): mixed
     {
         $data = $response->toArray(true);
         if ($data['err_tips'] != "success") {

@@ -2,14 +2,13 @@
 
 namespace App\Modules\tao\Helper\Auth;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 
 
 class AuthRedisData
 {
-    public function __construct(public MyMvcHelper $mvc)
+    public function __construct()
     {
     }
 

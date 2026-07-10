@@ -23,7 +23,7 @@ class Notify extends AbstractWepay
     public function handlePaid(array $data, callable $success = null): void
     {
         $order = OpenOrderService::fromOutTradeNo($data['out_trade_no']);
-        $logic = WepayOrderLogic::createWithOrder($this->helper, $order);
+        $logic = WepayOrderLogic::createWithOrder($order);
         if ($logic->payResponse($data, true)) {
             if (is_callable($success)) {
                 try {

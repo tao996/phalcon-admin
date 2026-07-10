@@ -12,6 +12,7 @@ use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use App\Modules\tao\Services\LogService;
 use App\Modules\tao\Services\RoleService;
 use App\Modules\tao\Services\UserService;
+use App\Modules\tao\TaoAppService;
 use Phax\Db\QueryBuilder;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
@@ -184,7 +185,7 @@ class UserController extends BaseController
     public function passwordAction()
     {
         $id = $this->getRequestInt('id'); // 用户 ID
-        if (!$this->vv->userRecordAccess($this->loginUser()->id,$id)){
+        if (!TaoAppService::userRecordAccess($this->loginUser()->id,$id)){
             throw new BusinessException('没有修改密码的权限');
         }
 
@@ -198,7 +199,7 @@ class UserController extends BaseController
 
         if ($this->request->isPost()) {
             // 不是超级管理员，则必须提供正确的旧密码
-            if (!$this->vv->loginUserHelper()->isSuperAdmin()) {
+            if (!TaoAppService::loginUserHelper()->isSuperAdmin()) {
                 if (!empty($user->password) && empty($data['old_password'])) {
                     throw new BusinessException('必须提供旧密码');
                 }

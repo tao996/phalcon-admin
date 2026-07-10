@@ -43,10 +43,9 @@ class BaseAuthController extends Controller
     {
         if (!$this->hasCheckLogin) {
             $this->hasCheckLogin = true;
-            $this->vv->loginAuthHelper()
-                ->setAuthAdapter($this->loginAdapter);
-            $this->vv->loginAuthHelper()->login();
+            TaoAppService::loginAuthHelper()->setAuthAdapter($this->loginAdapter);
+            TaoAppService::loginAuthHelper()->login();
         }
-        return $this->vv->loginAuthHelper();
+        return TaoAppService::loginAuthHelper();
     }
 }

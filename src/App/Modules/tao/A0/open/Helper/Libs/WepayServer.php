@@ -2,7 +2,7 @@
 
 namespace App\Modules\tao\A0\open\Helper\Libs;
 
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
+use App\Modules\tao\TaoAppService;
 use EasyWeChat\Pay\Message;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
@@ -16,7 +16,7 @@ class WepayServer
 {
     public \EasyWeChat\Pay\Application $app;
 
-    public function __construct(public MyOpenMvcHelper $helper, public string $appid, public string $mchid)
+    public function __construct(public string $appid, public string $mchid)
     {
         if (empty($this->appid)) {
             throw new BusinessException('wechat pay helper appid is empty');
@@ -29,7 +29,7 @@ class WepayServer
     private function getApplication(): \EasyWeChat\Pay\Application
     {
         if (empty($this->app)) {
-            $this->app = $this->helper->application()->getPay($this->appid, $this->mchid);
+            $this->app = TaoAppService::applicationHelper()->getPay($this->appid, $this->mchid);
         }
         return $this->app;
     }
@@ -134,7 +134,7 @@ class WepayServer
             }
             return $next($message);
         });
-        return $this->helper->wechatHelper()->response($server->serve());
+        return TaoAppService::wechatHelper()->response($server->serve());
     }
 
     /**
@@ -169,7 +169,7 @@ class WepayServer
         });
 
 // 默认返回 ['code' => 'SUCCESS', 'message' => '成功']
-        return $this->helper->wechatHelper()->response($server->serve());
+        return TaoAppService::wechatHelper()->response($server->serve());
     }
 
     /**
@@ -298,7 +298,7 @@ class WepayServer
             throw new BusinessException('订单总金额不能为空');
         }
         if (empty($postData['notify_url'])) {
-            $postData['notify_url'] = $this->helper->openUrlHelper()->refundNotifyDemoURL($postData['out_trade_no']);
+            $postData['notify_url'] = TaoAppService::openUrlHelper()->refundNotifyDemoURL($postData['out_trade_no']);
         }
 //        if (empty($postData['funds_account'])) {
 //            $postData['funds_account'] = 'AVAILABLE';

@@ -2,13 +2,12 @@
 
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use Phax\Foundation\AppService;
 
 class LayuiHtml
 {
 
-    public function __construct(protected MyMvcHelper $mvc)
+    public function __construct()
     {
     }
 

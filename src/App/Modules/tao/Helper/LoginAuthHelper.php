@@ -7,11 +7,13 @@ use App\Modules\tao\Helper\Auth\LoginAuthAdapter;
 use App\Modules\tao\Helper\Auth\LoginSessionAuthAdapter;
 use App\Modules\tao\Helper\Auth\LoginDemoTokenAuthAdapter;
 use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\TaoAppService;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 
 class LoginAuthHelper
 {
-    public function __construct(public MyMvcHelper $mvc)
+    public function __construct()
     {
     }
 
@@ -25,17 +27,17 @@ class LoginAuthHelper
     public function setAuthAdapter(LoginAuthAdapter|null|string $authAdapter = null): void
     {
         if (empty($authAdapter)) {
-            if ($this->mvc->isJsonBodyRequest()) { // 小程序
+            if (AppService::isJsonBodyRequest()) { // 小程序
                 $authAdapter = LoginAppAuthAdapter::class;
-            } elseif (LoginDemoTokenAuthAdapter::check($this->mvc)) { // for phpunit test
+            } elseif (LoginDemoTokenAuthAdapter::check()) { // for phpunit test
                 $authAdapter = LoginDemoTokenAuthAdapter::class;
-            } elseif (LoginAppAuthAdapter::check($this->mvc)) {
+            } elseif (LoginAppAuthAdapter::check()) {
                 $authAdapter = LoginAppAuthAdapter::class;
             } else {
                 $authAdapter = LoginSessionAuthAdapter::class;
             }
         }
-        $this->authAdapter = is_string($authAdapter) ? new $authAdapter($this->mvc) : $authAdapter;
+        $this->authAdapter = is_string($authAdapter) ? new $authAdapter() : $authAdapter;
         $this->authAdapter->data();
     }
 
@@ -62,7 +64,7 @@ class LoginAuthHelper
         }
         if (is_null($this->user)) {
             if ($user = $this->authAdapter->getUser()) {
-                $this->mvc->loginUserHelper()->resetUser($user);
+                TaoAppService::loginUserHelper()->resetUser($user);
                 $this->user = $user;
             } else {
                 $this->user = new SystemUser(); // 一个匿名用户
@@ -89,7 +91,7 @@ class LoginAuthHelper
         if ($userId > 0) {
             if ($user = SystemUser::findFirst($userId)) {
                 $this->getAdapter()->saveUser($user);
-                $this->mvc->loginUserHelper()->resetUser($user);
+                TaoAppService::loginUserHelper()->resetUser($user);
                 $this->user = $user;
             } else {
                 throw new BusinessException('账号不存在');

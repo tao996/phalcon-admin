@@ -2,9 +2,9 @@
 
 namespace App\Modules\tao\Helper\Auth;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 
+use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyData;
@@ -19,7 +19,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
 
     private array $data;
 
-    public static function check(MyMvcHelper $mvc): bool
+    public static function check(): bool
     {
         return AppService::request()->hasHeader('Authorization');
     }
@@ -49,9 +49,9 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
     public function getUser(): SystemUser|null
     {
         if (!empty($this->data['token'])) {
-            $userId = $this->mvc->authRedisData()->getUserId($this->data['token'], 'app');
+            $userId = TaoAppService::authRedisData()->getUserId($this->data['token'], 'app');
             if ('logout' != AppService::route()->getAction()) {
-                $secret = $this->mvc->authRedisData()->getTokenValue($this->data['token']);
+                $secret = TaoAppService::authRedisData()->getTokenValue($this->data['token']);
                 if (!$secret) {
                     throw new BusinessException('登录凭证过期或不存在', [
                         'data' => $this->data,
@@ -72,8 +72,8 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
             // 刷新 token 时间
             if ($user = SystemUser::findFirst($userId)) {
                 // 太过频繁刷新
-                if ($this->mvc->authRedisData()->getTtl($this->data['token']) < 3600 * 24 * 2) {
-                    $this->mvc->authRedisData()->setTokenExpire(
+                if (TaoAppService::authRedisData()->getTtl($this->data['token']) < 3600 * 24 * 2) {
+                    TaoAppService::authRedisData()->setTokenExpire(
                         $this->data['token'],
                         $this->options['EX'] ?? 3600 * 24
                     );
@@ -86,7 +86,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
 
     private function getCacheToken(int $userId): string
     {
-        return $this->mvc->authRedisData()
+        return TaoAppService::authRedisData()
             ->generateToken($userId, 'app'); // 已经使用了 . 号作为分割号
     }
 
@@ -97,14 +97,14 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
         // 随机码，用于生成 sign 签名
         $sec = md5(join(',', [rand(1, 100), time() + rand(100, 9999)]));
         $ex = MyData::getInt($info, 'EX', 604800);
-        $this->mvc->authRedisData()->setToken($token, $sec, ['EX' => $ex]); // 24*3600*7 = 7 天
+        TaoAppService::authRedisData()->setToken($token, $sec, ['EX' => $ex]); // 24*3600*7 = 7 天
         return join('-', [$token, $sec]);
     }
 
     public function destroy(): void
     {
         if (isset($this->data['token'])) {
-            $this->mvc->authRedisData()->delToken($this->data['token']);
+            TaoAppService::authRedisData()->delToken($this->data['token']);
         }
     }
 

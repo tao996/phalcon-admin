@@ -3,6 +3,7 @@
 namespace App\Modules\tao\A0\open\Helper;
 
 use App\Modules\tao\Data\UserBindPlatform;
+use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
@@ -11,7 +12,7 @@ use Phax\Utils\MyData;
 
 class MiniAppHelper
 {
-    public function __construct(private MyOpenMvcHelper $helper)
+    public function __construct()
     {
     }
 
@@ -31,17 +32,17 @@ class MiniAppHelper
 
         switch ($app['platform']) {
             case UserBindPlatform::PlatformTiktok:
-                $application = $this->helper->application()->getTiktok($app);
+                $application = TaoAppService::applicationHelper()->getTiktok($app);
                 $response = $application->getClient()
                     ->postJson('api/apps/v2/jscode2session', [
                         'appid' => $app['appid'],
                         'secret' => $app['secret'],
                         'code' => $code
                     ]);
-                $data = $this->helper->tiktokHelper()->openAPIResponseResult($response);
+                $data =TaoAppService::tiktokHelper()->openAPIResponseResult($response);
                 break;
             case UserBindPlatform::PlatformWechat:
-                $application = $this->helper->application()->getMini($app);
+                $application = TaoAppService::applicationHelper()->getMini($app);
                 $data = $application->getUtils()->codeToSession($code);
                 break;
             default:
@@ -64,7 +65,7 @@ class MiniAppHelper
             'miniprogram_state|跳转小程序类型' => 'in:developer,trial,formal',
             'lang|语言' => 'required'
         ]);
-        $app = $this->helper->application()->getMini($appid);
+        $app = TaoAppService::applicationHelper()->getMini($appid);
         // 测试环境为 $app 提供记录引擎
         if (IS_DEBUG) {
             $logger = AppService::logger();

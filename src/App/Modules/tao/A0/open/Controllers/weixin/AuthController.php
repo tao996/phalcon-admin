@@ -2,8 +2,10 @@
 
 namespace App\Modules\tao\A0\open\Controllers\weixin;
 
-use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Service\OpenAppService;
+use App\Modules\tao\BaseController;
+use App\Modules\tao\TaoAppService;
+use App\Modules\tao\utils\RedirectUtil;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LocationException;
 use Phax\Support\Validate;
@@ -13,18 +15,13 @@ use Phax\Support\Validate;
  * @link https://easywechat.com/6.x/oauth.html
  * @throws \Exception
  */
-class AuthController extends BaseOpenController
+class AuthController extends BaseController
 {
-    protected function localInitialize(): void
-    {
-    }
-
-
     public function indexAction()
     {
         if ($this->request->getQuery('user')) { // 只是需要检查用户是否登录
             if ($this->isLogin()) {
-                throw new LocationException($this->vv->redirectHelper()->query('/'));
+                throw new LocationException(RedirectUtil::query('/'));
             }
         }
 
@@ -36,12 +33,12 @@ class AuthController extends BaseOpenController
         $scope = $this->request->getQuery('scope', null, 'snsapi_base');
         $target = $this->request->getQuery('target', null, '/');
 
-        if (!$this->helper->wechatHelper()->isMicroMessengerBrowser()) {
-            $url = $this->helper->openUrlHelper()->moduleUrl('tao.wechat/auth', ['appid' => $appid]);
-            $this->helper->wechatHelper()->renderQrcode($url);
+        if (!TaoAppService::wechatHelper()->isMicroMessengerBrowser()) {
+            $url = TaoAppService::openUrlHelper()->moduleUrl('tao.wechat/auth', ['appid' => $appid]);
+            TaoAppService::wechatHelper()->renderQrcode($url);
         }
 
-        $app = $this->helper->application()->getOfficial($appid);
+        $app = TaoAppService::applicationHelper()->getOfficial($appid);
         $oauth = $app->getOAuth();
 
 
@@ -56,7 +53,7 @@ class AuthController extends BaseOpenController
         }
         $oauth->scopes([$scope]);
 
-        $absURL = $this->helper->openUrlHelper()->moduleUrl('tao.wechat/auth/code', [
+        $absURL = TaoAppService::openUrlHelper()->moduleUrl('tao.wechat/auth/code', [
             'appid' => $appid,
             'target' => $target, // 授权后跳转到此地址
         ]);
@@ -70,14 +67,14 @@ class AuthController extends BaseOpenController
         Validate::checkData($data, ['appid' => 'required', 'code' => 'required']);
         $appid = $data['appid'];
         $code = $data['code'];
-        $app = $this->helper->application()->getOfficial($appid);
+        $app = TaoAppService::applicationHelper()->getOfficial($appid);
         $oauth = $app->getOAuth();
 
         $user = $oauth->userFromCode($code);
         $info = $user->toArray();
 //        dd('info', $info, $_SERVER);
         $redirect = $this->request->getQuery('target', null, '/');
-        $redirectURL = $this->helper->openUrlHelper()->moduleUrl(
+        $redirectURL = TaoAppService::openUrlHelper()->moduleUrl(
             $redirect,
             ['openid' => $info['id'], 'appid' => $appid],
         ); // 跳转到回调地址

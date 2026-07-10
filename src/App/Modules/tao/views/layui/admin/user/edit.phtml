@@ -9,7 +9,7 @@ $isEdit = $vv->pick('id', 0) > 0;
 <form class="layui-form">
 
     <?php
-    echo $vv->userHtmlHelper()->upload(
+    echo $vv->layuiForm()->upload(
             '用户头像', 'head_img',
             value: $vv->pick('head_img')
     ) ?>

@@ -2,9 +2,9 @@
 
 namespace App\Modules\tao\A0\open\Controllers\admin;
 
-use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenConfig;
 use App\Modules\tao\A0\open\Service\OpenConfigService;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 
 
@@ -12,10 +12,10 @@ use App\Modules\tao\Helper\Libs\RBAC;
  * @property OpenConfig $model
  */
 #[RBAC(title: '开放平台配置')]
-class ConfigController extends BaseOpenController
+class ConfigController extends BaseController
 {
 
-    protected function localInitialize(): void
+    protected function afterInitialize(): void
     {
         $this->model = new OpenConfig();
     }

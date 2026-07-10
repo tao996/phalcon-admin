@@ -5,12 +5,12 @@ namespace App\Modules\tao\A0\open\Helper;
 use App\Modules\tao\A0\open\Service\OpenAppService;
 use App\Modules\tao\A0\open\Service\OpenMchService;
 use App\Modules\tao\sdk\SdkHelper;
+use App\Modules\tao\TaoAppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
-use App\Modules\tao\sdk\RedisCache;
 use EasyWeChat\Kernel\Exceptions\InvalidArgumentException;
 use EasyWeChat\OfficialAccount\Application as OfficialApplication;
 use EasyWeChat\Pay\Application as PayApplication;
@@ -20,10 +20,6 @@ use EasyWeChat\MiniApp\Application as MiniApplication;
 
 readonly class ApplicationHelper
 {
-    public function __construct(private MyOpenMvcHelper $helper)
-    {
-        \App\Modules\tao\sdk\SdkHelper::easyWechat();
-    }
 
     private function tiktokSDK(): void
     {
@@ -55,8 +51,7 @@ readonly class ApplicationHelper
                 'sandbox' => $app['sandbox'],
                 'http' => ['throw' => true]
             ]);
-            $cache = new RedisCache($this->helper->mvc);
-            $app->setCache($cache);
+            $app->setCache(TaoAppService::redisCache());
             return $app;
         } catch (\Exception $e) {
             throw new LogException('Tiktok 小程序配置失败', ['app'=>$app],previous: $e);
@@ -90,8 +85,7 @@ readonly class ApplicationHelper
                     ]
                 ]
             );
-            $cache = new RedisCache($this->helper->mvc);
-            $app->setCache($cache);
+            $app->setCache(TaoAppService::redisCache());
             return $app;
         } catch (\Exception $e) {
             throw new LogException('微信公众号配置失败', [
@@ -172,8 +166,7 @@ readonly class ApplicationHelper
                     'throw' => false
                 ]
             ]);
-            $cache = new RedisCache($this->helper->mvc);
-            $app->setCache($cache);
+            $app->setCache(TaoAppService::redisCache());
             return $app;
         } catch (\Exception $e) {
             throw new LogException('微信小程序配置失败', [

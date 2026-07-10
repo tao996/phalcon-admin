@@ -3,6 +3,7 @@
 namespace App\Modules\tao\Controllers;
 
 use App\Modules\tao\BaseController;
+use Phax\Foundation\AppService;
 use Phax\Utils\MyData;
 
 /**
@@ -20,7 +21,7 @@ class DemoController extends BaseController
         if ($this->isApiRequest()) {
             return $this->_doData();
         }
-        if ($this->vv->isMobile()){
+        if (AppService::isMobile()){
             $this->route->setPickView('demo/mobile');
         }
         return [];

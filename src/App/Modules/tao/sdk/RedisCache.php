@@ -2,18 +2,12 @@
 
 namespace App\Modules\tao\sdk;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use Phalcon\Cache\Exception\InvalidArgumentException;
 use Phax\Foundation\AppService;
 use Psr\SimpleCache\CacheInterface;
 
 class RedisCache implements CacheInterface
 {
-
-    public function __construct(protected MyMvcHelper $helper)
-    {
-
-    }
 
     /**
      * @param string $key

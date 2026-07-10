@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers\user;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUploadfile;
+use App\Modules\tao\TaoAppService;
 use Phax\Db\QueryBuilder;
 
 /**
@@ -35,7 +36,7 @@ class UploadfileController extends BaseController
 
     protected function actionQuery(QueryBuilder $queryBuilder): void
     {
-        if (!$this->vv->loginUserHelper()->isSuperAdmin()) {
+        if (!TaoAppService::loginUserHelper()->isSuperAdmin()) {
             $queryBuilder->int('user_id', $this->loginUser()->id);
         }
         if ($keyword = $this->request->getQuery('title')) {

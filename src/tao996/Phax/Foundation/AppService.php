@@ -10,6 +10,7 @@ use Phax\Helper\HtmlHelper;
 use Phax\Helper\MyUrlBuilder;
 use Phax\Support\Config;
 use Phax\Support\Exception\BlankException;
+use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
 
 class AppService
@@ -17,6 +18,14 @@ class AppService
     public static function has(string $serviceName): bool
     {
         return Application::di()->has($serviceName);
+    }
+    public static function getShared(string $serverName)
+    {
+        return Application::di()->getShared($serverName);
+    }
+    public static function setShared(string $serviceName, $service): void
+    {
+        Application::di()->setShared($serviceName, $service);
     }
 
     public static function getDi(): \Phalcon\Di\Di
@@ -37,6 +46,60 @@ class AppService
         return Application::di()->get('config');
     }
 
+
+    public static function dispatcher(): \Phalcon\Dispatcher\AbstractDispatcher
+    {
+        return Application::di()->getShared('dispatcher');
+    }
+
+
+    /**
+     * 调用 console 任务
+     * @param string $path 路径，示例 p/demo/main
+     * @return array
+     */
+    public static function console(string $path, bool $filter = true): array
+    {
+        $cmd = 'php ' . PATH_ROOT . 'artisan ' . $path;
+
+        exec($cmd, $output, $result_code);
+        if ($result_code === 0) {
+            return $filter ? array_filter($output) : $output;
+        } else {
+            throw new LogException('执行控制台(' . $cmd . ')任务失败', [
+                'result_code' => $result_code,
+                'output' => $output,
+            ]);
+        }
+    }
+
+    public static function getLanguage()
+    {
+        // 路由
+        if ($language = AppService::route()->getLanguage()) { // 网址中设置的语言
+            return $language;
+        }
+        // 请求参数
+        if (Application::di()->has('request')) {
+            if ($language = AppService::request()->getQuery('language')) {
+                return $language;
+            }
+        }
+        // cookies 会导致每次请求都生成一个 cookies
+//        if ($this->di->has('cookies')) {
+//            if ($language = $this->cookies()->get('language')->getValue('string')) {
+//                $this->route()->routerOptions['language'] = $language;
+//                return $language;
+//            }
+//        }
+//        $lang = $this->di->get('request')->getBestLanguage(); // zh-CN
+        // 路由中有语言请求参数，配置设置
+        if ($language = self::dispatcher()->getParam('language')) {
+            return $language;
+        }
+        return self::config()->getString('app.locale', 'en');
+    }
+
     public static function request(): Request
     {
         return Application::di()->get('request');
@@ -50,6 +113,11 @@ class AppService
     public static function cache(): \Phalcon\Cache\Cache
     {
         return Application::di()->getShared('cache');
+    }
+
+    public static function session(): \Phalcon\Session\ManagerInterface
+    {
+        return Application::di()->getShared('session');
     }
 
 
@@ -85,7 +153,6 @@ class AppService
         return Application::di()->getShared('route');
     }
 
-
     public function router(): \Phalcon\Mvc\Router|\Phalcon\Cli\Router
     {
         return Application::di()->getShared('router');
@@ -116,7 +183,7 @@ class AppService
 
     /**
      * 生成一个 URL 地址
-     * @param array{origin:string,prefix:string,language:bool,api:bool, module:bool,project:bool,path:string, query:array|string} $options
+     * @param array{origin:string,prefix?:string,language?:bool,api?:bool, module?:bool,project?:bool,path?:string, query?:array|string} $options
      * @return string
      */
     public static function url(array $options): string
@@ -305,4 +372,61 @@ class AppService
         }
         return $query;
     }
+
+    /**
+     * 生成一个 project 请求链接
+     * @param string $path 路径
+     * @param array|bool $mixed 如果为 `true` 则表示 `api` 请求；<br>
+     * 如果为 `false` 则表示`不需要 origin`；<br>
+     * 如果为 `array`，则是请求参数
+     * @return string
+     */
+    public static function urlProject(string $path, array|bool $mixed = []): string
+    {
+        $options = [
+            'path' => $path,
+            'project' => true,
+            'origin' => true,
+        ];
+        if ($mixed === true) {
+            $options['api'] = true;
+        } elseif ($mixed === false) {
+            $options['origin'] = false;
+        } elseif (!empty($mixed)) {
+            $options['query'] = $mixed;
+        }
+        return AppService::url($options);
+    }
+
+
+    /**
+     * 检测是否为移动端访问
+     * 支持 UA 检测和 ?mobile=1 参数覆盖
+     * @return bool
+     */
+    public static function isMobile(): bool
+    {
+        // 允许通过 URL 参数强制指定
+        $mobileParam = self::request()->getQuery('mobile', 'int', -1);
+        if ($mobileParam >= 0) {
+            return (bool)$mobileParam;
+        }
+        // UA 检测
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        if ($ua) {
+            $keywords = ['Mobile', 'Android', 'iPhone', 'iPad', 'iPod', 'Windows Phone', 'Opera Mini', 'IEMobile'];
+            foreach ($keywords as $kw) {
+                if (str_contains($ua, $kw)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static function isJsonBodyRequest(): bool
+    {
+        return self::request()->getQuery('data', 'string') === 'jsonbody';
+    }
+
 }

@@ -9,13 +9,14 @@
 
 namespace App\Modules\tao\A0\open\ExtendControllers;
 
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Helper\wepay\Notify;
 use App\Modules\tao\A0\open\Helper\wepay\Prepay;
 use App\Modules\tao\A0\open\Helper\wepay\RefundNotify;
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use App\Modules\tao\Helper\MyMvcHelper;
+use App\Modules\tao\TaoAppService;
+use App\Modules\tao\utils\ResponseUtil;
 use Phalcon\Di\DiInterface;
 use Phalcon\Http\Request;
 use Phax\Support\Exception\BlankException;
@@ -29,7 +30,6 @@ use Phax\Utils\MyData;
  * @property string $notify_path 订单支持成员回调路径，示例 `/api/p/house/order/notify/` 注意最后的 / 是必须的，因为要拼接 appid/mchid
  * @property string $refund_notify_path 退款地址路径，示例 '/api/p/house/order/notify-refund/'
  * @property MyMvcHelper $vv
- * @property MyOpenMvcHelper $openMvcHelper
  * @property Request $request
  * @property array $requestData
  * @method int getUserId()
@@ -69,8 +69,7 @@ trait WepayOrder
                 throw new BusinessException('notify_path must end with /notify/');
             }
             //  http://localhost:8071/api/p/family/order/notify/123
-            $this->notify_url = $this->vv->a0openHelper()
-                ->openUrlHelper()
+            $this->notify_url = TaoAppService::openUrlHelper()
                 ->url($this->notify_path . $appid . '/' . $mchid);
         }
         return $this->notify_url;
@@ -81,7 +80,7 @@ trait WepayOrder
     public function getWechatPayPrepayHelper(string $appid, string $mchid): Prepay
     {
         if (empty($this->prepay_helper)) {
-            $this->prepay_helper = $this->vv->a0openHelper()->wepayHelper()->prepay($appid, $mchid);
+            $this->prepay_helper = TaoAppService::wepayHelper()->prepay($appid, $mchid);
         }
         return $this->prepay_helper;
     }
@@ -97,8 +96,7 @@ trait WepayOrder
                 throw new BusinessException('refund_notify_path must end with /notify_refund/');
             }
             // http://localhost:8071/api/p/family/order/notify-refund/456
-            $this->refund_notify_url = $this->vv->a0openHelper()
-                ->openUrlHelper()
+            $this->refund_notify_url = TaoAppService::openUrlHelper()
                 ->url($this->refund_notify_path . $outTradeNo);
         }
         return $this->refund_notify_url;
@@ -109,7 +107,7 @@ trait WepayOrder
     public function getWechatPayRefundNotifyHelper(string $outTradeNo): RefundNotify
     {
         if (empty($this->refund_notify_helper)) {
-            $this->refund_notify_helper = $this->vv->a0openHelper()->wepayHelper()->refundNotify($outTradeNo);
+            $this->refund_notify_helper = TaoAppService::wepayHelper()->refundNotify($outTradeNo);
         }
         return $this->refund_notify_helper;
     }
@@ -119,7 +117,7 @@ trait WepayOrder
     public function getWechatPayNotifyHelper(string $appid, string $mchid): Notify
     {
         if (empty($this->notify_helper)) {
-            $this->notify_helper = $this->vv->a0openHelper()->wepayHelper()->notify($appid, $mchid);
+            $this->notify_helper = TaoAppService::wepayHelper()->notify($appid, $mchid);
         }
         return $this->notify_helper;
     }
@@ -133,7 +131,6 @@ trait WepayOrder
     {
         if (empty($this->order_logic)) {
             $this->order_logic = WepayOrderLogic::createWithQB(
-                $this->openMvcHelper,
                 $this->getOrderQueryBuilder(),
                 $id
             );
@@ -232,10 +229,7 @@ trait WepayOrder
                 'err' => $e->getMessage(),
             ]);
             // 已经无法处理，以后使用订单查询处理
-            $this->vv->responseHelper()->send([
-                'code' => 'SUCCESS',
-                'message' => '成功'
-            ]);
+            ResponseUtil::send(['code' => 'SUCCESS', 'message' => '成功']);
             throw new BlankException();
         }
     }
@@ -257,7 +251,6 @@ trait WepayOrder
         // id 是必须的
         $id = MyData::getInt($this->requestData, 'id');
         $orderLogic = WepayOrderLogic::createWithQB(
-            $this->openMvcHelper,
             $this->getOrderQueryBuilder(),
             $id
         );
@@ -273,7 +266,6 @@ trait WepayOrder
         $this->mustPostMethod();
         $id = MyData::getInt($this->requestData, 'id');
         $orderLogic = WepayOrderLogic::createWithQB(
-            $this->openMvcHelper,
             $this->getOrderQueryBuilder(),
             $id
         );
@@ -405,7 +397,6 @@ trait WepayOrder
         $this->mustPostMethod();
         $id = MyData::getInt($this->requestData, 'id');
         $orderLogic = WepayOrderLogic::createWithQB(
-            $this->openMvcHelper,
             $this->getOrderQueryBuilder(),
             $id
         );

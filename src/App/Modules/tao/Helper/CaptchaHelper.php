@@ -37,8 +37,7 @@ class CaptchaHelper
         $captcha = new ImageCaptcha();
         $captcha->create();
         if (!$this->local_test) {
-            $this->mvc->session()
-                ->set($this->key, $this->secret($captcha->getText()));
+            AppService::session()->set($this->key, $this->secret($captcha->getText()));
         }
         $captcha->output(AppService::response());
     }
@@ -56,7 +55,7 @@ class CaptchaHelper
         }
         if (!$this->local_test) {
             if (empty($actual)) {
-                $actual = $this->mvc->session()->get($this->key);
+                $actual = AppService::session()->get($this->key);
             } else {
                 $actual = $this->secret($actual);
             }
@@ -78,7 +77,7 @@ class CaptchaHelper
     public function destroy(): void
     {
         if (!$this->local_test) {
-            $this->mvc->session()->remove($this->key);
+            AppService::session()->remove($this->key);
         }
     }
 }

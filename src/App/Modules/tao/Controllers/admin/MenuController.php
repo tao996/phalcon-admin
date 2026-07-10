@@ -9,6 +9,7 @@ use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use App\Modules\tao\Services\MenuService;
+use App\Modules\tao\TaoAppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
 use Phax\Support\Validate;
@@ -139,7 +140,7 @@ class MenuController extends BaseController
         if ($userId < 1) {
             throw new BusinessException('user id 不能为空');
         }
-        return $this->vv->loginUserHelper()->getMenuTree();
+        return TaoAppService::loginUserHelper()->getMenuTree();
     }
 
     protected function beforeDeleteQuery(QueryBuilder $queryBuilder, array $ids)

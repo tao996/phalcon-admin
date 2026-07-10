@@ -5,6 +5,7 @@ namespace App\Modules\tao\Controllers\user;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
+use App\Modules\tao\TaoAppService;
 use Phax\Db\Transaction;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\LogException;
@@ -36,10 +37,13 @@ class IndexController extends BaseController
             $user->head_img = $newHeadImg;
             $user->signature = MyData::getString($data, 'signature');
             if ($user->save()) {
-                $this->vv->loginUserHelper()->updateUserInfo([
+                TaoAppService::loginUserHelper()->updateUserInfo([
                     'head_img' => $user->head_img,
                     'signature' => $user->signature,
                 ]);
+                TaoAppService::loginAuthHelper()->getAdapter()->saveUser(
+                    TaoAppService::loginUserHelper()->user()
+                );
                 return $this->success('保存成功');
             } else {
                 return $this->error($user->getErrors());
@@ -87,7 +91,10 @@ class IndexController extends BaseController
                 }
                 SmsCodeService::done($code);
             });
-            $this->vv->loginUserHelper()->updateUserInfo($user->toArray());
+            TaoAppService::loginUserHelper()->updateUserInfo($user->toArray());
+            TaoAppService::loginAuthHelper()->getAdapter()->saveUser(
+                TaoAppService::loginUserHelper()->user()
+            );
             return $this->success('修改手机号成功');
         }
 
@@ -146,7 +153,10 @@ class IndexController extends BaseController
                 }
                 SmsCodeService::done($code);
             });
-            $this->vv->loginUserHelper()->updateUserInfo($user->toArray());
+            TaoAppService::loginUserHelper()->updateUserInfo($user->toArray());
+            TaoAppService::loginAuthHelper()->getAdapter()->saveUser(
+                TaoAppService::loginUserHelper()->user()
+            );
             return $this->success('修改邮箱成功');
         }
 
@@ -183,7 +193,7 @@ class IndexController extends BaseController
      */
     public function menuAction()
     {
-        $ms = $this->vv->loginUserHelper();
+        $ms = TaoAppService::loginUserHelper();
         $data = [
             'logoInfo' => [
                 'title' => AppService::config()->getString('app.title'),
@@ -231,7 +241,8 @@ class IndexController extends BaseController
      */
     public function clearAction()
     {
-        $this->vv->loginUserHelper()->reloadUserInfo();
+        $userId = TaoAppService::loginUserHelper()->userId();
+        TaoAppService::loginAuthHelper()->loginWith($userId);
         return $this->success('清除缓存成功');
     }
 
@@ -241,7 +252,7 @@ class IndexController extends BaseController
      */
     public function logoutAction()
     {
-        $this->vv->loginAuthHelper()->logout();;
+        TaoAppService::loginAuthHelper()->logout();;
         return $this->success('退出登录成功', '/');
     }
 

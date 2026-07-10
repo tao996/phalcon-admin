@@ -607,12 +607,12 @@ class BaseController extends BaseRbacController
                     throw new BusinessException('没有修改记录的权限');
                 }
             } elseif ($this->isSuperAdminAction()) {
-                if (!$this->vv->userRecordAccess($this->loginUser()->id, $model->user_id)) {
+                if (!TaoAppService::userRecordAccess($this->loginUser()->id, $model->user_id)) {
                     throw new BusinessException('没有修改记录的权限');
                 }
             } else {
                 // 检查是否有修改节点的权限
-                if (!$this->vv->loginUserHelper()->access(AppService::route()->getNode())) {
+                if (!TaoAppService::loginUserHelper()->access(AppService::route()->getNode())) {
                     throw new BusinessException('没有修改记录的权限');
                 }
             }

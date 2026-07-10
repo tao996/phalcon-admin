@@ -31,7 +31,7 @@ class LoginUserHelperTest extends TestCase
 
     private function getMenuTreeTitles(): array
     {
-        $helper = new LoginUserHelper(self::$mvc);
+        $helper = new LoginUserHelper();
         $helper->resetUser(self::$adminUser);
         $menus = $helper->getMenuTree();
         return $this->extractTitles($menus);
@@ -90,7 +90,7 @@ class LoginUserHelperTest extends TestCase
     {
         // "系统管理" (id=2, roles='') 的子菜单应严格按照节点权限过滤
         // 由于 admin 用户有全部节点，这里验证子菜单可见
-        $helper = new LoginUserHelper(self::$mvc);
+        $helper = new LoginUserHelper();
         $helper->resetUser(self::$adminUser);
         $menus = $helper->getMenuTree();
 

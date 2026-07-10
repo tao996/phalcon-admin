@@ -3,7 +3,6 @@
 namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
-use App\Modules\tao\A0\open\Helper\MyOpenMvcHelper;
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use App\Modules\tao\A0\open\Service\OpenOrderService;
@@ -19,7 +18,7 @@ class RefundNotify
     private OpenOrder $order;
     public WepayServer $wepayServer;
 
-    public function __construct(public MyOpenMvcHelper $helper, string $outTradeNo)
+    public function __construct(string $outTradeNo)
     {
         if (empty($outTradeNo)) {
             throw new BusinessException('wechat refund notify outTradeNo is empty');
@@ -35,7 +34,7 @@ class RefundNotify
     public function getWechatServer(): WepayServer
     {
         if (empty($this->wepayServer)) {
-            $this->wepayServer = new WepayServer($this->helper, $this->order->appid, $this->order->mchid);
+            $this->wepayServer = new WepayServer($this->order->appid, $this->order->mchid);
         }
         return $this->wepayServer;
     }
@@ -48,7 +47,7 @@ class RefundNotify
      */
     public function handleRefund(array $data, callable $success = null): void
     {
-        $logic = WepayOrderLogic::createWithOrder($this->helper, $this->order);
+        $logic = WepayOrderLogic::createWithOrder($this->order);
         if ($logic->refundResponse($data)) {
             if (is_callable($success)) {
                 try {

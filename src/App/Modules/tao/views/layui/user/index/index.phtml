@@ -4,8 +4,9 @@
  */
 
 use App\Modules\tao\Services\UserService;
+use App\Modules\tao\TaoAppService;
 
-$user = $vv->user();
+$user = TaoAppService::loginUserHelper()->user();
 ?>
 
 <form class="layui-form">
@@ -39,7 +40,7 @@ $user = $vv->user();
         </div>
     </div>
     <?=
-    $vv->userHtmlHelper()->upload('用户头像', 'head_img');
+    $vv->layuiForm()->upload('用户头像', 'head_img');
     ?>
 
 

@@ -2,10 +2,10 @@
 
 namespace App\Modules\tao\A0\open\Controllers\admin;
 
-use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
 use App\Modules\tao\A0\open\Models\OpenMch;
 use App\Modules\tao\A0\open\Service\OpenMchService;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
@@ -14,13 +14,13 @@ use Phax\Utils\MyData;
  * @property OpenMch $model
  */
 #[RBAC(title: '商户应用')]
-class MchController extends BaseOpenController
+class MchController extends BaseController
 {
     protected string|array $modelHiddenColumns = ['secret_key'];
     protected array|string $superAdminActions = '*';
     protected string $htmlTitle = '商户';
 
-    public function localInitialize(): void
+    public function afterInitialize(): void
     {
         $this->model = new OpenMch();
     }

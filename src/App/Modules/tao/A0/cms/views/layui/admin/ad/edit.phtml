@@ -40,7 +40,7 @@ $html = $vv->html();
     </div>
 
     <div class="layui-form-item">
-        <?php echo $vv->userHtmlHelper()->upload('图片', 'cover',
+        <?php echo $vv->layuiForm()->upload('图片', 'cover',
                 value: $vv->pick('cover'), tip: '广告图片建议尺寸 640 * 60'
         ); ?>
         <label class="layui-form-label">标题</label>

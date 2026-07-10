@@ -13,7 +13,7 @@ readonly class  OpenUrlHelper
      */
     public string $origin;
 
-    public function __construct(public MyOpenMvcHelper $helper)
+    public function __construct()
     {
         $this->origin = OpenConfigService::getWith('proxy_origin', AppService::route()->appOrigin());
     }

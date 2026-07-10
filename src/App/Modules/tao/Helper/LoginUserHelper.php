@@ -29,7 +29,7 @@ class LoginUserHelper
      */
     private array|null $nodeList = null;
 
-    public function __construct(public MyMvcHelper $mvc)
+    public function __construct()
     {
     }
 
@@ -74,16 +74,6 @@ class LoginUserHelper
     public function updateUserInfo(array $info = []): void
     {
         $this->user->assign($info);
-        $this->mvc->loginAuthHelper()->getAdapter()->saveUser($this->user);
-    }
-
-    /**
-     * 重新加载用户信息
-     * @throws \Exception
-     */
-    public function reloadUserInfo(): void
-    {
-        $this->mvc->loginAuthHelper()->loginWith($this->userId());
     }
 
     /**

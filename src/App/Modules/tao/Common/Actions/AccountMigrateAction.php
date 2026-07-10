@@ -15,6 +15,7 @@ use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
+use App\Modules\tao\TaoAppService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
@@ -134,7 +135,7 @@ class AccountMigrateAction
                 $this->connect_result = 1;
             } else {
                 // 如果手机号或邮箱不存在，则绑定到账号上
-                $user = $this->helper->loginUserHelper()->user();
+                $user = TaoAppService::loginUserHelper()->user();
                 $user->addAccount($account, $type);
                 if (!$user->save()) {
                     throw new LogException('更新账号关联失败', [

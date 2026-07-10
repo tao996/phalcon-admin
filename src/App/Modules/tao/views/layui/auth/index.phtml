@@ -5,6 +5,7 @@
  */
 
 use App\Modules\tao\Services\ConfigService;
+use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 
 $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
@@ -63,7 +64,7 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
                     <i class="layui-icon layui-icon-username"></i>
                 </div>
                 <?php
-                $accountPlaceholder = $vv->registerHelper()->accountPlaceholder(); ?>
+                $accountPlaceholder = TaoAppService::registerHelper()->accountPlaceholder(); ?>
                 <input type="text" name="account" value=""
                        autocomplete="off" class="layui-input"
                        placeholder="<?php

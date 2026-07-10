@@ -67,14 +67,14 @@ use App\Modules\tao\Services\ConfigService;
     </div>
 
     <?php
-   echo $vv->userHtmlHelper()->upload('站点 Logo', 'site_logo',
+   echo $vv->layuiForm()->upload('站点 Logo', 'site_logo',
            type: 'text',
            value: ConfigService::getWith('site.site_logo'),
            placeholder: '请上传站点 Logo 图片',
     ) ?>
 
     <?php
-   echo $vv->userHtmlHelper()->upload('浏览器图标 (ICO)', 'site_ico',
+   echo $vv->layuiForm()->upload('浏览器图标 (ICO)', 'site_ico',
            type: 'text',
            value: ConfigService::getWith('site.site_ico'),
            placeholder: '请上传浏览器图标,ico 类型',

@@ -1,20 +1,17 @@
 <?php
 
-namespace App\Modules\tao\Helper;
+namespace App\Modules\tao\utils;
 
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 
-class ResponseHelper
+class ResponseUtil
 {
-    public function __construct(public MyMvcHelper $mvc)
-    {
-    }
 
     /**
      * 设置跳转
      */
-    public function redirectIn(string $action, string $controller = ''): void
+    public static function redirectIn(string $action, string $controller = ''): void
     {
         if ($controller == '') {
             $controller = AppService::router()->getControllerName();
@@ -30,7 +27,7 @@ class ResponseHelper
      * @param int $statusCode
      * @return void
      */
-    public function redirect($location = null, bool $externalRedirect = false, int $statusCode = 302): void
+    public static function redirect($location = null, bool $externalRedirect = false, int $statusCode = 302): void
     {
         AppService::response()->redirect($location, $externalRedirect, $statusCode)
             ->send();
@@ -42,7 +39,7 @@ class ResponseHelper
      * @param int $code
      * @return \Phalcon\Http\ResponseInterface
      */
-    public function send(mixed $data, int $code = 200)
+    public static function send(mixed $data, int $code = 200)
     {
         return AppService::response()->setStatusCode($code)
             ->setContent(is_array($data) ? json_encode($data) : $data)
@@ -57,7 +54,7 @@ class ResponseHelper
      * @param string $delName 如果为空，则移除全部 cookie
      * @return void
      */
-    public function cookieRemove(string $delName = ''): void
+    public static function cookieRemove(string $delName = ''): void
     {
         if (AppService::request()->hasServer('HTTP_COOKIE')) {
             $cookies = explode(';', AppService::request()->getServer('HTTP_COOKIE'));
@@ -82,7 +79,7 @@ class ResponseHelper
      * @param int $expire 过期时间，注意需要 time()+3600 表示1小时
      * @return void
      */
-    public function cookieSet(string $name, $value, int $expire = 0): void
+    public static function cookieSet(string $name, $value, int $expire = 0): void
     {
         $cc = AppService::config()->getArray('cookie');
         AppService::cookies()->set(
@@ -102,13 +99,13 @@ class ResponseHelper
      * @param array $data
      * @return string
      */
-    public function simpleView(string $pathTpl, array $data = []): string
+    public static function simpleView(string $pathTpl, array $data = []): string
     {
         $simpleView = new \Phalcon\Mvc\View\Simple();
         return $simpleView->render($pathTpl, $data);
     }
 
-    function json($data): \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
+    public static function json($data): \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
     {
         AppService::response()->setContentType('application/json', 'UTF-8')
             ->setContent(json_encode($data))

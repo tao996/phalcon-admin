@@ -8,7 +8,7 @@ class RegisterHelper
 {
     public array $cache = [];
 
-    public function __construct(public MyMvcHelper $mvc)
+    public function __construct()
     {
         $this->cache = ConfigService::groupRows('oauth');
     }

@@ -4,7 +4,6 @@ namespace App\Modules\tao\Services;
 
 use App\Modules\tao\Config\Config;
 use App\Modules\tao\Helper\MessageHelper;
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemSmsCode;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\sdk\EmailDriverInterface;
@@ -288,7 +287,7 @@ class SmsCodeService
      * @param string $account 新的账号
      * @return bool
      */
-    public static function sendChangeAccountCode(int $userId, string $account, array $config = [])
+    public static function sendChangeAccountCode(int $userId, string $account, array $config = []): bool
     {
         $isEmail = self::mustReceiver($account);
 
@@ -439,7 +438,7 @@ class SmsCodeService
 
             $link = AppService::urlWith('/m/tao/auth/password', [
                 'type' => 'forgot',
-                'sign' => md5($code->code . $row['id'] . $this->mvc->config()->getString('app.key', 'tao-default-secret')),
+                'sign' => md5($code->code . $row['id'] . AppService::config()->getString('app.key', 'tao-default-secret')),
                 'id' => $code->id,
             ]);
 
@@ -454,7 +453,7 @@ HTML;
                 ->setAddress($email)
                 ->setHtmlBody($body)
                 ->send();
-            return $this->updateSendStatus($engine, $code, $rst);
+            return self::updateSendStatus($engine, $code, $rst);
         } else {
             throw new BusinessException('没有找到符合条件的账号');
         }
@@ -466,7 +465,7 @@ HTML;
      * @param string $sign 签名
      * @return SystemSmsCode
      */
-    public function checkForgotPasswordEmail(int $id, string $sign): SystemSmsCode
+    public static function checkForgotPasswordEmail(int $id, string $sign): SystemSmsCode
     {
         if ($id < 1) {
             throw new BusinessException('验证码 ID 不能为空');
@@ -479,7 +478,7 @@ HTML;
             throw new BusinessException('重置密码验证码不存在或过期');
         }
 
-        if ($sign !== md5($code->code . $code->user_id . $this->mvc->config()->getString('app.key', 'tao-default-secret'))) {
+        if ($sign !== md5($code->code . $code->user_id . AppService::config()->getString('app.key', 'tao-default-secret'))) {
             throw new BusinessException('签名参数不匹配');
         }
         if ($code->user_id < 1) {

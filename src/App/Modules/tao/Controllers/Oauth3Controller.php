@@ -5,6 +5,8 @@ namespace App\Modules\tao\Controllers;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\sdk\SdkHelper;
 use App\Modules\tao\Services\UserService;
+use App\Modules\tao\TaoAppService;
+use App\Modules\tao\utils\RedirectUtil;
 use Hybridauth\Hybridauth;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
@@ -28,7 +30,7 @@ class Oauth3Controller extends BaseController
             return $this->error('请求参数错误 d=driver');
         }
         if ($this->isLogin()) {
-            $this->vv->redirectHelper()->read(true);
+            RedirectUtil::read(true);
             return $this->error('请先退出登录');
         }
         if (!AppService::request()->hasQuery('state')) {
@@ -42,14 +44,14 @@ class Oauth3Controller extends BaseController
                         throw new BusinessException('重定向地址不允许跨域');
                     }
                 }
-                $this->vv->redirectHelper()->save($redirect);
+                RedirectUtil::save($redirect);
             }
         }
         $driver = strtolower($this->request->getQuery('d'));
         $config = [
             'callback' => AppService::urlModule('tao/oauth3', ['d' => $driver]),
             'providers' => [
-                'Google' => $this->vv->registerHelper()->googleProvider(),
+                'Google' => TaoAppService::registerHelper()->googleProvider(),
             ]
         ];
         $provider = ucwords($driver);
@@ -76,7 +78,7 @@ class Oauth3Controller extends BaseController
 
         $user = UserService::addUserProfile($userProfile);
         $this->getLoginAdapter()->saveUser($user);
-        $this->vv->redirectHelper()->read();
+        RedirectUtil::read();
 
         throw new BlankException('登录成功：跳转到登录页'); // 不会执行到这里
     }

@@ -107,11 +107,10 @@ class BaseRbacController extends BaseResponseController
     {
         if (!$this->hasCheckLogin) {
             $this->hasCheckLogin = true;
-            $this->vv->loginAuthHelper()
-                ->setAuthAdapter($this->loginAdapter);
-            $this->vv->loginAuthHelper()->login();
+            TaoAppService::loginAuthHelper()->setAuthAdapter($this->loginAdapter);
+            TaoAppService::loginAuthHelper()->login();
         }
-        return $this->vv->loginAuthHelper();
+        return TaoAppService::loginAuthHelper();
     }
 
     /**
@@ -122,7 +121,7 @@ class BaseRbacController extends BaseResponseController
         if (!$this->hasCheckLogin) {
             $this->tryGetLoginAuth();
         }
-        return $this->vv->user();
+        return TaoAppService::loginUserHelper()->user();
     }
 
     public function initialize(): void
@@ -247,13 +246,13 @@ class BaseRbacController extends BaseResponseController
             return;
         }
 
-        if ($this->vv->loginUserHelper()->isSuperAdmin()) {
+        if (TaoAppService::loginUserHelper()->isSuperAdmin()) {
             return;
         }
 
         // 超级管理员节点
         if ($this->isSuperAdminAction()) {
-            if (!$this->vv->loginUserHelper()->isSuperAdmin()) {
+            if (!TaoAppService::loginUserHelper()->isSuperAdmin()) {
                 $this->accessDenyResponse('非超级管理员，无权访问', 403);
             }
             return;
@@ -264,7 +263,7 @@ class BaseRbacController extends BaseResponseController
         }
 
         // 节点检查
-        $user = $this->vv->loginUserHelper();
+        $user = TaoAppService::loginUserHelper();
 
         // 自定义节点检查
         if (is_callable($this->self_rbac_validate)) {

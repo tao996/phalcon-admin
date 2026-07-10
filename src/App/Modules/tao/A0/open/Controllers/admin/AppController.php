@@ -2,10 +2,9 @@
 
 namespace App\Modules\tao\A0\open\Controllers\admin;
 
-
-use App\Modules\tao\A0\open\BaseOpenController;
 use App\Modules\tao\A0\open\Models\OpenApp;
 use App\Modules\tao\A0\open\Service\OpenAppService;
+use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Validate;
@@ -15,7 +14,7 @@ use Phax\Utils\MyData;
  * @property OpenApp $model
  */
 #[RBAC(title: '开放平台应用管理')]
-class AppController extends BaseOpenController
+class AppController extends BaseController
 {
     protected string $htmlTitle = '应用';
 
@@ -23,7 +22,7 @@ class AppController extends BaseOpenController
     protected string $modelOrderBy = 'sort desc,id desc';
     protected array $allowModifyFields = ['status', 'sort', 'online', 'sandbox'];
 
-    public function localInitialize(): void
+    public function afterInitialize(): void
     {
         $this->model = new OpenApp();
     }

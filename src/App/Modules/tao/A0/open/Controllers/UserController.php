@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Controllers;
 
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\A0\open\Models\OpenUserOpenid;
+use App\Modules\tao\TaoAppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Validate;
 
@@ -51,7 +52,7 @@ class UserController extends BaseOpenMiniController
 
     public function logoutAction()
     {
-        $this->vv->loginAuthHelper()->logout();
+        TaoAppService::loginAuthHelper()->logout();
         return '退出成功';
     }
 }

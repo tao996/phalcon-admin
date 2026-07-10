@@ -1,19 +1,15 @@
 <?php
 
-namespace App\Modules\tao\Helper;
+namespace App\Modules\tao\utils;
 
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BlankException;
 
-class RedirectHelper
+class RedirectUtil
 {
     public static string $keyRedirect = '_redirect';
 
-    public function __construct(public MyMvcHelper $mvc)
-    {
-    }
-
-    public function save(string $redirect, array $drivers = ['session']): bool
+    public static function save(string $redirect, array $drivers = ['session']): bool
     {
         if (!empty($redirect)) {
             if (in_array('cookie', $drivers)) {
@@ -21,14 +17,14 @@ class RedirectHelper
 //                cookies()->send(); 你需要自己调用
                 return true;
             } elseif (in_array('session', $drivers)) {
-                $this->mvc->session()->set(self::$keyRedirect, $redirect);
+                AppService::session()->set(self::$keyRedirect, $redirect);
                 return true;
             }
         }
         return false;
     }
 
-    public function query(string $defaultValue = ''): string
+    public static function query(string $defaultValue = ''): string
     {
         return AppService::request()->getQuery(self::$keyRedirect, null, $defaultValue);
     }
@@ -38,7 +34,7 @@ class RedirectHelper
      * @param bool $response 是否直接跳转
      * @return string
      */
-    public function read(bool $response = true, array $drivers = ['session']): string
+    public static function read(bool $response = true, array $drivers = ['session']): string
     {
         $redirect = AppService::request()->getQuery(self::$keyRedirect);
 
@@ -49,14 +45,14 @@ class RedirectHelper
             }
         }
         if (empty($redirect) && in_array('session', $drivers)) {
-            if ($this->mvc->session()->has(self::$keyRedirect)) {
-                $redirect = $this->mvc->session()->get(self::$keyRedirect, '', true);
+            if (AppService::session()->has(self::$keyRedirect)) {
+                $redirect = AppService::session()->get(self::$keyRedirect, '', true);
             }
         }
 
         $href = $redirect ? urldecode($redirect) : AppService::urlWith('/m/tao/index/index');
         if ($response) {
-            $this->mvc->responseHelper()->redirect($href);
+            ResponseUtil::redirect($href);
             throw new BlankException();
         }
         return $href;

@@ -2,7 +2,6 @@
 
 namespace App\Modules\tao\Helper\Auth;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 use Phax\Foundation\AppService;
 
@@ -12,7 +11,7 @@ class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
     private array $testUsers = [];
     public const string HeaderKeyName = 'test-token';
 
-    public static function check(MyMvcHelper $mvc): bool
+    public static function check(): bool
     {
         return AppService::isTest() && AppService::request()->hasHeader(self::HeaderKeyName);
     }
