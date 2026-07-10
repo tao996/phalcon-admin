@@ -2,7 +2,6 @@
 
 namespace App\Modules\tao;
 
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
 use App\Modules\tao\utils\ResponseUtil;
 use Phax\Db\QueryBuilder;
@@ -11,10 +10,6 @@ use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 
-/**
- * 定义各种响应格式
- * @property \App\Modules\tao\Helper\MyMvcHelper $vv
- */
 class BaseResponseController extends Controller
 {
     /**
@@ -52,7 +47,6 @@ class BaseResponseController extends Controller
         } elseif ($this->request->isPut()) {
             $this->requestData = $this->request->getPut() ?: [];
         }
-        $this->vv = new MyMvcHelper($this->di);
         parent::initialize();
     }
 
@@ -274,7 +268,7 @@ class BaseResponseController extends Controller
         } elseif (isset($data['vv'])) {
             throw new BusinessException('simple view data must not have vv');
         }
-        $data['vv'] = $this->vv;
+        $data['vv'] = AppService::html();
         echo ResponseUtil::simpleView($tpl, $data);
         exit;
     }

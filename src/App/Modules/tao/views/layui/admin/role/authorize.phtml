@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use Phax\Foundation\AppService;
@@ -36,7 +36,7 @@ use Phax\Foundation\AppService;
 
 </form>
 <?php
-$vv->layui()->addWindowConfig([])->footer();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
 ?>
 <script type="text/javascript">
     const treeId = 'nodeDataId';

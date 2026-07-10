@@ -3,6 +3,8 @@
 namespace App\Modules\tao\Common;
 
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
+use App\Modules\tao\TaoAppService;
+use Phax\Foundation\AppService;
 
 /**
  * 项目前端控制器
@@ -34,7 +36,7 @@ class BaseProjectController extends \App\Modules\tao\BaseController
     {
         HtmlAssets::initWithCdn();
         if ($this->breadcrumb) {
-            $this->vv->layuiHtml()->addBreadcrumbItem($this->breadcrumb);
+            TaoAppService::layuiHtml()->addBreadcrumbItem($this->breadcrumb);
         }
         // 控制臺不需要
         $this->view->setVars([

@@ -2,17 +2,17 @@
 
 /**
  * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-$console = $vv->html()->get('console', true); // 默认后台模板
-$vv->layui();
+$console = $vv->get('console', true); // 默认后台模板
+\App\Modules\tao\TaoAppService::layui();
 ?>
 <!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="utf-8">
     <title><?php
-        echo $vv->html()->title() ?></title>
+        echo $vv->title() ?></title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,7 +21,7 @@ $vv->layui();
     <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <?php
-    $vv->html()->outputHeaders();
+    $vv->outputHeaders();
     ?>
     <style><?php
         include __DIR__ . '/tao.css'; ?></style>
@@ -39,7 +39,7 @@ echo $console ? 'tao-container' : '' ?>">
 
 <?php
 $vv->html()->outputFooters();
-$vv->layui()->footer();
+\App\Modules\tao\TaoAppService::layui()->footer();
 $vv->appendTemplateJs();
 ?>
 <script>

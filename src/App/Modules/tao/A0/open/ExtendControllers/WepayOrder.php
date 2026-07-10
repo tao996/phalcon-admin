@@ -14,7 +14,6 @@ use App\Modules\tao\A0\open\Helper\wepay\Prepay;
 use App\Modules\tao\A0\open\Helper\wepay\RefundNotify;
 use App\Modules\tao\A0\open\Logic\WepayOrderLogic;
 use App\Modules\tao\A0\open\Models\OpenOrder;
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\TaoAppService;
 use App\Modules\tao\utils\ResponseUtil;
 use Phalcon\Di\DiInterface;
@@ -29,7 +28,6 @@ use Phax\Utils\MyData;
  * 简化应用集成微信支付相关操作
  * @property string $notify_path 订单支持成员回调路径，示例 `/api/p/house/order/notify/` 注意最后的 / 是必须的，因为要拼接 appid/mchid
  * @property string $refund_notify_path 退款地址路径，示例 '/api/p/house/order/notify-refund/'
- * @property MyMvcHelper $vv
  * @property Request $request
  * @property array $requestData
  * @method int getUserId()

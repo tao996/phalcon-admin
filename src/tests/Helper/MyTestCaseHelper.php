@@ -3,7 +3,6 @@
 namespace Tests\Helper;
 
 use Phax\Foundation\Application;
-use Phax\Helper\MyMvc;
 use PHPUnit\Framework\TestCase;
 
 class MyTestCaseHelper extends TestCase
@@ -34,10 +33,5 @@ class MyTestCaseHelper extends TestCase
         }
 
         parent::tearDown();
-    }
-
-    protected function getMyMvc(): MyMvc
-    {
-        return new MyMvc($this->di);
     }
 }

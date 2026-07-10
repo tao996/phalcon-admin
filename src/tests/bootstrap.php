@@ -1,7 +1,5 @@
 <?php
 
-use Phax\Helper\MyMvc;
-
 define('PATH_ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
 require_once PATH_ROOT . '/env_loader.php';
 if (file_exists(__DIR__ . '/bootstrap.test.php')) {
@@ -33,13 +31,6 @@ $di->setShared('session', function () {
     ->db()
     ->pdo()->redis()->cache()
     ->application();
-/**
- * 一个静态的，用于测试的 mvc
- */
-function getMyTestMvc(): \Tests\Helper\MyTestMvc
-{
-    return \Tests\Helper\MyTestMvc::getInstance();
-}
 
 // 测试的模式（需要提前建表）
 require_once __DIR__ . '/Unit/TestModel.php';

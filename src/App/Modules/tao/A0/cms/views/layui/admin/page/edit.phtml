@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 ?>
@@ -58,7 +58,7 @@
 
     </form>
 <?php
-$vv->layui()->addWindowConfig()->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer(); ?>
 
     <script>
         admin.form.submitFirst(() => {
@@ -68,5 +68,5 @@ $vv->layui()->addWindowConfig()->footer(); ?>
         })
     </script>
 <?php
-\App\Modules\tao\sdk\phaxui\TaoHtmlHelper::tinymce();
+\App\Modules\tao\sdk\phaxui\Tinymce::tinymce();
 ?>

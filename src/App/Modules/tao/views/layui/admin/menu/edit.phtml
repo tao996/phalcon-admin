@@ -7,9 +7,9 @@ use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Foundation\AppService;
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-//$vv->print();
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 $list = SystemMenu::queryBuilder()
 //    ->int('status', 1) 允许显示隐藏的菜单（否则隐藏子菜单会丢失关联）
         ->notEqual('pid', Data::HOME_PID)
@@ -48,10 +48,10 @@ $html = $vv->html();
         </div>
     </div>
 
-    <?php echo $vv->layuiForm()->input('菜单名称', 'title', value: $vv->pick('title'), required: true,
+    <?php echo $form->input('菜单名称', 'title', value: $vv->pick('title'), required: true,
             aux: '通常为中文名称，用户可见') ?>
     <div class="layui-form-item">
-        <?= $vv->layuiForm()->input('访问角色', 'roles', value: $vv->pick('roles'), formItem: false) ?>
+        <?= $form->input('访问角色', 'roles', value: $vv->pick('roles'), formItem: false) ?>
 
         <div class="layui-input-inline" style="width: 300px;padding-top: 4px;">
             <a class="layui-btn layui-btn-sm layui-btn-warm" onclick="inputRoles('')">清空</a>
@@ -64,17 +64,17 @@ $html = $vv->html();
         </div>
     </div>
     <?=
-    $vv->layuiForm()->input('链接地址', 'href', value: $vv->pick('href'),aux: '格式：模块名/控制器/方法，不要省略方法 index');
+    $form->input('链接地址', 'href', value: $vv->pick('href'), aux: '格式：模块名/控制器/方法，不要省略方法 index');
     ?>
     <?php echo
-    $vv->layuiForm()->radio('地址前缀', 'type', vtOptions: [
+    $form->radio('地址前缀', 'type', vtOptions: [
             0 => '无',
             SystemNode::KIND_MODULE => 'M 模块',
             SystemNode::KIND_PROJECT => 'P 项目'
-    ], value: $vv->pick('type', 0), aux:'选择 `M 模块` 自动为链接补充前缀 /m/，选择 `P 项目` 则补充前缀 /p/' ) ?>
+    ], value: $vv->pick('type', 0), aux: '选择 `M 模块` 自动为链接补充前缀 /m/，选择 `P 项目` 则补充前缀 /p/') ?>
 
 
-    <?php echo $vv->layuiHtml()->icon($vv->pick('icon')); ?>
+    <?php echo \App\Modules\tao\TaoAppService::layuiHtml()->icon($vv->pick('icon')); ?>
 
 
     <div class="layui-form-item">
@@ -95,9 +95,9 @@ $html = $vv->html();
 
 </form>
 <?php
-$vv->layui()->addWindowConfig([])->footer();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
 
-echo $vv->layuiHtml()->iconJs();
+echo \App\Modules\tao\TaoAppService::layuiHtml()->iconJs();
 ?>
 <script>
     admin.form.submitFirst(() => {

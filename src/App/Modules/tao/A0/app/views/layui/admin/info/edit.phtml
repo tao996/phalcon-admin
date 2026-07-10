@@ -2,26 +2,26 @@
 
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 <form class="layui-form" id="form">
 
     <?php
 
-    echo $vv->layuiForm()->groups([
-            $vv->layuiForm()->input('应用名称', 'title', value: $vv->pick('title'), required: true, formItem: false),
-            $vv->layuiForm()->input('组名', 'tag', value: $vv->pick('tag'), formItem: false),
+    echo $form->groups([
+            $form->input('应用名称', 'title', value: $vv->pick('title'), required: true, formItem: false),
+            $form->input('组名', 'tag', value: $vv->pick('tag'), formItem: false),
     ]);
 
-    echo $vv->layuiForm()->textarea('备注', 'remark', value: $vv->pick('remark'));
+    echo $form->textarea('备注', 'remark', value: $vv->pick('remark'));
 
-    echo $vv->layuiForm()->submit();
+    echo $form->submit();
     ?>
 </form>
 <?php
-$vv->layui()->addWindowConfig()->footer();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer();
 ?>
 <script>
     admin.form.submitFirst(() => {

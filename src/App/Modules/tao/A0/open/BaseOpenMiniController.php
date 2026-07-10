@@ -4,12 +4,10 @@ namespace App\Modules\tao\A0\open;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Data\UserBindPlatform;
-use App\Modules\tao\Helper\MyMvcHelper;
 use Phax\Support\Exception\BusinessException;
 
 /**
  * 小程序
- * @property MyMvcHelper $vv
  */
 class BaseOpenMiniController extends BaseController
 {

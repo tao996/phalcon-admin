@@ -2,15 +2,12 @@
 
 namespace Tests\Unit\tao996\phax\Db;
 
-use Phax\Foundation\Application;
-use Phax\Helper\MyMvc;
 use TestUser;
 
 class QueryBuilderTest extends \PHPUnit\Framework\TestCase
 {
     public function testQueryBuilder()
     {
-        $mvc = new MyMvc(Application::di());
         if (TestUser::queryBuilder()->where(['name' => 'test__a', 'age' => 1])->notExists()) {
             TestUser::layer()->batchInsert([
                 ['name' => 'test__a', 'age' => 1],

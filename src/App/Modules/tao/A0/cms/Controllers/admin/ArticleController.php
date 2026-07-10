@@ -11,6 +11,7 @@ use App\Modules\tao\Services\UploadfileService;
 use App\Modules\tao\TaoAppService;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
@@ -61,7 +62,7 @@ class ArticleController extends BaseController
     public function indexAction()
     {
         if (!$this->isApiRequest()) {
-            $this->vv->html()->setVar('options', $this->cateOptions);
+            AppService::html()->setVar('options', $this->cateOptions);
         }
         return parent::indexAction();
     }

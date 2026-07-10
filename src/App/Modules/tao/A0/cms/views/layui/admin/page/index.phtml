@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 ?>
@@ -62,7 +62,7 @@
 <table id="table" class="layui-hide"></table>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.cms/admin.page", false) ?>';
     admin.table.with({url: prefix})

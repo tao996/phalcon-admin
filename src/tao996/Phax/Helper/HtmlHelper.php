@@ -13,6 +13,9 @@ use Phalcon\Mvc\View;
 use Phax\Foundation\AppService;
 use Phax\Support\Logger;
 
+/**
+ * 模板 html 代码辅助
+ */
 class HtmlHelper
 {
     // controller.action 返回的数据在视图中的前缀
@@ -26,12 +29,28 @@ class HtmlHelper
 
     public array $viewData = [];
 
-    public function __construct(public MyMvc $mvc)
+    public function __construct()
     {
         if (AppService::has('route') && !AppService::route()->isApiRequest()) {
             $this->view = AppService::view();
-            $this->view->setVar('vv', $this->mvc);
+            $this->view->setVar('vv', $this);
         }
+    }
+
+    /**
+     * 添加当前视图目录下的文件
+     * @param $file string 待添加文件名称，如 tao.css
+     * @return bool
+     */
+    public function addViewFile(string $file): bool
+    {
+        $pathFile = AppService::view()->getViewsDir() . $file;
+        return $this->includeAssetsFile($pathFile);
+    }
+
+    public function html(): static
+    {
+        return $this;
     }
 
 
@@ -365,5 +384,39 @@ class HtmlHelper
     public function text(mixed $text)
     {
         return $text;
+    }
+
+    /**
+     * 获取 request post 中的数据
+     * @param string $name
+     * @param mixed $default 默认值
+     * @param string $filter 过滤方式
+     * @return mixed
+     */
+    public function pickPost(string $name, mixed $default = '', string $filter = ''): mixed
+    {
+        return AppService::request()->getPost($name, $filter, $default);
+    }
+
+    /**
+     * @var string 指定要加载的脚本
+     */
+    public string $pickName = '';
+
+    /**
+     * 如果当前模板下存在着同名 js 文件，则引入它；比如你的模板为 add.phtml，如果存在 add.js 则会引入它
+     * @return bool
+     */
+    public function appendTemplateJs(): bool
+    {
+        $theme = AppService::route()->theme;
+        $pickName = $this->pickName ?: AppService::route()->getPickView(true);
+        $jsFile = join(
+                '/',
+                $theme
+                    ? [AppService::route()->getViewDIR(), $theme, $pickName]
+                    : [AppService::route()->getViewDIR(), $pickName]
+            ) . '.js';
+        return AppService::html()->includeAssetsFile($jsFile, 'js');
     }
 }

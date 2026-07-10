@@ -4,7 +4,6 @@ namespace Phax\Mvc;
 
 use Phalcon\Mvc\Dispatcher;
 use Phax\Foundation\AppService;
-use Phax\Helper\MyMvc;
 use Phax\Support\Exception\BlankException;
 
 /**
@@ -31,7 +30,6 @@ use Phax\Support\Exception\BlankException;
  * @property \Phalcon\Http\Response\Cookies $cookies
  * @property \Phalcon\Assets\Manager $assets
  * @property \Phalcon\Annotations\Adapter\Memory $annotations
- * @property \Phax\Helper\MyMvc $vv
  */
 class Controller extends \Phalcon\Mvc\Controller
 {
@@ -50,18 +48,6 @@ class Controller extends \Phalcon\Mvc\Controller
      * @var bool
      */
     public bool $jsonResponse = false;
-    /**
-     * @var MyMvc $vv
-     */
-    public mixed $vv;
-
-    public function initialize(): void
-    {
-//        ddd($this->getDI()->has('route'), get_class($this->getDI()));
-        if (empty($this->vv)) {
-            $this->vv = new MyMvc($this->di);
-        }
-    }
 
     /**
      * 添加视图数据
@@ -71,7 +57,7 @@ class Controller extends \Phalcon\Mvc\Controller
      */
     public function addViewData(string $name, mixed $value): self
     {
-        $this->vv->html()->setVar($name, $value);
+       AppService::html()->setVar($name, $value);
         return $this;
     }
 
@@ -105,7 +91,7 @@ class Controller extends \Phalcon\Mvc\Controller
         if ($isApi) {
             $this->json($data);
         } else {
-            $this->vv->html()
+            AppService::html()
                 ->setVar('language', AppService::getLanguage())
                 ->setResponseVar($data)
                 ->doneViewResponse(); // 渲染视图

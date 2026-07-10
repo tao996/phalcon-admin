@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use Phax\Foundation\AppService;
@@ -18,6 +18,6 @@ if (file_exists(__DIR__ . '/welcome.main.phtml')) {
         <?php
     } ?>
     <?php
-    $vv->layui()->addWindowConfig([])->footer(); ?>
+    \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
     <?php
 } ?>

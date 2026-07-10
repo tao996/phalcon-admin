@@ -9,8 +9,6 @@
 
 namespace Phax\Mvc;
 
-use Phax\Helper\MyMvc;
-
 /**
  * @property \Phax\Foundation\Route $route
  * @property \Phalcon\Db\Profiler $profiler
@@ -35,19 +33,7 @@ use Phax\Helper\MyMvc;
  * @property \Phalcon\Http\Response\Cookies $cookies
  * @property \Phalcon\Assets\Manager $assets
  * @property \Phalcon\Annotations\Adapter\Memory $annotations
- * @property \Phax\Helper\MyMvc $vv
  */
 class Console extends \Phalcon\Cli\Console
 {
-    /**
-     * @var MyMvc $vv
-     */
-    public mixed $vv;
-
-    public function initialize(): void
-    {
-        if (empty($this->vv)) {
-            $this->vv = new MyMvc($this->di);
-        }
-    }
 }

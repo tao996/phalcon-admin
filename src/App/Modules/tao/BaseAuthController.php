@@ -5,12 +5,8 @@ namespace App\Modules\tao;
 
 use App\Modules\tao\Helper\Auth\LoginAuthAdapter;
 use App\Modules\tao\Helper\LoginAuthHelper;
-use App\Modules\tao\Helper\MyMvcHelper;
 use Phax\Mvc\Controller;
 
-/**
- * @property \App\Modules\tao\Helper\MyMvcHelper $vv
- */
 class BaseAuthController extends Controller
 {
     /**
@@ -23,12 +19,6 @@ class BaseAuthController extends Controller
      * @var bool
      */
     private bool $hasCheckLogin = false;
-
-    public function initialize(): void
-    {
-        $this->vv = new MyMvcHelper($this->di);
-        parent::initialize();
-    }
 
     protected function isLogin(): bool
     {

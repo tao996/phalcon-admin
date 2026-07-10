@@ -2,9 +2,8 @@
 
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-$html = $vv->html();
 use App\Modules\tao\A0\cms\Models\CmsArticle;
 
 ?>
@@ -48,7 +47,7 @@ use App\Modules\tao\A0\cms\Models\CmsArticle;
                 <select name="cate_id">
                     <option value="">全部</option>
                     <?php
-                    foreach ($html->get('options', []) as $item) { ?>
+                    foreach ($vv->get('options', []) as $item) { ?>
                         <option value="<?php
                         echo $item['id'] ?>"><?php
                             echo $item['title'] ?></option>
@@ -96,7 +95,7 @@ use App\Modules\tao\A0\cms\Models\CmsArticle;
 <table id="table" class="layui-hide"></table>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.cms/admin.article", false) ?>';
     const mapCStatus = <?php echo json_encode(CmsArticle::mapCheckStatus()) ?>;

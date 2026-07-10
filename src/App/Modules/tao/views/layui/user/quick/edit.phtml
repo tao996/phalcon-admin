@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 ?>
@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <?php echo $vv->layuiHtml()->icon($vv->pick('icon')); ?>
+    <?php echo \App\Modules\tao\TaoAppService::layuiHtml()->icon($vv->pick('icon')); ?>
 
     <div class="layui-form-item">
         <label class="layui-form-label">链接地址</label>
@@ -61,8 +61,8 @@
 </form>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer();;
-echo $vv->layuiHtml()->iconJs();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();;
+echo \App\Modules\tao\TaoAppService::layuiHtml()->iconJs();
 ?>
 <script>
     admin.form.submitFirst(() => {

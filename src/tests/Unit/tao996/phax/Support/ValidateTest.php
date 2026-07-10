@@ -5,29 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\tao996\phax\Support;
 
 use Phax\Support\Validate;
-use Phax\Helper\MyMvc;
 use Phax\Utils\MyAssert;
-
-/**
- * 为测试创建最小化 MyMvc，避免依赖 'route' 等非测试必需的服务
- */
-class TestMyMvc extends MyMvc
-{
-    public function __construct()
-    {
-        // 跳过父类构造（不需要 DI）
-    }
-
-    public function __(string $key, array $placeholders = [], string $defMessage = ''): string
-    {
-        return $key; // 直接返回 key，不依赖翻译
-    }
-
-    public function config(): \Phax\Support\Config
-    {
-        return new \Phax\Support\Config([]);
-    }
-}
 
 class ValidateTest extends \PHPUnit\Framework\TestCase
 {
@@ -35,8 +13,7 @@ class ValidateTest extends \PHPUnit\Framework\TestCase
 
     public static function setUpBeforeClass(): void
     {
-        $mvc = new TestMyMvc();
-        self::$v = new Validate($mvc);
+        self::$v = new Validate();
     }
 
     // ============================================================
@@ -103,27 +80,27 @@ class ValidateTest extends \PHPUnit\Framework\TestCase
     {
         // [rule => [expectedClassNamePart, expectedKey]]
         $cases = [
-            'require'  => ['PresenceOf', 'require'],
+            'require' => ['PresenceOf', 'require'],
             'required' => ['PresenceOf', 'require'],
-            'email'    => ['Email', 'email'],
-            'int'      => ['IntValidation', 'int'],
-            'integer'  => ['IntValidation', 'int'],
-            'float'    => ['Numericality', 'float'],
-            'double'   => ['Numericality', 'float'],
-            'price'    => ['Numericality', 'float'],
-            'alnum'    => ['Alnum', 'alnum'],
-            'alpha'    => ['Alpha', 'alpha'],
-            'digit'    => ['Digit', 'digit'],
-            'number'   => ['Digit', 'digit'],
-            'url'      => ['Url', 'url'],
-            'ip'       => ['Ip', 'ip'],
+            'email' => ['Email', 'email'],
+            'int' => ['IntValidation', 'int'],
+            'integer' => ['IntValidation', 'int'],
+            'float' => ['Numericality', 'float'],
+            'double' => ['Numericality', 'float'],
+            'price' => ['Numericality', 'float'],
+            'alnum' => ['Alnum', 'alnum'],
+            'alpha' => ['Alpha', 'alpha'],
+            'digit' => ['Digit', 'digit'],
+            'number' => ['Digit', 'digit'],
+            'url' => ['Url', 'url'],
+            'ip' => ['Ip', 'ip'],
             'creditcard' => ['CreditCard', 'creditCard'],
-            'date'     => ['Date', 'date'],
+            'date' => ['Date', 'date'],
             'accepted' => ['AcceptedValidation', 'accepted'],
-            'accept'   => ['AcceptedValidation', 'accepted'],
-            'bool'     => ['BoolValidation', 'bool'],
-            'boolean'  => ['BoolValidation', 'bool'],
-            'id'       => ['IdValidation', 'id'],
+            'accept' => ['AcceptedValidation', 'accepted'],
+            'bool' => ['BoolValidation', 'bool'],
+            'boolean' => ['BoolValidation', 'bool'],
+            'id' => ['IdValidation', 'id'],
         ];
         foreach ($cases as $rule => [$expectedCls, $expectedKey]) {
             $rst = self::$v->getCallerValidation($rule, []);
@@ -324,7 +301,7 @@ class ValidateTest extends \PHPUnit\Framework\TestCase
         $data = ['name' => 'hello', 'age' => '25'];
         $rules = [
             'name|名称' => 'required|min:2|max:20',
-            'age|年龄'  => 'required|between:1,150',
+            'age|年龄' => 'required|between:1,150',
         ];
         $this->assertNull(self::$v->getCheckMessages($data, $rules));
     }
@@ -334,7 +311,7 @@ class ValidateTest extends \PHPUnit\Framework\TestCase
         $data = ['name' => '', 'age' => '200'];
         $rules = [
             'name|名称' => 'required|min:2|max:20',
-            'age|年龄'  => 'required|between:1,150',
+            'age|年龄' => 'required|between:1,150',
         ];
         $messages = self::$v->getCheckMessages($data, $rules);
         $this->assertNotNull($messages);

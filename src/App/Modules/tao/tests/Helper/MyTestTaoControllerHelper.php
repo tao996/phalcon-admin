@@ -4,7 +4,6 @@ namespace App\Modules\tao\tests\Helper;
 
 use App\Modules\tao\BaseResponseController;
 use App\Modules\tao\Helper\Auth\LoginUnitTestAuthAdapter;
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\TaoAppService;
 use Phax\Mvc\Controller;
@@ -81,9 +80,8 @@ class MyTestTaoControllerHelper extends MyTestControllerHelper
         if (method_exists($this->controller, 'setLoginAdapter')) {
             $this->controller->setLoginAdapter(LoginUnitTestAuthAdapter::class, true);
         } else {
-            if ($this->controller->vv instanceof MyMvcHelper) {
-                TaoAppService::loginAuthHelper()->setAuthAdapter(LoginUnitTestAuthAdapter::class);
-            }
+            // TODO vv 已经移除
+            TaoAppService::loginAuthHelper()->setAuthAdapter(LoginUnitTestAuthAdapter::class);
         }
     }
 }

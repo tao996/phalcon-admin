@@ -1,10 +1,10 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 $captchaURL = \Phax\Foundation\AppService::urlModule('tao/captcha');
-$vv->html()->addHeaderFile(__DIR__ . '/auth.css');
+$vv->addHeaderFile(__DIR__ . '/auth.css');
 ?>
 
 <form class="layui-form" id="form">
@@ -46,11 +46,11 @@ $vv->html()->addHeaderFile(__DIR__ . '/auth.css');
 </form>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     <?php include __DIR__ . '/auth.js' ?>
 </script>
-<?php \App\Modules\tao\Helper\TaoHtmlHelper::jsCaptcha($vv); ?>
+<?php \App\Modules\tao\TaoAppService::layuiForm()->jsCaptcha(); ?>
 <script>
     // 提交事件
     form.on('submit(submit-forgot)', function (data) {

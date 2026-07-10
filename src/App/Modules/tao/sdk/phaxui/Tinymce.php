@@ -1,39 +1,15 @@
 <?php
-/*
-* Copyright (c) 2024-present
-* Author: tao996<lvshutao@outlook.com>
-* 
-* For the full copyright and license information, please view the LICENSE.txt
-* file that was distributed with this source code.
-*/
 
 namespace App\Modules\tao\sdk\phaxui;
 
-use Phax\Helper\HtmlHelper;
-
-class TaoHtmlHelper extends HtmlHelper
+class Tinymce
 {
-    public static string $vue_version = '3.3.9';
-
-    /**
-     * 在页面顶部引入 vue 脚本
-     * @return void
-     */
-    public static function vueScriptHeader(): void
-    {
-        if (HtmlAssets::isLocal()) {
-            echo '<script src="/mstatic/tao/assets/vue/' . self::$vue_version . '/vue.global.prod.min.js"></script>';
-        } else {
-            echo '<script src="' . HtmlAssets::$cdn . 'vue/' . self::$vue_version . '/vue.global.prod.min.js"></script>';
-        }
-    }
-
     /**
      * @var array 允许图片域名如 a.com
      * @link https://www.tiny.cloud/docs/tinymce/6/tinymce-and-cors/#editimage_cors_hosts
      */
-    public static array $tinymce_edit_image_cors_hosts = [];
-    public static string $tinymce_version = '6.8.0';
+    public static array $edit_image_cors_hosts = [];
+    public static string $version = '6.8.0';
 
     /**
      * 在页面中引入 tinymce
@@ -58,12 +34,12 @@ class TaoHtmlHelper extends HtmlHelper
     public static function tinymce(array $config = []): void
     {
         if (HtmlAssets::isLocal()) {
-            echo '<script src="/mstatic/tao/assets/tinymce/' . self::$tinymce_version . '/tinymce.min.js"></script>';
+            echo '<script src="/mstatic/tao/assets/tinymce/' . self::$version . '/tinymce.min.js"></script>';
             if (!isset($config['language'])) {
                 $config['language'] = 'zh-Hans'; // langs/zh-Hans.js
             }
         } else {
-            echo '<script src="' . HtmlAssets::$cdn . 'tinymce/' . self::$tinymce_version . '/tinymce.min.js"></script>';
+            echo '<script src="' . HtmlAssets::$cdn . 'tinymce/' . self::$version . '/tinymce.min.js"></script>';
         }
         $config = array_merge([
             'selector' => '#content',
@@ -99,7 +75,7 @@ class TaoHtmlHelper extends HtmlHelper
             'remove_linebreaks' => true,
             'min_height' => 500,
             // editimage_toolbar: 'rotateleft rotateright | flipv fliph | editimage imageoptions',
-            'editimage_cors_hosts' => self::$tinymce_edit_image_cors_hosts,
+            'editimage_cors_hosts' => self::$edit_image_cors_hosts,
             'image_dimensions' => false,
             // 移除图片的 width, height
             // image_advtab: true, // 添加样式
@@ -130,10 +106,5 @@ JS
 
         ], $config);
         echo '<script>tinymce.init(' . json_encode($config) . ')</script>';
-    }
-
-    protected function checkMinFile(string $file): string
-    {
-        return HtmlAssets::isLocal() && file_exists($file);
     }
 }

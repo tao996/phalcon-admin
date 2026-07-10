@@ -3,8 +3,7 @@
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
-use App\Modules\tao\sdk\phaxui\TaoHtmlHelper;
-use Phax\Helper\HtmlHelper;
+use Phax\Foundation\AppService;
 
 /**
  * @link https://layui.dev/docs/2/
@@ -23,7 +22,7 @@ class Layui
     private array $footerJs = [];
     private array $footerCss = [];
 
-    public function __construct(public TaoHtmlHelper $helper, string $version = '2.13.6')
+    public function __construct(string $version = '2.13.6')
     {
         $this->version = $version;
         $this->header();
@@ -35,19 +34,20 @@ class Layui
             return;
         }
         $this->hasImportHeader = true;
+        $html = AppService::html();
 
         if (HtmlAssets::isLocal()) {
-            $this->helper->addHeaderFile(
+            $html->addHeaderFile(
                 '/mstatic/tao/assets/layui/' . $this->version . '/css/layui.css'
             );
-            $this->helper->addHeaderFile('/mstatic/tao/assets/font-awesome/4.7.0/css/font-awesome.min.css'
+            $html->addHeaderFile('/mstatic/tao/assets/font-awesome/4.7.0/css/font-awesome.min.css'
             );
         } else {
-            $this->helper->addHeaderFile(HtmlAssets::$cdn . 'layui/' . $this->version . '/css/layui.min.css');
-            $this->helper->addHeaderFile(HtmlAssets::$cdn . 'font-awesome/4.7.0/css/font-awesome.min.css');
+            $html->addHeaderFile(HtmlAssets::$cdn . 'layui/' . $this->version . '/css/layui.min.css');
+            $html->addHeaderFile(HtmlAssets::$cdn . 'font-awesome/4.7.0/css/font-awesome.min.css');
         }
-        $this->helper->addHeaderFile(__DIR__ . '/index.css', 0, 'css');
-        $this->helper->addHeaderFile(__DIR__ . '/upload.css', 0, 'css');
+        $html->addHeaderFile(__DIR__ . '/index.css', 0, 'css');
+        $html->addHeaderFile(__DIR__ . '/upload.css', 0, 'css');
     }
 
 
@@ -98,9 +98,10 @@ class Layui
 
         include HtmlAssets::tryMinFile(__DIR__ . '/index.js');
         echo '</script>';
-        echo  '<script>' . join('', $this->footerJs) . '</script>' . '<style>' . join('', $this->footerCss) . '</style>';
+        echo '<script>' . join('', $this->footerJs) . '</script>' . '<style>' . join('', $this->footerCss) . '</style>';
         return $this;
     }
+
     public function appendFooterJs(string $content): void
     {
         $this->footerJs[] = $content;

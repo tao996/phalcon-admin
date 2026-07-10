@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use App\Modules\tao\A0\cms\Helper\CmsHtmlHelper;
@@ -15,7 +15,7 @@ CmsHtmlHelper::header();
     <div style="display: flex;flex-direction: row;">
         <div class="layui-form-item" style="width: 300px;margin-right: 10px;">
 
-            <?php echo $vv->layuiForm()->upload('封面', 'cover',
+            <?php echo \App\Modules\tao\TaoAppService::layuiForm()->upload('封面', 'cover',
                     value: $vv->pick('cover'), tip: '建议尺寸 620 * 300'
             ); ?>
         </div>
@@ -61,7 +61,7 @@ CmsHtmlHelper::header();
 </form>
 <?php
 
-$vv->layui()->addWindowConfig([])->footer();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
 
 $items = $vv->pick('images', []);
 CmsHtmlHelper::ImageJs($items);

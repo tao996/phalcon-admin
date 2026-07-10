@@ -2,7 +2,7 @@
 
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 \App\Modules\tao\sdk\phaxui\HtmlAssets::initWithCdn('cn');
@@ -43,7 +43,7 @@
     <div id="debug" class="my20"></div>
 </div>
 
-<?php $vv->layui()->footer(); ?>
+<?php \App\Modules\tao\TaoAppService::layui()->footer(); ?>
 <script>
 
     const moneyEle = $('#money'), debugDiv = $('#debug');

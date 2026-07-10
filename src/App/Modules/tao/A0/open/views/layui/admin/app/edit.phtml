@@ -1,33 +1,33 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-$html = $vv->html();
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 <form class="layui-form">
     <?php
-    echo $vv->layuiForm()->groups([
-            $vv->layuiForm()->input('应用名称', 'title',
+    echo $form->groups([
+            $form->input('应用名称', 'title',
                     value: $vv->pick('title', ''),
                     required: true, formItem: false),
-            $vv->layuiForm()->checkbox('沙盒', 'sandbox',
+            $form->checkbox('沙盒', 'sandbox',
                     checked: $vv->html()->pickBoolean('sandbox'), formItem: false)
 
     ]);
-    echo $vv->layuiForm()->groups([
-            $vv->layuiForm()->select('平台', 'platform',
+    echo $form->groups([
+            $form->select('平台', 'platform',
                     vtOptions: \App\Modules\tao\Data\UserBindPlatform::MapPlatform,
                     value: $vv->pick('platform', 0), required: true, formItem: false),
-            $vv->layuiForm()->select('类型', 'kind',
+            $form->select('类型', 'kind',
                     vtOptions: \App\Modules\tao\Data\UserBindPlatform::MapAppKinds,
                     value: $vv->pick('kind', ''), required: true, formItem: false),
     ]);
 
-    echo $vv->layuiForm()->groups([
-            $vv->layuiForm()->input('Appid', 'appid', value: $vv->pick('appid', ''),
+    echo $form->groups([
+            $form->input('Appid', 'appid', value: $vv->pick('appid', ''),
                     required: true, formItem: false),
-            $vv->layuiForm()->input('Secret', 'secret', value: $vv->pick('secret', ''),
+            $form->input('Secret', 'secret', value: $vv->pick('secret', ''),
                     required: true, formItem: false),
     ]);
     ?>
@@ -35,28 +35,28 @@ $html = $vv->html();
     <!-- 微信 -->
     <div>
         <?php
-        echo $vv->layuiForm()->groups([
-                $vv->layuiForm()->input('CropId', 'crop_id',
+        echo $form->groups([
+                $form->input('CropId', 'crop_id',
                         value: $vv->pick('crop_id', ''),
                         placeholder: '企业微信 cropId',
                         formItem: false),
-                $vv->layuiForm()->input('Token', 'token',
+                $form->input('Token', 'token',
                         value: $vv->pick('token', ''),
                         formItem: false)
         ]);
 
-        echo $vv->layuiForm()->groups([
-                $vv->layuiForm()->input('encMethod', 'enc_method',
+        echo $form->groups([
+                $form->input('encMethod', 'enc_method',
                         value: $vv->pick('enc_method', ''),
                         placeholder: '消息加解密方式', formItem: false),
-                $vv->layuiForm()->input('aesKey', 'aes_key',
+                $form->input('aesKey', 'aes_key',
                         value: $vv->pick('aes_key', ''),
                         placeholder: '消息加解密密钥', formItem: false)
         ]);
         ?>
     </div>
 
-    <?php echo $vv->layuiForm()->textarea('备注','remark',value: $vv->pick('remark')) ?>
+    <?php echo $form->textarea('备注', 'remark', value: $vv->pick('remark')) ?>
 
 
     <div class="hr-line"></div>
@@ -67,7 +67,7 @@ $html = $vv->html();
 
 </form>
 <?php
-$vv->layui()->addWindowConfig()->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer(); ?>
 
 <script>
     admin.form.submitFirst(() => {

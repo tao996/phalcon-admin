@@ -1,15 +1,15 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 
 <form class="layui-form">
 
     <?php
-    echo $vv->layuiForm()->input('数字', 'num',
+    echo $form->input('数字', 'num',
             value: $vv->pick('num', ''),
             placeholder: '请输入一个整数',
             aux: '偶数 → 成功；奇数 → 错误')
@@ -23,8 +23,8 @@
 </form>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer();;
-echo $vv->layuiHtml()->iconJs();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();;
+echo \App\Modules\tao\TaoAppService::layuiHtml()->iconJs();
 ?>
 <script>
     admin.form.submitFirst(() => {

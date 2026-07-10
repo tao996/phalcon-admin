@@ -1,8 +1,9 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 <style>
     #select_head_img {
@@ -11,7 +12,7 @@
 </style>
 <div class="layui-form">
 
-    <?php echo $vv->layuiForm()->upload('文件地址', 'head_img',
+    <?php echo $form->upload('文件地址', 'head_img',
             type: 'text'); ?>
 
     <div class="layui-form-item text-center">
@@ -20,7 +21,7 @@
     </div>
 </div>
 
-<?php $vv->layui()->addWindowConfig([])->footer(); ?>
+<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     admin.util.layOn({
         ok: function () {

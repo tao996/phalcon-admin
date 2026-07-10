@@ -11,7 +11,6 @@ namespace App\Modules\tao\Common\Actions;
 
 use App\Modules\tao\A0\open\Models\OpenUserOpenid;
 use App\Modules\tao\A0\open\Models\OpenUserUnionid;
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Services\SmsCodeService;
 use App\Modules\tao\Services\UserService;
@@ -20,7 +19,6 @@ use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
-use Phax\Support\Validate;
 use Phax\Utils\MyAssert;
 
 /**
@@ -31,9 +29,8 @@ class AccountMigrateAction
     public int $max_count = 2;
 
     public function __construct(
-        public MyMvcHelper $helper,
-        public int         $user_id,
-        public string      $appid,
+        public int    $user_id,
+        public string $appid,
     )
     {
     }

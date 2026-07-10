@@ -1,10 +1,10 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use App\Modules\tao\Services\ConfigService;
-
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 <form class="layui-form">
 
@@ -59,7 +59,7 @@ use App\Modules\tao\Services\ConfigService;
         </div>
     </div>
 
-    <?php echo $vv->layuiForm()->upload('二维码', 'wechat_qrcode',
+    <?php echo $form->upload('二维码', 'wechat_qrcode',
             value: ConfigService::getWith('contact.wechat_qrcode', ''),
             class: 'mb10',
     ); ?>
@@ -71,7 +71,7 @@ use App\Modules\tao\Services\ConfigService;
                    value="<?php echo ConfigService::getWith('contact.wework_link') ?>">
         </div>
     </div>
-    <?php echo $vv->layuiForm()->upload('二维码', 'wework_qrcode',
+    <?php echo $form->upload('二维码', 'wework_qrcode',
             value: ConfigService::getWith('contact.wework_qrcode', ''),
             class: 'mb10'
     ); ?>

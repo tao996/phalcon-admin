@@ -3,11 +3,10 @@
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\Config\Data;
-use App\Modules\tao\Helper\MyMvcHelper;
 
-class LayuiFormSearch
+class LayuiSearch
 {
-    public function __construct(protected MyMvcHelper $mvc)
+    public function __construct()
     {
     }
 

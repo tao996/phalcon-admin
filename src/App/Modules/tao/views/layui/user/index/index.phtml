@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use App\Modules\tao\Services\UserService;
@@ -40,7 +40,7 @@ $user = TaoAppService::loginUserHelper()->user();
         </div>
     </div>
     <?=
-    $vv->layuiForm()->upload('用户头像', 'head_img');
+    TaoAppService::layuiForm()->upload('用户头像', 'head_img');
     ?>
 
 
@@ -123,7 +123,7 @@ $user = TaoAppService::loginUserHelper()->user();
 
 </form>
 
-<?php $vv->layui()->addWindowConfig()->footer(); ?>
+<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer(); ?>
 <script>
     $('#bindChangePhone').bind('click', function () {
         layer.open({

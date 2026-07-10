@@ -355,7 +355,7 @@ class BaseController extends BaseRbacController
         }
         if ($this->model != null) {
             if (property_exists($this->model, 'rules')) {
-                $v = new Validate($this->vv);
+                $v = new Validate();
                 $v->check($data, $this->model->rules);
             }
         }

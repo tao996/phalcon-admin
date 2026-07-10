@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use App\Modules\tao\A0\cms\Models\CmsCategory;
@@ -39,7 +39,7 @@ use App\Modules\tao\A0\cms\Models\CmsCategory;
 <table id="table" class="layui-hide"></table>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.cms/admin.category", false) ?>';
     const mapKind = <?php echo json_encode(CmsCategory::mapKind()) ?>;

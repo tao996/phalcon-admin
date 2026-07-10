@@ -13,6 +13,10 @@ use App\Modules\tao\Helper\CaptchaHelper;
 use App\Modules\tao\Helper\LoginAuthHelper;
 use App\Modules\tao\Helper\LoginUserHelper;
 use App\Modules\tao\Helper\RegisterHelper;
+use App\Modules\tao\sdk\phaxui\Layui\Layui;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiSearch;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
 use App\Modules\tao\sdk\qiniu\QiniuDriver;
 use App\Modules\tao\sdk\RedisCache;
 use App\Modules\tao\Services\ConfigService;
@@ -138,4 +142,32 @@ class TaoAppService
         return false;
     }
 
+    public static function layui(): Layui
+    {
+        return AppService::getLazyService('tao.layui', function () {
+            return new Layui();
+        });
+    }
+
+    public static function layuiHtml(): LayuiHtml
+    {
+        return AppService::getLazyService('tao.layuiHtml', function () {
+            return new LayuiHtml();
+        });
+    }
+
+    public static function layuiForm(): LayuiForm
+    {
+        return AppService::getLazyService('tao.layuiForm', function () {
+            return new LayuiForm();
+        });
+    }
+
+    public static function layuiSearch(): LayuiSearch
+    {
+        return AppService::getLazyService('tao.layuiSearch', function () {
+            return new LayuiSearch();
+        });
+
+    }
 }

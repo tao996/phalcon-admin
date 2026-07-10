@@ -3,7 +3,6 @@ namespace Tests\Unit\tao996\phax\Helper;
 
 use Phax\Foundation\AppService;
 use Phax\Foundation\Route;
-use Phax\Helper\MyMvc;
 use Phax\Helper\MyUrlBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -116,8 +115,6 @@ class MyUrlTest extends TestCase
 
     // ─── url() 使用 MyUrlBuilder 后的集成测试 ────────────────
 
-    private MyMvc $myMvc;
-
     protected function setUpMyMvc(): void
     {
         $di = \Phax\Foundation\Application::di();
@@ -132,8 +129,6 @@ class MyUrlTest extends TestCase
         $route->urlOptions['language'] = 'en';
 
         $di->setShared('route', $route);
-
-        $this->myMvc = new MyMvc($di);
     }
 
     public static function urlProvider(): array

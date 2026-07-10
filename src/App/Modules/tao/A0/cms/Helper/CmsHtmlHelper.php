@@ -3,12 +3,14 @@
 namespace App\Modules\tao\A0\cms\Helper;
 
 
+use App\Modules\tao\sdk\phaxui\Vue;
+
 class CmsHtmlHelper
 {
 
     public static function header(): void
     {
-        \App\Modules\tao\sdk\phaxui\TaoHtmlHelper::vueScriptHeader();
+        Vue::header();
         echo '<script type="text/javascript">';
         include __DIR__ . '/tpl/app.js';
         echo '</script>';

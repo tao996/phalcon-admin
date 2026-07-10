@@ -3,15 +3,12 @@
 namespace App\Modules\tao\tests\PHPUnit\Helper;
 
 use App\Modules\tao\Helper\LoginUserHelper;
-use App\Modules\tao\Helper\MyMvcHelper;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemUser;
-use Phax\Foundation\Application;
 use PHPUnit\Framework\TestCase;
 
 class LoginUserHelperTest extends TestCase
 {
-    private static MyMvcHelper $mvc;
     private static SystemUser $adminUser;
 
     /**
@@ -19,7 +16,6 @@ class LoginUserHelperTest extends TestCase
      */
     public static function setUpBeforeClass(): void
     {
-        self::$mvc = new MyMvcHelper(Application::di());
 
         // 使用 admin 用户进行菜单树测试（admin 有全部权限）
         $adminUser = SystemUser::findFirst(1000);

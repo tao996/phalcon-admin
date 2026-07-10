@@ -1,20 +1,20 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-
+$formSearch = \App\Modules\tao\TaoAppService::layuiSearch();
 ?>
 
 <fieldset class="table-search-fieldset" id="table-search">
     <legend>条件搜索</legend>
     <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
         <?php
-        echo $vv->layuiFormSearch()->status();
+        echo $formSearch->status();
 
-        echo $vv->layuiFormSearch()->input('组名');
+        echo $formSearch->input('组名');
 
-        echo $vv->layuiFormSearch()->submit();
+        echo $formSearch->submit();
         ?>
     </form>
 </fieldset>
@@ -46,7 +46,7 @@
 <table id="table" class="layui-hide"></table>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.app/admin.info", false) ?>';
     admin.table.with({url: prefix})

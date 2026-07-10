@@ -1,15 +1,16 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-$html = $vv->html();
+
 $isEdit = $vv->pick('id', 0) > 0;
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 <form class="layui-form">
 
     <?php
-    echo $vv->layuiForm()->upload(
+    echo $form->upload(
             '用户头像', 'head_img',
             value: $vv->pick('head_img')
     ) ?>
@@ -69,7 +70,7 @@ $isEdit = $vv->pick('id', 0) > 0;
                        lay-skin="switch" lay-filter="switchTest"
                        title="是|否"
                         <?php
-                        echo $html->pickCompare('phone_valid', 'checked') ?>
+                        echo $vv->pickCompare('phone_valid', 'checked') ?>
                 >
             </div>
 
@@ -92,7 +93,7 @@ $isEdit = $vv->pick('id', 0) > 0;
             <div class="layui-input-inline">
                 <input type="checkbox" name="email_valid" lay-skin="switch" lay-filter="switchTest"
                        title="是|否" <?php
-                echo $html->pickCompare('email_valid', 'checked') ?>>
+                echo $vv->pickCompare('email_valid', 'checked') ?>>
             </div>
 
         </div>
@@ -127,7 +128,7 @@ $isEdit = $vv->pick('id', 0) > 0;
 </form>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
 ?>
 <script>
     admin.form.submitFirst(function () {

@@ -1,12 +1,13 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use Phax\Foundation\AppService;
 
 $csrfToken = AppService::security()->getToken();
 $csrfKey = AppService::security()->getTokenKey();
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 <blockquote class="layui-elem-quote">
     Demo 表单测试 — 提交后验证数字是否为偶数
@@ -15,9 +16,9 @@ $csrfKey = AppService::security()->getTokenKey();
 <form class="layui-form" method="POST">
     <?php
     // CSRF 令牌：每次渲染时从 session 获取最新值，避免第一次提交失败后 token 失效
-    echo $vv->layuiForm()->csrf();
+    echo $form->csrf();
 
-    echo $vv->layuiForm()->input('数字', 'num',
+    echo $form->input('数字', 'num',
             value: $vv->pick('num', ''),
             placeholder: '请输入一个整数',
             aux: '偶数 → 成功；奇数 → 错误')
@@ -32,4 +33,4 @@ $csrfKey = AppService::security()->getTokenKey();
     </div>
 </form>
 
-<?php $vv->layui()->addWindowConfig([])->footer(); ?>
+<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>

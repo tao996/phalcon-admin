@@ -205,7 +205,7 @@ Three view types:
     </div>
 </script>
 <table id="table" class="layui-hide"></table>
-<?php $vv->layui()->addWindowConfig([])->footer(); ?>
+<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.module/controller", false) ?>';
     admin.table.with({url: prefix}).render({toolbar: '#toolbar', cols: [[
@@ -234,7 +234,7 @@ Three view types:
         <button type="submit" class="layui-btn" lay-submit>确认</button>
     </div>
 </form>
-<?php $vv->layui()->addWindowConfig([])->footer(); ?>
+<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>admin.form.submitFirst(function(){ admin.iframe.closeFromParent(true) })</script>
 ```
 
@@ -247,7 +247,7 @@ The `add.phtml` is typically just `<?php require_once __DIR__ . '/edit.phtml'; ?
 | `$vv->pick('field')` | Output field value from controller return array |
 | `\Phax\Foundation\AppService::urlModule("tao.module/ctrl", false)` | Generate URL prefix for AJAX calls |
 | `$vv->html()->pickCompare('field', 'checked')` | Output `checked` if field is truthy (checkboxes/switches) |
-| `$vv->layui()->addWindowConfig([])->footer()` | Required footer for admin modals |
+| `\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer()` | Required footer for admin modals |
 | `admin.table.with({url})` | Layui table binding JS helper |
 
 ---

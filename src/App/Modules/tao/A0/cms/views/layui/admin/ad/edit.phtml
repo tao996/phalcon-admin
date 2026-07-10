@@ -1,9 +1,8 @@
 <?php
 
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-$html = $vv->html();
 ?>
 <form class="layui-form" id="form">
 
@@ -40,7 +39,7 @@ $html = $vv->html();
     </div>
 
     <div class="layui-form-item">
-        <?php echo $vv->layuiForm()->upload('图片', 'cover',
+        <?php echo \App\Modules\tao\TaoAppService::layuiForm()->upload('图片', 'cover',
                 value: $vv->pick('cover'), tip: '广告图片建议尺寸 640 * 60'
         ); ?>
         <label class="layui-form-label">标题</label>
@@ -57,7 +56,7 @@ $html = $vv->html();
         <div class="layui-input-block" style="width: 440px;display: inline-block;float: left;margin-left: 0;">
             <?php foreach (['at_banner' => '横幅', 'at_index' => '首页', 'at_list' => '列表页', 'at_page' => '详情页'] as $name => $title) { ?>
                 <input type="checkbox" name="<?php echo $name ?>" title="<?php echo $title ?>"
-                       lay-skin="tag" <?php echo $html->pickCompare($name, 'checked') ?>>
+                       lay-skin="tag" <?php echo $vv->pickCompare($name, 'checked') ?>>
             <?php } ?>
         </div>
     </div>
@@ -91,7 +90,7 @@ $html = $vv->html();
         <div class="layui-input-inline" style="width: max-content;">
             <?php foreach (\App\Modules\tao\A0\cms\Models\CmsAd::MapKind as $v => $t) { ?>
                 <input type="radio" name="kind" value="<?php echo $v ?>"
-                        <?php $html->pickCompare('kind', 'selected', $v) ?>
+                        <?php $vv->pickCompare('kind', 'selected', $v) ?>
                        title="<?php echo $t ?>">
             <?php } ?>
         </div>
@@ -116,7 +115,7 @@ $html = $vv->html();
 
 </form>
 <?php
-$vv->layui()->addWindowConfig()->footer();
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer();
 ?>
 <script>
     admin.form.submitFirst(() => {

@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
 
 use Phax\Foundation\AppService;
@@ -15,7 +15,7 @@ use Phax\Foundation\AppService;
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>文件选择</title>
     <?php
-    $vv->layui()->selectHeader();
+    \App\Modules\tao\TaoAppService::layui()->selectHeader();
     $vv->html()->outputHeaders();
     ?>
 </head>
@@ -56,7 +56,7 @@ use Phax\Foundation\AppService;
 </body>
 <?php
 $vv->html()->outputFooters();
-$vv->layui()->footer();
+\App\Modules\tao\TaoAppService::layui()->footer();
 ?>
 <script>
     const index = parent.layer.getFrameIndex(window.name);

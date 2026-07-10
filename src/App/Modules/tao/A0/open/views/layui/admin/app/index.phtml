@@ -1,8 +1,8 @@
 <?php
 /**
- * @var \App\Modules\tao\Helper\MyMvcHelper $vv
+ * @var \Phax\Helper\HtmlHelper $vv
  */
-
+$form = \App\Modules\tao\TaoAppService::layuiForm();
 ?>
 
 
@@ -11,8 +11,8 @@
     <form class="layui-form layui-form-pane form-search" lay-filter="form-search">
         <div class="layui-form-item layui-inline">
             <?php
-            echo $vv->layuiForm()->select('平台', 'platform', vtOptions: \App\Modules\tao\Data\UserBindPlatform::MapPlatform, formItem: false);
-            echo $vv->layuiForm()->status(formItem: false);
+            echo $form->select('平台', 'platform', vtOptions: \App\Modules\tao\Data\UserBindPlatform::MapPlatform, formItem: false);
+            echo $form->status(formItem: false);
             ?>
 
             <div class="layui-form-item layui-inline">
@@ -49,7 +49,7 @@
 <table id="table" class="layui-hide"></table>
 
 <?php
-$vv->layui()->addWindowConfig([])->footer(); ?>
+\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.open/admin.app", false) ?>';
     const certURL = '<?php echo \Phax\Foundation\AppService::urlModule("tao.open/admin.app/cert", true) ?>';

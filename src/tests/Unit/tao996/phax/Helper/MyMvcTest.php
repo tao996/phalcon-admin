@@ -5,12 +5,10 @@ namespace Tests\Unit\tao996\phax\Helper;
 use Phax\Foundation\Application;
 use Phax\Foundation\AppService;
 use Phax\Foundation\Route;
-use Phax\Helper\MyMvc;
 use PHPUnit\Framework\TestCase;
 
 class MyMvcTest extends TestCase
 {
-    private MyMvc $myMvc;
 
     protected function setUp(): void
     {
@@ -25,8 +23,6 @@ class MyMvcTest extends TestCase
         $route->urlOptions['language'] = 'en';
 
         $di->setShared('route', $route);
-
-        $this->myMvc = new MyMvc($di);
     }
 
     public function testUrlModuleWithApi(): void
