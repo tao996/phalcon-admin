@@ -362,8 +362,12 @@ layui.util.on('layadmin-event', {
 
 // Tab 点击/关闭事件委托
 tabs.container.on('click', 'li', function () {
-    var href = this.getAttribute('lay-id');
     var id = this.getAttribute('data-id') || '';
+    if (id == ''){
+        console.log('点击了不存在 id 的 tab.')
+        return;
+    }
+    var href = this.getAttribute('lay-id');
     var title = this.querySelector('span').textContent;
     tabs.append({id: id, title: title, href: href});
 }).on('click', '.layui-tab-close', function (e) {

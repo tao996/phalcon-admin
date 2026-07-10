@@ -279,7 +279,39 @@ const admin = {
                 formatted = formatted.slice(0, -3)
             }
             return formatted
-        }
+        },
+        /**
+         * 時間格式化
+         * @param {string|number} data 對象或者是值
+         * @return {string}
+         */
+        humanTime: function (data) {
+            if (admin.util.isEmpty(data)) {
+                return '';
+            }
+            const date = new Date(data * 1000);  // 参数需要毫秒数，所以这里将秒数乘于 1000
+            return ([
+                date.getFullYear(),
+                ('' + (date.getMonth() + 1)).padStart(2, '0'),
+                ('' + date.getDate()).padStart(2, '0')
+            ].join('-') + ' ' + [
+                ('' + date.getHours()).padStart(2, '0'),
+                ('' + date.getMinutes()).padStart(2, '0'),
+                ('' + date.getSeconds()).padStart(2, '0')
+            ].join(':')).replace(' 00:00:00', '')
+
+        },
+        humanDate: function (data) {
+            if (admin.util.isEmpty(data)) {
+                return '';
+            }
+            const date = new Date(data * 1000);  // 参数需要毫秒数，所以这里将秒数乘于 1000
+            return [
+                date.getFullYear(),
+                ('' + (date.getMonth() + 1)).padStart(2, '0'),
+                ('' + date.getDate()).padStart(2, '0')
+            ].join('-')
+        },
     },
 
     /**
@@ -1480,31 +1512,11 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
         humanTime: function (data) {
             const dataType = typeof data;
             const v = dataType === 'string' || dataType === 'number' ? data : data[this.field];
-            if (admin.util.isEmpty(v)) {
-                return '';
-            }
-            const date = new Date(v * 1000);  // 参数需要毫秒数，所以这里将秒数乘于 1000
-            return ([
-                date.getFullYear(),
-                ('' + (date.getMonth() + 1)).padStart(2, '0'),
-                ('' + date.getDate()).padStart(2, '0')
-            ].join('-') + ' ' + [
-                ('' + date.getHours()).padStart(2, '0'),
-                ('' + date.getMinutes()).padStart(2, '0'),
-                ('' + date.getSeconds()).padStart(2, '0')
-            ].join(':')).replace(' 00:00:00', '')
+            return admin.util.humanTime(v);
         },
         humanDate: function (data, useV = false) {
             const v = useV === true ? data : data[this.field];
-            if (admin.util.isEmpty(v)) {
-                return '';
-            }
-            const date = new Date(v * 1000);  // 参数需要毫秒数，所以这里将秒数乘于 1000
-            return [
-                date.getFullYear(),
-                ('' + (date.getMonth() + 1)).padStart(2, '0'),
-                ('' + date.getDate()).padStart(2, '0')
-            ].join('-')
+            return admin.util.humanDate(v);
         },
         objPath: function (data) {
             const keys = this.field.split('.')

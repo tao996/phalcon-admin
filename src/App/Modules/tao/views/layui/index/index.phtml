@@ -9,6 +9,7 @@ use Phax\Foundation\AppService;
 $indexWelcome = AppService::urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = TaoAppService::loginUserHelper()->user();
+TaoAppService::layui()->header();
 ?>
 <!DOCTYPE html>
 <html>

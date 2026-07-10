@@ -25,10 +25,9 @@ class Layui
     public function __construct(string $version = '2.13.6')
     {
         $this->version = $version;
-        $this->header();
     }
 
-    private function header(): void
+    public function header(): void
     {
         if ($this->hasImportHeader) {
             return;

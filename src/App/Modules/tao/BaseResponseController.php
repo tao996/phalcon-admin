@@ -47,7 +47,6 @@ class BaseResponseController extends Controller
         } elseif ($this->request->isPut()) {
             $this->requestData = $this->request->getPut() ?: [];
         }
-        parent::initialize();
     }
 
     /**

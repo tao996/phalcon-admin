@@ -85,9 +85,9 @@
                 {
                     title: '时间', width: 200, templet: function (v) {
                         return `
-<div>创建: <span>${admin.table.humanTime(v.created_at)}</span></div>
-<div>上线: <span>${admin.table.humanTime(v.begin_at)}</span></div>
-<div>下线: <span>${admin.table.humanTime(v.end_at)}</span></div>
+<div>创建: <span>${admin.util.humanTime(v.created_at)}</span></div>
+<div>上线: <span>${admin.util.humanTime(v.begin_at)}</span></div>
+<div>下线: <span>${admin.util.humanTime(v.end_at)}</span></div>
 `
                     }
                 },
