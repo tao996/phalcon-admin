@@ -192,11 +192,6 @@ trait WepayOrder
 
     /**
      * 验证支付数据是否正确，示例
-     * <pre>
-     * $this->vv->validate()->check($this->requestData, [
-     *      'name|套餐名称' => 'required'
-     * ]);
-     * </pre>
      * @return void
      */
     abstract protected function payValidate(): void;

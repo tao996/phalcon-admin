@@ -4,7 +4,7 @@ namespace App\Modules\tao\sdk\qiniu;
 
 use App\Modules\tao\sdk\OssDriverInterface;
 use Phax\Support\Exception\LogException;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 use Qiniu\Auth;
 use Qiniu\Storage\UploadManager;
 
@@ -23,7 +23,7 @@ class QiniuDriver implements OssDriverInterface
     {
         require_once __DIR__ . '/qiniu.phar';
 
-        MyData::mustHasSet($config, ['qnoss_access_key', 'qnoss_secret_key', 'qnoss_bucket', 'qnoss_domain']);
+        MyAssert::mustHasSet($config, ['qnoss_access_key', 'qnoss_secret_key', 'qnoss_bucket', 'qnoss_domain']);
 
         $this->accessKey = $config['qnoss_access_key'];
         $this->secretKey = $config['qnoss_secret_key'];

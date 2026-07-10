@@ -10,7 +10,7 @@ use App\Modules\tao\Services\UserService;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 
 class OpenUserService
@@ -284,7 +284,7 @@ class OpenUserService
      */
     public static function save(array $app, array $data, array $userBaseInfo): array
     {
-        MyData::mustHasSet($app, ['appid', 'platform', 'kind']);
+        MyAssert::mustHasSet($app, ['appid', 'platform', 'kind']);
         $userBind = OpenAppService::newUserBind($app);
         $userInfo = self::postUserInfo($userBaseInfo);
 

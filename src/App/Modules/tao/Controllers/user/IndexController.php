@@ -9,7 +9,7 @@ use App\Modules\tao\TaoAppService;
 use Phax\Db\Transaction;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\LogException;
-use Phax\Support\Validate;
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 
 /**
@@ -33,7 +33,7 @@ class IndexController extends BaseController
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
             $newHeadImg = MyData::getString($data, 'head_img');
-            Validate::hostValidate($newHeadImg);
+            MyAssert::hostValidate($newHeadImg);
             $user->head_img = $newHeadImg;
             $user->signature = MyData::getString($data, 'signature');
             if ($user->save()) {
@@ -49,7 +49,6 @@ class IndexController extends BaseController
                 return $this->error($user->getErrors());
             }
         }
-//        ddd($user, $this->vv->roleService()->);
         return [
             'roles' => $user->roles(),
         ];
@@ -73,7 +72,7 @@ class IndexController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            MyData::mustHasSet($data, ['phone', 'vercode']);
+            MyAssert::mustHasSet($data, ['phone', 'vercode']);
 
             $code = SmsCodeService::checkChangeAccountCode(
                 $this->loginUser()->id,
@@ -110,7 +109,7 @@ class IndexController extends BaseController
     {
         $this->mustPostMethod();
         $data = $this->request->getPost();
-        MyData::mustHasSet($data, ['phone']);
+        MyAssert::mustHasSet($data, ['phone']);
 
         $user = $this->loginUser();
         UserService::mustAllowChangeAccount('phone', $data['phone'], $user);
@@ -135,7 +134,7 @@ class IndexController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            MyData::mustHasSet($data, ['email', 'vercode']);
+            MyAssert::mustHasSet($data, ['email', 'vercode']);
 
             $code = SmsCodeService::checkChangeAccountCode(
                 $this->loginUser()->id,
@@ -172,7 +171,7 @@ class IndexController extends BaseController
     {
         $this->mustPostMethod();
         $data = $this->request->getPost();
-        MyData::mustHasSet($data, ['email']);
+        MyAssert::mustHasSet($data, ['email']);
 
         $user = $this->loginUser();
         UserService::mustAllowChangeAccount('email', $data['email'], $user);

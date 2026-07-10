@@ -4,7 +4,7 @@ namespace App\Modules\tao\A0\cms\Controllers\user;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Models\SystemUploadfile;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 class HelperController extends BaseController
 {
@@ -28,7 +28,7 @@ class HelperController extends BaseController
         $this->model = SystemUploadfile::mustFindFirst('id=' . $id . ' AND user_id=' . $this->loginUser()->id);
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            MyData::mustHasSet($data, ['summary']);
+            MyAssert::mustHasSet($data, ['summary']);
             $this->model->assign($data, ['summary']);
             return $this->saveModelResponse($this->model->save());
         }

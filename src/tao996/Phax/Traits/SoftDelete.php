@@ -2,7 +2,7 @@
 
 namespace Phax\Traits;
 
-use Phax\Support\Facade\MyHelperFacade;
+use Phax\Foundation\AppService;
 
 /**
  * 软删除：重写了 findFirst/find/query/findByXxx, findFirstByXxx
@@ -192,12 +192,12 @@ trait SoftDelete
     public static function __callStatic(string $method, array $arguments)
     {
         if (str_starts_with($method, 'findBy')) {
-            $name = MyHelperFacade::uncamelize(substr($method, 6), '_');
+            $name = AppService::helper()->uncamelize(substr($method, 6), '_');
             return self::find([
                 $name . '= :key:', 'bind' => ['key' => $arguments[0]]
             ]);
         } elseif (str_starts_with($method, 'findFirstBy')) {
-            $name = MyHelperFacade::uncamelize(substr($method, 11), '_');
+            $name = AppService::helper()->uncamelize(substr($method, 11), '_');
 
             return self::findFirst([
                 $name => $arguments[0]

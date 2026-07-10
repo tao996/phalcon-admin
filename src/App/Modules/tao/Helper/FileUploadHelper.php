@@ -13,7 +13,6 @@ use OSS\Core\OssException;
 use Phalcon\Http\Request\File;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
-use Phax\Support\Facade\MyHelperFacade;
 use Phax\Utils\MyFormat;
 
 
@@ -28,7 +27,7 @@ class FileUploadHelper
         'hash' => true, // 使用文件 hash 命名
     ];
 
-    public function __construct(public MyMvcHelper $mvc, array $config = [])
+    public function __construct(array $config = [])
     {
         if (!empty($config)) {
             $this->_config = $config;
@@ -118,7 +117,7 @@ class FileUploadHelper
     {
         // 上传到当前项目目录
         $subDir = 'upload/' . AppService::route()->getProject('phax') . '/' . date('ymd') . '/';
-        $pathUploadDir = MyHelperFacade::dirSeparator(PATH_PUBLIC . $subDir);
+        $pathUploadDir = AppService::helper()->dirSeparator(PATH_PUBLIC . $subDir);
         if (!file_exists($pathUploadDir)) {
             mkdir($pathUploadDir, 0777, true);
         }

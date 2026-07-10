@@ -9,7 +9,7 @@ use App\Modules\tao\Data\UserBindPlatform;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 class OpenAppService
 {
@@ -124,7 +124,7 @@ class OpenAppService
      */
     public static function newUserBind(array $app): string
     {
-        MyData::mustHasSet($app, ['platform', 'kind']);
+        MyAssert::mustHasSet($app, ['platform', 'kind']);
         $bind = '';
         switch ($app['platform']) {
             case UserBindPlatform::PlatformWechat:

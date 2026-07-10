@@ -6,7 +6,6 @@ use App\Modules\tao\Helper\Libs\NodeLibHelper;
 use App\Modules\tao\Models\SystemNode;
 use App\Modules\tao\Models\SystemRoleNode;
 use Phax\Foundation\AppService;
-use Phax\Support\Facade\MyHelperFacade;
 use Phax\Utils\MyData;
 
 class NodeService
@@ -28,7 +27,7 @@ class NodeService
         if (!empty($role_ids)) {
             $nodeListSQL = 'SELECT node FROM tao_system_node WHERE id IN (SELECT node_id FROM tao_system_role_node WHERE role_id IN (SELECT id FROM tao_system_role WHERE id IN (' . $role_ids . ')))';
             $rows = AppService::db()->query($nodeListSQL)->fetchAll(\PDO::FETCH_ASSOC);
-            $nodeList = MyHelperFacade::pluck($rows, 'node');
+            $nodeList = AppService::helper()->pluck($rows, 'node');
         }
         return $nodeList;
     }

@@ -6,7 +6,7 @@ use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\A0\open\Service\OpenUserService;
 use App\Modules\tao\TaoAppService;
 use Phax\Support\Logger;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 /**
  * 公众号
@@ -29,7 +29,7 @@ class OfficialController extends BaseOpenMiniController
         if (isset($query['skip'])) {
             exit("");
         }
-        MyData::mustHasSet($query, ['appid']);
+        MyAssert::mustHasSet($query, ['appid']);
         // 可以添加其它参数，防止接口公开时被攻击
 //        if (!isset($query['t']) && $query['t'] != 'xxx') {exit('query lost.');}
         $app = TaoAppService::applicationHelper()->getOfficial($query['appid']);

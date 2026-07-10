@@ -8,7 +8,7 @@ use App\Modules\tao\sdk\SdkHelper;
 use App\Modules\tao\TaoAppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 use App\Modules\tao\A0\open\Helper\Libs\PayCertHelper;
 use EasyWeChat\Kernel\Exceptions\InvalidArgumentException;
@@ -38,7 +38,7 @@ readonly class ApplicationHelper
     public function getTiktok(array $app): TikTokApplication
     {
         $this->tiktokSDK();
-        MyData::mustHasSet($app, ['appid', 'secret', 'sandbox', 'kind']);
+        MyAssert::mustHasSet($app, ['appid', 'secret', 'sandbox', 'kind']);
 
         if (!OpenAppService::isMini($app['kind'])) {
             throw new BusinessException('tiktok mini appid is invalid');
@@ -150,7 +150,7 @@ readonly class ApplicationHelper
         if (is_string($app)) {
             $app = OpenAppService::getWithAppid($app);
         }
-        MyData::mustHasSet($app, ['appid', 'secret', 'kind'], ['token', 'aes_key']);
+        MyAssert::mustHasSet($app, ['appid', 'secret', 'kind'], ['token', 'aes_key']);
 
 
         if (!OpenAppService::isMini($app['kind'])) {

@@ -13,6 +13,7 @@ use Phax\Mvc\Model;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Validate;
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 
 /**
@@ -340,7 +341,7 @@ class BaseController extends BaseRbacController
         }
         foreach ($this->model->bool2IntColumns as $column) {
             if (array_key_exists($column, $data)) {
-                $data[$column] = (int)MyData::isTrueWith($data, $column);
+                $data[$column] = (int)MyAssert::isTrueWith($data, $column);
             } else {
                 $data[$column] = 0;
             }
@@ -408,7 +409,7 @@ class BaseController extends BaseRbacController
     {
         $this->mustPostMethod();
         $post = $this->getPostData();
-        MyData::mustHasSet($post, ['id', 'field'], ['value']);
+        MyAssert::mustHasSet($post, ['id', 'field'], ['value']);
         $rules = [
             'id|ID' => 'int',
             'field|字段' => 'require',
@@ -464,7 +465,7 @@ class BaseController extends BaseRbacController
     {
         $this->mustPostMethod();
         $post = $this->getPostData();
-        MyData::mustHasSet($post, ['ids', 'field'], ['value']);
+        MyAssert::mustHasSet($post, ['ids', 'field'], ['value']);
         if (!in_array($post['field'], $this->allowBatchChangeFields)) {
             return $this->error('该字段不允许修改');
         }

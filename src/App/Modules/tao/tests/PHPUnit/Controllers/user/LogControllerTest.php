@@ -3,7 +3,6 @@
 namespace App\Modules\tao\tests\PHPUnit\Controllers\user;
 
 use App\Modules\tao\tests\Helper\MyTestTaoHttpHelper;
-use Phax\Utils\MyData;
 use PHPUnit\Framework\TestCase;
 
 class LogControllerTest extends TestCase

@@ -119,17 +119,6 @@ class Route
         return $this->di->get('view');
     }
 
-    /**
-     * 当前操作器名称
-     * @return string 示例 `index`
-     */
-    public function getAction(): string
-    {
-        if (!empty($this->routerOptions['paths']['action'])) {
-            return $this->routerOptions['paths']['action'];
-        }
-        return 'index';
-    }
 
 
     /**
@@ -360,9 +349,21 @@ class Route
             ) . 'Controller';
     }
 
-    public function getActionName(): string
+    public function getAction(): string
     {
         return $this->routerOptions['pathsname']['action'] . 'Action';
+    }
+
+    /**
+     * 当前操作器名称
+     * @return string 示例 `index`
+     */
+    public function getActionName(): string
+    {
+        if (!empty($this->routerOptions['paths']['action'])) {
+            return $this->routerOptions['paths']['action'];
+        }
+        return 'index';
     }
 
     public function setRouter(\Phalcon\Mvc\Router $router)
@@ -371,6 +372,6 @@ class Route
         // 添加到路由
         $router->add($this->routerOptions['route'], $this->routerOptions['paths']);
         $router->setDefaultController($this->getControllerName());
-        $router->setDefaultAction($this->getActionName());
+        $router->setDefaultAction($this->getAction());
     }
 }

@@ -46,7 +46,7 @@ class FileController extends BaseController
      */
     public function saveAction(): array
     {
-        $fp = new FileUploadHelper($this->vv);
+        $fp = new FileUploadHelper();
         $sf = $fp->fromRequest()->validate()->save();
         $sf->user_id = $this->loginUser()->id;
         if ($sf->save()) {
@@ -65,7 +65,7 @@ class FileController extends BaseController
      */
     public function editorAction()
     {
-        $fp = new FileUploadHelper($this->vv);
+        $fp = new FileUploadHelper();
         $sf = $fp->fromRequest()->validate()->save();
         $sf->user_id = $this->loginUser()->id;
         if ($sf->save()) {

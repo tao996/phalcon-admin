@@ -3,7 +3,7 @@
 namespace App\Modules\tao\A0\open\Models;
 
 use App\Modules\tao\BaseTaoModel;
-use Phax\Support\Facade\MyHelperFacade;
+use Phax\Foundation\AppService;
 
 /**
  * 订单表（当前模型只支持一单一退）
@@ -110,7 +110,7 @@ class OpenOrder extends BaseTaoModel
 
     public function beforeCreate()
     {
-        $this->rndcode = MyHelperFacade::random(0, 5);
+        $this->rndcode = AppService::helper()->random(0, 5);
     }
 
     public const array CURRENCY = ['CNY', 'CNY'];

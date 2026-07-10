@@ -16,6 +16,7 @@ use App\Modules\tao\TaoAppService;
 use Phax\Db\QueryBuilder;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 
 /**
@@ -41,10 +42,10 @@ class UserController extends BaseController
             UserService::mustUniqueEmail(MyData::getString($data, 'email'), $user, true);
             UserService::mustUniquePhone(MyData::getString($data, 'phone'), $user, true);
             if ($user->email) {
-                $user->email_valid = (int)MyData::isTrueWith($data, 'email_valid');
+                $user->email_valid = (int)MyAssert::isTrueWith($data, 'email_valid');
             }
             if ($user->phone) {
-                $user->phone_valid = (int)MyData::isTrueWith($data, 'phone_valid');
+                $user->phone_valid = (int)MyAssert::isTrueWith($data, 'phone_valid');
             }
             if (!UserService::hasLoginAccount($user)) {
                 return $this->error('必须设置一个登录账号');
@@ -136,12 +137,12 @@ class UserController extends BaseController
 
             if (!empty($data['phone'])) {
                 UserService::mustUniquePhone($data['phone'], $user, true);
-                $user->phone_valid = (int)MyData::isTrueWith($data, 'phone_valid');
+                $user->phone_valid = (int)MyAssert::isTrueWith($data, 'phone_valid');
             }
 
             if (!empty($data['email'])) {
                 UserService::mustUniqueEmail($data['email'], $user, true);
-                $user->email_valid = (int)MyData::isTrueWith($data, 'email_valid');
+                $user->email_valid = (int)MyAssert::isTrueWith($data, 'email_valid');
             }
 
             $user->assign($data, ['nickname', 'signature', 'head_img']);
@@ -192,7 +193,7 @@ class UserController extends BaseController
         $data = $this->request->get();
         // 新密码与确认密码必须一致
         if ($this->request->isPost()) {
-            MyData::mustHasSet($data, ['password'], ['old_password']);
+            MyAssert::mustHasSet($data, ['password'], ['old_password']);
         }
         $user = SystemUser::findFirst($id);
         $this->checkModelActionAccess($user);

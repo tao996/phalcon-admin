@@ -7,6 +7,7 @@ use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 
 /**
@@ -33,7 +34,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
         if (!empty($authData)) {
             $this->data = json_decode($authData, true);
             try {
-                MyData::mustHasSet($this->data, ['token', 't', 'sign']);
+                MyAssert::mustHasSet($this->data, ['token', 't', 'sign']);
             } catch (\Exception $e) {
                 throw new BusinessException('登录凭证过期或不存在.', [
                     'data' => $this->data,
@@ -50,7 +51,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
     {
         if (!empty($this->data['token'])) {
             $userId = TaoAppService::authRedisData()->getUserId($this->data['token'], 'app');
-            if ('logout' != AppService::route()->getAction()) {
+            if ('logout' != AppService::route()->getActionName()) {
                 $secret = TaoAppService::authRedisData()->getTokenValue($this->data['token']);
                 if (!$secret) {
                     throw new BusinessException('登录凭证过期或不存在', [

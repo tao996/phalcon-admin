@@ -19,7 +19,7 @@ class CaptchaHelper
     private string $key = 'captcha';
     private bool $local_test = false;
 
-    public function __construct(public MyMvcHelper $mvc)
+    public function __construct()
     {
         $this->local_test = AppService::isTest() || AppService::isDemo();
         if ($this->local_test && !IS_DEBUG) {

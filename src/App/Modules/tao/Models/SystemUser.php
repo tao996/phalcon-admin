@@ -4,8 +4,8 @@ namespace App\Modules\tao\Models;
 
 use App\Modules\tao\BaseTaoModel;
 use App\Modules\tao\Services\RoleService;
+use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
-use Phax\Support\Facade\MyHelperFacade;
 use Phax\Traits\SoftDelete;
 
 class SystemUser extends BaseTaoModel
@@ -92,7 +92,7 @@ class SystemUser extends BaseTaoModel
     {
         // https://docs.phalcon.io/5.0/en/support-helper#random
         if (empty($this->seed)) {
-            $this->seed = MyHelperFacade::random(); // 默认 字母数字，长度8
+            $this->seed = AppService::helper()->random(); // 默认 字母数字，长度8
         }
     }
 

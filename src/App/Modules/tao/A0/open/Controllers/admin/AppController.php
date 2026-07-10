@@ -8,6 +8,7 @@ use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Validate;
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 
 /**
@@ -47,7 +48,7 @@ class AppController extends BaseController
             'kind|应用类型' => 'required',
             'secret' => 'required'
         ]);
-        $data['sandbox'] = (int)MyData::isTrueWith($data, 'sandbox');
+        $data['sandbox'] = (int)MyAssert::isTrueWith($data, 'sandbox');
         return $data;
     }
 

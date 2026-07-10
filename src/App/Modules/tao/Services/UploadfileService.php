@@ -5,6 +5,7 @@ namespace App\Modules\tao\Services;
 use App\Modules\tao\Models\SystemUploadfile;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Validate;
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 
 class UploadfileService
@@ -42,7 +43,7 @@ class UploadfileService
             if (count($images) > $max) {
                 throw new BusinessException('最多上传 ' . $max . ' 张图片');
             }
-            Validate::hostsValidate($images);
+            MyAssert::hostsValidate($images);
             return join(',', $images);
         } else {
             return '';

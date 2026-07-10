@@ -3,7 +3,6 @@
 namespace Phax\Foundation;
 
 use Phalcon\Encryption\Security;
-use Phalcon\Http\Request;
 use Phalcon\Http\Response\Cookies;
 use Phalcon\Mvc\View;
 use Phax\Helper\HtmlHelper;
@@ -19,10 +18,12 @@ class AppService
     {
         return Application::di()->has($serviceName);
     }
+
     public static function getShared(string $serverName)
     {
         return Application::di()->getShared($serverName);
     }
+
     public static function setShared(string $serviceName, $service): void
     {
         Application::di()->setShared($serviceName, $service);
@@ -100,7 +101,7 @@ class AppService
         return self::config()->getString('app.locale', 'en');
     }
 
-    public static function request(): Request
+    public static function request(): \Phalcon\Http\RequestInterface
     {
         return Application::di()->get('request');
     }
@@ -153,7 +154,7 @@ class AppService
         return Application::di()->getShared('route');
     }
 
-    public function router(): \Phalcon\Mvc\Router|\Phalcon\Cli\Router
+    public static function router(): \Phalcon\Mvc\Router|\Phalcon\Cli\Router
     {
         return Application::di()->getShared('router');
     }
@@ -275,12 +276,6 @@ class AppService
     public static function eventsManager(): \Phalcon\Events\Manager
     {
         return Application::di()->getShared('eventsManager');
-    }
-
-
-    public static function helper(): \Phalcon\Support\HelperFactory
-    {
-        return Application::di()->getShared('helper');
     }
 
 
@@ -427,6 +422,36 @@ class AppService
     public static function isJsonBodyRequest(): bool
     {
         return self::request()->getQuery('data', 'string') === 'jsonbody';
+    }
+
+    public static function crypt(): \Phalcon\Encryption\Crypt
+    {
+        return self::getLazyService('crypt', function () {
+            $data = self::config()->getArray('app.crypt');
+            $crypt = new \Phalcon\Encryption\Crypt();
+            $crypt->setPadding(MyData::getInt($data, 'padding'));
+            $crypt->setKey(MyData::getString($data, 'key'));
+            $crypt->setCipher(MyData::getString($data, 'cipher'));
+            return $crypt;
+        });
+    }
+
+    public static function helper(): \Phalcon\Support\HelperFactory
+    {
+        return self::getLazyService('helper', function () {
+            return new \Phalcon\Support\HelperFactory();
+        });
+    }
+
+    /**
+     * 统一的懒加载注册中心
+     */
+    public static function getLazyService(string $name, callable $resolver)
+    {
+        if (!self::has($name)) {
+            self::getDi()->setShared($name, $resolver);
+        }
+        return self::getDi()->getShared($name);
     }
 
 }

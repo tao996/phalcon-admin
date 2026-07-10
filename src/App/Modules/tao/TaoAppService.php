@@ -22,83 +22,73 @@ class TaoAppService
 {
     public static function captchaHelper(): CaptchaHelper
     {
-        if (!AppService::has('tao.captchaHelper')) {
-            AppService::setShared('tao.captchaHelper', new CaptchaHelper());
-        }
-        return AppService::getShared('tao.captchaHelper');
+        return AppService::getLazyService('tao.captchaHelper', function () {
+            return new CaptchaHelper();
+        });
     }
 
     public static function applicationHelper(): ApplicationHelper
     {
-        if (!AppService::has('tao.openApplicationHelper')) {
+        return AppService::getLazyService('tao.applicationHelper', function () {
             \App\Modules\tao\sdk\SdkHelper::easyWechat();
-            AppService::setShared('tao.openApplicationHelper', new ApplicationHelper());
-        }
-        return AppService::getShared('tao.openApplicationHelper');
+            return new ApplicationHelper();
+        });
     }
 
     public static function redisCache(): RedisCache
     {
-        if (!AppService::has('tao.redisCache')) {
-            AppService::setShared('tao.redisCache', new RedisCache());
-        }
-        return AppService::getShared('tao.redisCache');
+        return AppService::getLazyService('tao.redisCache', function () {
+            return new RedisCache();
+        });
     }
 
     public static function tiktokHelper(): TiktokHelper
     {
-        if (!AppService::has('tao.tiktokHelper')) {
-            AppService::setShared('tao.tiktokHelper', new TiktokHelper());
-        }
-        return AppService::getShared('tao.tiktokHelper');
+        return AppService::getLazyService('tao.tiktokHelper', function () {
+            return new TiktokHelper();
+        });
     }
 
     public static function wepayHelper(): WepayHelper
     {
-        if (!AppService::has('tao.wepayHelper')) {
-            AppService::setShared('tao.wepayHelper', new WepayHelper());
-        }
-        return AppService::getShared('tao.wepayHelper');
+        return AppService::getLazyService('tao.wepayHelper', function () {
+            return new WepayHelper();
+        });
     }
 
     public static function wechatHelper(): WechatHelper
     {
-        if (!AppService::has('tao.wechatHelper')) {
-            AppService::setShared('tao.wechatHelper', new WechatHelper());
-        }
-        return AppService::getShared('tao.wechatHelper');
+        return AppService::getLazyService('tao.wechatHelper', function () {
+            return new WechatHelper();
+        });
     }
 
     public static function registerHelper(): RegisterHelper
     {
-        if (!AppService::has('tao.registerHelper')) {
-            AppService::setShared('tao.registerHelper', new RegisterHelper());
-        }
-        return AppService::getShared('tao.registerHelper');
+        return AppService::getLazyService('tao.registerHelper', function () {
+            return new RegisterHelper();
+        });
     }
 
     public static function openUrlHelper(): OpenUrlHelper
     {
-        if (!AppService::has('tao.openUrlHelper')) {
-            AppService::setShared('tao.openUrlHelper', new OpenUrlHelper());
-        }
-        return AppService::getShared('tao.openUrlHelper');
+        return AppService::getLazyService('tao.openUrlHelper', function () {
+            return new OpenUrlHelper();
+        });
     }
 
     public static function miniAppHelper(): MiniAppHelper
     {
-        if (!AppService::has('tao.miniAppHelper')) {
-            AppService::setShared('tao.miniAppHelper', new MiniAppHelper());
-        }
-        return AppService::getShared('tao.miniAppHelper');
+        return AppService::getLazyService('tao.miniAppHelper', function () {
+            return new MiniAppHelper();
+        });
     }
 
     public static function authRedisData(): AuthRedisData
     {
-        if (!AppService::has('tao.authRedisData')) {
-            AppService::setShared('tao.authRedisData', new AuthRedisData());
-        }
-        return AppService::getShared('tao.authRedisData');
+        return AppService::getLazyService('tao.authRedisData', function () {
+            return new AuthRedisData();
+        });
     }
 
     /**
@@ -109,26 +99,23 @@ class TaoAppService
      */
     public static function qiniuDriver(): QiniuDriver
     {
-        if (!AppService::has('tao.qiniu')) {
-            AppService::setShared('tao.qiniu', new QiniuDriver(ConfigService::uploadConfig()));
-        }
-        return AppService::getShared('tao.qiniu');
+        return AppService::getLazyService('tao.qiniu', function () {
+            return new QiniuDriver(ConfigService::uploadConfig());
+        });
     }
 
     public static function loginUserHelper(): LoginUserHelper
     {
-        if (!AppService::has('tao.login')) {
-            AppService::setShared('tao.login', new LoginUserHelper());
-        }
-        return AppService::getShared('tao.login');
+        return AppService::getLazyService('tao.loginUserHelper', function () {
+            return new LoginUserHelper();
+        });
     }
 
     public static function loginAuthHelper(): LoginAuthHelper
     {
-        if (!AppService::has('tao.loginAuthHelper')) {
-            AppService::setShared('tao.loginAuthHelper', new LoginAuthHelper());
-        }
-        return AppService::getShared('tao.loginAuthHelper');
+        return AppService::getLazyService('tao.loginAuthHelper', function () {
+            return new LoginAuthHelper();
+        });
     }
 
 

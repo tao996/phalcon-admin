@@ -6,7 +6,7 @@ use App\Modules\tao\A0\cms\Models\CmsAd;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 /**
  * @property CmsAd $model
@@ -29,7 +29,7 @@ class AdController extends BaseController
         if ($beginAt = $this->request->getQuery('begin_at')) {
             $queryBuilder->opt('begin_at', '>=', $beginAt);
         }
-        if (MyData::isBool($this->request->getQuery('active'))) {
+        if (MyAssert::isBool($this->request->getQuery('active'))) {
             $status = 1;
             $queryBuilder->and(CmsAd::activeCondition(time()), true);
         }

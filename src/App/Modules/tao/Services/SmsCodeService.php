@@ -12,6 +12,7 @@ use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Validate;
+use Phax\Utils\MyAssert;
 
 class SmsCodeService
 {
@@ -142,8 +143,8 @@ class SmsCodeService
         if (empty($receiver)) {
             throw new BusinessException('接收账号不能为空');
         }
-        $isPhone = Validate::isPhone($receiver);
-        $isEmail = Validate::isEmail($receiver);
+        $isPhone = MyAssert::isPhone($receiver);
+        $isEmail = MyAssert::isEmail($receiver);
         if (!$isPhone && !$isEmail) {
             throw new BusinessException('只支持手机号或电子邮箱', [
                 'receive' => $receiver,
@@ -256,7 +257,7 @@ class SmsCodeService
         $verifyCode = rand(1000, 9999);
         $code = new SystemSmsCode();
 
-        $isEmail = Validate::isEmail($condition['receiver']);
+        $isEmail = MyAssert::isEmail($condition['receiver']);
 
         $code->assign(array_merge($condition, [
             'status' => SystemSmsCode::StatusNew,
@@ -414,7 +415,7 @@ class SmsCodeService
      */
     public static function sendForgotPasswordEmail($email, array $config = []): bool
     {
-        if (!Validate::isEmail($email)) {
+        if (!MyAssert::isEmail($email)) {
             throw new BusinessException('不是有一个有效电子邮箱地址');
         }
         if ($row = SystemUser::queryBuilder()

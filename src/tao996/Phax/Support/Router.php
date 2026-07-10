@@ -2,7 +2,7 @@
 
 namespace Phax\Support;
 
-use Phax\Support\Facade\MyHelperFacade;
+use Phax\Foundation\AppService;
 
 
 /**
@@ -397,7 +397,7 @@ class Router
     {
         $name = str_replace(['-', '_', ' '], '-', $name);
         if (str_contains($name, '-')) {
-            $name = MyHelperFacade::camelize($name, '-', true);
+            $name = AppService::helper()->camelize($name, '-', true);
         }
         return $lcfirst ? lcfirst($name) : $name;
     }

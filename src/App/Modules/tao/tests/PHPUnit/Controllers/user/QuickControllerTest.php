@@ -3,7 +3,7 @@
 namespace App\Modules\tao\tests\PHPUnit\Controllers\user;
 
 use App\Modules\tao\tests\Helper\MyTestTaoHttpHelper;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +21,7 @@ class QuickControllerTest extends TestCase
         $response = $http->get('/api/m/tao/user.quick')
             ->login()->send()
             ->jsonResponse();
-        MyData::mustHasSet($response['data'], ['count', 'rows']);
+        MyAssert::mustHasSet($response['data'], ['count', 'rows']);
     }
 
     public function testAdd()

@@ -50,6 +50,10 @@ class UserController extends BaseOpenMiniController
         return [];
     }
 
+    /**
+     * 退出登录
+     * @return string
+     */
     public function logoutAction()
     {
         TaoAppService::loginAuthHelper()->logout();

@@ -127,12 +127,10 @@ class BaseRbacController extends BaseResponseController
     public function initialize(): void
     {
         parent::initialize();
-        if ($action = AppService::router()->getActionName()) {
-            $this->action = Router::formatNodeName($action);
-        } else {
-            if ($this->vv->di->has('route')) {
-                $this->action = AppService::route()->getAction();
-            }
+        if (AppService::has('router')) {
+            $this->action = Router::formatNodeName(AppService::router()->getActionName());
+        } else if (AppService::has('route')) {
+            $this->action = AppService::route()->getActionName();
         }
     }
 
@@ -197,7 +195,7 @@ class BaseRbacController extends BaseResponseController
             return;
         }
         if ($this->disableActions && in_array($this->action, $this->disableActions)) {
-            throw new BusinessException('不允许访问的操作列表中',[
+            throw new BusinessException('不允许访问的操作列表中', [
                 'action' => $this->action,
                 'disableActions' => $this->disableActions,
                 'route' => $this->route->routerOptions
@@ -216,10 +214,10 @@ class BaseRbacController extends BaseResponseController
                 $this->disableUpdateActions = true;
             }
             if ($this->disableUpdateActions && in_array($this->action, $this->updateActions)) {
-                throw new BusinessException('not allow disableUpdateActions in open access',[
-                    'action'=>$this->action,
-                    'updateActions'=>$this->updateActions,
-                    'route'=>$this->route->routerOptions,
+                throw new BusinessException('not allow disableUpdateActions in open access', [
+                    'action' => $this->action,
+                    'updateActions' => $this->updateActions,
+                    'route' => $this->route->routerOptions,
                 ]);
             }
             return;
@@ -231,17 +229,16 @@ class BaseRbacController extends BaseResponseController
         }
 
         if ($this->disableUpdateActions && in_array($this->action, $this->updateActions)) {
-            throw new BusinessException('not allow disableUpdateActions',[
-                'action'=>$this->action,
-                'updateActions'=>$this->updateActions,
-                'route'=>$this->route->routerOptions,
+            throw new BusinessException('not allow disableUpdateActions', [
+                'action' => $this->action,
+                'updateActions' => $this->updateActions,
+                'route' => $this->route->routerOptions,
             ]);
         }
 
         // 非公共节点都需要登录
         if (!$this->isLogin()) {
             $msg = $this->isApiRequest() ? '您还没有登录' : '您还没有登录，前往登录?';
-            // ddd( $this->vv->urlWith('/m/tao/auth/index'));
             $this->accessDenyResponse($msg, 303, AppService::urlWith('/m/tao/auth/index'));
             return;
         }

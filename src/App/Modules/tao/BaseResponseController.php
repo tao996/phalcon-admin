@@ -182,7 +182,7 @@ class BaseResponseController extends Controller
             // TODO 除非 add 模板存在，否则使用 edit 模板
         }
         // 如果定义了移动版模板
-        if (isset($this->mobileTemplate[$action]) && $this->vv->isMobile()) {
+        if (isset($this->mobileTemplate[$action]) && AppService::isMobile()) {
             AppService::route()->setPickView($this->mobileTemplate[$action]);
         }
         return parent::beforeViewResponse($data);

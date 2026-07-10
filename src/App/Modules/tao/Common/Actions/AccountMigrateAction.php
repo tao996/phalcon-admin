@@ -21,6 +21,7 @@ use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Logger;
 use Phax\Support\Validate;
+use Phax\Utils\MyAssert;
 
 /**
  * 账号迁移
@@ -42,9 +43,9 @@ class AccountMigrateAction
         if (empty($account)) {
             throw new BusinessException('请填写账号');
         }
-        if (Validate::isPhone($account)) {
+        if (MyAssert::isPhone($account)) {
             $type = 'phone';
-        } elseif (Validate::isEmail($account)) {
+        } elseif (MyAssert::isEmail($account)) {
             $type = 'email';
         } else {
             throw new BusinessException('不支持的账号类型');

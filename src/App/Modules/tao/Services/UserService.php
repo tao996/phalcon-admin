@@ -10,6 +10,7 @@ use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Validate;
+use Phax\Utils\MyAssert;
 
 class UserService
 {
@@ -23,7 +24,7 @@ class UserService
         if (empty($account)) {
             throw new BusinessException('账号不能为空');
         }
-        if (Validate::isEmail($account) || Validate::isPhone($account)) {
+        if (MyAssert::isEmail($account) || MyAssert::isPhone($account)) {
             return;
         }
         throw new BusinessException('不是一个合法的账号');
@@ -148,11 +149,11 @@ class UserService
      */
     public static function newAccount(string $account, SystemUser $user): void
     {
-        if (Validate::isEmail($account)) {
+        if (MyAssert::isEmail($account)) {
             $user->email = $account;
             $user->email_at = time();
             $user->email_valid = 1;
-        } elseif (Validate::isPhone($account)) {
+        } elseif (MyAssert::isPhone($account)) {
             $user->phone = $account;
             $user->phone_at = time();
             $user->phone_valid = 1;
@@ -219,7 +220,7 @@ class UserService
         if (empty($phone)) {
             throw new BusinessException('待检测的手机号不能为空');
         }
-        Validate::mustPhone($phone);
+        MyAssert::mustPhone($phone);
         if ($user->getQueryBuilder()
             ->string('phone', $phone)
             ->notEqual("id", $user->id)
@@ -287,9 +288,9 @@ class UserService
         if (empty($account)) {
             throw new BusinessException('账号不能为空');
         } elseif (empty($kind)) {
-            if (Validate::isEmail($account)) {
+            if (MyAssert::isEmail($account)) {
                 $kind = 'email';
-            } elseif (Validate::isPhone($account)) {
+            } elseif (MyAssert::isPhone($account)) {
                 $kind = 'phone';
             }
         }
@@ -431,9 +432,9 @@ class UserService
         if (empty($password)) {
             throw new BusinessException('密码不能为空');
         }
-        if (Validate::isEmail($account)) {
+        if (MyAssert::isEmail($account)) {
             $condition = ['email' => $account, 'email_valid' => 1];
-        } elseif (Validate::isPhone($account)) {
+        } elseif (MyAssert::isPhone($account)) {
             $condition = ['phone' => $account, 'phone_valid' => 1];
         } else {
             throw new BusinessException('账号格式不正确');

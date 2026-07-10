@@ -12,7 +12,7 @@ use Phax\Db\Transaction;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 class AuthController extends BaseController
 {
@@ -33,7 +33,7 @@ class AuthController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            MyData::mustHasSet($data, ['account', 'password', 'captcha']);
+            MyAssert::mustHasSet($data, ['account', 'password', 'captcha']);
             TaoAppService::captchaHelper()->compare($data['captcha']);
             /**
              * @var $user SystemUser
@@ -64,7 +64,7 @@ class AuthController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            MyData::mustHasSet($data, ['account', 'vercode']);
+            MyAssert::mustHasSet($data, ['account', 'vercode']);
             $isEmail = SmsCodeService::mustReceiver($data['account']);
             SmsCodeService::checkLoginCode($data['account'], $data['vercode']);
 
@@ -94,7 +94,7 @@ class AuthController extends BaseController
     {
         $this->mustPostMethod();
         $data = $this->request->getPost();
-        MyData::mustHasSet($data, ['captcha', 'account']);
+        MyAssert::mustHasSet($data, ['captcha', 'account']);
 
         SmsCodeService::mustReceiver($data['account']);
         TaoAppService::captchaHelper()->compare($data['captcha']);
@@ -124,7 +124,7 @@ class AuthController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            MyData::mustHasSet($data, ['account', 'vercode', 'password']);
+            MyAssert::mustHasSet($data, ['account', 'vercode', 'password']);
 
             UserService::mustAccountString($data['account']);
             UserService::mustCanRegister($data['account']);
@@ -158,7 +158,7 @@ class AuthController extends BaseController
     {
         $this->mustPostMethod();
         $data = $this->request->getPost();
-        MyData::mustHasSet($data, ['captcha', 'account']);
+        MyAssert::mustHasSet($data, ['captcha', 'account']);
 
         UserService::mustAccountString($data['account']);
         TaoAppService::captchaHelper()->compare($data['captcha']);
@@ -190,7 +190,7 @@ class AuthController extends BaseController
     {
         if ($this->request->isPost()) {
             $data = $this->request->getPost();
-            MyData::mustHasSet($data, ['account', 'captcha']);
+            MyAssert::mustHasSet($data, ['account', 'captcha']);
 
             TaoAppService::captchaHelper()->compare($data['captcha']);
 
@@ -208,7 +208,7 @@ class AuthController extends BaseController
     public function passwordAction()
     {
         $data = $this->request->getQuery();
-        MyData::mustHasSet($data, ['type', 'sign', 'id']);
+        MyAssert::mustHasSet($data, ['type', 'sign', 'id']);
         if ('forgot' != $data['type']) {
             throw new BusinessException('参数错误');
         }
@@ -216,7 +216,7 @@ class AuthController extends BaseController
 
         if ($this->request->isPost()) {
             $d2 = $this->request->getPost();
-            MyData::mustHasSet($d2, ['password']);
+            MyAssert::mustHasSet($d2, ['password']);
             UserService::mustPassword($d2['password']);
             $user = UserService::mustGetUser(['id' => $code->user_id]);
             UserService::newPassword($d2['password'], $user);

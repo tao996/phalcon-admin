@@ -8,7 +8,7 @@ use App\Modules\tao\A0\open\Service\OpenMchService;
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Support\Validate;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 /**
  * @property OpenMch $model
@@ -55,7 +55,7 @@ class MchController extends BaseController
     {
         $this->mustPostMethod();
         $data = $this->request->getPost();
-        MyData::mustHasSet($data, ['id', 'name']);
+        MyAssert::mustHasSet($data, ['id', 'name']);
         if (!in_array($data['name'], ['private_key', 'certificate', 'pubkey', 'platform_cert'])) {
             return $this->error('不支持上传的证书类型');
         }

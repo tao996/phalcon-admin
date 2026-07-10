@@ -9,6 +9,8 @@ use Phalcon\Mvc\Model\ResultsetInterface;
 use Phalcon\Mvc\ModelInterface;
 use Phax\Db\Layer;
 use Phax\Db\QueryBuilder;
+use Phax\Foundation\AppService;
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 
 
@@ -183,7 +185,7 @@ class Model extends \Phalcon\Mvc\Model
         }
         foreach ($this->bool2IntColumns as $column) {
             if (array_key_exists($column, $data)) {
-                $data[$column] = (int)MyData::isTrueWith($data, $column);
+                $data[$column] = (int)MyAssert::isTrueWith($data, $column);
             }
         }
         foreach ($this->intColumns as $column) {
@@ -309,7 +311,7 @@ class Model extends \Phalcon\Mvc\Model
         }
         $key = get_class($this) . '.' . $alias;
         $nameParts = explode('\\', get_class($this));
-        $foreignKey = $this->getDI()->get('helper')->uncamelize(array_pop($nameParts)) . '_id';
+        $foreignKey = AppService::helper()->uncamelize(array_pop($nameParts)) . '_id';
         return ['key' => $key, 'alias' => $alias, 'fk' => $foreignKey, 'method' => 'get' . ucwords($alias)];
     }
 

@@ -12,7 +12,7 @@ use App\Modules\tao\Helper\Libs\RBAC;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Support\Exception\BusinessException;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 /**
  * @property CmsPage $model
@@ -42,7 +42,7 @@ class PageController extends BaseController
             $data = $this->request->getPost();
 
             $keys = ['tag', 'sort', 'title', 'name', 'content'];
-            MyData::mustHasSet($data, $keys, ['sort', 'tag']);
+            MyAssert::mustHasSet($data, $keys, ['sort', 'tag']);
 
             $this->model->assign($data, $keys);
 
@@ -80,7 +80,7 @@ class PageController extends BaseController
             $data = $this->request->getPost();
 
             $keys = ['tag', 'sort', 'title', 'name', 'content'];
-            MyData::mustHasSet($data, $keys, ['sort', 'tag']);
+            MyAssert::mustHasSet($data, $keys, ['sort', 'tag']);
             $this->model->assign($data, ['tag', 'sort', 'title', 'name']);
 
             $cc = CmsContentService::getById($this->model->content_id) ?: new CmsContent();

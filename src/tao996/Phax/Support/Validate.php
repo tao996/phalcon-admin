@@ -2,7 +2,6 @@
 
 namespace Phax\Support;
 
-use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 
 /**
@@ -713,71 +712,4 @@ class Validate
         return $rows ?: null;
     }
 
-    public static function isPhone(string $phone): bool
-    {
-        if (!empty($phone)) {
-            return Validation\MobileCnValidation::match($phone);
-        }
-        return false;
-    }
-
-    public static function mustPhone(string $phone): void
-    {
-        if (!self::isPhone($phone)) {
-            throw new BusinessException(__('validate.cnPhone', ':field 不是一个有效的 +86 手机号码', ['field' => $phone]));
-        }
-    }
-
-    public static function isEmail(string $email): bool
-    {
-        if (!empty($email)) {
-            return filter_var($email, FILTER_VALIDATE_EMAIL);
-        }
-        return false;
-    }
-
-
-    public static function mustEmail(string $email): void
-    {
-        if (!self::isEmail($email)) {
-            throw new BusinessException(__('validate.email', ':field 不是一个有效的电子邮箱地址', ['field' => $email]));
-        }
-    }
-
-
-    private static function hosts(): array
-    {
-        static $hosts = null;
-        if (is_null($hosts)) {
-            $hosts = AppService::config()->getArray('app.hosts');
-        }
-        return $hosts;
-    }
-
-    public static function hostValidate(string $url): void
-    {
-        if (empty($url)) {
-            return;
-        }
-        $hosts = self::hosts();
-        $host = parse_url($url, PHP_URL_HOST);
-        if (!empty($hosts) && !in_array($host, $hosts)) {
-            throw new BusinessException(__('validate.host', '不允许的域名 :host', ['host' => $host]));
-        }
-    }
-
-    public static function hostsValidate(array $urls): void
-    {
-        if (empty($urls)) {
-            return;
-        }
-        $hosts = self::hosts();
-        $hasHosts = !empty($hosts);
-        foreach ($urls as $url) {
-            $host = parse_url($url, PHP_URL_HOST);
-            if ($hasHosts && !in_array($host, $hosts)) {
-                throw new BusinessException(__('validate.host', '不允许的域名 :host', ['host' => $host]));
-            }
-        }
-    }
 }

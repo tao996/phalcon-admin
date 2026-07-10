@@ -3,7 +3,7 @@
 namespace App\Modules\tao\tests\PHPUnit\Controllers\user;
 
 use App\Modules\tao\tests\Helper\MyTestTaoHttpHelper;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 use PHPUnit\Framework\TestCase;
 
 class QiniuControllerTest extends TestCase
@@ -14,7 +14,7 @@ class QiniuControllerTest extends TestCase
         $response = $http->get('/api/m/tao/user.qiniu/index')
             ->login()->send()
             ->jsonResponse();
-        MyData::mustHasSet($response['data'], ['token', 'expire','domain']);
+        MyAssert::mustHasSet($response['data'], ['token', 'expire','domain']);
         $this->assertTrue(true);
     }
 

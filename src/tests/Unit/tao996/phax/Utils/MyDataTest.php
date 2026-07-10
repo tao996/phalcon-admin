@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\tao996\phax\Utils;
 
+use Phax\Utils\MyAssert;
 use Phax\Utils\MyData;
 use PHPUnit\Framework\TestCase;
 
@@ -81,10 +82,10 @@ class MyDataTest extends TestCase
     public function testGetBool()
     {
         foreach ([true, 'on', 'true', 't', 'ok', 1, '1'] as $v) {
-            $this->assertTrue(MyData::isBool($v),'|'.$v.'| 不是一个 bool 类型:'.gettype($v));
+            $this->assertTrue(MyAssert::isBool($v),'|'.$v.'| 不是一个 bool 类型:'.gettype($v));
         }
         foreach (['on', 'true', 't', 'ok', 1, '1'] as $v) {
-            $this->assertFalse(MyData::isBool($v, true), $v . ' is not strict bool');
+            $this->assertFalse(MyAssert::isBool($v, true), $v . ' is not strict bool');
         }
     }
 
@@ -92,12 +93,12 @@ class MyDataTest extends TestCase
     {
         $data = ['a', 'n' => 'name'];
         try {
-            MyData::mustHasSet($data, ['n']);
+            MyAssert::mustHasSet($data, ['n']);
         } catch (\Exception $e) {
             $this->assertTrue(false);
         }
         try {
-            MyData::mustHasSet(['a', 'b' => 0], ['b']);
+            MyAssert::mustHasSet(['a', 'b' => 0], ['b']);
             $this->assertTrue(false);
         } catch (\Exception $e) {
         }

@@ -8,7 +8,7 @@ use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Phax\Support\Validate;
-use Phax\Utils\MyData;
+use Phax\Utils\MyAssert;
 
 class MiniAppHelper
 {
@@ -28,7 +28,7 @@ class MiniAppHelper
      */
     public function code2Session(array $app, string $code): array
     {
-        MyData::mustHasSet($app, ['appid', 'secret', 'kind', 'platform']);
+        MyAssert::mustHasSet($app, ['appid', 'secret', 'kind', 'platform']);
 
         switch ($app['platform']) {
             case UserBindPlatform::PlatformTiktok:

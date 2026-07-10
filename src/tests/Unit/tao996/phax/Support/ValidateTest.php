@@ -6,6 +6,7 @@ namespace Tests\Unit\tao996\phax\Support;
 
 use Phax\Support\Validate;
 use Phax\Helper\MyMvc;
+use Phax\Utils\MyAssert;
 
 /**
  * 为测试创建最小化 MyMvc，避免依赖 'route' 等非测试必需的服务
@@ -384,28 +385,28 @@ class ValidateTest extends \PHPUnit\Framework\TestCase
 
     public function testIsPhone(): void
     {
-        $this->assertTrue(self::$v->isPhone('13800138000'));
-        $this->assertTrue(self::$v->isPhone('15912345678'));
-        $this->assertFalse(self::$v->isPhone('1234'));
-        $this->assertFalse(self::$v->isPhone(''));
+        $this->assertTrue(MyAssert::isPhone('13800138000'));
+        $this->assertTrue(MyAssert::isPhone('15912345678'));
+        $this->assertFalse(MyAssert::isPhone('1234'));
+        $this->assertFalse(MyAssert::isPhone(''));
     }
 
     public function testIsEmail(): void
     {
-        $this->assertTrue(self::$v->isEmail('test@example.com'));
-        $this->assertFalse(self::$v->isEmail('not-email'));
-        $this->assertFalse(self::$v->isEmail(''));
+        $this->assertTrue(MyAssert::isEmail('test@example.com'));
+        $this->assertFalse(MyAssert::isEmail('not-email'));
+        $this->assertFalse(MyAssert::isEmail(''));
     }
 
     public function testMustPhoneThrows(): void
     {
         $this->expectException(\Exception::class);
-        self::$v->mustPhone('123');
+        MyAssert::mustPhone('123');
     }
 
     public function testMustEmailThrows(): void
     {
         $this->expectException(\Exception::class);
-        self::$v->mustEmail('not-email');
+        MyAssert::mustEmail('not-email');
     }
 }

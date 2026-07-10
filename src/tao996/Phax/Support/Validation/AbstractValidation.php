@@ -5,7 +5,7 @@ namespace Phax\Support\Validation;
 use Phalcon\Filter\Validation;
 use Phalcon\Filter\Validation\AbstractValidator;
 use Phalcon\Messages\Message;
-use Phax\Support\Facade\MyHelperFacade;
+use Phax\Foundation\AppService;
 
 abstract class AbstractValidation extends AbstractValidator
 {
@@ -19,7 +19,7 @@ abstract class AbstractValidation extends AbstractValidator
 
         $validation->appendMessage(
             new Message(
-                MyHelperFacade::interpolate($message, $placeholders,':',''),
+                AppService::helper()->interpolate($message, $placeholders,':',''),
             )
         );
         return false;
