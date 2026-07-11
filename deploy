@@ -110,7 +110,8 @@ function showHelp(): void
   app:dc:log <项目>                             查看全部容器日志
   app:dc:log:<容器> <项目>                      查看指定容器日志
 
-\033[33m  项目 — Nginx 域名\033[0m
+\033[33m  通用\033[0m
+  config:export [项目] [--save=file]            导出配置为 JSON（缺省输出到终端）
   app:nginx:add <项目>                          添加域名到 Router
   app:nginx:remove <项目>                       从 Router 移除域名
   app:nginx:ssl <项目> -email=xx@xx.com         申请 SSL 证书
@@ -166,6 +167,12 @@ if (str_starts_with($command, 'app:dc:restart:')) {
 
 try {
     switch ($command) {
+        case 'config:export':
+            $projectName = $positionalArgs[1] ?? '';
+            $savePath = $namedParams['save'] ?? '';
+            handleConfigExport($serverConfigFile, $projectName, $savePath);
+            break;
+
         case 'server:init':
             handleInitRouter($serverConfigFile, $namedParams);
             break;
@@ -344,6 +351,41 @@ try {
 exit(0);
 
 // ---------- 命令处理函数 ----------
+
+function handleConfigExport(string $serverConfigFile, string $projectName, string $savePath): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+
+    if (!empty($projectName)) {
+        $config->loadProject($projectName);
+    }
+
+    $merged = $config->getMerged();
+
+    // 脱敏：隐藏密码类字段
+    $sensitive = ['password', 'passphrase', 'secret', 'keyPassphrase'];
+    array_walk_recursive($merged, function (&$v, $k) use ($sensitive) {
+        foreach ($sensitive as $s) {
+            if (stripos($k, $s) !== false && !empty($v)) {
+                $v = substr($v, 0, 4) . '****';
+            }
+        }
+    });
+
+    $json = json_encode($merged, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    if ($savePath) {
+        $dir = dirname($savePath);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        file_put_contents($savePath, $json);
+        deploy_log("配置已导出到: {$savePath}", 'ok');
+    } else {
+        echo $json . "\n";
+    }
+}
 
 function handleInitRouter(string $serverConfigFile, array $params): void
 {
