@@ -13,6 +13,7 @@ use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyAssert;
+use Phax\Utils\MyData;
 
 class AuthController extends BaseController
 {
@@ -40,7 +41,9 @@ class AuthController extends BaseController
              */
             $user = null;
             if (AppService::isDemo()) {
-                if ($data['account'] == 'admin' && $data['password'] == '123456') {
+                $admin = AppService::config()->getArray('app.admin');
+                if ($data['account'] == MyData::get($admin, 'account', 'admin')
+                    && $data['password'] == MyData::get($admin, 'password', '123456')) {
                     $user = SystemUser::findFirst(1);
                 }
             }

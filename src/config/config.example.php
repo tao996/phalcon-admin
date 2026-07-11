@@ -37,6 +37,10 @@ $data['app'] = [
     // 如果为 true，则配置文件优先级 config.demo.php > config.php
     // 在生产环境下，必须设置为 false
     'demo' => true,
+    'admin' => [ // 当启用 demo 时，管理员账号为 admin 密码 123456
+        'account' => 'admin',
+        'password' => '123456'
+    ],
     // 是否开启测试环境，会跳过图片验证码；相关方法查看下面的文件
     /**
      * 超级管理员用户 ID 列表，不受权限控制；

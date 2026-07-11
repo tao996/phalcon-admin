@@ -10,6 +10,7 @@ reasonix.toml
 # docker 运行环境配置
 .env
 docker-compose.yaml
+docker-compose.ports.yaml
 
 docker/log/mysql/*
 docker/log/nginx/*
