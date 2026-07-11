@@ -2,7 +2,12 @@
 
 namespace App\Modules\tao;
 
+use App\Modules\tao\Helper\TaoHtmlHelper;
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
+use App\Modules\tao\sdk\phaxui\Layui\Layui;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiSearch;
 use App\Modules\tao\utils\ResponseUtil;
 use Phax\Db\QueryBuilder;
 use Phax\Foundation\AppService;
@@ -33,6 +38,11 @@ class BaseResponseController extends Controller
      */
     protected array $mobileTemplate = [];
 
+    /**
+     * @var string 設置 HTML 頁面名称
+     */
+    protected string $htmlTitle = '';
+
     public function initialize(): void
     {
         // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 请求
@@ -46,6 +56,11 @@ class BaseResponseController extends Controller
             $this->requestData = $this->request->getQuery() ?: [];
         } elseif ($this->request->isPut()) {
             $this->requestData = $this->request->getPut() ?: [];
+        }
+        if (!$this->isApiRequest()){
+            AppService::getDi()->setShared('html', function (){
+                return new TaoHtmlHelper();
+            });
         }
     }
 
@@ -181,6 +196,23 @@ class BaseResponseController extends Controller
         return parent::beforeViewResponse($data);
     }
 
+    protected function beforeDoViewResponse(): void
+    {
+        AppService::getLazyService('tao.layui', function () {
+            return new Layui();
+        });
+        AppService::getLazyService('tao.layuiHtml', function () {
+            return new LayuiHtml();
+        });
+        AppService::getLazyService('tao.layuiForm', function () {
+            return new LayuiForm();
+        });
+        AppService::getLazyService('tao.layuiSearch', function () {
+            return new LayuiSearch();
+        });
+        AppService::html()->setHtmlTitle($this->htmlTitle);
+    }
+
     /**
      * 返回 json 格式的错误信息
      * @param array|string $msg
@@ -190,7 +222,7 @@ class BaseResponseController extends Controller
      */
     public function error(array|string $msg, int $code = 500, mixed $data = null): array
     {
-        if ($data == null && IS_DEBUG && isset($_GET['test'])){ // 开启测试时显示调用栈
+        if ($data == null && IS_DEBUG && isset($_GET['test'])) { // 开启测试时显示调用栈
             $data = debug_backtrace();
         }
         return [
@@ -257,16 +289,16 @@ class BaseResponseController extends Controller
      * 渲染指定模板
      * @param string $tpl
      * @param $data
-     * @return mixed
      * @throws BlankException
      */
-    public function simpleView(string $tpl, $data): mixed
+    public function simpleView(string $tpl, $data): never
     {
         if (!is_array($data)) {
             throw new BusinessException('simple view data must be array');
         } elseif (isset($data['vv'])) {
             throw new BusinessException('simple view data must not have vv');
         }
+        $this->beforeDoViewResponse();
         $data['vv'] = AppService::html();
         echo ResponseUtil::simpleView($tpl, $data);
         exit;
@@ -292,7 +324,6 @@ class BaseResponseController extends Controller
             'wait' => $wait,
             'title' => $title,
         ]);
-        exit;
     }
 
     public function beforeExecuteRoute($dispatcher)

@@ -202,8 +202,7 @@ class IndexController extends BaseController
             'homeInfo' => $ms->getHomeInfo(),
             'menuInfo' => $ms->getMenuTree(),
         ];
-
-        $this->json($data);
+        AppService::echoJsonData($data);
     }
 
     /**
@@ -217,7 +216,7 @@ class IndexController extends BaseController
             $oldPassword = $this->getRequest('old_password');
 
             // 已有密码时必须验证旧密码，无密码（第三方登录用户）允许直接设置
-            if ($user->password) {
+            if ($user->password && !TaoAppService::loginUserHelper()->isSuperAdmin()) {
                 if (empty($oldPassword)) {
                     return $this->error('必须提供旧密码');
                 }

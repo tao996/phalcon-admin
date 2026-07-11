@@ -12,8 +12,7 @@ $console = $vv->get('console', true); // 默认后台模板
 <html lang="zh">
 <head>
     <meta charset="utf-8">
-    <title><?php
-        echo $vv->title() ?></title>
+    <title><?= $vv->getHtmlTitle() ?></title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -39,7 +38,7 @@ echo $console ? 'tao-container' : '' ?>">
 </body>
 
 <?php
-$vv->html()->outputFooters();
+$vv->outputFooters();
 \App\Modules\tao\TaoAppService::layui()->footer();
 $vv->appendTemplateJs();
 ?>

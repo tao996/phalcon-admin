@@ -165,7 +165,7 @@ class BaseRbacController extends BaseResponseController
             $msg = '没有访问的权限';
         }
         if ($this->isApiRequest()) {
-            $this->json($this->error($msg, $code));
+            AppService::echoJsonData($this->error($msg, $code));
         } else {
             $this->simpleView(self::getTaoViewDir('redirect.phtml'), [
                 'msg' => $msg,

@@ -80,11 +80,6 @@ class BaseController extends BaseRbacController
      */
     protected string $modelOrderBy = 'id desc';
 
-    /**
-     * @var string 設置 HTML 頁面名称
-     */
-    protected string $htmlTitle = '';
-
 
     /**
      * 处理查询语句，通常用来补充默认的查询条件(modelQueryColumns/modelHiddenColumns/modelOrderBy)
@@ -182,7 +177,6 @@ class BaseController extends BaseRbacController
                 return $this->successPagination(0, [], $this->appendToSuccessPaginationData());
             }
         }
-        $this->updateHtmlTitle('列表', false);
         return [];
     }
 
@@ -193,34 +187,6 @@ class BaseController extends BaseRbacController
     protected function appendToSuccessPaginationData(QueryBuilder|null $queryBuilder): array
     {
         return [];
-    }
-
-    /**
-     * 页面标题
-     * @param string $action 操作名称
-     * @param bool $prefix 操作名称是放在 htmlName 前面，还是后面
-     * @return void
-     */
-    private function updateHtmlTitle(string $action, bool $prefix = true): void
-    {
-        if (!$this->isApiRequest()) {
-            if ($this->htmlTitle) {
-                $this->addViewData(
-                    'html_title',
-                    $prefix
-                        ? $action . $this->htmlTitle
-                        : $this->htmlTitle . $action
-                );
-            }
-        }
-    }
-
-    protected function beforeViewResponse(mixed $data)
-    {
-        if ($this->htmlTitle && !$this->view->getVar('html_title')) {
-            $this->addViewData('html_title', $this->htmlTitle);
-        }
-        return parent::beforeViewResponse($data);
     }
 
     /**
@@ -261,7 +227,6 @@ class BaseController extends BaseRbacController
 
             return $this->success('添加成功', $this->model?->toArray());
         }
-        $this->updateHtmlTitle('添加');
         return [];
     }
 
@@ -305,7 +270,6 @@ class BaseController extends BaseRbacController
             });
             return $this->success('修改成功', $this->model?->toArray());
         }
-        $this->updateHtmlTitle('编辑');
         return $this->beforeEditView($this->model->toArray());
     }
 

@@ -385,6 +385,19 @@ JS;
         return $this->wrapFormItem($content, name: $name, formItem: $formItem);
     }
 
+    public function checkboxes(string $title, array $ntOptions, int $value = 1): string
+    {
+        $content = '';
+        $vv = AppService::html();
+        foreach ($ntOptions as $name => $text) {
+            $checked = $value == $vv->pick($name) ? 'checked' : '';
+            $content .= '<input type="checkbox" name="' . $name . '" title="' . $text . '" lay-skin="tag" ' . $checked . ' >';
+        }
+        return '<div class="layui-form-item"><label class="layui-form-label">' . $title . '</label>
+        <div class="layui-input-block">' . $content . '</div>
+    </div>';
+    }
+
     // CSRF 令牌
     public function csrf(): string
     {

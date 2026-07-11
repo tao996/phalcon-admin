@@ -11,7 +11,6 @@ use App\Modules\tao\Services\UploadfileService;
 use App\Modules\tao\TaoAppService;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
-use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
@@ -61,10 +60,11 @@ class ArticleController extends BaseController
     #[RBAC(title: '文章列表')]
     public function indexAction()
     {
-        if (!$this->isApiRequest()) {
-            AppService::html()->setVar('options', $this->cateOptions);
+        $data = parent::indexAction();
+        if ($this->isApiRequest()) {
+            return $data;
         }
-        return parent::indexAction();
+        return ['options' => $this->cateOptions];
     }
 
     #[RBAC(title: '添加文章')]

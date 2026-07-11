@@ -19,11 +19,11 @@ $title = $title ?? ($icon == 1 ? '成功' : '提示');
 <html>
 <head>
     <meta charset="utf-8">
-    <title><?= $vv->html()->text($title) ?></title>
+    <title><?= $vv->text($title) ?></title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <?php $vv->html()->outputHeaders(); ?>
+    <?php $vv->outputHeaders(); ?>
     <style>
         body {
             background: #f2f2f2;
@@ -121,7 +121,7 @@ $title = $title ?? ($icon == 1 ? '成功' : '提示');
     };
     ?>
     <i class="layui-icon <?= $iconClass ?>"></i>
-    <div class="msg"><?= $vv->html()->text($msg) ?></div>
+    <div class="msg"><?= $vv->text($msg) ?></div>
     <div class="countdown">
         <span id="countdownNum"><?= $wait ?></span> 秒后自动跳转
     </div>
@@ -132,7 +132,7 @@ $title = $title ?? ($icon == 1 ? '成功' : '提示');
 </div>
 
 <?php
-$vv->html()->outputFooters();
+$vv->outputFooters();
 \App\Modules\tao\TaoAppService::layui()->footer();
 ?>
 <script>

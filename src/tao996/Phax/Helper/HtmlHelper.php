@@ -12,6 +12,7 @@ namespace Phax\Helper;
 use Phalcon\Mvc\View;
 use Phax\Foundation\AppService;
 use Phax\Support\Logger;
+use Phax\Utils\MyData;
 
 /**
  * 模板 html 代码辅助
@@ -38,7 +39,7 @@ class HtmlHelper
     }
 
     /**
-     * 添加当前视图目录下的文件
+     * 添加当前视图目录下的文件，通常是静态资源文件
      * @param $file string 待添加文件名称，如 tao.css
      * @return bool
      */
@@ -48,15 +49,32 @@ class HtmlHelper
         return $this->includeAssetsFile($pathFile);
     }
 
-    public function html(): static
+    /**
+     * 设置一个原始模板变量
+     * @param string $key
+     * @param $value
+     * @return $this
+     */
+    protected function setVar(string $key, $value): static
     {
+        $this->viewData[$key] = $value;
         return $this;
     }
 
+    /**
+     * 获取一个原始模板变量
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    protected function getVar(string $key, mixed $default = ''): mixed
+    {
+        return MyData::get($this->viewData, $key, $default);
+    }
 
     /**
-     * 获取 view 上所绑定的数据
-     * @param string $path
+     * 获取 view 上所绑定的原始数据
+     * @param string $path 链接路径
      * @param mixed|null $default
      * @return mixed
      */
@@ -79,44 +97,34 @@ class HtmlHelper
 
 
     /**
-     * 与模板数据比较，如果相等，则输出 $text
-     * @param string $path 路径 或者 值
-     * @param mixed $text 输出的内容，如果提供，则会直接使用 echo
-     * @param mixed $cmpValue 待比较的值，默认为 1
-     * @return mixed
+     * 通常用于使用整数来表示布尔状态的字段，比如状态 status == 1 表示激活
+     * @param string $path
+     * @param int $active 默认为 1
+     * @return bool
      */
-    public function pickCompare(string $path, mixed $text = "", mixed $cmpValue = 1): mixed
+    public function pickIntBoolean(string $path, int $active = 1): bool
     {
-        $defValue = is_int($cmpValue) ? 0 : '';
-        $eq = $this->pick($path, $defValue) == $cmpValue;
-        return $eq ? $text : $defValue;
-    }
-
-    public function pickBoolean(string $path, mixed $compareValue = 1): bool
-    {
-        $defValue = is_int($compareValue) ? 0 : '';
-        return $this->pick($path, $defValue) == $compareValue;
+        return $this->pick($path, 0) == $active;
     }
 
     /**
-     * 用于 select option 中显示
-     * @param string $path
-     * @param mixed $value
-     * @return string
+     * 设置 html 标题
+     * @param string $title
+     * @return $this
      */
-    public function selected(string $path, mixed $value): string
+    public function setHtmlTitle(string $title): static
     {
-        $eq = $this->pick($path, is_int($value) ? 0 : '') == $value;
-        return $eq ? 'selected' : '';
+        $this->setVar('html_title', $title);
+        return $this;
     }
 
     /**
      * 页面标题
      * @return string
      */
-    public function title(): string
+    public function getHtmlTitle(): string
     {
-        $title = $this->get('html_title');
+        $title = $this->getVar('html_title');
         if ($title) {
             return $title . ' - ' . AppService::config()->getString('app.title');
         } else {
@@ -125,38 +133,11 @@ class HtmlHelper
     }
 
     /**
-     * 通常用于将 php 变量转为 js 布尔值
-     * @param bool $condition
-     * @return string
+     * 将 action api 数据转为视图数据
+     * @param mixed $data
+     * @return $this
      */
-    public function boolText(bool $condition): string
-    {
-        return $condition ? 'true' : 'false';
-    }
-
-    /**
-     * print the view data，it should be called in debug mode
-     * @param bool $exit
-     * @return void
-     */
-    public function print(bool $exit = true): void
-    {
-        pr($this->viewData, $exit);
-    }
-
-    public function setVars(array $params): static
-    {
-        $this->viewData = array_merge($this->viewData, $params);
-        return $this;
-    }
-
-    public function setVar(string $key, $value): static
-    {
-        $this->viewData[$key] = $value;
-        return $this;
-    }
-
-    public function setResponseVar(mixed $data): static
+    public function setApiResponseVar(mixed $data): static
     {
         if (is_scalar($data)) {
             $this->setVar('message', $data);
@@ -173,6 +154,8 @@ class HtmlHelper
      */
     public function doneViewResponse(): void
     {
+
+        $this->setVar('language', AppService::getLanguage());
         $route = AppService::route();
         $route->doneView();
     }
@@ -381,6 +364,11 @@ class HtmlHelper
         return file_exists($file);
     }
 
+    /**
+     * 一个兼容方法，因为 ai 总是生成这个方法
+     * @param mixed $text
+     * @return mixed
+     */
     public function text(mixed $text)
     {
         return $text;

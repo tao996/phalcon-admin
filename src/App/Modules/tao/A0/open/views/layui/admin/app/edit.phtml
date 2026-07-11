@@ -12,7 +12,7 @@ $form = \App\Modules\tao\TaoAppService::layuiForm();
                     value: $vv->pick('title', ''),
                     required: true, formItem: false),
             $form->checkbox('沙盒', 'sandbox',
-                    checked: $vv->html()->pickBoolean('sandbox'), formItem: false)
+                    checked: $vv->pickIntBoolean('sandbox'), formItem: false)
 
     ]);
     echo $form->groups([

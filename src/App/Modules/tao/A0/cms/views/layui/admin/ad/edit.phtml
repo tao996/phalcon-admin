@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 ?>
 <form class="layui-form" id="form">
@@ -50,16 +50,9 @@
         </div>
 
     </div>
-
-    <div class="layui-form-item">
-        <label class="layui-form-label">展示位置</label>
-        <div class="layui-input-block" style="width: 440px;display: inline-block;float: left;margin-left: 0;">
-            <?php foreach (['at_banner' => '横幅', 'at_index' => '首页', 'at_list' => '列表页', 'at_page' => '详情页'] as $name => $title) { ?>
-                <input type="checkbox" name="<?php echo $name ?>" title="<?php echo $title ?>"
-                       lay-skin="tag" <?php echo $vv->pickCompare($name, 'checked') ?>>
-            <?php } ?>
-        </div>
-    </div>
+    <?php
+    echo $vv->layuiForm()->checkboxes('展示位置', ['at_banner' => '横幅', 'at_index' => '首页', 'at_list' => '列表页', 'at_page' => '详情页']);
+    ?>
     <div class="layui-form-item">
         <label class="layui-form-label">TAG 标签</label>
 
@@ -77,25 +70,15 @@
 
     </div>
 
-
-    <div class="layui-form-item">
-        <label class="layui-form-label required">跳转</label>
-        <div class="layui-input-inline">
-            <input type="text" name="link" class="layui-input" placeholder="请输入链接地址或内部路径"
-                   lay-affix="clear" maxlength="255"
-                   value="<?php echo $vv->pick('link') ?>">
-        </div>
-
-        <label class="layui-form-label required">跳转类型</label>
-        <div class="layui-input-inline" style="width: max-content;">
-            <?php foreach (\App\Modules\tao\A0\cms\Models\CmsAd::MapKind as $v => $t) { ?>
-                <input type="radio" name="kind" value="<?php echo $v ?>"
-                        <?php $vv->pickCompare('kind', 'selected', $v) ?>
-                       title="<?php echo $t ?>">
-            <?php } ?>
-        </div>
-
-    </div>
+    <?php
+    echo
+    $vv->layuiForm()->input('跳转', 'link', value: $vv->pick('link'),
+            required: true, placeholder: '请输入链接地址或内部路径');
+    echo $vv->layuiForm()->radio('类型', 'kind',
+            vtOptions: \App\Modules\tao\A0\cms\Models\CmsAd::MapKind,
+            value: $vv->pick('kind'),
+            required: true);
+    ?>
 
     <div class="layui-form-item">
         <label class="layui-form-label">备注</label>

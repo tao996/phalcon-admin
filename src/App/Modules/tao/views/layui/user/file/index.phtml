@@ -4,6 +4,7 @@
  */
 
 use Phax\Foundation\AppService;
+
 \App\Modules\tao\TaoAppService::layui()->header();
 ?>
 <!doctype html>
@@ -16,7 +17,7 @@ use Phax\Foundation\AppService;
     <title>文件选择</title>
     <?php
     \App\Modules\tao\TaoAppService::layui()->selectHeader();
-    $vv->html()->outputHeaders();
+    $vv->outputHeaders();
     ?>
 </head>
 <body>
@@ -55,12 +56,12 @@ use Phax\Foundation\AppService;
 </div>
 </body>
 <?php
-$vv->html()->outputFooters();
+$vv->outputFooters();
 \App\Modules\tao\TaoAppService::layui()->footer();
 ?>
 <script>
     const index = parent.layer.getFrameIndex(window.name);
-    const all = <?php echo $vv->html()->boolText(isset($_GET['key'])) ?>;
+    const all = <?= isset($_GET['key']) ? 'true' : 'false'; ?>;
 
     admin.util.layOn({
         picker: function () {

@@ -29,6 +29,17 @@ class AppService
         Application::di()->setShared($serviceName, $service);
     }
 
+    public static function mustFirstSet(string $serviceName, $service): void
+    {
+        if (self::has($serviceName)) {
+            if (IS_DEBUG){
+                ddd('服务已存在:' . $serviceName, debug_backtrace(limit: 5));
+            }
+            throw new BlankException('服务已存在:' . $serviceName);
+        }
+        Application::di()->setShared($serviceName, $service);
+    }
+
     public static function getDi(): \Phalcon\Di\Di
     {
         return Application::di();
@@ -265,11 +276,9 @@ class AppService
 
     public static function html(): HtmlHelper
     {
-        static $obj = null;
-        if (is_null($obj)) {
-            $obj = new HtmlHelper(); // TODO 暂时有问题
-        }
-        return $obj;
+        return self::getLazyService('html', function () {
+            return new HtmlHelper();
+        });
     }
 
 
@@ -452,6 +461,18 @@ class AppService
             self::getDi()->setShared($name, $resolver);
         }
         return self::getDi()->getShared($name);
+    }
+
+    /**
+     * 直接打印 json 数据，并结束程序
+     * @param array $data
+     * @return never
+     */
+    public static function echoJsonData(array $data): never
+    {
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        exit;
     }
 
 }

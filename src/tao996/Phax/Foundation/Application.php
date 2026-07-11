@@ -142,8 +142,12 @@ class Application
                 } catch (\Phax\Support\Exception\BlankException $e) {
                     return ''; // JSON 响应已由 $this->json() 通过 send() 发送，无需追加内容
                 } catch (\Throwable $e) {
-//                    ddd($e->getMessage(),$e->getTrace());
-                    return '系统繁忙，请稍后再试';
+                    if (IS_DEBUG) {
+                        ddd($e->getMessage(), $e->getTrace());
+                    } else {
+                        Logger::exception($e,['未被处理的 Throwable']);
+                    }
+                    return '系统繁忙，请稍后再试。';
                 }
             }
         } else {

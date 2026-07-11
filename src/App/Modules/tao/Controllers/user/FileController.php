@@ -6,6 +6,7 @@ use App\Modules\tao\BaseController;
 
 use App\Modules\tao\Helper\FileUploadHelper;
 use App\Modules\tao\Models\SystemUploadfile;
+use Phax\Foundation\AppService;
 
 class FileController extends BaseController
 {
@@ -69,7 +70,7 @@ class FileController extends BaseController
         $sf = $fp->fromRequest()->validate()->save();
         $sf->user_id = $this->loginUser()->id;
         if ($sf->save()) {
-            $this->json([
+            AppService::echoJsonData([
                 'error' => ['message' => '上传成功', 'number' => 201],
                 'filename' => '',
                 'uploaded' => 1,

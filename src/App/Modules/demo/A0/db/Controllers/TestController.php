@@ -5,7 +5,6 @@ namespace App\Modules\demo\A0\db\Controllers;
 use App\Modules\demo\Models\Cat;
 use App\Modules\demo\Models\User;
 use App\Modules\tao\Helper\Libs\RBAC;
-use Phalcon\Mvc\Model\ResultsetInterface;
 use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BusinessException;
@@ -75,7 +74,7 @@ class TestController extends Controller
         $p = Cat::queryBuilder($this->getDI())
             ->withTrashed()
             ->excludeColumns(['created_at', 'updated_at']);
-        $this->json([
+        AppService::echoJsonData([
             'all' => $p->find(),
             'active' => $p->softDelete()->find()
         ]);

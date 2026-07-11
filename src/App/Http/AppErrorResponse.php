@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
 
 /**
@@ -28,13 +29,11 @@ class AppErrorResponse extends Controller
                 'line' => $e->getLine(),
                 'trace' => explode("\n", $e->getTraceAsString()),
             ] : null;
-
-            $this->json([
+            AppService::echoJsonData([
                 'code' => $code,
                 'msg' => $msg,
                 'data' => $data,
             ]);
-            return '';
         }
 
         // Web：渲染错误页面
@@ -59,13 +58,11 @@ class AppErrorResponse extends Controller
                 'uri' => $_SERVER['REQUEST_URI'] ?? '',
                 'message' => $e->getMessage(),
             ] : null;
-
-            $this->json([
+            AppService::echoJsonData([
                 'code' => 404,
                 'msg' => '接口不存在',
                 'data' => $data,
             ]);
-            return '';
         }
 
         $this->view->setViewsDir(__DIR__ . '/../Http/views/');

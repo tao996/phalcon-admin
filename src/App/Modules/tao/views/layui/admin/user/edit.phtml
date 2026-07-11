@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 
 $isEdit = $vv->pick('id', 0) > 0;
@@ -63,18 +63,10 @@ $form = \App\Modules\tao\TaoAppService::layuiForm();
                 >
             </div>
         </div>
-        <div class="layui-inline">
-            <label class="layui-form-label">是否验证</label>
-            <div class="layui-input-inline">
-                <input type="checkbox" name="phone_valid"
-                       lay-skin="switch" lay-filter="switchTest"
-                       title="是|否"
-                        <?php
-                        echo $vv->pickCompare('phone_valid', 'checked') ?>
-                >
-            </div>
-
-        </div>
+        <?php echo $vv->layuiForm()->checkbox('是否验证','phone_valid',
+                checked: $vv->pickIntBoolean('phone_valid'),
+                formItem: false
+        ) ?>
     </div>
 
     <div class="layui-form-item">
@@ -88,15 +80,10 @@ $form = \App\Modules\tao\TaoAppService::layuiForm();
                        echo $vv->pick('email') ?>">
             </div>
         </div>
-        <div class="layui-inline">
-            <label class="layui-form-label">是否验证</label>
-            <div class="layui-input-inline">
-                <input type="checkbox" name="email_valid" lay-skin="switch" lay-filter="switchTest"
-                       title="是|否" <?php
-                echo $vv->pickCompare('email_valid', 'checked') ?>>
-            </div>
-
-        </div>
+        <?php echo $vv->layuiForm()->checkbox('是否验证','email_valid',
+                checked: $vv->pickIntBoolean('email_valid'),
+                formItem: false
+        ) ?>
     </div>
 
 

@@ -50,18 +50,6 @@ class Controller extends \Phalcon\Mvc\Controller
     public bool $jsonResponse = false;
 
     /**
-     * 添加视图数据
-     * @param string $name
-     * @param mixed $value
-     * @return $this
-     */
-    public function addViewData(string $name, mixed $value): self
-    {
-       AppService::html()->setVar($name, $value);
-        return $this;
-    }
-
-    /**
      * 对 api 接口返回数据进行处理
      * @param mixed $data 控制器返回的数据
      */
@@ -89,13 +77,18 @@ class Controller extends \Phalcon\Mvc\Controller
     protected function doResponse(bool $isApi, mixed $data): void
     {
         if ($isApi) {
-            $this->json($data);
+            AppService::echoJsonData($data);
         } else {
+            $this->beforeDoViewResponse();
             AppService::html()
-                ->setVar('language', AppService::getLanguage())
-                ->setResponseVar($data)
+                ->setApiResponseVar($data)
                 ->doneViewResponse(); // 渲染视图
         }
+    }
+
+    protected function beforeDoViewResponse()
+    {
+
     }
 
     /**
@@ -138,18 +131,5 @@ class Controller extends \Phalcon\Mvc\Controller
     public function isApiRequest(): bool
     {
         return $this->jsonResponse || $this->route->isApiRequest();
-    }
-
-    // 输出 JSON  内容，通常在控制器中使用
-    // 注意：，如果你不是在控制器调用 \json()；那么则需要手动 exit
-    // 否则会出现 Phalcon\Http\Response\Exception: Response was already sent
-    function json($data): void
-    {
-        $this->jsonResponse = true;
-        $this->response
-            ->setContentType('application/json', 'UTF-8')
-            ->setContent(json_encode($data))
-            ->send();
-        throw new BlankException('');
     }
 }

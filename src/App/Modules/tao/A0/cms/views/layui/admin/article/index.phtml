@@ -47,7 +47,7 @@ use App\Modules\tao\A0\cms\Models\CmsArticle;
                 <select name="cate_id">
                     <option value="">全部</option>
                     <?php
-                    foreach ($vv->get('options', []) as $item) { ?>
+                    foreach ($vv->pick('options', []) as $item) { ?>
                         <option value="<?php
                         echo $item['id'] ?>"><?php
                             echo $item['title'] ?></option>
