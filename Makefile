@@ -1,4 +1,7 @@
-.PHONY: docs xdebug-web-on xdebug-web-off xdebug-cli php
+.PHONY: docs xdebug-web-on xdebug-web-off xdebug-cli php ui-install ui-run ui-pack
+
+UI_VENV = deploysUI/.venv
+UI_MAIN = deploysUI/main.py
 
 # ─── Docs ───────────────────────────────────────────────
 docs:
@@ -30,3 +33,20 @@ xdebug-cli:
 # 用法: make php CMD="artisan test"
 php:
 	@$(DC_PHP) php $(CMD)
+
+# ─── Deploy UI ──────────────────────────────────────
+# 安装依赖
+ui-install:
+	@test -d $(UI_VENV) || python3 -m venv $(UI_VENV)
+	@. $(UI_VENV)/bin/activate && pip install -r deploysUI/requirements.txt -q
+	@echo "✓ 依赖已安装"
+
+# 启动 UI
+ui-run: ui-install
+	@. $(UI_VENV)/bin/activate && python $(UI_MAIN)
+
+# 一键打包为独立可执行文件
+ui-pack: ui-install
+	@. $(UI_VENV)/bin/activate && pip install pyinstaller -q
+	@. $(UI_VENV)/bin/activate && PYINSTALLER_CONFIG_DIR=/tmp/pyinstaller pyinstaller --onefile --windowed $(UI_MAIN) --name deployUI --distpath dist
+	@echo "✓ 打包完成: dist/deployUI"
