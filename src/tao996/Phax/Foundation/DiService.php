@@ -21,7 +21,7 @@ class DiService
         if (null === self::$defaultContainer) {
             // config, db, pdo, redis, cache, application
             // assets, crypt,
-            if (IS_WEB) {
+            if (IS_PHP_FPM) {
                 /**
                  * cookies, flash, flashSession,
                  * request, response, router+url(router)
@@ -382,7 +382,7 @@ class DiService
 
     public function application(bool $shared = true): static
     {
-        if (IS_WEB) {
+        if (IS_PHP_FPM) {
             $this->di->set('application', function () {
                 return new \Phalcon\Mvc\Application();
             }, $shared);

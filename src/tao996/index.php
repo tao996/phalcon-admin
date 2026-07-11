@@ -8,11 +8,10 @@ if (!defined('PATH_ROOT')) {
  * 传统 php-fpm 模式
  */
 define('IS_PHP_FPM', isset($_SERVER['HTTP_HOST']));
-const IS_WEB = IS_PHP_FPM;
 /**
  * 命令行任务模式
  */
-define('IS_TASK', php_sapi_name() === 'cli' && !IS_WEB); // 命令行任务模式
+define('IS_TASK', php_sapi_name() === 'cli' && !IS_PHP_FPM); // 命令行任务模式
 
 
 // remove after the package publish release

@@ -10,7 +10,7 @@ if (IS_DEBUG) {
     ini_set('display_startup_errors', '1');
 
     // 2. 浏览器端才启用 HTML 格式化高亮，CLI/PHPUnit 下保持纯文本
-    if (IS_WEB) {
+    if (IS_PHP_FPM) {
         ini_set('html_errors', '1');
     }
 
@@ -23,7 +23,7 @@ if (IS_DEBUG) {
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE);
 }
 // CLI（PHPUnit）下禁用 xdebug 的 HTML 错误输出
-if (!IS_WEB && extension_loaded('xdebug')) {
+if (!IS_PHP_FPM && extension_loaded('xdebug')) {
     ini_set('xdebug.mode', 'off');
 }
 

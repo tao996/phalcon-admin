@@ -68,7 +68,7 @@ class ControllersTest extends TestCase
             ->notContainsFailed()
             ->contains(['新添加记录', '[api]', '[id] =>']);
 
-        $http->get('/m/demo.db/test/remove')->send()
+        $http->get('/api//m/demo.db/test/remove')->send()
             ->notContainsFailed()
             ->contains(['TRUE', 'Integer', 'deleted_at']);
 

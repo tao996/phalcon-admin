@@ -54,27 +54,15 @@ class TestController extends Controller
     /**
      * 软删除
      * @link http://localhost:8071/api/m/demo.db/test/remove
-     * @return void
+     * @return array
      * @throws \Exception
      */
     public function removeAction()
     {
         AppService::isDemo(true);
-        /**
-         * @var ResultsetInterface $cats
-         */
         $cats = Cat::findOnlyTrashed();
-        ddd(
-            ['isDelete' => $cats->getFirst()->isDelete()],
-            $cats->toArray()
-        );
-
-        /**
-         * @var $cat Cat
-         */
-//        $cat = Cat::findFirst();
-//        pr($cat?->toArray(), false); // toArray(['name', 'title'])
-//        ddd($cat->delete());
+        $isDelete = $cats->getFirst()->isDelete();
+        return ['isDelete' => $isDelete];
     }
 
     /**
@@ -91,7 +79,6 @@ class TestController extends Controller
             'all' => $p->find(),
             'active' => $p->softDelete()->find()
         ]);
-//        ddd('全部记录', $p->find(), '有效记录:', $p->softDelete()->find());
     }
 
     /**

@@ -33,6 +33,7 @@ class Transaction
 
     /**
      * 使用原生的 PDO 创建事务
+     * @link https://www.php.net/manual/zh/pdo.transactions.php#110483 MySQL, Oracle 的 DDL 语句会自动触发事务
      * @param callable $handle
      * @param \PDO|null $pdo 如果不提供，则自动从 di 中获取
      * @return void
@@ -45,8 +46,6 @@ class Transaction
         }
         $pdo->beginTransaction();
         try {
-// https://www.php.net/manual/zh/pdo.transactions.php#110483
-// MySQL, Oracle 的 DDL 语句会自动触发事务
             $handle($pdo);
             $pdo->commit();
         } catch (\Throwable $e) {

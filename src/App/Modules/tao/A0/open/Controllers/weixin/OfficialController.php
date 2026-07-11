@@ -5,6 +5,7 @@ namespace App\Modules\tao\A0\open\Controllers\weixin;
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\A0\open\Service\OpenUserService;
 use App\Modules\tao\TaoAppService;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Phax\Utils\MyAssert;
 
@@ -27,7 +28,7 @@ class OfficialController extends BaseOpenMiniController
         $query = $this->request->getQuery();
         // 直接跳过不处理
         if (isset($query['skip'])) {
-            exit("");
+            throw new BusinessException("skip");
         }
         MyAssert::mustHasSet($query, ['appid']);
         // 可以添加其它参数，防止接口公开时被攻击
