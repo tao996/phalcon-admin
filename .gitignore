@@ -69,3 +69,5 @@ deploys/projects/*
 !deploys/projects/.gitkeep
 deploys/.cache/
 
+deploysUI/__pycache__/
+deploysUI/**/__pycache__/
