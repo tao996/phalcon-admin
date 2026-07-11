@@ -71,3 +71,6 @@ deploys/.cache/
 
 deploysUI/__pycache__/
 deploysUI/**/__pycache__/
+build/
+deployUI.spec
+dist/
