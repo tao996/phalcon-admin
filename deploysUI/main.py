@@ -42,6 +42,19 @@ class DeployUI:
         self._build_menu()
         self._build_ui()
 
+        # 启动后弹出配置选择
+        self.root.after(200, self._prompt_load_config)
+
+    def _prompt_load_config(self):
+        """启动时提示加载配置"""
+        result = messagebox.askyesno(
+            '加载配置',
+            '首次使用请先加载配置文件。\n\n'
+            '需要现在选择 ./deploys/.cache/config.json ？'
+        )
+        if result:
+            self.load_config_dialog()
+
     def _build_menu(self):
         """菜单栏"""
         menubar = tk.Menu(self.root)
@@ -115,6 +128,19 @@ class DeployUI:
 
         self.output = OutputConsole(console_frame, height=10)
         self.output.pack(fill=tk.BOTH, expand=True)
+        self._show_welcome()
+
+    def _show_welcome(self):
+        self.output.append('┌─────────────────────────────────────┐')
+        self.output.append('│  欢迎使用 Phalcon Admin 部署工具     │')
+        self.output.append('│                                     │')
+        self.output.append('│  首次使用：文件 → 加载配置           │')
+        self.output.append('│  选择 deploys/.cache/config.json    │')
+        self.output.append('│                                     │')
+        self.output.append('│  生成配置：                          │')
+        self.output.append('│  php deploy config:export yihe      │')
+        self.output.append('│    --save=deploys/.cache/config.json │')
+        self.output.append('└─────────────────────────────────────┘')
 
     def load_config_dialog(self):
         """选择 JSON 配置文件"""
