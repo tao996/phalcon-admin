@@ -42,19 +42,6 @@ class DeployUI:
         self._build_menu()
         self._build_ui()
 
-        # 启动后弹出配置选择
-        self.root.after(200, self._prompt_load_config)
-
-    def _prompt_load_config(self):
-        """启动时提示加载配置"""
-        result = messagebox.askyesno(
-            '加载配置',
-            '首次使用请先加载配置文件。\n\n'
-            '需要现在选择 ./deploys/.cache/config.json ？'
-        )
-        if result:
-            self.load_config_dialog()
-
     def _build_menu(self):
         """菜单栏"""
         menubar = tk.Menu(self.root)
@@ -82,12 +69,16 @@ class DeployUI:
         self.status_frame.pack(fill=tk.X, padx=10, pady=(10, 0))
 
         self.status_var = tk.StringVar(value='未加载配置')
+        ttk.Button(self.status_frame, text='加载配置',
+                   command=self.load_config_dialog).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Label(self.status_frame, textvariable=self.status_var,
                   font=('', 10)).pack(side=tk.LEFT)
 
         self.ssh_status_var = tk.StringVar(value='SSH: 未连接')
-        ttk.Label(self.status_frame, textvariable=self.ssh_status_var,
-                  font=('', 10), foreground='red').pack(side=tk.RIGHT)
+        self.ssh_status_label = ttk.Label(
+            self.status_frame, textvariable=self.ssh_status_var,
+            font=('', 10), foreground='red')
+        self.ssh_status_label.pack(side=tk.RIGHT)
 
         # 主区域：左侧项目列表 + 右侧标签页
         main_frame = ttk.Frame(self.root)
@@ -126,9 +117,17 @@ class DeployUI:
         console_frame = ttk.LabelFrame(self.root, text='输出')
         console_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
+        console_toolbar = ttk.Frame(console_frame)
+        console_toolbar.pack(fill=tk.X)
+        ttk.Button(console_toolbar, text='清除输出',
+                   command=self._clear_output).pack(side=tk.RIGHT, padx=5, pady=2)
+
         self.output = OutputConsole(console_frame, height=10)
         self.output.pack(fill=tk.BOTH, expand=True)
         self._show_welcome()
+
+    def _clear_output(self):
+        self.output.clear()
 
     def _show_welcome(self):
         self.output.append('┌─────────────────────────────────────┐')
@@ -212,13 +211,13 @@ class DeployUI:
             msg = self.ssh.connect()
             self._ssh_connected = True
             self.ssh_status_var.set(f'SSH: 已连接 {self.config.server_host}')
-            self.ssh_status_var.configure(foreground='green')
+            self.ssh_status_label.config(foreground='green')
             self.output.append(msg)
             return True
         except Exception as e:
             self._ssh_connected = False
             self.ssh_status_var.set('SSH: 未连接')
-            self.ssh_status_var.configure(foreground='red')
+            self.ssh_status_label.config(foreground='red')
             self.output.append(f'[错误] SSH 连接失败: {e}')
             return False
 
@@ -232,7 +231,7 @@ class DeployUI:
         self.ssh = None
         self._ssh_connected = False
         self.ssh_status_var.set('SSH: 未连接')
-        self.ssh_status_var.configure(foreground='red')
+        self.ssh_status_label.config(foreground='red')
         self.output.append('SSH 已断开')
 
     def show_about(self):
