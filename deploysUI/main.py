@@ -4,6 +4,7 @@ Phalcon Admin Deploy UI — 主窗口
 """
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+import json
 import os
 import sys
 
@@ -38,6 +39,7 @@ class DeployUI:
         self.deploys_dir: str = ''
         self.current_project: str = ''
         self._ssh_connected = False
+        self._raw_data: dict = {}  # JSON 文件原始数据（含所有项目）
 
         self._build_menu()
         self._build_ui()
@@ -114,16 +116,18 @@ class DeployUI:
         self.notebook.add(self.db_panel, text='数据库')
 
         # 底部：输出控制台
-        console_frame = ttk.LabelFrame(self.root, text='输出')
+        console_frame = ttk.Frame(self.root)
         console_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+
+        # 标题栏：包含「输出」标签和清除按钮
+        console_header = ttk.Frame(console_frame)
+        console_header.pack(fill=tk.X)
+        ttk.Label(console_header, text='输出', font=('', 10, 'bold')).pack(side=tk.LEFT)
+        ttk.Button(console_header, text='清除输出',
+                   command=self._clear_output).pack(side=tk.RIGHT)
 
         self.output = OutputConsole(console_frame, height=10)
         self.output.pack(fill=tk.BOTH, expand=True)
-
-        # 在原 LabelFrame 的右上角叠加清除按钮
-        console_btn = ttk.Button(console_frame, text='清除输出',
-                                 command=self._clear_output)
-        console_btn.place(relx=1.0, rely=0.0, anchor='ne', x=-5, y=2)
         self._show_welcome()
 
     def _clear_output(self):
@@ -152,6 +156,10 @@ class DeployUI:
             return
 
         try:
+            # 读取原始 JSON
+            with open(path, 'r', encoding='utf-8') as f:
+                self._raw_data = json.load(f)
+
             self.config = DeployConfig()
             msg = self.config.load_json(path)
             self.status_var.set(msg)
@@ -164,7 +172,7 @@ class DeployUI:
                 self.project_listbox.insert(tk.END, p['name'])
             self.output.append(f'发现 {len(projects)} 个项目')
 
-            self.output.append('提示: 点击 SSH → 连接 或直接使用各面板功能（会自动连接）')
+            self.output.append('提示: 从左侧选择项目后再操作')
         except Exception as e:
             messagebox.showerror('错误', str(e))
 
@@ -176,22 +184,11 @@ class DeployUI:
             self.current_project = name
             self.output.append(f'选择项目: {name}')
 
-            # 重新加载项目配置
-            if self.config and self.deploys_dir:
-                import json, os
-                cache_file = os.path.join(self.deploys_dir, '.cache', 'server.json')
-                if os.path.exists(cache_file):
-                    with open(cache_file) as f:
-                        self.config.data = json.load(f)
-                    self.config.json_path = cache_file
-                    # 尝试加载项目级缓存
-                    project_cache = os.path.join(
-                        self.deploys_dir, 'projects', name, '.cache.json')
-                    if os.path.exists(project_cache):
-                        with open(project_cache) as f:
-                            self.config.data.update(json.load(f))
-
-            self.project_panel.refresh_info()
+            # 从原始 JSON 中提取该项目的数据
+            if self._raw_data and name in self._raw_data:
+                self.config.data = self._raw_data[name]
+                self.project_panel.refresh_info()
+                self.output.append(f'已加载项目配置: {name}')
 
     def ensure_ssh(self) -> bool:
         """确保 SSH 已连接"""
