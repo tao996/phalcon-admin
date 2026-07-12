@@ -34,6 +34,10 @@ xdebug-cli:
 php:
 	@$(DC_PHP) php $(CMD)
 
+# 导出配置为 JSON
+ui-export:
+	@php deploy config:export
+
 # ─── Deploy UI ──────────────────────────────────────
 # 安装依赖
 ui-install:
