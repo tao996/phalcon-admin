@@ -111,7 +111,7 @@ function showHelp(): void
   app:dc:log:<容器> <项目>                      查看指定容器日志
 
 \033[33m  通用\033[0m
-  config:export [项目] [--save=file]            导出配置为 JSON（缺省输出到终端）
+  config:export [项目]          导出配置为 JSON（不指定项目时导出全部）
   app:nginx:add <项目>                          添加域名到 Router
   app:nginx:remove <项目>                       从 Router 移除域名
   app:nginx:ssl <项目> -email=xx@xx.com         申请 SSL 证书
@@ -358,23 +358,32 @@ function handleConfigExport(string $serverConfigFile, string $projectName, strin
     $config->loadServer($serverConfigFile);
 
     if (!empty($projectName)) {
+        // 导出单个项目
         $config->loadProject($projectName);
-    }
-
-    $merged = $config->getMerged();
-
-    $json = json_encode($merged, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-    if ($savePath) {
-        $dir = dirname($savePath);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        file_put_contents($savePath, $json);
-        deploy_log("配置已导出到: {$savePath}", 'ok');
+        $data = $config->getMerged();
     } else {
-        echo $json . "\n";
+        // 导出全部项目
+        $data = [];
+        $projectsDir = dirname($serverConfigFile) . '/projects';
+        foreach (glob($projectsDir . '/*/server.php') as $projectFile) {
+            $name = basename(dirname($projectFile));
+            $config->loadProject($name);
+            $data[$name] = $config->getMerged();
+        }
     }
+
+    $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    if (empty($savePath)) {
+        $savePath = dirname($serverConfigFile) . '/.cache/config.json';
+    }
+
+    $dir = dirname($savePath);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    file_put_contents($savePath, $json);
+    deploy_log("配置已导出到: {$savePath}", 'ok');
 }
 
 function handleInitRouter(string $serverConfigFile, array $params): void
