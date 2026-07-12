@@ -117,13 +117,13 @@ class DeployUI:
         console_frame = ttk.LabelFrame(self.root, text='输出')
         console_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
-        console_toolbar = ttk.Frame(console_frame)
-        console_toolbar.pack(fill=tk.X)
-        ttk.Button(console_toolbar, text='清除输出',
-                   command=self._clear_output).pack(side=tk.RIGHT, padx=5, pady=2)
-
         self.output = OutputConsole(console_frame, height=10)
         self.output.pack(fill=tk.BOTH, expand=True)
+
+        # 在原 LabelFrame 的右上角叠加清除按钮
+        console_btn = ttk.Button(console_frame, text='清除输出',
+                                 command=self._clear_output)
+        console_btn.place(relx=1.0, rely=0.0, anchor='ne', x=-5, y=2)
         self._show_welcome()
 
     def _clear_output(self):
@@ -164,8 +164,7 @@ class DeployUI:
                 self.project_listbox.insert(tk.END, p['name'])
             self.output.append(f'发现 {len(projects)} 个项目')
 
-            if not self._ssh_connected:
-                self._connect_ssh()
+            self.output.append('提示: 点击 SSH → 连接 或直接使用各面板功能（会自动连接）')
         except Exception as e:
             messagebox.showerror('错误', str(e))
 
