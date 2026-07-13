@@ -236,14 +236,13 @@ class ProjectDeployer
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
 
-        $this->routerMode = $this->detectRouterMode();
-
         $label = $service ? "({$service})" : '';
         deploy_log("=== 重启容器: {$projectName} {$label} ===", 'step');
-        deploy_log("Router 模式: {$this->routerMode}", 'info');
 
         try {
             $this->ssh->connect();
+            $this->routerMode = $this->detectRouterMode();
+            deploy_log("Router 模式: {$this->routerMode}", 'info');
 
             $composeFile = $this->routerMode === RouterManager::MODE_HOST
                 ? 'docker-compose.ports.yaml'
