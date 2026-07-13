@@ -36,8 +36,8 @@ class ProjectDeployer
         if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
             return $mode;
         }
-        // 远程检测
-        return $this->router->getRecommendedMode();
+        // 无缓存时默认宿主机模式（不触发远程检测）
+        return RouterManager::MODE_HOST;
     }
 
     /**
