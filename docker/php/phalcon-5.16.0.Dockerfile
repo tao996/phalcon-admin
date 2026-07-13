@@ -16,6 +16,8 @@ WORKDIR /tmp
 
 COPY scripts/ /usr/bin/
 
+# 在网络不好时对数据进行缓存
+# RUN --mount=type=cache,target=/var/cache/apt \
 # 强行更新系统组件消灭漏洞，并分离运行库与编译库
 RUN apk update && apk upgrade --no-cache && \
     # 【运行依赖库】—— 这一组包在清理时绝对不能删！
