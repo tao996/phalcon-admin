@@ -1128,6 +1128,8 @@ const admin = {
          * @param {boolean} [options.page] 是否分页
          * @param {Object} [options.where] 请求的其他参数。原 table 只支持静态数据，如：where: {token: 'sasasas', id: 123}；现在扩展支持 function，要求返回一个 {}
          * @param {Object} [options.headers] 请求的数据头参数。如：headers: {token: 'sasasas'}
+         * @param {Function} [options.done] 数据渲染完毕的回调函数。返回的参数如下 function(res, curr, count, origin)
+         * res:当前渲染数据（非 api 数据），curr:当前页码，count:数据总量，origin:回调函数所执行的来源
          * @param additions 其它附加功能
          * @param {boolean} [additions.search] 是否开启表格搜索功能，如果是，则页面需要存在 '#' + tableId + '-search' 的元素
          * @param {Function} [additions.success] 成功请求数据响应
