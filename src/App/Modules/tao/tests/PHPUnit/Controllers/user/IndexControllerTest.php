@@ -2,6 +2,8 @@
 
 namespace App\Modules\tao\tests\PHPUnit\Controllers\user;
 
+use App\Modules\tao\Models\SystemUser;
+use App\Modules\tao\TaoAppService;
 use App\Modules\tao\tests\Helper\MyTestTaoHttpHelper;
 use PHPUnit\Framework\TestCase;
 
@@ -39,17 +41,17 @@ class IndexControllerTest extends TestCase
 
     public function testPassword()
     {
-        if (TEST_SKIP_HTTP) {
-            $this->markTestSkipped();
-        }
         // 重置密码
-        $user = getMyTestMvc()->getLoginUser();
+        $user = SystemUser::findFirst(1000);
+        if (is_null($user)){
+            $this->markTestSkipped('测试用户 id:1000 不存在');
+        }
         $user->password = '';
         $this->assertNotFalse($user->save());
 
         $http = new MyTestTaoHttpHelper($this);
         $http->get('/m/tao/user.index/password')
-            ->login()->send()->notContainsFailed()->contains(['登录密码', '确认密码']);
+            ->login('house')->send()->notContainsFailed()->contains(['登录密码', '确认密码']);
 
         $http->post('/api/m/tao/user.index/password', [
             'password' => '1234abcd',

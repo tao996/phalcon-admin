@@ -42,7 +42,7 @@ class CmsCategoryService
             ->columns($columns)
             ->findFirstArray();
         if (empty($row) && $mustGet) {
-            throw new BusinessException('找不到符合要求的栏目记录');
+            throw new BusinessException('找不到符合要求的栏目记录:'.$id);
         }
         return $row;
     }

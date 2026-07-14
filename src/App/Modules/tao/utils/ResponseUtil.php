@@ -3,7 +3,6 @@
 namespace App\Modules\tao\utils;
 
 use Phax\Foundation\AppService;
-use Phax\Support\Exception\BlankException;
 
 class ResponseUtil
 {
@@ -107,9 +106,9 @@ class ResponseUtil
 
     public static function json($data): \Phalcon\Http\Response|\Phalcon\Http\ResponseInterface
     {
-        AppService::response()->setContentType('application/json', 'UTF-8')
+        return AppService::response()
+            ->setContentType('application/json', 'UTF-8')
             ->setContent(json_encode($data))
             ->send();
-        throw new BlankException('');
     }
 }

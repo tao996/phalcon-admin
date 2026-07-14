@@ -14,6 +14,7 @@ class MyTestTaoHttpHelper extends MyTestHttpHelper
 
     /**
      * 用户登录
+     * token 来自 src/config/config.php 配置中的 app.test.tokens
      * src/App/Modules/tao/Helper/Auth/LoginDemoTokenAuthAdapter.php
      * @return $this
      */

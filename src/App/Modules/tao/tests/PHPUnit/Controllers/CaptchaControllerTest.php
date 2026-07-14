@@ -9,9 +9,6 @@ class CaptchaControllerTest extends TestCase
 {
     public function testIndex()
     {
-        if (TEST_SKIP_HTTP) {
-            $this->markTestSkipped();
-        }
         MyTestTaoHttpHelper::with($this)
             ->get('m/tao/captcha')
             ->send()->notContainsFailed();
