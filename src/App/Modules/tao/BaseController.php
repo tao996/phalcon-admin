@@ -184,7 +184,7 @@ class BaseController extends BaseRbacController
      * 用于返回分页数据之中合并其它的数据
      * @return array
      */
-    protected function appendToSuccessPaginationData(QueryBuilder|null $queryBuilder): array
+    protected function appendToSuccessPaginationData(QueryBuilder|null $queryBuilder = null): array
     {
         return [];
     }
