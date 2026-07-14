@@ -4,6 +4,7 @@ namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Models\OpenOrder;
 use App\Modules\tao\A0\open\Service\OpenUserService;
+use App\Modules\tao\TaoAppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
 use Phax\Support\Validate;
@@ -79,7 +80,7 @@ class Prepay extends AbstractWepay
             if (!empty($jsapiData['notify_url'])) {
                 $notify_url = $jsapiData['notify_url'];
             } elseif ($demo) {
-                $notify_url = $this->helper->openUrlHelper()
+                $notify_url = TaoAppService::openUrlHelper()
                     ->notifyDemoURL($order->appid, $order->mchid);
             }
         }

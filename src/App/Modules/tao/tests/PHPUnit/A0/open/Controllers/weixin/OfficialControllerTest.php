@@ -63,9 +63,9 @@ class OfficialControllerTest extends \PHPUnit\Framework\TestCase
 
             // $server->serve() 返回响应对象或字符串
             $this->assertNotNull($rst);
-        } catch (\Throwable $e) {
-            // EasyWeChat getOfficial 或 Server 相关异常
-            $this->markTestSkipped('indexAction(echostr) 异常（SDK未就绪）: ' . $e->getMessage());
+        } catch (BusinessException $e) {
+            // OpenAppService 找不到应用配置（DB 无 mock 数据）
+            $this->assertStringContainsString('应用配置', $e->getMessage());
         }
     }
 
@@ -88,9 +88,9 @@ class OfficialControllerTest extends \PHPUnit\Framework\TestCase
 
             // $server->serve() 返回响应对象或字符串
             $this->assertNotNull($rst);
-        } catch (\Throwable $e) {
-            // EasyWeChat getOfficial 或 Server 相关异常
-            $this->markTestSkipped('indexAction(消息处理) 异常（SDK未就绪）: ' . $e->getMessage());
+        } catch (BusinessException $e) {
+            // OpenAppService 找不到应用配置（DB 无 mock 数据）
+            $this->assertStringContainsString('应用配置', $e->getMessage());
         }
     }
 }

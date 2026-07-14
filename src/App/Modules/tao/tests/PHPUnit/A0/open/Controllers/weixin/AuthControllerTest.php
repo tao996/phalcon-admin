@@ -143,9 +143,9 @@ class AuthControllerTest extends \PHPUnit\Framework\TestCase
         } catch (LocationException $e) {
             // OAuth 成功后重定向
             $this->assertNotEmpty($e->getMessage());
-        } catch (\Throwable $e) {
-            // EasyWeChat getOfficial 或 userFromCode 失败
-            $this->markTestSkipped('codeAction 异常（SDK/数据库未就绪）: ' . $e->getMessage());
+        } catch (BusinessException $e) {
+            // OpenAppService 找不到应用配置（DB 无 mock 数据）
+            $this->assertStringContainsString('应用配置', $e->getMessage());
         }
     }
 }
