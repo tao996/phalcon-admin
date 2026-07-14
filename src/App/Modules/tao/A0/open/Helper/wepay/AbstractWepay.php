@@ -3,12 +3,13 @@
 namespace App\Modules\tao\A0\open\Helper\wepay;
 
 use App\Modules\tao\A0\open\Helper\Libs\WepayServer;
+use App\Modules\tao\A0\open\Helper\Libs\WepayServerInterface;
 use App\Modules\tao\A0\open\Service\OpenMchService;
 use Phax\Support\Exception\BusinessException;
 
 abstract class AbstractWepay
 {
-    public WepayServer $wepayServer;
+    public WepayServerInterface $wepayServer;
 
     /**
      * @param string $appid 此处的 appid 为微信支付的 appid
@@ -26,9 +27,17 @@ abstract class AbstractWepay
     }
 
     /**
+     * 注入 mock server（测试用）
+     */
+    public function setWechatServer(WepayServerInterface $server): void
+    {
+        $this->wepayServer = $server;
+    }
+
+    /**
      * @throws \Exception
      */
-    public function getWechatServer(): WepayServer
+    public function getWechatServer(): WepayServerInterface
     {
         if (empty($this->wepayServer)) {
             $this->wepayServer = new WepayServer($this->appid, $this->mchid);

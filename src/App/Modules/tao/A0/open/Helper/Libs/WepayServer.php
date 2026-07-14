@@ -12,7 +12,7 @@ use Phax\Support\Logger;
  * 微信支付服务（负责与微信服务器交互）
  * 此文件通常不需要测试
  */
-class WepayServer
+class WepayServer implements WepayServerInterface
 {
     public \EasyWeChat\Pay\Application $app;
 
