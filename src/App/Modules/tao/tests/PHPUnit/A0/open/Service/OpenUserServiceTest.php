@@ -30,14 +30,12 @@ class OpenUserServiceTest extends TestCase
     public function testOfficialUser()
     {
         $application = \Mockery::mock(Application::class);
-        $application->allows('getConfig')->andReturns(
-            new class {
-                public function get($key)
-                {
-                    return OpenUserServiceTest::userinfo[$key];
-                }
-            }
-        );
+
+        // getConfig() 需返回 EasyWeChat\Kernel\Contracts\Config 实例
+        $configMock = \Mockery::mock('EasyWeChat\Kernel\Contracts\Config');
+        $configMock->shouldReceive('get')->with('app_id')->andReturn(self::userinfo['app_id']);
+        $application->allows('getConfig')->andReturns($configMock);
+
         $application->allows('getClient')->andReturn(
             new class {
                 public function get($url, $params)
