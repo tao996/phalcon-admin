@@ -1,12 +1,13 @@
 <?php
 
-/**
- * @var \Phax\Helper\HtmlHelper $vv ;
- */
-
 use App\Modules\tao\Services\ConfigService;
 use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
+
+/**
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
+ */
+$form = $vv->layuiForm();
 
 $vv->addHeaderFile(__DIR__ . '/auth.css');
 ?>
@@ -109,11 +110,11 @@ $vv->addHeaderFile(__DIR__ . '/auth.css');
 </form>
 
 <?php
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer(); ?>
+$vv->layui()->addWindowConfig()->footer(); ?>
 <script>
     <?php include __DIR__ . '/auth.js' ?>
 </script>
-<?php TaoAppService::layuiForm()->jsCaptcha(); ?>
+<?php $form->jsCaptcha(); ?>
 <script>
     // 提交事件
     form.on('submit(submit-login)', function (data) {

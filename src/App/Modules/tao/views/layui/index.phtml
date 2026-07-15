@@ -2,10 +2,10 @@
 
 /**
  * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 $console = $vv->get('console', true); // 默认后台模板
-\App\Modules\tao\TaoAppService::layui()->header();
+$vv->layui()->header();
 
 ?>
 <!DOCTYPE html>
@@ -39,7 +39,7 @@ echo $console ? 'tao-container' : '' ?>">
 
 <?php
 $vv->outputFooters();
-\App\Modules\tao\TaoAppService::layui()->footer();
+$vv->layui()->footer();
 $vv->appendTemplateJs();
 ?>
 <script>

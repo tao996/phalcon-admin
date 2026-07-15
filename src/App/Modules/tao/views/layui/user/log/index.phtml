@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 ?>
 
@@ -36,7 +36,7 @@
 <table id="table" class="layui-hide"></table>
 
 <?php
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
+$vv->layui()->addWindowConfig([])->footer();
 ?>
 <script>
     admin.table.with()

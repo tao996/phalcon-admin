@@ -7,9 +7,9 @@ use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use Phax\Foundation\AppService;
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
-$form = \App\Modules\tao\TaoAppService::layuiForm();
+$form = $vv->layuiForm();
 $list = SystemMenu::queryBuilder()
 //    ->int('status', 1) 允许显示隐藏的菜单（否则隐藏子菜单会丢失关联）
         ->notEqual('pid', Data::HOME_PID)
@@ -73,7 +73,7 @@ $id = $vv->pick('id', 0);
     ], value: $vv->pick('type', 0), aux: '选择 `M 模块` 自动为链接补充前缀 /m/，选择 `P 项目` 则补充前缀 /p/') ?>
 
 
-    <?php echo \App\Modules\tao\TaoAppService::layuiHtml()->icon($vv->pick('icon')); ?>
+    <?php echo $vv->layuiHtml()->icon($vv->pick('icon')); ?>
 
 
     <div class="layui-form-item">
@@ -94,9 +94,9 @@ $id = $vv->pick('id', 0);
 
 </form>
 <?php
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
+$vv->layui()->addWindowConfig([])->footer();
 
-echo \App\Modules\tao\TaoAppService::layuiHtml()->iconJs();
+echo $vv->layuiHtml()->iconJs();
 ?>
 <script>
     admin.form.submitFirst(() => {

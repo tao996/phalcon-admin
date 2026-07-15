@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 
 ?>
@@ -51,7 +51,7 @@
 
 <?php
 
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
+$vv->layui()->addWindowConfig([])->footer();
 
 ?>
 <script>
@@ -65,21 +65,30 @@
 
             cols: [[
                 // {type: 'checkbox'},
-                {field: 'id', title: 'ID', width: 50},
+                {field: 'id', title: 'ID', width: 100},
                 {field: 'created_at', width: 120, title: '创建时间', templet: admin.table.humanTime},
                 {
-                    title: '基本信息', templet: function (d) {
-                        return `<div class="flex-rows">
-<div style="width: 35px;"><img src="${d.head_img}" class="full-width" /></div>
-<div class="flex-1" style="padding-left: 10px;">${d.nickname}</div>
-</div>`
-                    }, width: 250
+                    title: '头像', width: 100, templet: function (d) {
+                        return d.head_img ? '<div style="width: 35px;"><img src="' + d.head_img + '" class="full-width" /></div>' : '';
+                    }
                 },
                 {
-                    title: '手机/邮箱', templet: function (d) {
-                        return (d.phone ? '<div><span>' + d.phone + (d['phone_valid'] ? '<span>[已验证]</span>' : '[否]') + '</span></div>' : '')
-                            + (d.email ? '<div><span>' + d.email + (d['email_valid'] ? '<span>[已验证]</span>' : '[否]') + '</span></div>' : '')
-                    }, width: 250
+                    title: '昵称', templet: function (d) {
+                        return d.nickname;
+                    }, width: 100
+                },
+                {
+                    title: '手机', templet: function (d) {
+                        const v = d['phone_valid'] ? '<span class="layui-badge-dot layui-bg-green"></span>' : '';
+                        return d.phone ? v + '<span>' + d.phone + '</span>' : '';
+
+                    }, width: 150
+                },
+                {
+                    title: '邮箱', templet: function (d) {
+                        const v = d['email_valid'] ? '<span class="layui-badge-dot layui-bg-green"></span>' : '';
+                        return d.email ? v + '<span>' + d.email + '</span>' : '';
+                    }, width: 150
                 },
                 {
                     width: 150, title: '绑定平台', templet: function (d) {
@@ -104,7 +113,6 @@
                     fixed: 'right', title: '操作', width: 200, toolbar: '#row-action'
                 }
             ]],
-            lineStyle: 'height: 80px;',
         })
         .addPostSwitch()
         .addToolbarActions().addRowActions({

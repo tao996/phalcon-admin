@@ -21,6 +21,7 @@ class BaseResponseController extends Controller
      * 禁用主布局 views/index.phtml
      */
     protected bool $disabledMainLayout = false;
+
     /**
      * @var bool 小程序之类的请求
      * https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html
@@ -42,6 +43,14 @@ class BaseResponseController extends Controller
      * @var string 設置 HTML 頁面名称
      */
     protected string $htmlTitle = '';
+    /**
+     * @var array|string 面包屑导航
+     */
+    protected array|string $breadcrumb = '';
+    /**
+     * @var bool 是否有控制台（后台管理控制器）
+     */
+    protected bool $console = false;
 
     public function initialize(): void
     {
@@ -57,8 +66,8 @@ class BaseResponseController extends Controller
         } elseif ($this->request->isPut()) {
             $this->requestData = $this->request->getPut() ?: [];
         }
-        if (!$this->isApiRequest()){
-            AppService::getDi()->setShared('html', function (){
+        if (!$this->isApiRequest()) {
+            AppService::getDi()->setShared('html', function () {
                 return new TaoHtmlHelper();
             });
         }
@@ -201,15 +210,24 @@ class BaseResponseController extends Controller
         AppService::getLazyService('tao.layui', function () {
             return new Layui();
         });
-        AppService::getLazyService('tao.layuiHtml', function () {
-            return new LayuiHtml();
+        $breadcrumb = $this->breadcrumb;
+        AppService::getLazyService('tao.layuiHtml', function () use ($breadcrumb) {
+            $html = new LayuiHtml();
+            if ($breadcrumb) {
+                $html->addBreadcrumbItem($breadcrumb);
+            }
+            return $html;
         });
         AppService::getLazyService('tao.layuiForm', function () {
-            return new LayuiForm();
+            $layui = AppService::getShared('tao.layui');
+            return new LayuiForm($layui);
         });
         AppService::getLazyService('tao.layuiSearch', function () {
             return new LayuiSearch();
         });
+        $this->view->setVars([
+            'console' => $this->console,
+        ]);
         AppService::html()->setHtmlTitle($this->htmlTitle);
     }
 

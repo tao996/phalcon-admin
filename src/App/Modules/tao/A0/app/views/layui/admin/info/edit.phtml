@@ -2,9 +2,9 @@
 
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
-$form = \App\Modules\tao\TaoAppService::layuiForm();
+$form = $vv->layuiForm();
 ?>
 <form class="layui-form" id="form">
 
@@ -21,7 +21,7 @@ $form = \App\Modules\tao\TaoAppService::layuiForm();
     ?>
 </form>
 <?php
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer();
+$vv->layui()->addWindowConfig()->footer();
 ?>
 <script>
     admin.form.submitFirst(() => {

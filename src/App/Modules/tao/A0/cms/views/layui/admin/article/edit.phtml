@@ -1,8 +1,9 @@
 <?php
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
+$form = $vv->layuiForm();
 
 \App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::header();
 $cateId = $vv->pick('row.cate_id', 0);
@@ -26,7 +27,7 @@ $cateId = $vv->pick('row.cate_id', 0);
 
             <div class="layui-form-item" style="width: 300px;margin-right: 10px;">
 
-                <?php echo \App\Modules\tao\TaoAppService::layuiForm()->upload('封面', 'cover', value: $vv->pick('row.cover')
+                <?php echo $form->upload('封面', 'cover', value: $vv->pick('row.cover')
                 ); ?>
 
             </div>
@@ -91,7 +92,7 @@ $cateId = $vv->pick('row.cate_id', 0);
 
     </form>
 <?php
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer();
+$vv->layui()->addWindowConfig()->footer();
 
 $items = $vv->pick('row.images', []);
 \App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::ImageJs($items);

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 ?>
 
@@ -55,7 +55,7 @@
 
 </form>
 
-<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
+<?php $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
     var verCodeBtn = $('#get-vercode');
     var phoneE = $('#phone')

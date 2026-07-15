@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 ?>
 
@@ -46,7 +46,7 @@
 </script>
 <table id="table" class="layui-hide"></table>
 
-<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
+<?php $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao/user.quick",false) ?>';
     admin.table.with({url: prefix,})

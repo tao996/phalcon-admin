@@ -2,13 +2,14 @@
 
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 
 use App\Modules\tao\A0\cms\Helper\CmsHtmlHelper;
 use App\Modules\tao\A0\cms\Models\CmsCategory;
 
 CmsHtmlHelper::header();
+$form = $vv->layuiForm();
 $categoryList = $vv->pick('categoryList', []);
 
 ?>
@@ -71,7 +72,7 @@ $categoryList = $vv->pick('categoryList', []);
             <div class="layui-form-mid layui-text-em">多个标签使用空格分割</div>
         </div>
 
-        <?php echo \App\Modules\tao\TaoAppService::layuiForm()->upload('封面', 'cover',
+        <?php echo $form->upload('封面', 'cover',
                 type: 'input', value: $vv->pick('row.cover')
         ); ?>
 
@@ -103,7 +104,7 @@ $categoryList = $vv->pick('categoryList', []);
 </form>
 <?php
 
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer();
+$vv->layui()->addWindowConfig([])->footer();
 
 $items = $vv->pick('row.images', []);
 CmsHtmlHelper::ImageJs($items);

@@ -1,9 +1,9 @@
 <?php
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
-$form = \App\Modules\tao\TaoAppService::layuiForm();
+$form = $vv->layuiForm();
 ?>
 <style>
     #select_head_img {
@@ -21,7 +21,7 @@ $form = \App\Modules\tao\TaoAppService::layuiForm();
     </div>
 </div>
 
-<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
+<?php $vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
     admin.util.layOn({
         ok: function () {

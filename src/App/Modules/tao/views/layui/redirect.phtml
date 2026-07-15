@@ -1,7 +1,7 @@
 <?php
 /**
  * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  *
  * --- 传入参数 ---
  * @var string $msg  提示信息（必填）
@@ -10,7 +10,7 @@
  * @var int    $wait 倒计时秒数（默认 5）
  */
 
-\App\Modules\tao\TaoAppService::layui();
+$vv->layui();
 $icon = $icon ?? 2;
 $wait = $wait ?? 4;
 $title = $title ?? ($icon == 1 ? '成功' : '提示');
@@ -133,7 +133,7 @@ $title = $title ?? ($icon == 1 ? '成功' : '提示');
 
 <?php
 $vv->outputFooters();
-\App\Modules\tao\TaoAppService::layui()->footer();
+$vv->layui()->footer();
 ?>
 <script>
     (function () {

@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 
 use App\Modules\tao\TaoAppService;
@@ -9,7 +9,7 @@ use Phax\Foundation\AppService;
 $indexWelcome = AppService::urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = TaoAppService::loginUserHelper()->user();
-TaoAppService::layui()->header();
+$vv->layui()->header();
 ?>
 <!DOCTYPE html>
 <html>
@@ -340,7 +340,7 @@ TaoAppService::layui()->header();
 </body>
 <?php
 $vv->outputFooters();
-TaoAppService::layui()->footer();
+$vv->layui()->footer();
 ?>
 
 <script><?php

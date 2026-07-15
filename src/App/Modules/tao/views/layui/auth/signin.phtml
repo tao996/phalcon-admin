@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 
 $captchaURL = \Phax\Foundation\AppService::urlModule('tao/captcha');
@@ -65,7 +65,7 @@ $vv->addHeaderFile(__DIR__ . '/auth.css');
 </form>
 
 
-<?php \App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer(); ?>
+<?php $vv->layui()->addWindowConfig()->footer(); ?>
 <script>
     <?php include __DIR__ . '/auth.js' ?>
 </script>

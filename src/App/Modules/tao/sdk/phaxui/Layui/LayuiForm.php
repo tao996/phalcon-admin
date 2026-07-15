@@ -3,12 +3,11 @@
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\Config\Data;
-use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 
 class LayuiForm
 {
-    public function __construct()
+    public function __construct(public Layui $layui)
     {
     }
 
@@ -248,7 +247,7 @@ class LayuiForm
                 $endName = $name . '_end';
             }
         }
-        TaoAppService::layui()->appendFooterJs(<<<JS
+        $this->layui->appendFooterJs(<<<JS
         layui.use(['laydate'], function () {
             var laydate = layui.laydate;
             var startPicker = laydate.render({
@@ -326,7 +325,7 @@ JS;
 JS;
         }
 
-        TaoAppService::layui()->appendFooterJs($laydateJs);
+        $this->layui->appendFooterJs($laydateJs);
 
         $requiredElem = $required ? '  lay-verify="required"' : '';
         $auxText = $this->wrapAux($aux);

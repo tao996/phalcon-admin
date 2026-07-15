@@ -1,9 +1,9 @@
 <?php
 
 /**
- * @var \Phax\Helper\HtmlHelper $vv
+ * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
-$formSearch = \App\Modules\tao\TaoAppService::layuiSearch();
+$formSearch = $vv->layuiSearch();
 ?>
 
 <fieldset class="table-search-fieldset" id="table-search">
@@ -46,7 +46,7 @@ $formSearch = \App\Modules\tao\TaoAppService::layuiSearch();
 <table id="table" class="layui-hide"></table>
 
 <?php
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig([])->footer(); ?>
+$vv->layui()->addWindowConfig([])->footer(); ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao.app/admin.info", false) ?>';
     admin.table.with({url: prefix})

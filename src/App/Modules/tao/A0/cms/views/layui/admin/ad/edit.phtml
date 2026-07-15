@@ -3,6 +3,7 @@
 /**
  * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
+$form = $vv->layuiForm();
 ?>
 <form class="layui-form" id="form">
 
@@ -39,7 +40,7 @@
     </div>
 
     <div class="layui-form-item">
-        <?php echo \App\Modules\tao\TaoAppService::layuiForm()->upload('图片', 'cover',
+        <?php echo $form->upload('图片', 'cover',
                 value: $vv->pick('cover'), tip: '广告图片建议尺寸 640 * 60'
         ); ?>
         <label class="layui-form-label">标题</label>
@@ -98,7 +99,7 @@
 
 </form>
 <?php
-\App\Modules\tao\TaoAppService::layui()->addWindowConfig()->footer();
+$vv->layui()->addWindowConfig()->footer();
 ?>
 <script>
     admin.form.submitFirst(() => {
