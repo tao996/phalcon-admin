@@ -76,11 +76,25 @@ CliRouter::add('cc', function ($params) {
     system('php ' . PATH_ROOT . 'vendor/bin/codecept ' . join(' ', $params), $code);
 }, '使用 cc 来代替 vendor/bin/codecept，以方便执行命令');
 
-CliRouter::add('min', function ($params) {
+CliRouter::add('minify', function ($params) {
     $config = \Phax\Foundation\AppService::config();
-    $mines = $config->getArray('app.min');
-    if ($mines) {
+    $minify = $config->getArray('app.minify');
+    if ($minify) {
+        require_once PATH_TAO996_PHAR . 'minify.phar';
+        foreach ($minify as $key => $files) {
+            foreach ($files as $file) {
+                $minifier = $key == 'css' ? new MatthiasMullie\Minify\CSS() : new MatthiasMullie\Minify\JS();
+                if (!file_exists($file)) {
+                    throw new \Exception('待压缩文件不存在:' . $file);
+                }
+                $minifier->add($file);
+                $pathinfo = pathinfo($file);
+                // 保存的路径
+                $savepath = $pathinfo['dirname'] . DIRECTORY_SEPARATOR . $pathinfo['filename'] . '.min.' . $pathinfo['extension'];
+                $minifier->minify($savepath);
+            }
 
+        }
     } else {
         echo '没有需要压缩的 js/css 文件', PHP_EOL;
     }

@@ -45,6 +45,7 @@ class Layui
             $html->addHeaderFile(HtmlAssets::$cdn . 'layui/' . $this->version . '/css/layui.min.css');
             $html->addHeaderFile(HtmlAssets::$cdn . 'font-awesome/4.7.0/css/font-awesome.min.css');
         }
+        /// 添加自定义的 css/js
         $html->addHeaderFile(__DIR__ . '/index.css', 0, 'css');
         $html->addHeaderFile(__DIR__ . '/upload.css', 0, 'css');
     }

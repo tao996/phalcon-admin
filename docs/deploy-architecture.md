@@ -374,11 +374,12 @@ return [
         'MYSQL_DATABASE' => 'myapp_db',
     ],
     'config' => [
-        'app.title' => 'My App',
-        'app.origin' => 'https://myapp.example.com/',
-        'app.jwt.secret' => 'change-this-secret',
-        'app.demo' => false,
-        'app.superAdmin' => [1],
+        'app' => [
+            'title' => 'My App',
+            'origin' => 'https://myapp.example.com/',
+            'demo' => false,
+            'superAdmin' => [1],
+        ],
     ],
     'hooks' => [
         'afterInit' => [

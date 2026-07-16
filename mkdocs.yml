@@ -3,11 +3,13 @@ site_name: "Phalcon admin docs"
 nav:
   - 目录: "index.md"
   - 架构: "architecture.md"
+  - Deploy架构: "deploy-architecture.md"
   - 快速开始: "quick_start.md"
   - PHPStorm:
       - "Docker": "phpstorm/docker.md"
       - "Unit Test": "phpstorm/unittest.md"
       - "Xdebug": "phpstorm/xdebug.md"
+      - "Minifying": "phpstorm/minifying.md"
   - "路由": "route.md"
   - "模板 phtml": "layui_phtml.md"
   - "Admin":
