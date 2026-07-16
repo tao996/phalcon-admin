@@ -18,30 +18,46 @@ $data['app'] = [
         'expire' => 3600 * 48, // 建议修改
         'subject' => 'jwt'
     ],
+    // 当访问路径为 '' 或 '/' 时，默认访问的链接
+    'default' => '',
+    'defaultApp' => [
+        // 自定义时只能指向 App\Modules\xxx\Controller 或者 App\Projects\xxx\Controller
+        'namespace' => 'App\Http\Controllers',
+        // viewpath 默认会根据 namespace 进行判断
+//        'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
+    ],
     // 异常和错误处理的类
     'error' => 'App\Http\AppErrorResponse', // 默认值
-//    'welcome'=>'/m/tao/index/welcome',// 后台首页，必须以 / 开头
-    // cn|ncn|(your cdn domain); 本地开发时，
-    // 默认为空（即 self）：views/assets 中读取本地资源,通常用在开发阶段，不需要外网加载资源
-    // cn: 默认为 https://cdn.staticfile.org/
-    // ncn: 默认为 https://cdnjs.cloudflare.com/ajax/libs/
-    // 其它链接地址：cdn 地址
-    'cdn_locate' => 'cn',
-    'hosts' => [], // 用户允许上传/使用的图片域名列表
-    // see src/tao996/Phax/Foundation/Application.php
+    // 后台首页，必须以 / 开头
+    // 'welcome'=>'/m/tao/index/welcome',
+    'assets' => [
+        // cn|ncn|(your cdn domain); 本地开发时，
+        // 默认为空（即 self）：views/assets 中读取本地资源,通常用在开发阶段，不需要外网加载资源
+        // cn: 默认为 https://cdn.staticfile.org/
+        // ncn: 默认为 https://cdnjs.cloudflare.com/ajax/libs/
+        // 其它链接地址：cdn 地址
+        'cdn' => '',
+        // 用户允许上传/使用的图片域名列表
+        'hosts' => [],
+    ],
+    // 配置自动加载的类和文件
     'loader' => [
         'namespaces' => [], // loader()->setNamespaces
         'includes' => [], // include_once files list
     ],
-    // 当前是否为演示系统，管理员账号为 admin 密码 123456
-    // 如果为 true，则配置文件优先级 config.demo.php > config.php
-    // 在生产环境下，必须设置为 false
-    'demo' => true,
-    'admin' => [ // 当启用 demo 时，管理员账号为 admin 密码 123456
-        'account' => 'admin',
-        'password' => '123456'
+    // 演示系统配置
+    'demo' => [
+        /*
+         * 是否开启演示系统，生产环境下必须设置为 false
+         * 1。 开启后会跳过图形验证码验证（总是通过）
+         */
+        'open' => true,
+        // 演示系统管理员账号为 admin 密码 123456
+        'admin' => [
+            'account' => 'admin',
+            'password' => '123456'
+        ],
     ],
-    // 是否开启测试环境，会跳过图片验证码；相关方法查看下面的文件
     /**
      * 超级管理员用户 ID 列表，不受权限控制；
      * 注意：写在前面的 user_id 可以修改写在后面的 user_id 的记录；
@@ -51,33 +67,32 @@ $data['app'] = [
      */
     'superAdmin' => [1, 999, 1000], // 超级管理员账号 ID, 999,1000 for phpunit test
 
-    // phpunit test
+    // 测试环境配置
     'test' => [
         // 在生产环境下，必须设置为 false
-        'open' => true, // true 开启测试环境，并让上面 superAdmin 的 999, 1000 生效
-        // src/App/Modules/tao/tests/Helper/MyTestTaoHttpHelper.php
-        // src/tests/Helper/MyTestHttpHelper.php.pathTest($path) —— 在测试 url 后添加 '?test=on'
-        // src/App/Modules/tao/Helper/Auth/LoginTestAuthAdapter.php —— 测试登录
-        // src/App/Modules/tao/Helper/CaptchaHelper.php —— 验证码
+        // 开启测试环境，会跳过图片验证码；
+        'open' => true,
+        /*
+         * 流程
+         * 格式，token=>userId
+         src/App/Modules/tao/tests/Helper/MyTestTaoHttpHelper.php
+         src/tests/Helper/MyTestHttpHelper.php.pathTest($path) —— 在测试 url 后添加 '?test=on'
+         src/App/Modules/tao/Helper/Auth/LoginTestAuthAdapter.php —— 测试登录
+         src/App/Modules/tao/Helper/CaptchaHelper.php —— 验证码
+         */
         'tokens' => [
-            'tao' => 1, // 'tokenValue' => userId
-            'house' => 1000, // just an example: token for src/Projects/house
+            'tao' => 1,
+            'house' => 1000,
         ],
     ],
-    // IP 白名单，支持三种格式：
-    //   '192.168.1.1'       — 精确匹配
-    //   '192.168.1.0/24'    — CIDR 网段
-    //   '192.168.*'         — 通配符
-    // 留空数组 [] 表示不限制
+    /*
+     IP 白名单，支持三种格式：
+       '192.168.1.1'       — 精确匹配
+       '192.168.1.0/24'    — CIDR 网段
+       '192.168.*'         — 通配符
+     留空数组 [] 表示不限制
+     */
     'ipWhitelist' => [],
-    // 当访问路径为 '' 或 '/' 时，默认访问的链接
-    'default' => '',
-    'defaultApp' => [
-        // 自定义时只能指向 App\Modules\xxx\Controller 或者 App\Projects\xxx\Controller
-        'namespace' => 'App\Http\Controllers',
-        // viewpath 默认会根据 namespace 进行判断
-//        'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
-    ],
 ];
 
 

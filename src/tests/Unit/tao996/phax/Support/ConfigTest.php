@@ -58,7 +58,7 @@ class ConfigTest extends TestCase
         $prop->setAccessible(true);
         $prop->setValue(null, self::$originalConfig);
         $prop->setAccessible(false);
-        unset(self::$originalConfig);
+        self::$originalConfig = null;
     }
 
     // ============================================================
@@ -114,7 +114,7 @@ class ConfigTest extends TestCase
 
     public function testGetStringReturnsEmptyForNonString(): void
     {
-        $this->assertEquals('', self::$config->getString('app.demo'));
+        $this->assertEquals('', self::$config->getString('app.demo.open'));
     }
 
     // ============================================================
@@ -123,7 +123,7 @@ class ConfigTest extends TestCase
 
     public function testGetBooleanTrueForExplicitBool(): void
     {
-        $this->assertTrue(self::$config->getBoolean('app.demo'));
+        $this->assertTrue(self::$config->getBoolean('app.demo.open'));
     }
 
     public function testGetBooleanFalseForExplicitBool(): void
@@ -148,7 +148,7 @@ class ConfigTest extends TestCase
 
     public function testGetBooleanForNonEmptyString(): void
     {
-        $this->assertTrue(self::$config->getBoolean('app.cdn_locate'));
+        $this->assertTrue(self::$config->getBoolean('app.assets.cdn'));
     }
 
     // ============================================================

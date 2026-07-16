@@ -135,7 +135,7 @@ class Config
      */
     public function isDemo(): bool
     {
-        return $this->getBoolean('app.demo');
+        return $this->getBoolean('app.demo.open');
     }
 
     /**

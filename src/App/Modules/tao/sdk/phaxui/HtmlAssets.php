@@ -26,7 +26,7 @@ class HtmlAssets
     public static function initWithCdn(string $cdnLocate = ''): void
     {
         if (empty($cdnLocate)) {
-            $cdnLocate = AppService::config()->getString('app.cdn_locate', 'self');
+            $cdnLocate = AppService::config()->getString('app.assets.cdn', 'self');
         }
 
         switch ($cdnLocate) {

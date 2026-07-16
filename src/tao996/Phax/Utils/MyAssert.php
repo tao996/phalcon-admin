@@ -14,7 +14,7 @@ class MyAssert
     {
         static $hosts = null;
         if (is_null($hosts)) {
-            $hosts = AppService::config()->getArray('app.hosts');
+            $hosts = AppService::config()->getArray('app.assets.hosts');
         }
         return $hosts;
     }

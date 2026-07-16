@@ -70,7 +70,7 @@ return [
     'session' => [
         'auto_start' => true,
         'driver' => 'redis', // stream, memcached, redis, noop(just for test),
-        'cookie_lifetime' => 86400, // 确保与 stores redis 保持一致
+        'cookie_lifetime' => 86400, // Cookie Max-Age（秒），必须与 session lifetime 一致
         'stores' => [
             'redis' => array_merge(redisConfig, [
                 'username' => '',

@@ -41,7 +41,7 @@ class AuthController extends BaseController
              */
             $user = null;
             if (AppService::isDemo()) {
-                $admin = AppService::config()->getArray('app.admin');
+                $admin = AppService::config()->getArray('app.demo.admin');
                 if ($data['account'] == MyData::get($admin, 'account', 'admin')
                     && $data['password'] == MyData::get($admin, 'password', '123456')) {
                     $user = SystemUser::findFirst(1);

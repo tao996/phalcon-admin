@@ -210,11 +210,11 @@ class BaseResponseController extends Controller
         AppService::getLazyService('tao.layui', function () {
             return new Layui();
         });
-        $breadcrumb = $this->breadcrumb;
-        AppService::getLazyService('tao.layuiHtml', function () use ($breadcrumb) {
+        $obj = $this;
+        AppService::getLazyService('tao.layuiHtml', function () use ($obj) {
             $html = new LayuiHtml();
-            if ($breadcrumb) {
-                $html->addBreadcrumbItem($breadcrumb);
+            if ($obj->breadcrumb) {
+                $html->addBreadcrumbItem($obj->breadcrumb);
             }
             return $html;
         });
