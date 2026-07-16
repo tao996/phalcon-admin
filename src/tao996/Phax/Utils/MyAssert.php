@@ -171,7 +171,7 @@ class MyAssert
      * @return int
      * @throws \Exception
      */
-    public function mustInt(mixed $value): int
+    public static function mustInt(mixed $value): int
     {
         if (!filter_var($value, FILTER_VALIDATE_INT)) {
             throw new BusinessException($value . ' is not an integer');
@@ -185,7 +185,7 @@ class MyAssert
      * @return int[]
      * @throws \Exception
      */
-    public function mustIntS(mixed $data): array
+    public static function mustIntS(mixed $data): array
     {
         if (is_int($data)) {
             return [$data];
@@ -203,5 +203,15 @@ class MyAssert
             }
         }
         return $data;
+    }
+
+    /**
+     * 是否为一个数字字符串
+     * @param string|int $data
+     * @return bool
+     */
+    public static function isNumberString(string|int $data): bool
+    {
+        return preg_match('/^[0-9]+$/', $data);
     }
 }

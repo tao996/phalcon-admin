@@ -109,7 +109,7 @@ class AppService
         if ($language = self::dispatcher()->getParam('language')) {
             return $language;
         }
-        return self::config()->getString('app.locale', 'en');
+        return self::config()->getString('app.locale', 'cn');
     }
 
     public static function request(): \Phalcon\Http\RequestInterface

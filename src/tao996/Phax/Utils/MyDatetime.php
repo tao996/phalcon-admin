@@ -110,13 +110,17 @@ class MyDatetime
 
     /**
      * 返回第1天和最后一天
-     * @param string $month 待查询月份
+     * @param string|int $month 待查询月份 yyyy-mm 或 yyyymm
      * @param bool $withTime 是否需要带上时间 00:00:00, 23:59:59
      * @return array
      */
-    static public function monthDateRange(string $month, bool $withTime = false): array
+    static public function monthDateRange(string|int $month, bool $withTime = false): array
     {
         // 查询月份 yyyy-md 的第1天和最后一天
+        if (MyAssert::isNumberString($month)) {
+            $month = '' . $month;
+            $month = substr($month, 0, 4) . '-' . substr($month, 4, 2);
+        }
         $firstDay = $month . '-01';
         $lastDay = date('Y-m-t', strtotime($firstDay));
         return $withTime ? [$firstDay . ' 00:00:00', $lastDay . ' 23:59:59'] : [$firstDay, $lastDay];

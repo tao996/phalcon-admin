@@ -2,13 +2,17 @@
 
 use \Phax\Foundation\CliRouter;
 
+// load your self cli script
+if (file_exists(__DIR__ . '/cli.more.php')) {
+    include_once __DIR__ . '/cli.more.php';
+}
 // php artisan test 运行测试
 // 测试指定文件
 // php artisan tests/Helper/MyTestCurlTest.php
 // 指定文件，指定类
 // php artisan --filter MyTestCurlTest tests/Helper/MyTestCurlTest.php
 /**
-* 测试单个方法
+ * 测试单个方法
  * # 只执行 MyTestCurlTest 类里的 testGetInfo 方法
  * ./vendor/bin/phpunit --filter "MyTestCurlTest::testGetInfo"
  *
@@ -71,7 +75,13 @@ CliRouter::add('cc', function ($params) {
     }
     system('php ' . PATH_ROOT . 'vendor/bin/codecept ' . join(' ', $params), $code);
 }, '使用 cc 来代替 vendor/bin/codecept，以方便执行命令');
-// load your self cli script
-if (file_exists(__DIR__ . '/cli.more.php')) {
-    include_once __DIR__ . '/cli.more.php';
-}
+
+CliRouter::add('min', function ($params) {
+    $config = \Phax\Foundation\AppService::config();
+    $mines = $config->getArray('app.min');
+    if ($mines) {
+
+    } else {
+        echo '没有需要压缩的 js/css 文件', PHP_EOL;
+    }
+}, '压缩 js/css 文件');

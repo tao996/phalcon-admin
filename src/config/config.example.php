@@ -12,17 +12,18 @@ $data['app'] = [
     'logo' => '/assets/logo.png', // 30*30
     'timezone' => env('TZ', 'UTC'),
     'locale' => 'cn', // 默认的语言（总是2位）[a-z]{2}
-    'jwt' => [
-        'hmac' => 'sha256',
-        'secret' => 'phalcon', // must modify
-        'expire' => 3600 * 48, // 建议修改
-        'subject' => 'jwt'
-    ],
+    // 暂时还未启用
+//    'jwt' => [
+//        'hmac' => 'sha256',
+//        'secret' => 'phalcon', // must modify
+//        'expire' => 3600 * 48, // 建议修改
+//        'subject' => 'jwt'
+//    ],
     // 当访问路径为 '' 或 '/' 时，默认访问的链接
     'default' => '',
     'defaultApp' => [
         // 自定义时只能指向 App\Modules\xxx\Controller 或者 App\Projects\xxx\Controller
-        'namespace' => 'App\Http\Controllers',
+//        'namespace' => 'App\Http\Controllers',
         // viewpath 默认会根据 namespace 进行判断
 //        'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
     ],

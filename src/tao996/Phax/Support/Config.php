@@ -25,13 +25,16 @@ class Config
     public function load(): void
     {
         $global_config_file = '';
-        $configList = [
-            PATH_CONFIG . 'config.php',
-            PATH_CONFIG . 'config.demo.php'
-        ];
-        if (!empty(env('PATH_CONFIG'))) {
-            array_unshift($configList, PATH_ROOT . env('PATH_CONFIG'));
+        $configList = [];
+        // 如果指定的配置文件路径（优化加载）
+        if (env('PATH_CONFIG')) {
+            $configList[] = PATH_ROOT . env('PATH_CONFIG');
         }
+        // cli 配置文件
+        if (!IS_PHP_FPM) {
+            $configList[] = PATH_CONFIG . 'cli.config.php';
+        }
+        $configList[] = PATH_CONFIG . 'config.php';
         foreach (
             $configList as $file
         ) {
@@ -43,6 +46,7 @@ class Config
         if (empty($global_config_file)) {
             throw new \Exception('could not find global config file');
         }
+//        ddd($configList,$global_config_file);
         self::$config = $this->_parse($global_config_file);
 
         if ($this->activeProject = $this->projectName()) {
@@ -104,10 +108,11 @@ class Config
         }
         return $default;
     }
+
     public function getInt(string $path, int $default = 0): int
     {
         $obj = self::path($path, $default);
-        return (int) $obj;
+        return (int)$obj;
     }
 
     /**
@@ -165,6 +170,7 @@ class Config
     {
         return $this->projectConfig()['name'] ?? '';
     }
+
     /**
      * 当前访问的项目及站点配置
      * 返回 ['name' => 'family', 'namespace' => '...', 'viewpath' => '...']

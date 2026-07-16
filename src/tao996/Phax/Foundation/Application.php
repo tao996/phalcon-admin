@@ -43,7 +43,7 @@ class Application
 
         DiService::with($di)
             ->config(function (\Phax\Support\Config $config) {
-                date_default_timezone_set($config->getString('app.timezone'));
+                date_default_timezone_set($config->getString('app.timezone','UTC'));
                 if ($namespaces = $config->getArray('app.loader.namespaces')) {
                     loader()->setNamespaces($namespaces, true)
                         ->register();

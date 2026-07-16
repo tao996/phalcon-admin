@@ -190,7 +190,7 @@ class LayuiForm
      */
     public function switch(string $title, string $name, bool $checked = false,
                            bool   $required = false,
-                           string $tips = "ON|OFF",
+                           string $tips = "是|否",
                            string $aux = '',
                            bool   $formItem = true,
                            string $class = '',
