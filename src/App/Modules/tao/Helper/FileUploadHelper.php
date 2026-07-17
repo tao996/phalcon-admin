@@ -116,7 +116,7 @@ class FileUploadHelper
     private function moveToLocal(): SystemUploadfile
     {
         // 上传到当前项目目录
-        $subDir = 'upload/' . AppService::route()->getProject('phax') . '/' . date('ymd') . '/';
+        $subDir = 'upload/' . AppService::routeContext()->getProject('phax') . '/' . date('ymd') . '/';
         $pathUploadDir = AppService::helper()->dirSeparator(PATH_PUBLIC . $subDir);
         if (!file_exists($pathUploadDir)) {
             mkdir($pathUploadDir, 0777, true);
@@ -221,7 +221,7 @@ class FileUploadHelper
                 return $this->moveToLocal();
             default:
                 $oss = $this->getOssDriver($uploadType, $this->_config);
-                return $this->ossUpload($oss, $this->_config['oss_dir'] ?: AppService::route()->getProject('phax'));
+                return $this->ossUpload($oss, $this->_config['oss_dir'] ?: AppService::routeContext()->getProject('phax'));
         }
     }
 

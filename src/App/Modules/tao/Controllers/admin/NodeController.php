@@ -63,7 +63,7 @@ class NodeController extends BaseController
         $nodes = [];
 
         // 当前项目
-        $project = AppService::route()->getProject();
+        $project = $this->routeContext->getProject();
         if (!empty($project)) {
             $baseInfo = RbacAnnotation::projectBaseInfo($project);
             $nodes = array_merge($nodes, RbacAnnotation::getNodes($baseInfo));

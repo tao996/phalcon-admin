@@ -32,7 +32,7 @@ class HtmlHelper
 
     public function __construct()
     {
-        if (AppService::has('route') && !AppService::route()->isApiRequest()) {
+        if (AppService::has('routeContext') && !AppService::routeContext()->isApiRequest()) {
             $this->view = AppService::view();
             $this->view->setVar('vv', $this);
         }
@@ -397,13 +397,13 @@ class HtmlHelper
      */
     public function appendTemplateJs(): bool
     {
-        $theme = AppService::route()->theme;
-        $pickName = $this->pickName ?: AppService::route()->getPickView(true);
+        $theme = AppService::routeContext()->theme;
+        $pickName = $this->pickName ?: AppService::routeContext()->getPickView();
         $jsFile = join(
                 '/',
                 $theme
-                    ? [AppService::route()->getViewDIR(), $theme, $pickName]
-                    : [AppService::route()->getViewDIR(), $pickName]
+                    ? [AppService::routeContext()->getViewDIR(), $theme, $pickName]
+                    : [AppService::routeContext()->getViewDIR(), $pickName]
             ) . '.js';
         return AppService::html()->includeAssetsFile($jsFile, 'js');
     }

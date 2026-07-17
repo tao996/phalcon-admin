@@ -764,4 +764,107 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $expect['task'] = 'migrate';
         $this->assertEquals($expect, $rst);
     }
+
+    /**
+     * 验证 Router::analysisWithURL 和 RouteMatchContext::with 结果一致性
+     * 覆盖所有路由模式：多模块、单应用、子模块、子目录、项目、API、语言前缀
+     */
+    public function testRouteMatchConsistency(): void
+    {
+        $urls = [
+            // 多模块
+            '/m/',
+            '/cn/m/',
+            '/m/m1',
+            '/m/M1',
+            '/en/m/m1',
+            '/m/m1/c',
+            '/en/m/m1/c',
+            '/m/m1/c1/a1',
+            '/en/m/m1/c1/a1',
+            '/m/m2/c2/a2/p',
+            '/en/m/m2/c2/a2/p1/p2/p3',
+            // 多模块 + 子模块
+            '/m/m1.m11/c1',
+            '/m/m1.m11/sub1.c2',
+            '/m/m1/sub1.c1',
+            // 多模块 + 子目录
+            '/m/m1/sub.c1/a1',
+            '/m/m1/sub.c1/a1/p1',
+            // 单应用
+            '/',
+            '/c1',
+            '/c2/a2',
+            '/c2/a2/p',
+            '/c2/a2/p1/p2',
+            '/c2/a2/p1/p2/p3',
+            // 单应用 + 子目录
+            '/sub.c1',
+            '/sub.c2/a2',
+            '/sub.c2/a2/p1',
+            '/sub.c2/a2/p1/p2',
+            // 页路由
+            '/sub/sub1.bbq/say',
+        ];
+
+        foreach ($urls as $url) {
+            $rstOld = Router::analysisWithURL($url, $this->dto());
+            $rstNew = \Phax\Foundation\Context\RouteMatchContext::with($url);
+
+            $this->compareRouteResults($url, $rstOld, $rstNew);
+        }
+
+        // 含项目的 URL 单独测试
+        $projectUrl = '/api/p/family/vip/notify/wx964c9beb6dc7131b';
+        $rstOld2 = Router::analysisWithURL($projectUrl, $this->dto('family'));
+        $rstNew2 = \Phax\Foundation\Context\RouteMatchContext::with($projectUrl);
+        // 项目路由中 namespace/viewpath 由 RouteContext 提供，RouteMatchContext 使用默认
+        // 只对比基本路由结构
+        $this->assertEquals($rstOld2['route'], $rstNew2->route, "route mismatch for $projectUrl");
+        $this->assertEquals($rstOld2['pattern'], $rstNew2->pattern, "pattern mismatch for $projectUrl");
+        $this->assertEquals($rstOld2['paths'], $rstNew2->paths, "paths mismatch for $projectUrl");
+        // pathsname: only compare when RouteMatchContext has project context
+
+        // 含项目的单应用 URL
+        $url3 = '/admin.simpleRent';
+        $rstOld3 = Router::analysisWithURL($url3, $this->dto('city'));
+        $rstNew3 = \Phax\Foundation\Context\RouteMatchContext::with($url3);
+        $this->assertEquals($rstOld3['route'], $rstNew3->route, "route mismatch for $url3");
+        $this->assertEquals($rstOld3['pattern'], $rstNew3->pattern, "pattern mismatch for $url3");
+    }
+
+    /**
+     * 比较 Router::analysisWithURL（数组）和 RouteMatchContext::with（对象）的关键字段
+     */
+    private function compareRouteResults(string $url, array $old, \Phax\Foundation\Context\RouteMatchContext $new): void
+    {
+        // 基本结构
+        $this->assertEquals($old['pattern'] ?? '', $new->pattern, "pattern mismatch for $url");
+        $this->assertEquals($old['paths'] ?? [], $new->paths, "paths mismatch for $url");
+        $this->assertEquals($old['pathsname'] ?? [], $new->pathsname, "pathsname mismatch for $url");
+        $this->assertEquals($old['route'] ?? '', $new->route, "route mismatch for $url");
+
+        // namespace / viewpath（多模块模式下应该一致）
+        $this->assertEquals($old['namespace'] ?? '', $new->namespace, "namespace mismatch for $url");
+        $this->assertEquals($old['viewpath'] ?? '', $new->viewpath, "viewpath mismatch for $url");
+
+        // 子模块 / 子目录
+        $this->assertEquals($old['subm'] ?? '', $new->subm, "subm mismatch for $url");
+        $this->assertEquals($old['subc'] ?? '', $new->subc, "subc mismatch for $url");
+
+        // 模块信息（多模块模式下）
+        if (!empty($old['module'])) {
+            $this->assertEquals($old['module'], $new->modulePath, "modulePath mismatch for $url");
+        }
+        if (!empty($old['name'])) {
+            $this->assertEquals($old['name'], $new->name, "name mismatch for $url");
+        }
+
+        // register（路径依赖文件位置，不比较，已在上方确认核心字段一致）
+
+        // pickview
+        if (!empty($old['pickview'])) {
+            $this->assertEquals($old['pickview'], $new->getPickView(), "pickview mismatch for $url");
+        }
+    }
 }

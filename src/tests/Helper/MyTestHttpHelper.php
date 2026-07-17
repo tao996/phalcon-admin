@@ -12,6 +12,10 @@ class MyTestHttpHelper
 
     public function __construct(public \PHPUnit\Framework\TestCase $tc)
     {
+
+//        if (TEST_SKIP_HTTP) {
+//            $tc->markTestSkipped('跳过 HTTP 测试');
+//        }
 //        ddd($_ENV);
         // 只初始化一次，避免测试顺序依赖导致 origin 被后续测试覆写
         if (self::$origin === '') {

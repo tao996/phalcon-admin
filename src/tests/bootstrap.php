@@ -27,6 +27,9 @@ $di->setShared('response', function () {
 $di->setShared('session', function () {
     return new \Tests\Helper\services\Session();
 });
+$di->setShared('routeContext', function () {
+    return new \Phax\Foundation\Context\RouteMatchContext();
+});
 \Phax\Foundation\DiService::with($di)
     ->db()
     ->pdo()->redis()->cache()

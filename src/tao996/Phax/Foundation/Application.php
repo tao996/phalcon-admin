@@ -5,6 +5,7 @@ namespace Phax\Foundation;
 use Phalcon\Di\Di;
 use Phalcon\Http\ResponseInterface;
 use Phax\Foundation\Context\RouteContext;
+use Phax\Foundation\Context\RouteMatchContext;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
@@ -167,20 +168,16 @@ class Application
     {
         $route = new Route($requestURL, $di);
         $di->setShared('route', $route);
-//        ddd($requestURL, $di->getServices());
-        $config = AppService::config();
-        $appDto = RouteContext::config($config);
-        $route->routerOptions = Router::analysisWithURL($route->urlOptions['mapurl'], $appDto);
-//        ddd($appDto,$route->urlOptions,$route->routerOptions,__FILE__);
-
+        $context = RouteMatchContext::with($requestURL,loadDefault: true);
+        $di->setShared('routeContext',$context);
         /**
          * @var \Phalcon\Mvc\Router $router
          */
-        $router = $di->getShared('router');
-        $router->setDefaultNamespace($route->routerOptions['namespace']);
+        $router = AppService::router();
+        $router->setDefaultNamespace($context->namespace);
         // 添加到路由
         // 注意：pattern, route 要和 application->handle($uri) 保持一致
-        $router->add($route->routerOptions['route'], $route->routerOptions['paths']);
+        $router->add($context->route, $context->paths);
 //        ddd($requestURL, $route->routerOptions,$route->getControllerClass());
         /**
          * @var \Phalcon\Mvc\Application $application
@@ -188,13 +185,13 @@ class Application
         $application = $di->get('application');
         $application->setDI($di);
 
-        if (isset($route->routerOptions['registerModules'])) {
-            $application->registerModules($route->routerOptions['registerModules']);
+        if ($context->registerModules) {
+            $application->registerModules($context->registerModules);
         }
-        if ($route->isApiRequest()) {
+        if ($context->isApiRequest()) {
             $application->useImplicitView(false);
         }
-        return $application->handle($route->urlOptions['mapurl']);
+        return $application->handle($context->mapurl);
     }
 
 

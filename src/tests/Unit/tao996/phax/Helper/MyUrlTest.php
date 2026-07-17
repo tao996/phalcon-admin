@@ -126,7 +126,7 @@ class MyUrlTest extends TestCase
                 return 'http://localhost:8071';
             }
         };
-        $route->urlOptions['language'] = 'en';
+        AppService::routeContext()->language = 'en';
 
         $di->setShared('route', $route);
     }

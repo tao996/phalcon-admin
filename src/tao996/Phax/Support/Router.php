@@ -76,7 +76,7 @@ class Router
             throw new \Exception('analysisRoute error: it should not contain "?" char');
         }
         $info = self::pathMatch($path);
-//        ddd($path, $info);
+
         if ($info['module']) {
             $urlElements = empty($info['path']) ? [] : explode('/', $info['path']);
 

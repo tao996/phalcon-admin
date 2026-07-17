@@ -129,8 +129,8 @@ class BaseRbacController extends BaseResponseController
         parent::initialize();
         if (AppService::has('router')) {
             $this->action = Router::formatNodeName(AppService::router()->getActionName());
-        } else if (AppService::has('route')) {
-            $this->action = AppService::route()->getActionName();
+        } else if (AppService::has('routeContext')) {
+            $this->action = AppService::routeContext()->getActionName();
         }
     }
 
@@ -198,14 +198,14 @@ class BaseRbacController extends BaseResponseController
             throw new BusinessException('不允许访问的操作列表中', [
                 'action' => $this->action,
                 'disableActions' => $this->disableActions,
-                'route' => $this->route->routerOptions
+                'route' => $this->routeContext->data()
             ]);
         }
         if ($this->enableActions && !in_array($this->action, $this->enableActions)) {
             throw new BusinessException('不在允许访问的操作列表中', [
                 'action' => $this->action,
                 'enableActions' => $this->enableActions,
-                'route' => $this->route->routerOptions
+                'route' => $this->routeContext->data()
             ]);
         }
         // 开放接口
@@ -217,7 +217,7 @@ class BaseRbacController extends BaseResponseController
                 throw new BusinessException('not allow disableUpdateActions in open access', [
                     'action' => $this->action,
                     'updateActions' => $this->updateActions,
-                    'route' => $this->route->routerOptions,
+                    'route' => $this->routeContext->data()
                 ]);
             }
             return;
@@ -232,7 +232,7 @@ class BaseRbacController extends BaseResponseController
             throw new BusinessException('not allow disableUpdateActions', [
                 'action' => $this->action,
                 'updateActions' => $this->updateActions,
-                'route' => $this->route->routerOptions,
+                'route' => $this->routeContext->data()
             ]);
         }
 

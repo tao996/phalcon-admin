@@ -22,7 +22,7 @@ class DemoController extends BaseController
             return $this->_doData();
         }
         if (AppService::isMobile()){
-            $this->route->setPickView('demo/mobile');
+            $this->routeContext->setPickView('demo/mobile');
         }
         return [];
     }

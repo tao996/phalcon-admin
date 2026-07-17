@@ -5,6 +5,7 @@ namespace Phax\Foundation;
 use Phalcon\Encryption\Security;
 use Phalcon\Http\Response\Cookies;
 use Phalcon\Mvc\View;
+use Phax\Foundation\Context\RouteMatchContext;
 use Phax\Helper\HtmlHelper;
 use Phax\Helper\MyUrlBuilder;
 use Phax\Support\Config;
@@ -32,7 +33,7 @@ class AppService
     public static function mustFirstSet(string $serviceName, $service): void
     {
         if (self::has($serviceName)) {
-            if (IS_DEBUG){
+            if (IS_DEBUG) {
                 ddd('服务已存在:' . $serviceName, debug_backtrace(limit: 5));
             }
             throw new BlankException('服务已存在:' . $serviceName);
@@ -88,7 +89,7 @@ class AppService
     public static function getLanguage()
     {
         // 路由
-        if ($language = AppService::route()->getLanguage()) { // 网址中设置的语言
+        if ($language = AppService::routeContext()->language) { // 网址中设置的语言
             return $language;
         }
         // 请求参数
@@ -170,6 +171,11 @@ class AppService
         return Application::di()->getShared('router');
     }
 
+    public static function routeContext(): RouteMatchContext
+    {
+        return Application::di()->getShared('routeContext');
+    }
+
 
     public static function db(): \Phalcon\Db\Adapter\Pdo\AbstractPdo
     {
@@ -201,8 +207,7 @@ class AppService
     public static function url(array $options): string
     {
         $builder = MyUrlBuilder::new();
-
-        $builder->language(self::route()->urlOptions['language']);
+        $builder->language(self::routeContext()->language);
 
         if (!empty($options['api'])) {
             $builder->asApi();

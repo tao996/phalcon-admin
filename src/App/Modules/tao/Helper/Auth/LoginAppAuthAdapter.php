@@ -51,7 +51,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
     {
         if (!empty($this->data['token'])) {
             $userId = TaoAppService::authRedisData()->getUserId($this->data['token'], 'app');
-            if ('logout' != AppService::route()->getActionName()) {
+            if ('logout' != AppService::routeContext()->getActionName()) {
                 $secret = TaoAppService::authRedisData()->getTokenValue($this->data['token']);
                 if (!$secret) {
                     throw new BusinessException('登录凭证过期或不存在', [

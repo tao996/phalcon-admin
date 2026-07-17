@@ -30,12 +30,8 @@ echo $this->getContent() ?>
 <h6>~~~~~ end ~~~~~</h6>
 <pre>
 <?php
-echo '<h2>route->routerOptions</h2>';
-print_r(AppService::route()->routerOptions);
-echo '<h2>route->urlOptions</h2>';
-print_r(AppService::route()->urlOptions);
-echo '<h2>route->origin()</h2>';
-print_r(AppService::route()->appOrigin());
+echo '<h2>路由上下文信息</h2>';
+print_r(AppService::routeContext()->data());
 ?>
 </pre>
 </body>

@@ -49,12 +49,8 @@ echo $this->getContent() ?>
 <div> ~~~~~</div>
 <pre>
 <?php
-echo '<h2>route->routerOptions</h2>';
-print_r(AppService::route()->routerOptions);
-echo '<h2>route->urlOptions</h2>';
-print_r(AppService::route()->urlOptions);
-echo '<h2>route->origin()</h2>';
-print_r(AppService::route()->appOrigin());
+echo '<h2>路由上下文</h2>';
+print_r(AppService::routeContext());
 ?>
 </pre>
 </body>
