@@ -2,6 +2,8 @@
 
 namespace Phax\Utils;
 
+use Phax\Support\Exception\BusinessException;
+
 class MyDatetime
 {
     /**
@@ -81,18 +83,25 @@ class MyDatetime
 
     /**
      * 是否为 yyyy-mm 格式
-     * @param string $month
+     * @param string|int $month
      * @return bool
      */
-    public static function isMonth(string $month): bool
+    public static function isMonth(string|int $month): bool
     {
+        if (MyAssert::isNumberString($month)) {
+            $month = '' . $month;
+            if (strlen($month) != 6) {
+                throw new BusinessException('月份格式错误:' . $month);
+            }
+            return true;
+        }
         return preg_match('|\d{4}-\d{1,2}|', $month) == 1;
     }
 
     public static function mustMonth(string $month): void
     {
         if (!MyDatetime::isMonth()) {
-            throw new \Exception('月份格式错误:' . $month);
+            throw new BusinessException('月份格式错误:' . $month);
         }
     }
 
