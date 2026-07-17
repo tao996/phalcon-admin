@@ -16,6 +16,11 @@ $data['app'] = [
         'namespace' => 'App\Modules\geo\Controllers', // 前台默认打开的首页
     ],
     'superAdmin' => [1],
+    'assets' => [
+        'cdn' => '',
+        'hosts' => [],
+        'min' => false,
+    ],
     'demo' => [
         'open' => true,
         'admin' => [
@@ -39,7 +44,7 @@ return $data;
 $data = include __DIR__ . '/config-dev.example.php';
 
 $data['database']['stores']['mysql']['dbname'] = 'phalcon-admin-test';
-array_merge_deep($data['app'],[
+$data['app'] = array_merge_deep($data['app'],[
     'title' => 'WebSite Dev', // 应用标题/名称
     'welcome' => '/m/abc/index/welcome',
     'defaultApp' => [

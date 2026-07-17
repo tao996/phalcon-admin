@@ -22,15 +22,24 @@ class ConfigTest extends TestCase
         $prop->setValue(null, new PhalconConfig([
             'app' => [
                 'title' => '测试项目',
-                'demo' => true,
+                'demo' => [
+                    'open' => true,
+                    'admin' => [
+                        'account' => 'admin',
+                        'password' => '123456'
+                    ],
+                ],
                 'test' => [
                     'open' => true,
                     'tokens' => ['token1', 'token2'],
                 ],
+                'assets' => [
+                    'cdn' => true,
+                    'hosts' => [],
+                    'min' => false,
+                ],
                 'superAdmin' => [1, 2, 1000],
-                'default' => 'defaultProject',
                 'timezone' => 'UTC',
-                'cdn_locate' => 'cn',
             ],
             'db' => [
                 'host' => 'localhost',
@@ -157,7 +166,7 @@ class ConfigTest extends TestCase
 
     public function testIsDemo(): void
     {
-        $this->assertTrue(self::$config->isDemo());
+        $this->assertTrue(self::$config->getBoolean('app.demo.open'));
     }
 
     // ============================================================
@@ -166,7 +175,7 @@ class ConfigTest extends TestCase
 
     public function testIsTest(): void
     {
-        $this->assertTrue(self::$config->isTest());
+        $this->assertTrue(self::$config->getBoolean('app.test.open'));
     }
 
     // ============================================================
@@ -175,7 +184,7 @@ class ConfigTest extends TestCase
 
     public function testGetTestUsers(): void
     {
-        $this->assertEquals(['token1', 'token2'], self::$config->getTestUsers());
+        $this->assertEquals(['token1', 'token2'], self::$config->getArray('app.test.tokens'));
     }
 
     // ============================================================
@@ -184,26 +193,9 @@ class ConfigTest extends TestCase
 
     public function testGetSuperAdminIds(): void
     {
-        $this->assertEquals([1, 2, 1000], self::$config->getSuperAdminIds());
+        $this->assertEquals([1, 2, 1000], self::$config->getArray('app.superAdmin'));
     }
 
-    // ============================================================
-    //  getProject() / getProjectWithConfig()
-    // ============================================================
-
-    public function testProjectNameReturnsDefault(): void
-    {
-        $this->assertEquals('defaultProject', self::$config->projectName());
-    }
-
-    public function testProjectConfigReturnsDefaultsNoHost(): void
-    {
-        $result = self::$config->projectConfig();
-        $this->assertIsArray($result);
-        $this->assertEquals('defaultProject', $result['name']);
-        $this->assertStringContainsString('defaultProject', $result['namespace']);
-        $this->assertStringContainsString('defaultProject', $result['viewpath']);
-    }
 
     // ============================================================
     //  getInt()
@@ -218,97 +210,5 @@ class ConfigTest extends TestCase
     {
         $this->assertSame(0, self::$config->getInt('not.exists'));
         $this->assertSame(42, self::$config->getInt('not.exists', 42));
-    }
-
-    // ============================================================
-    //  projectName() / projectConfig() — edge cases
-    // ============================================================
-
-    public function testProjectNameReturnsEmptyWhenDefaultMissing(): void
-    {
-        $ref = new \ReflectionClass(\Phax\Support\Config::class);
-        $prop = $ref->getProperty('config');
-        $prop->setAccessible(true);
-        $original = $prop->getValue(null);
-
-        $prop->setValue(null, new \Phalcon\Config\Config([
-            'app' => ['title' => 'no default'],
-        ]));
-
-        $this->assertEquals('', self::$config->projectName());
-
-        $result = self::$config->projectConfig();
-        $this->assertEquals('', $result['name']);
-        $this->assertEquals('', $result['namespace']);
-        $this->assertEquals('', $result['viewpath']);
-
-        $prop->setValue(null, $original);
-        $prop->setAccessible(false);
-    }
-
-    public function testProjectConfigFromActiveProject(): void
-    {
-        $ref = new \ReflectionClass(\Phax\Support\Config::class);
-        $prop = $ref->getProperty('activeProject');
-        $prop->setAccessible(true);
-        $prop->setValue(self::$config, 'customProject');
-        $prop->setAccessible(false);
-
-        $result = self::$config->projectConfig();
-        $this->assertEquals('customProject', $result['name']);
-        $this->assertEquals('App\\Projects\\customProject\\Controllers', $result['namespace']);
-        $this->assertStringContainsString('customProject', $result['viewpath']);
-
-        $this->assertEquals('customProject', self::$config->projectName());
-
-        $prop->setAccessible(true);
-        $prop->setValue(self::$config, '');
-        $prop->setAccessible(false);
-    }
-
-    // ============================================================
-    //  resolveProjectConfig (private, via reflection)
-    // ============================================================
-
-    public function testResolveProjectConfigSimpleFormat(): void
-    {
-        $ref = new \ReflectionClass(\Phax\Support\Config::class);
-        $method = $ref->getMethod('resolveProjectConfig');
-        $method->setAccessible(true);
-
-        $result = $method->invoke(self::$config, 'myProject');
-        $this->assertEquals('myProject', $result['name']);
-        $this->assertEquals('App\\Projects\\myProject\\Controllers', $result['namespace']);
-        $this->assertStringContainsString('myProject', $result['viewpath']);
-    }
-
-    public function testResolveProjectConfigExtendedFormat(): void
-    {
-        $ref = new \ReflectionClass(\Phax\Support\Config::class);
-        $method = $ref->getMethod('resolveProjectConfig');
-        $method->setAccessible(true);
-
-        $result = $method->invoke(self::$config, 'myProject', [
-            'domains' => ['my.test.com'],
-            'namespace' => 'Custom\\Ns',
-            'viewpath' => '/custom/path',
-        ]);
-        $this->assertEquals('myProject', $result['name']);
-        $this->assertEquals('Custom\\Ns', $result['namespace']);
-        $this->assertEquals('/custom/path', $result['viewpath']);
-    }
-
-    public function testResolveProjectConfigExtendedPartial(): void
-    {
-        $ref = new \ReflectionClass(\Phax\Support\Config::class);
-        $method = $ref->getMethod('resolveProjectConfig');
-        $method->setAccessible(true);
-
-        $result = $method->invoke(self::$config, 'partialProj', [
-            'domains' => ['partial.test.com'],
-        ]);
-        $this->assertEquals('partialProj', $result['name']);
-        $this->assertEquals('App\\Projects\\partialProj\\Controllers', $result['namespace']);
-        $this->assertStringContainsString('partialProj', $result['viewpath']);
     }
 }

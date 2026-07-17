@@ -43,7 +43,7 @@ class Application
 
         DiService::with($di)
             ->config(function (\Phax\Support\Config $config) {
-                date_default_timezone_set($config->getString('app.timezone','UTC'));
+                date_default_timezone_set($config->getString('app.timezone', 'UTC'));
                 if ($namespaces = $config->getArray('app.loader.namespaces')) {
                     loader()->setNamespaces($namespaces, true)
                         ->register();
@@ -145,7 +145,7 @@ class Application
                     if (IS_DEBUG) {
                         ddd($e->getMessage(), $e->getTrace());
                     } else {
-                        Logger::exception($e,['未被处理的 Throwable']);
+                        Logger::exception($e, ['未被处理的 Throwable']);
                     }
                     return '系统繁忙，请稍后再试。';
                 }
@@ -168,17 +168,26 @@ class Application
         $di->setShared('route', $route);
 //        ddd($requestURL, $di->getServices());
         $config = AppService::config();
-        $defaultApp = $config->getArray('app.defaultApp');
-        $project = $config->projectConfig();
+        $defaultProject = $config->getString('app.project');
+        $projectConfig = $defaultProject ? [
+            'name' => $defaultProject,
+            'namespace' => 'App\\Projects\\' . $defaultProject . '\\Controllers',
+            'viewpath' => PATH_APP_PROJECTS . $defaultProject . DIRECTORY_SEPARATOR . 'views',
+        ] : ['name' => '', 'namespace' => null, 'viewpath' => null];
 
+        $defaultApp = $config->getArray('app.defaultApp');
         $options = [
             'module' => Router::$moduleKeyword,
-            'project' => $project['name'],
-            'projectNamespace' => $project['namespace'] ?: null,
-            'projectViewpath' => $project['viewpath'] ?: null,
+            // project 配置
+            'project' => $projectConfig['name'],
+            'projectNamespace' => $projectConfig['namespace'],
+            'projectViewpath' => $projectConfig['viewpath'],
+
+            // 默认控制器
             'defaultNamespace' => $defaultApp['namespace'] ?? 'App\\Http\\Controllers',
             'defaultViewpath' => $defaultApp['viewpath'] ?? '',
         ];
+        // 初始化视图目录
         if (empty($options['defaultViewpath'])) {
             if ($options['defaultNamespace'] === 'App\\Http\\Controllers') {
                 $options['defaultViewpath'] = PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views';

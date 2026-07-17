@@ -24,7 +24,7 @@ class LoginDemoTokenAuthAdapter extends LoginAuthAdapter
 //            ['authData' => $authData, 'users' => $this->mvc->config()->getTestUsers()]
 //        );
         if ($authData) {
-            $users = AppService::config()->getTestUsers();
+            $users = AppService::config()->getArray('app.test.tokens');
             if (isset($users[$authData])) {
                 $this->userId = $users[$authData];
                 $this->testUsers = $users;

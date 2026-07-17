@@ -156,7 +156,7 @@ class AppService
      */
     public static function superAdminIds(): array
     {
-        return self::config()->getSuperAdminIds();
+        return self::config()->getArray('app.superAdmin');
     }
 
 
@@ -257,7 +257,7 @@ class AppService
     public static function isTest(): bool
     {
         return self::request()->getQuery('test', 'string', '') === 'on'
-            && self::config()->isTest();
+            && self::config()->getBoolean('app.test.open');
     }
 
     /**
@@ -266,7 +266,7 @@ class AppService
      */
     public static function isDemo(bool $must = false): bool
     {
-        $rst = self::config()->isDemo();
+        $rst = self::config()->getBoolean('app.demo.open');
         if ($must && !$rst) {
             throw new \Exception('only support in demo mode');
         }

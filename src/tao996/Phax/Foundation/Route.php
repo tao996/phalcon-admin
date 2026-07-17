@@ -120,7 +120,6 @@ class Route
     }
 
 
-
     /**
      * 获取当前访问节点命名（通常用于做权限管理）
      * @param array $options 配置信息
@@ -332,7 +331,7 @@ class Route
         if (!empty($this->routerOptions['project'])) {
             return $this->routerOptions['project'];
         }
-        return AppService::config()->projectName() ?: $default;
+        return AppService::config()->getString('app.project') ?: $default;
     }
 
     public function getControllerClass(): string
