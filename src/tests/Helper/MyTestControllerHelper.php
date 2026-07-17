@@ -4,6 +4,8 @@ namespace Tests\Helper;
 
 
 use Phax\Foundation\Application;
+
+use Phax\Foundation\Context\RouteContext;
 use Phax\Foundation\Route;
 use Phax\Mvc\Controller;
 use Phax\Support\Router;
@@ -114,7 +116,7 @@ class MyTestControllerHelper
     public function replaceRoute(string $requestURL): static
     {
         $this->route->requestURI = $requestURL;
-        $this->route->routerOptions = Router::analysisWithURL($requestURL);
+        $this->route->routerOptions = Router::analysisWithURL($requestURL, new RouteContext());
         return $this;
     }
 

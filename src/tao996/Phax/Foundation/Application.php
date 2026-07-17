@@ -4,6 +4,7 @@ namespace Phax\Foundation;
 
 use Phalcon\Di\Di;
 use Phalcon\Http\ResponseInterface;
+use Phax\Foundation\Context\RouteContext;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
@@ -168,51 +169,14 @@ class Application
         $di->setShared('route', $route);
 //        ddd($requestURL, $di->getServices());
         $config = AppService::config();
-        $defaultProject = $config->getString('app.project');
-        $projectConfig = $defaultProject ? [
-            'name' => $defaultProject,
-            'namespace' => 'App\\Projects\\' . $defaultProject . '\\Controllers',
-            'viewpath' => PATH_APP_PROJECTS . $defaultProject . DIRECTORY_SEPARATOR . 'views',
-        ] : ['name' => '', 'namespace' => null, 'viewpath' => null];
-
-        $defaultApp = $config->getArray('app.defaultApp');
-        $options = [
-            'module' => Router::$moduleKeyword,
-            // project 配置
-            'project' => $projectConfig['name'],
-            'projectNamespace' => $projectConfig['namespace'],
-            'projectViewpath' => $projectConfig['viewpath'],
-
-            // 默认控制器
-            'defaultNamespace' => $defaultApp['namespace'] ?? 'App\\Http\\Controllers',
-            'defaultViewpath' => $defaultApp['viewpath'] ?? '',
-        ];
-        // 初始化视图目录
-        if (empty($options['defaultViewpath'])) {
-            if ($options['defaultNamespace'] === 'App\\Http\\Controllers') {
-                $options['defaultViewpath'] = PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views';
-            } else {
-                if (!str_ends_with($options['defaultNamespace'], '\\Controllers')) {
-                    throw new \Exception('自定义命名空间必须以 \\Controllers 结尾');
-                }
-                if (str_starts_with($options['defaultNamespace'], 'App\\Modules\\')) {
-                    $cc = explode('\\', $options['defaultNamespace']);
-                    $options['defaultViewpath'] = PATH_APP_MODULES . $cc[2] . '/views';
-                } elseif (str_starts_with($options['defaultNamespace'], 'App\\Projects\\')) {
-                    $cc = explode('\\', $options['defaultNamespace']);
-                    $options['defaultViewpath'] = PATH_APP_PROJECTS . $cc[2] . '/views';
-                }
-
-            }
-        }
-        $route->routerOptions = Router::analysisWithURL($route->urlOptions['mapurl'], $options);
-//        ddd($route->urlOptions,$route->routerOptions);
+        $appDto = RouteContext::config($config);
+        $route->routerOptions = Router::analysisWithURL($route->urlOptions['mapurl'], $appDto);
+//        ddd($appDto,$route->urlOptions,$route->routerOptions,__FILE__);
 
         /**
          * @var \Phalcon\Mvc\Router $router
          */
         $router = $di->getShared('router');
-
         $router->setDefaultNamespace($route->routerOptions['namespace']);
         // 添加到路由
         // 注意：pattern, route 要和 application->handle($uri) 保持一致

@@ -5,12 +5,29 @@ declare(strict_types=1);
 namespace Tests\Unit\tao996\phax\Support;
 
 use Phax\Foundation\CliRouter;
+use Phax\Foundation\Context\RouteContext;
 use Phax\Foundation\Route;
 use Phax\Support\Router;
 
 
 class RouterTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * 创建测试用 RouteContext
+     * @param string $project 项目名称（可选）
+     */
+    private function dto(string $project = ''): RouteContext
+    {
+        $dto = new RouteContext();
+        $dto->defaultNamespace = 'App\Http\Controllers';
+        $dto->defaultViewPath = PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views';
+        if ($project) {
+            $dto->projectName = $project;
+            $dto->projectNamespace = 'App\Projects\\' . $project . '\Controllers';
+            $dto->projectViewPath = PATH_APP_PROJECTS . $project . DIRECTORY_SEPARATOR . 'views';
+        }
+        return $dto;
+    }
 
     public function testPathPattern()
     {
@@ -163,9 +180,9 @@ class RouterTest extends \PHPUnit\Framework\TestCase
      */
     public function testErrorUse()
     {
-//        $rst = Router::analysisRoutePath('/m/demo.db/test/list');
+//        $rst = Router::analysisRoutePath('/m/demo.db/test/list', $this->dto());
 //        ddd($rst);
-        $rst = Router::analysisRoutePath('/api/p/family/vip/notify/wx964c9beb6dc7131b');
+        $rst = Router::analysisRoutePath('/api/p/family/vip/notify/wx964c9beb6dc7131b', $this->dto('family'));
 //        ddd($rst);
         $this->assertEquals([
             "pattern" => "/api/p/family/:controller/:action/:params",
@@ -186,12 +203,12 @@ class RouterTest extends \PHPUnit\Framework\TestCase
 
     public function testUrl()
     {
-        $rst1 = \Phax\Support\Router::analysisWithURL('/m/tao');
+        $rst1 = \Phax\Support\Router::analysisWithURL('/m/tao', $this->dto());
         $this->assertEquals('/m/:module', $rst1['route']);
         $this->assertEquals('index', $rst1['paths']['controller']);
         $this->assertEquals('index', $rst1['paths']['action']);
 
-        $rst2 = \Phax\Support\Router::analysisWithURL('/m/tao/');
+        $rst2 = \Phax\Support\Router::analysisWithURL('/m/tao/', $this->dto());
         $this->assertEquals('/m/:module/', $rst2['route']);
 
 //        $route = new Route('/m/tao', \Phax\Foundation\Application::di());
@@ -211,68 +228,74 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'pattern' => '/',
             'paths' => ['controller' => 'index', 'action' => 'index'],
             'pathsname' => ['controller' => 'index', 'action' => 'index'],
-            ...$baseInfo
+            ...$baseInfo,
+            'project' => ''
         ];
-        $rst = Router::analysisRoutePath('');
+        $rst = Router::analysisRoutePath('', $this->dto());
         $this->assertEquals($expect, $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('index/index', $node);
 
-        $rst = Router::analysisRoutePath('/');
+        $rst = Router::analysisRoutePath('/', $this->dto());
         $this->assertEquals($expect, $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('index/index', $node);
 
-        $rst1 = Router::analysisRoutePath('/cn/');
+        $rst1 = Router::analysisRoutePath('/cn/', $this->dto());
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $this->assertEquals($expect, $rst1);
 
 
-        $rst = Router::analysisRoutePath('/c1');
+        $rst = Router::analysisRoutePath('/c1', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller',
             'paths' => ['controller' => 1, 'action' => 'index'],
             'pathsname' => ['controller' => 'c1', 'action' => 'index'],
+            'project' => '',
             ...$baseInfo
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c1/index', $node);
 
-        $rst = Router::analysisRoutePath('/c2/a2');
+        $rst = Router::analysisRoutePath('/c2/a2', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller/:action',
             'paths' => ['controller' => 1, 'action' => 2],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
+            'project' => '',
             ...$baseInfo
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c2/a2', $node);
 
-        $rst = Router::analysisRoutePath('/c2/a2/p');
+        $rst = Router::analysisRoutePath('/c2/a2/p', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller/:action/:params',
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
+            'project' => '',
             ...$baseInfo
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c2/a2', $node);
 
-        $rst = Router::analysisRoutePath('/c2/a2/p1/p2');
+        $rst = Router::analysisRoutePath('/c2/a2/p1/p2', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller/:action/:params',
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
+            'project' => '',
             ...$baseInfo
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('c2/a2', $node);
 
-        $rst = Router::analysisRoutePath('/c2/a2/p1/p2/p3');
+        $rst = Router::analysisRoutePath('/c2/a2/p1/p2/p3', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller/:action/:params',
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
+            'project' => '',
             ...$baseInfo
         ], $rst);
         $node = $route->getNode($rst);
@@ -281,7 +304,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         // 普通 c1/a1/p1，单应用没有子模块（module/controller/action）因为跟普通路径冲突，并且文件目录没得放
 
         // 单应用子目录 sub.c1 或者 sub.c1/a1 或者 sub.c1/a1/p1
-        $rst = Router::analysisRoutePath('/sub.c1');
+        $rst = Router::analysisRoutePath('/sub.c1', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller',
             'paths' => ['controller' => 1, 'action' => 'index'],
@@ -289,11 +312,12 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'namespace' => "App\Http\Controllers\sub",
             'viewpath' => PATH_APP . "Http" . DIRECTORY_SEPARATOR . "views",
             'subc' => 'sub',
+            'project' => '',
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('sub.c1/index', $node);
 
-        $rst = Router::analysisRoutePath('/sub.c2/a2');
+        $rst = Router::analysisRoutePath('/sub.c2/a2', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller/:action',
             'paths' => ['controller' => 1, 'action' => 2],
@@ -301,30 +325,31 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'namespace' => "App\Http\Controllers\sub",
             'viewpath' => PATH_APP . "Http" . DIRECTORY_SEPARATOR . "views",
             'subc' => 'sub',
+            'project' => '',
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('sub.c2/a2', $node);
 
-        $rst = Router::analysisRoutePath('/sub.c2/a2/p1');
+        $rst = Router::analysisRoutePath('/sub.c2/a2/p1', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller/:action/:params',
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
             'viewpath' => PATH_APP . "Http" . DIRECTORY_SEPARATOR . "views",
-            'subc' => 'sub',
+            'subc' => 'sub','project' => '',
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('sub.c2/a2', $node);
 
-        $rst = Router::analysisRoutePath('/sub.c2/a2/p1/p2');
+        $rst = Router::analysisRoutePath('/sub.c2/a2/p1/p2', $this->dto());
         $this->assertEquals([
             'pattern' => '/:controller/:action/:params',
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
             'pathsname' => ['controller' => 'c2', 'action' => 'a2'],
             'namespace' => "App\Http\Controllers\sub",
             'viewpath' => PATH_APP . "Http" . DIRECTORY_SEPARATOR . "views",
-            'subc' => 'sub',
+            'subc' => 'sub','project' => '',
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('sub.c2/a2', $node);
@@ -345,10 +370,10 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'name' => 'index',
         ];
 
-        $rst = Router::analysisRoutePath('/m/');
+        $rst = Router::analysisRoutePath('/m/', $this->dto());
         $this->assertEquals($expect, $rst);
 
-        $rst = Router::analysisRoutePath('/cn/m/');
+        $rst = Router::analysisRoutePath('/cn/m/', $this->dto());
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $this->assertEquals($expect, $rst);
 
@@ -365,13 +390,13 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'module' => PATH_APP_MODULES . 'm1' . DIRECTORY_SEPARATOR . 'Module.php',
             'name' => 'm1',
         ];
-        $rst = Router::analysisRoutePath('/m/m1');
+        $rst = Router::analysisRoutePath('/m/m1', $this->dto());
         $this->assertEquals($expect, $rst);
 
-        $rst = Router::analysisRoutePath('/m/M1'); // 大写
+        $rst = Router::analysisRoutePath('/m/M1', $this->dto()); // 大写
         $this->assertEquals($expect, $rst);
 
-        $rst = Router::analysisRoutePath('/en/m/m1');
+        $rst = Router::analysisRoutePath('/en/m/m1', $this->dto());
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $expect['paths']['module'] = 2;
         $this->assertEquals($expect, $rst);
@@ -388,10 +413,10 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'module' => PATH_APP_MODULES . 'm1' . DIRECTORY_SEPARATOR . 'Module.php',
             'name' => 'm1',
         ];
-        $rst = Router::analysisRoutePath('/m/m1/c');
+        $rst = Router::analysisRoutePath('/m/m1/c', $this->dto());
         $this->assertEquals($expect, $rst);
 
-        $rst = Router::analysisRoutePath('/en/m/m1/c');
+        $rst = Router::analysisRoutePath('/en/m/m1/c', $this->dto());
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $expect['paths']['module'] = 2;
         $expect['paths']['controller'] = 3;
@@ -409,9 +434,9 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'module' => PATH_APP_MODULES . 'm1' . DIRECTORY_SEPARATOR . 'Module.php',
             'name' => 'm1',
         ];
-        $rst = Router::analysisRoutePath('/m/m1/c1/a1');
+        $rst = Router::analysisRoutePath('/m/m1/c1/a1', $this->dto());
         $this->assertEquals($expect, $rst);
-        $rst = Router::analysisRoutePath('/en/m/m1/c1/a1');
+        $rst = Router::analysisRoutePath('/en/m/m1/c1/a1', $this->dto());
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $expect['paths']['module'] = 2;
         $expect['paths']['controller'] = 3;
@@ -431,10 +456,10 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'module' => PATH_APP_MODULES . 'm2' . DIRECTORY_SEPARATOR . 'Module.php',
             'name' => 'm2',
         ];
-        $rst = Router::analysisRoutePath('/m/m2/c2/a2/p');
+        $rst = Router::analysisRoutePath('/m/m2/c2/a2/p', $this->dto());
         $this->assertEquals($expect, $rst);
 
-        $rst = Router::analysisRoutePath('/en/m/m2/c2/a2/p1/p2/p3');
+        $rst = Router::analysisRoutePath('/en/m/m2/c2/a2/p1/p2/p3', $this->dto());
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $expect['paths']['module'] = 2;
         $expect['paths']['controller'] = 3;
@@ -454,16 +479,16 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'route' => '/m/:module\.wechat',
         ];
         $keys = ['pattern', 'pathsname', 'namespace', 'viewpath', 'route'];
-        $rst = Router::analysisWithURL('/m/tao.wechat');
+        $rst = Router::analysisWithURL('/m/tao.wechat', $this->dto());
         $this->assertEquals($expect, \Phax\Utils\MyData::getByKeys($rst, $keys));
 
-        $rst = Router::analysisWithURL('/cn/m/tao.wechat');
+        $rst = Router::analysisWithURL('/cn/m/tao.wechat', $this->dto());
         $expect['pattern'] = Router::$languageRule . $expect['pattern'];
         $expect['route'] = Router::$languageRule . $expect['route'];
         $this->assertEquals($expect, \Phax\Utils\MyData::getByKeys($rst, $keys));
 
 
-        $rst = Router::analysisRoutePath('/m/m1.m11/c1');
+        $rst = Router::analysisRoutePath('/m/m1.m11/c1', $this->dto());
         $this->assertEquals([
             'pattern' => '/m/:module/:controller',
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
@@ -475,7 +500,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'subm' => 'm11',
         ], $rst);
 
-        $rst = Router::analysisWithURL('/m/m1.m11/c1');
+        $rst = Router::analysisWithURL('/m/m1.m11/c1', $this->dto());
         $this->assertEquals([
             'registerModules' => [
                 'm1' => [
@@ -494,7 +519,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('m1.m11/c1/index', $node);
 
         // 多模块：子模块+子目录
-        $rst = Router::analysisRoutePath('/m/m1.m11/sub1.c2');
+        $rst = Router::analysisRoutePath('/m/m1.m11/sub1.c2', $this->dto());
         $this->assertEquals([
             'pattern' => '/m/:module/:controller',
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
@@ -511,7 +536,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('m1.m11/sub1.c2/index', $node);
 
         // 多模块子目录
-        $rst = Router::analysisRoutePath('/m/m1/sub1.c1');
+        $rst = Router::analysisRoutePath('/m/m1/sub1.c1', $this->dto());
         $this->assertEquals([
             'pattern' => '/m/:module/:controller',
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 'index'],
@@ -526,7 +551,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $node = $route->getNode($rst);
         $this->assertEquals('m1/sub1.c1/index', $node);
 
-        $rst = Router::analysisRoutePath('/m/m1/sub.c1/a1');
+        $rst = Router::analysisRoutePath('/m/m1/sub.c1/a1', $this->dto());
         $this->assertEquals([
             'pattern' => '/m/:module/:controller/:action',
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3],
@@ -541,7 +566,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $node = $route->getNode($rst);
         $this->assertEquals('m1/sub.c1/a1', $node);
 
-        $rst = Router::analysisRoutePath('/m/m1/sub.c1/a1/p1');
+        $rst = Router::analysisRoutePath('/m/m1/sub.c1/a1/p1', $this->dto());
         $this->assertEquals([
             'pattern' => '/m/:module/:controller/:action/:params',
             'paths' => ['module' => 1, 'controller' => 2, 'action' => 3, 'params' => 4],
@@ -565,7 +590,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $route = new Route('', \Phax\Foundation\Application::di());
 
         // 单应用子模块+子目录
-        $rst = Router::analysisWithURL('/sub/sub1.bbq/say'); // 没有参数
+        $rst = Router::analysisWithURL('/sub/sub1.bbq/say', $this->dto()); // 没有参数
         $bbqSayExpect = [
             'pattern' => '/:controller/:action',
             'paths' => ['controller' => 1, 'action' => 2,],
@@ -574,6 +599,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'viewpath' => PATH_APP . "Http" . DIRECTORY_SEPARATOR . "A0" . DIRECTORY_SEPARATOR . "sub" . DIRECTORY_SEPARATOR . "views",
             'subm' => 'sub',
             'subc' => 'sub1',
+            'project' => ''
         ];
         $this->assertEquals(array_merge([
             'pickview' => 'sub1/bbq/say',
@@ -583,7 +609,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('sub/sub1.bbq/say', $node);
 
 
-        $rst = Router::analysisRoutePath('/sub/sub1.bbq/say/p1'); // 1个参数
+        $rst = Router::analysisRoutePath('/sub/sub1.bbq/say/p1', $this->dto()); // 1个参数
         $this->assertEquals(array_merge($bbqSayExpect, [
             'pattern' => '/:controller/:action/:params',
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
@@ -591,7 +617,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $node = $route->getNode($rst);
         $this->assertEquals('sub/sub1.bbq/say', $node);
 
-        $rst = Router::analysisRoutePath('/m1/sub.c1/a1/p1/p2'); // 两个参数
+        $rst = Router::analysisRoutePath('/m1/sub.c1/a1/p1/p2', $this->dto()); // 两个参数
         $this->assertEquals([
             'pattern' => '/:controller/:action/:params',
             'paths' => ['controller' => 1, 'action' => 2, 'params' => 3],
@@ -600,31 +626,32 @@ class RouterTest extends \PHPUnit\Framework\TestCase
             'viewpath' => PATH_APP . "Http" . DIRECTORY_SEPARATOR . "A0" . DIRECTORY_SEPARATOR . "m1" . DIRECTORY_SEPARATOR . "views",
             'subm' => 'm1',
             'subc' => 'sub',
+            'project' => ''
         ], $rst);
         $node = $route->getNode($rst);
         $this->assertEquals('m1/sub.c1/a1', $node);
 
         // 单应用，非标准应用
-        $rst = Router::analysisWithURL('/admin.simpleRent', ['project' => 'city']);
+        $rst = Router::analysisWithURL('/admin.simpleRent', $this->dto('city'));
 //        dd($rst);
         $this->assertEquals(['controller' => 'simpleRent', 'action' => 'index'], $rst['pathsname']);
         $this->assertEquals('App\Projects\city\Controllers\admin', $rst['namespace']);
         $this->assertEquals(PATH_APP_PROJECTS . 'city' . DIRECTORY_SEPARATOR . 'views', $rst['viewpath']);
 
 
-        $data = Router::analysisRoutePath('/about/us', ['project' => 'city']);
+        $data = Router::analysisRoutePath('/about/us', $this->dto('city'));
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
             'viewpath' => PATH_APP_PROJECTS . 'city' . DIRECTORY_SEPARATOR . 'views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
 
-        $data = Router::analysisRoutePath('/', ['project' => 'city']);
+        $data = Router::analysisRoutePath('/', $this->dto('city'));
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
             'viewpath' => PATH_APP_PROJECTS . 'city' . DIRECTORY_SEPARATOR . 'views'
         ], \Phax\Utils\MyData::getByKeys($data, ['namespace', 'viewpath']));
 
-        $data = Router::analysisRoutePath('/auth', ['project' => 'city']);
+        $data = Router::analysisRoutePath('/auth', $this->dto('city'));
         $this->assertEquals([
             'namespace' => 'App\Projects\city\Controllers',
             'viewpath' => PATH_APP_PROJECTS . 'city' . DIRECTORY_SEPARATOR . 'views'
@@ -632,14 +659,14 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('auth', $data['pathsname']['controller']);
 
         $url = '/sub/sub1.me/say?key=1';
-        $data = Router::analysisWithURL($url);
+        $data = Router::analysisWithURL($url, $this->dto());
 //        dd($data);
         $this->assertEquals('/sub/sub1\.([a-zA-Z0-9\_\-]+)/:action', $data['route']);
         $this->assertEquals('sub1/me/say', $data['pickview']);
 
 
         $url = '/api/sub/sub1.me/say';
-        $data = Router::analysisWithURL($url);
+        $data = Router::analysisWithURL($url, $this->dto());
         $this->assertEquals('/api/sub/sub1\.([a-zA-Z0-9\_\-]+)/:action', $data['route']);
 //        preg_match_all('#^/m/([\w0-9\_\-]+)\.wechat/([\w0-9\_\-]+)/([\w0-9\_\-]+)$#u','/m/tao.wechat/menu/edit',$matches);
 

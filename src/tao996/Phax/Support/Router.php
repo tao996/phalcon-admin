@@ -3,6 +3,7 @@
 namespace Phax\Support;
 
 use Phax\Foundation\AppService;
+use Phax\Foundation\Context\RouteContext;
 
 
 /**
@@ -67,15 +68,13 @@ class Router
     /**
      * 路由请求
      * @param string $path path 地址，注意不能带有 ?
-     * @param array $options ['project'=>'默认的项目名称']
      * @throws \Exception
      */
-    public static function analysisRoutePath(string $path, array $options = []): array
+    public static function analysisRoutePath(string $path, RouteContext $dto): array
     {
         if (str_contains($path, '?')) {
             throw new \Exception('analysisRoute error: it should not contain "?" char');
         }
-        $options = array_merge(['project' => ''], $options);
         $info = self::pathMatch($path);
 //        ddd($path, $info);
         if ($info['module']) {
@@ -128,33 +127,34 @@ class Router
             $data = [
                 'pattern' => '/',
                 'paths' => ['controller' => 'index', 'action' => 'index'],
-                'namespace' => $options['defaultNamespace'] ?? 'App\\Http\\Controllers',
-                'viewpath' => $options['defaultViewpath'] ?? PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
+                'namespace' => $dto->defaultNamespace,
+                'viewpath' => $dto->defaultViewPath,
             ];
 
-            if ($info['project']) {
-                if (empty($info['path'])) {
-                    $data['project'] = $options['project'];
-                } else {
+            if ($info['project']) { // 是否为 project
+                if (empty($info['path'])) { // 链接地址也可能是 `/p`，此时需要默认项目
+                    $data['project'] = $dto->projectName;
+                } else { // /p/a/b
                     $urlElements = explode('/', $info['path']);
                     $data['project'] = $urlElements[0];
                     $info['path'] = ltrim(substr($info['path'], strlen($data['project']) + 1), '/');
                 }
+            } else {
+                // 首页
+                $data['project'] = $dto->projectName;
             }
-            if (empty($data['project']) && $options['project']) {
-                $data['project'] = $options['project'];
-            }
-//            ddd($data,$info);
+            $dto->updateProject($data['project']);
+
+
             $urlElements = empty($info['path']) ? [] : explode('/', $info['path']);
             $first_part = $urlElements[0] ?? 'index';
             $second_part = $urlElements[1] ?? 'index';
             $data['pathsname'] = ['controller' => $first_part, 'action' => $second_part];
             if (!empty($data['project'])) {
-                $data['namespace'] = $options['projectNamespace']
-                    ?? 'App\\Projects\\' . $data['project'] . '\\Controllers';
-                $data['viewpath'] = $options['projectViewpath']
-                    ?? PATH_APP_PROJECTS . $data['project'] . DIRECTORY_SEPARATOR . 'views';
+                $data['namespace'] = $dto->projectNamespace;
+                $data['viewpath'] = $dto->projectViewPath;
             }
+
             switch (count($urlElements)) {
                 case 0:
                     break;
@@ -266,7 +266,7 @@ class Router
             // "App\Modules\m1.m2\Controllers" => "App\Modules\m1\A0\m2\Controllers"
             $data['namespace'] = str_replace('.', '\A0\\', $data['namespace']);
             // "/var/www/App/Modules/m1.m2/views" => "/var/www/App/Modules/m1/A0/m2/views"
-            $data['viewpath'] = str_replace('.', DIRECTORY_SEPARATOR.'A0'.DIRECTORY_SEPARATOR, $data['viewpath']);
+            $data['viewpath'] = str_replace('.', DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR, $data['viewpath']);
             // "/var/www/App/Modules/m1.m2/Module.php" => '/var/www/App/Modules/m1/Module.php'
             $data['module'] = str_replace($module, $m[0], $data['module']);
             $data['name'] = $m[0];
@@ -305,15 +305,14 @@ class Router
     /**
      * 分析链接
      * @param string $requestURI 待处理的 URL
-     * @param array $options 配置信息  ['project'=> 默认前端应用]
      * @return array{pattern:string,paths:array{module:string,controller:string,action:string},pathsname:array{module:string,controller:string,action:string},namespace:string,viewpath:string,project:string,route:string,pickview:string}
      * @throws \Exception
      */
-    public static function analysisWithURL(string $requestURI, array $options = []): array
+    public static function analysisWithURL(string $requestURI, RouteContext $dto): array
     {
         // 去掉请求参数
         $requestURI = self::getURLPath($requestURI);
-        $config = self::analysisRoutePath($requestURI, $options);
+        $config = self::analysisRoutePath($requestURI, $dto);
 
         if (isset($config['subc'])) { // 子目录
             $config['pickview'] = $config['subc'] . '/' . self::formatPickView(
@@ -330,7 +329,7 @@ class Router
                 $config['name'] => [
                     'path' => $hasModule
                         ? $config['module']
-                        : dirname(__DIR__) . DIRECTORY_SEPARATOR.'Mvc'.DIRECTORY_SEPARATOR.'Module.php',
+                        : dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Mvc' . DIRECTORY_SEPARATOR . 'Module.php',
                     'className' => $hasModule
                         ? 'App\Modules\\' . $config['name'] . '\Module'
                         : 'Phax\Mvc\Module',
