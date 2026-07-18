@@ -5,6 +5,7 @@ namespace Phax\Foundation\Context;
 use Phax\Foundation\AppService;
 use Phax\Support\Router;
 use Phax\Utils\MyData;
+use Phax\Utils\MyUrl;
 
 class RouteMatchContext
 {
@@ -106,7 +107,7 @@ class RouteMatchContext
 
     public static function with(string $requestURI, bool $loadDefault = false): RouteMatchContext
     {
-        $path = Router::getURLPath($requestURI);
+        $path = MyUrl::getURLPath($requestURI);
         $obj = new RouteMatchContext(requestURI: $requestURI, path: $path,
             loadDefault: $loadDefault);
         $obj->doWithContext();
@@ -368,7 +369,7 @@ class RouteMatchContext
             );
         }
 
-        $requestURI = Router::getURLPath($this->requestURI);
+        $requestURI = MyUrl::getURLPath($this->requestURI);
         if (str_ends_with($requestURI, '/')) {
             if (!str_ends_with($this->route, '/')) {
                 $this->route .= '/';

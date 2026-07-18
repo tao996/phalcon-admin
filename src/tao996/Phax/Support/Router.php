@@ -28,54 +28,6 @@ class Router
     public static string $languageRule = '/{language:[a-zA-Z]{2}(-[a-zA-Z]{2})?}';
 
     /**
-     * @param string $path
-     * @return array{sw:bool,language:string,api:bool,project:bool,module:bool,path:string,mapurl:string}
-     */
-    public static function pathMatch(string $path = ''): array
-    {
-        $matches = [
-            'language' => '',
-            'api' => false,
-            'project' => false,
-            'module' => false,
-            'mapurl' => $path,
-        ];
-        preg_match('|^/[a-zA-Z]{2}(-[a-zA-Z]{2})?/|', $path, $match);
-        if (isset($match[0])) {
-            $matches['language'] = trim($match[0], '/');
-            $path = substr($path, strlen($matches['language']) + 1);
-        }
-        if (str_starts_with($path, '/api/')) {
-            $matches['api'] = true;
-            $path = substr($path, 4);
-        }
-        if (str_starts_with($path, self::$projectPrefix)) {
-            $matches['project'] = true;
-            $matches['path'] = substr($path, strlen(self::$projectPrefix));
-        } elseif (str_starts_with($path, self::$modulePrefix)) {
-            $matches['module'] = true;
-            $matches['path'] = substr($path, strlen(self::$modulePrefix));
-        } else {
-            $matches['path'] = $path;
-        }
-
-        $matches['path'] = trim($matches['path'], '/');
-        return $matches;
-    }
-
-    /**
-     * 获取请求地址的路径
-     * @param string $requestURI
-     * @return string
-     */
-    public static function getURLPath(string $requestURI): string
-    {
-        // 去掉请求参数
-        $index = strpos($requestURI, '?');
-        return $index === false ? $requestURI : substr($requestURI, 0, $index);
-    }
-
-    /**
      * 格式化控制器/操作名称
      * @param string $name refreshNode, refresh-node, refresh_node, refreshNodeAction, refreshNodeController
      * @return string refreshNode

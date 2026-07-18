@@ -21,4 +21,16 @@ class MyUrl
     {
         return in_array(parse_url($url, PHP_URL_HOST), $hosts);
     }
+
+    /**
+     * 获取请求地址的路径
+     * @param string $requestURI
+     * @return string
+     */
+    public static function getURLPath(string $requestURI): string
+    {
+        // 去掉请求参数
+        $index = strpos($requestURI, '?');
+        return $index === false ? $requestURI : substr($requestURI, 0, $index);
+    }
 }
