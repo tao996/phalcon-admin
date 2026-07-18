@@ -1,6 +1,6 @@
 <?php
 
-namespace Phax\Helper;
+namespace Phax\Utils;
 
 class MyUrl
 {

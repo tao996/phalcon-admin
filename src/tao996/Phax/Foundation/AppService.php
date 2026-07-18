@@ -7,11 +7,11 @@ use Phalcon\Http\Response\Cookies;
 use Phalcon\Mvc\View;
 use Phax\Foundation\Context\RouteMatchContext;
 use Phax\Helper\HtmlHelper;
-use Phax\Helper\MyUrlBuilder;
 use Phax\Support\Config;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\LogException;
 use Phax\Utils\MyData;
+use Phax\Utils\MyUrlBuilder;
 
 class AppService
 {

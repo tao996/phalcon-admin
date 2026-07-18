@@ -3,7 +3,7 @@ namespace Tests\Unit\tao996\phax\Helper;
 
 use Phax\Foundation\AppService;
 use Phax\Foundation\Context\RouteMatchContext;
-use Phax\Helper\MyUrlBuilder;
+use Phax\Utils\MyUrlBuilder;
 use PHPUnit\Framework\TestCase;
 
 class MyUrlTest extends TestCase
