@@ -4,7 +4,6 @@ namespace Phax\Foundation;
 
 use Phalcon\Di\Di;
 use Phalcon\Http\ResponseInterface;
-use Phax\Foundation\Context\RouteContext;
 use Phax\Foundation\Context\RouteMatchContext;
 use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
@@ -88,6 +87,7 @@ class Application
         }
 
         try {
+            require_once PATH_ROOT . 'routes/web.php';
             if ($response = $this->routeWith($requestURL, $di)) {
                 if ($response->isSent()) {
                     echo $response->getContent();
@@ -158,7 +158,7 @@ class Application
     }
 
     /**
-     * route 服务
+     * 处理请求链接
      * @param string $requestURL
      * @param Di $di
      * @return ResponseInterface
@@ -166,10 +166,8 @@ class Application
      */
     public function routeWith(string $requestURL, Di $di): \Phalcon\Http\ResponseInterface
     {
-        $route = new Route($requestURL, $di);
-        $di->setShared('route', $route);
         $context = RouteMatchContext::with($requestURL,loadDefault: true);
-        $di->setShared('routeContext',$context);
+        $di->setShared('context',$context);
         /**
          * @var \Phalcon\Mvc\Router $router
          */

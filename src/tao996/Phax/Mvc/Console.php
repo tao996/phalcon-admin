@@ -10,7 +10,6 @@
 namespace Phax\Mvc;
 
 /**
- * @property \Phax\Foundation\Route $route
  * @property \Phalcon\Db\Profiler $profiler
  * @property \Phalcon\Mvc\Model\MetaData $modelsMetadata
  * @property \Phalcon\Mvc\Model\Manager $modelsManager

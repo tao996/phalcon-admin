@@ -15,7 +15,8 @@ readonly class  OpenUrlHelper
 
     public function __construct()
     {
-        $this->origin = OpenConfigService::getWith('proxy_origin', AppService::route()->appOrigin());
+        $this->origin = OpenConfigService::getWith('proxy_origin',
+            AppService::context()->appOrigin());
     }
 
     /**

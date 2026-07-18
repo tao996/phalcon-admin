@@ -5,10 +5,8 @@ namespace Tests\Helper;
 
 use Phax\Foundation\Application;
 
-use Phax\Foundation\Context\RouteContext;
-use Phax\Foundation\Route;
+use Phax\Foundation\Context\RouteMatchContext;
 use Phax\Mvc\Controller;
-use Phax\Support\Router;
 use Tests\Helper\services\Request;
 use Tests\Helper\services\Response;
 use Tests\Helper\services\Session;
@@ -18,7 +16,6 @@ class MyTestControllerHelper
     public \Phalcon\Http\RequestInterface $request;
     public \Phalcon\Http\Response $response;
     public \Phalcon\Session\Manager $session;
-    public Route $route;
 
     public Controller $controller; // 待测试的控制器
 
@@ -62,9 +59,7 @@ class MyTestControllerHelper
         if (is_string($controller)) {
             $controller = new $controller();
         }
-        $this->route = new Route('/', $di);
-        $di->set('route', $this->route);
-        $this->replaceRoute('/');
+        $di->set('context', RouteMatchContext::with('/'));
 
         if ($controller) {
             $this->setController($controller);
@@ -81,7 +76,6 @@ class MyTestControllerHelper
         $controller->request = $this->request;
         $controller->response = $this->response;
         $controller->session = $this->session;
-        $controller->route = $this->route;
         if (property_exists($controller, 'jsonResponse')) {
             $controller->jsonResponse = true;
         }
@@ -105,19 +99,6 @@ class MyTestControllerHelper
 
     protected function afterInitialize(): void
     {
-    }
-
-    /**
-     * 路由服务
-     * @param string $requestURL
-     * @return $this
-     * @throws \Exception
-     */
-    public function replaceRoute(string $requestURL): static
-    {
-        $this->route->requestURI = $requestURL;
-        $this->route->routerOptions = Router::analysisWithURL($requestURL, new RouteContext());
-        return $this;
     }
 
 

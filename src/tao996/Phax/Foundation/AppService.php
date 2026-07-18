@@ -89,7 +89,7 @@ class AppService
     public static function getLanguage()
     {
         // 路由
-        if ($language = AppService::routeContext()->language) { // 网址中设置的语言
+        if ($language = AppService::context()->language) { // 网址中设置的语言
             return $language;
         }
         // 请求参数
@@ -160,20 +160,14 @@ class AppService
         return self::config()->getArray('app.superAdmin');
     }
 
-
-    public static function route(): Route
-    {
-        return Application::di()->getShared('route');
-    }
-
     public static function router(): \Phalcon\Mvc\Router|\Phalcon\Cli\Router
     {
         return Application::di()->getShared('router');
     }
 
-    public static function routeContext(): RouteMatchContext
+    public static function context(): RouteMatchContext
     {
-        return Application::di()->getShared('routeContext');
+        return Application::di()->getShared('context');
     }
 
 
@@ -207,7 +201,7 @@ class AppService
     public static function url(array $options): string
     {
         $builder = MyUrlBuilder::new();
-        $builder->language(self::routeContext()->language);
+        $builder->language(self::context()->language);
 
         if (!empty($options['api'])) {
             $builder->asApi();
@@ -229,10 +223,10 @@ class AppService
             if (is_string($options['origin']) && !empty($options['origin'])) {
                 $builder->origin($options['origin']);
             } elseif ($options['origin']) {
-                $builder->origin(self::route()->appOrigin());
+                $builder->origin(self::context()->appOrigin());
             }
         } else {
-            $builder->origin(self::route()->appOrigin());
+            $builder->origin(self::context()->appOrigin());
         }
 
         return $builder->build();

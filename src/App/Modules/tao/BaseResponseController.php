@@ -179,7 +179,7 @@ class BaseResponseController extends Controller
         HtmlAssets::initWithCdn();
         // 渲染视图所需要用到的常量： PATH_TAO 的相关路径
         require_once __DIR__ . '/Common/common.php';
-        $this->routeContext->theme = $this->theme;
+        $this->context->theme = $this->theme;
         if ($this->disabledMainLayout) {
             $this->view->disableLevel(\Phalcon\Mvc\View::LEVEL_MAIN_LAYOUT);
         }
@@ -200,7 +200,7 @@ class BaseResponseController extends Controller
         }
         // 如果定义了移动版模板
         if (isset($this->mobileTemplate[$action]) && AppService::isMobile()) {
-            AppService::routeContext()->setPickView($this->mobileTemplate[$action]);
+            AppService::context()->setPickView($this->mobileTemplate[$action]);
         }
         return parent::beforeViewResponse($data);
     }

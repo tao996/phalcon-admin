@@ -4,11 +4,9 @@ namespace Phax\Mvc;
 
 use Phalcon\Mvc\Dispatcher;
 use Phax\Foundation\AppService;
-use Phax\Foundation\Context\RouteMatchContext;
 use Phax\Support\Exception\BlankException;
 
 /**
- * @property \Phax\Foundation\Route $route
  * @property \Phalcon\Db\Profiler $profiler
  * @property \Phalcon\Mvc\Model\MetaData $modelsMetadata
  * @property \Phalcon\Mvc\Model\Manager $modelsManager
@@ -31,7 +29,7 @@ use Phax\Support\Exception\BlankException;
  * @property \Phalcon\Http\Response\Cookies $cookies
  * @property \Phalcon\Assets\Manager $assets
  * @property \Phalcon\Annotations\Adapter\Memory $annotations
- * @property RouteMatchContext $routeContext
+ * @property \Phax\Foundation\Context\RouteMatchContext $context
  */
 class Controller extends \Phalcon\Mvc\Controller
 {
@@ -132,6 +130,6 @@ class Controller extends \Phalcon\Mvc\Controller
 
     public function isApiRequest(): bool
     {
-        return $this->jsonResponse || $this->routeContext->isApiRequest();
+        return $this->jsonResponse || $this->context->isApiRequest();
     }
 }

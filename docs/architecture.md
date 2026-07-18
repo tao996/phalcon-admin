@@ -72,11 +72,6 @@ Application::runWeb($requestURL)
   │    │    ├── defaultNamespace → options
   │    │    └── defaultViewpath  → options
   │    │
-  │    ├── new Route($requestURL)       // URL 预处理
-  │    │    ├── 路由映射 web.php         // /login → /m/tao/auth/index
-  │    │    ├── Router::pathMatch()      // 分解 URL: language/api/module/project/path
-  │    │    └── 计算 origin()            // 当前域名
-  │    │
   │    ├── Router::analysisWithURL()    // 路由分析
   │    │    ├── 语言前缀 /cn/ /en/
   │    │    ├── API 前缀 /api/
@@ -86,7 +81,7 @@ Application::runWeb($requestURL)
   │    │    ├── 子模块（点号分隔）/m/tao.wechat/
   │    │    └── 子目录（点号分隔）/m/tao/sub.c1/
   │    │
-  │    ├── router->add(route, paths)     // 注册到 Phalcon Router
+  │    ├── // 注册到 Phalcon Router
   │    ├── registerModules()             // 多模块注册
   │    ├── useImplicitView(false)        // API 请求禁止自动渲染视图
   │    │

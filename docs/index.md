@@ -95,9 +95,8 @@ phalcon-admin/
         |-- Phax
             |-- Db/                 # db classes, make ORM write like laravel/thinkphp
             |-- Events/             # I use it in development mode
-            |-- Foundation/         # load service and route
+            |-- Foundation/         # load service
                 |-- Application.php # load env/config/service....
-                |-- Route.php       # save the current request info
             |-- Helper/             # some classes about phalcon
             |-- Mvc/                # base Controller/Model/Module
             |-- Support/

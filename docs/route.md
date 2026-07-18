@@ -1,6 +1,6 @@
 ## 路由
 
-对于 `$_SERVER['REQUEST_URI']` 请求, 我们会使用 `Phax\Foundation\Route` 对其进行分析；
+对于 `$_SERVER['REQUEST_URI']` 请求, 我们会使用 `src/tao996/Phax/Foundation/Context/RouteMatchContext.php` 对其进行分析；
 
 更多细节请查看 `src/tao996/Phax/Foundation/Application.php` 中的 `routeWith` 方法；
 

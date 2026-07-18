@@ -11,6 +11,8 @@ namespace Phax\Helper;
 
 use Phalcon\Mvc\View;
 use Phax\Foundation\AppService;
+use Phax\Foundation\Context\RouteMatchContext;
+use Phax\Support\Exception\BusinessException;
 use Phax\Support\Logger;
 use Phax\Utils\MyData;
 
@@ -32,7 +34,7 @@ class HtmlHelper
 
     public function __construct()
     {
-        if (AppService::has('routeContext') && !AppService::routeContext()->isApiRequest()) {
+        if (AppService::has('context') && !AppService::context()->isApiRequest()) {
             $this->view = AppService::view();
             $this->view->setVar('vv', $this);
         }
@@ -156,8 +158,49 @@ class HtmlHelper
     {
 
         $this->setVar('language', AppService::getLanguage());
-        $route = AppService::route();
-        $route->doneView();
+
+        $context = AppService::context();
+        $view = AppService::view();
+        $viewDir = $context->getViewDIR();
+        $view->setViewsDir($viewDir); // 设置视图目录
+        // 布局文件
+        $layoutViewPath = $viewDir . DIRECTORY_SEPARATOR . 'index';
+        if (file_exists($layoutViewPath . RouteMatchContext::TEMPLATE_SUFFIX)) {
+            $context->mainView = $layoutViewPath;
+        } elseif (empty($context->mainView)) {
+            // 模块布局文件
+            if (isset($context->isModule)) {
+                $context->mainView = PATH_APP_MODULES . $context->getViewDIRFor(
+                        $context->name,
+                    ) . 'index';
+                // 项目布局文件
+            } elseif (!empty($context->isProject)) {
+                $context->mainView = PATH_APP_PROJECTS . $context->getViewDIRFor(
+                        $context->name
+                    ) . 'index';
+            } elseif ($index = strpos($context->viewpath, DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR)) {
+                $context->mainView = $context->getViewDIRFor(
+                        substr($context->viewpath, 0, $index)
+                    ) . 'index';
+            }
+        }
+        // 如果存在布局文件
+        if (!empty($context->mainView)) {
+            $view->setMainView($context->mainView);
+        }
+        // 检查渲染文件
+        $pickViewPath = $context->getPathOfRenderViewTemplate();
+        if (file_exists($pickViewPath . RouteMatchContext::TEMPLATE_SUFFIX)) {
+            $view->pick($context->getPickView()); // 你可以在控制器中随机修改
+        } else {
+            if (IS_DEBUG) {
+                ddd('选择器模板不存在',
+                    AppService::context()->data(),
+                );
+            } else {
+                throw new BusinessException('待渲染的模板不存在');
+            }
+        }
     }
 
 
@@ -397,13 +440,13 @@ class HtmlHelper
      */
     public function appendTemplateJs(): bool
     {
-        $theme = AppService::routeContext()->theme;
-        $pickName = $this->pickName ?: AppService::routeContext()->getPickView();
+        $theme = AppService::context()->theme;
+        $pickName = $this->pickName ?: AppService::context()->getPickView();
         $jsFile = join(
                 '/',
                 $theme
-                    ? [AppService::routeContext()->getViewDIR(), $theme, $pickName]
-                    : [AppService::routeContext()->getViewDIR(), $pickName]
+                    ? [AppService::context()->getViewDIR(), $theme, $pickName]
+                    : [AppService::context()->getViewDIR(), $pickName]
             ) . '.js';
         return AppService::html()->includeAssetsFile($jsFile, 'js');
     }

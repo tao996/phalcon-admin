@@ -6,7 +6,6 @@ use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Services\LogService;
 use Phalcon\Filter\Exception;
 use Phax\Db\QueryBuilder;
-
 use Phax\Db\Transaction;
 use Phax\Foundation\AppService;
 use Phax\Mvc\Model;
@@ -577,7 +576,7 @@ class BaseController extends BaseRbacController
                 }
             } else {
                 // 检查是否有修改节点的权限
-                if (!TaoAppService::loginUserHelper()->access(AppService::route()->getNode())) {
+                if (!TaoAppService::loginUserHelper()->access(AppService::context()->getNode())) {
                     throw new BusinessException('没有修改记录的权限');
                 }
             }

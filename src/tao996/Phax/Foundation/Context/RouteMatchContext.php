@@ -3,11 +3,21 @@
 namespace Phax\Foundation\Context;
 
 use Phax\Foundation\AppService;
-use Phax\Foundation\Route;
 use Phax\Support\Router;
+use Phax\Utils\MyData;
 
 class RouteMatchContext
 {
+    /**
+     * 模板扩展名后缀
+     */
+    public const string TEMPLATE_SUFFIX = '.phtml';
+    /**
+     * 路由映射，示例  ['/login'=>'/m/tao/auth/index']，当访问 /login 时，实际路由映射为 /m/tao/auth/index
+     * @var array
+     */
+    public static array $mapRoute = [];
+
     public string $theme = '';
     /**
      * 匹配位置, `$pathsname` 中占位符的顺序
@@ -51,6 +61,12 @@ class RouteMatchContext
     public string $mapurl = '';
 
     private string $pickview = '';
+
+    /**
+     * 当前访问的域名
+     * @var string
+     */
+    private string $origin = '';
 
     public function __construct(
         public string $pattern = '',
@@ -97,33 +113,45 @@ class RouteMatchContext
         return $obj;
     }
 
-    public function loadDefaultProject()
+    /**
+     * 加载默认项目
+     * @return void
+     * @throws \Exception
+     */
+    public function loadDefaultProject(): void
     {
         $config = AppService::config();
-        $project = $config->getString('app.project');
-        $this->updateProject($project);
+        $project = $config->getString('app.default');
+        if ($project) {
+            $this->updateProject($project);
+        } else {
+            $defaultApp = $config->getArray('app.defaultApp');
 
-        $defaultApp = $config->getArray('app.defaultApp');
-
-        if (!empty($defaultApp['namespace'])) {
-            $this->namespace = $defaultApp['namespace'];
-        }
-        if (empty($defaultApp['viewpath'])) {
-            if ($this->namespace != 'App\\Http\\Controllers') {
-                if (!str_ends_with($this->namespace, '\\Controllers')) {
-                    throw new \Exception('自定义命名空间必须以 \\Controllers 结尾');
-                }
-                if (str_starts_with($this->namespace, 'App\\Modules\\')) {
-                    $cc = explode('\\', $this->namespace);
-                    $this->viewpath = PATH_APP_MODULES . $cc[2] . '/views';
-                } elseif (str_starts_with($this->namespace, 'App\\Projects\\')) {
-                    $cc = explode('\\', $this->namespace);
-                    $this->viewpath = PATH_APP_PROJECTS . $cc[2] . '/views';
+            if (!empty($defaultApp['namespace'])) {
+                $this->namespace = $defaultApp['namespace'];
+            }
+            if (empty($defaultApp['viewpath'])) {
+                if ($this->namespace != 'App\\Http\\Controllers') {
+                    if (!str_ends_with($this->namespace, '\\Controllers')) {
+                        throw new \Exception('自定义命名空间必须以 \\Controllers 结尾');
+                    }
+                    if (str_starts_with($this->namespace, 'App\\Modules\\')) {
+                        $cc = explode('\\', $this->namespace);
+                        $this->viewpath = PATH_APP_MODULES . $cc[2] . '/views';
+                    } elseif (str_starts_with($this->namespace, 'App\\Projects\\')) {
+                        $cc = explode('\\', $this->namespace);
+                        $this->viewpath = PATH_APP_PROJECTS . $cc[2] . '/views';
+                    }
                 }
             }
         }
     }
 
+    /**
+     * 根据项目更新当前配置信息
+     * @param string $project
+     * @return void
+     */
     public function updateProject(string $project): void
     {
         if (!empty($project)) {
@@ -412,7 +440,7 @@ class RouteMatchContext
             '布局文件' => $view->getMainView(),
             '视图目录' => $view->getViewsDir(),
             '模板名称' => $this->pickview,
-            '模板路径' => $this->getPathOfRenderViewTemplate() . Route::TEMPLATE_SUFFIX
+            '模板路径' => $this->getPathOfRenderViewTemplate() . self::TEMPLATE_SUFFIX
         ];
     }
 
@@ -529,5 +557,109 @@ class RouteMatchContext
     {
         $this->pickview = $pickViewName;
         AppService::view()->pick($pickViewName);
+    }
+
+    /**
+     * 获取当前访问节点命名（通常用于做权限管理）
+     * @return string
+     */
+    public function getNode(): string
+    {
+
+        if ($this->isModule) {
+            if (!$this->subm && !$this->subc) {
+                return join('/', $this->pathsname);
+            }
+            if ($this->subm && !$this->subc) {
+                return join('/', [
+                    $this->pathsname['module'] . '.' . $this->subm,
+                    $this->pathsname['controller'],
+                    $this->pathsname['action']
+                ]);
+            }
+            if (!$this->subm && $this->subc) {
+                return join('/', [
+                    $this->pathsname['module'],
+                    $this->subc . '.' . $this->pathsname['controller'],
+                    $this->pathsname['action']
+                ]);
+            }
+            if ($this->subm && $this->subc) {
+                return join('/', [
+                    $this->pathsname['module'] . '.' . $this->subm,
+                    $this->subc . '.' . $this->pathsname['controller'],
+                    $this->pathsname['action']
+                ]);
+            }
+        } else {
+            if (!$this->subm && !$this->subc) {
+                return join('/', $this->pathsname);
+            }
+            if (!$this->subm && $this->subc) {
+                return join('/', [
+                    $this->subc . '.' . $this->pathsname['controller'],
+                    $this->pathsname['action'],
+                ]);
+            }
+            if ($this->subm && $this->subc) {
+                return join('/', [
+                    $this->subm,
+                    $this->subc . '.' . $this->pathsname['controller'],
+                    $this->pathsname['action'],
+                ]);
+            }
+        }
+        return '';
+    }
+
+    /**
+     * 当前访问的域名
+     * @return string http://localhost:8071/
+     */
+    public function appOrigin(): string
+    {
+        if (empty($this->origin)) {
+            //  app.origin 域名没有配置，示例 https://localhost:8080/
+            $this->origin = AppService::config()->getString('app.origin');
+            if (!empty($this->origin)) {
+                return $this->origin;
+            }
+
+            $request = AppService::request();
+
+            $scheme = $request->hasServer('HTTPS')
+            && (($request->getServer('HTTPS') == 'on') || ($request->getServer('HTTPS') == 1))
+                ? 'https' : 'http';
+            $port = '';
+            $server_port = $request->getServer('SERVER_PORT') ?: MyData::getInt($_SERVER, 'OPEN_PORT', '80');
+            if ($server_port != '80' && $server_port != '443') {
+                $port = ':' . $server_port;
+            }
+
+            $host = '';
+            foreach (
+                [
+                    $request->getHeader('X-Forwarded-Host'),
+                    $request->getServer('HTTP_X_FORWARDED_HOST'),
+                    $request->getHeader('HOST'),
+                    $request->getServer('HTTP_HOST'),
+                    $request->getServer('SERVER_NAME'),
+                ] as $v
+            ) {
+                if ($v) {
+                    $host = $v;
+                    break;
+                }
+            }
+            if (empty($host)) {
+                $host = 'localhost';
+            }
+            if (str_contains($host, ':')) {
+                $host = explode(':', $host)[0];
+            }
+            $this->origin = "{$scheme}://{$host}{$port}/";
+        }
+//        ddd($this->origin);
+        return $this->origin;
     }
 }

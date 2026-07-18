@@ -14,7 +14,6 @@ class AuthRedisData
 
     private function getRedisKey(string $token): string
     {
-        // $this->mvc->route()->getProject('phax') 不需要，因为设置的时候可能没有应用名称
         return 'login:' . $token;
     }
 

@@ -20,12 +20,13 @@ $data['app'] = [
 //        'subject' => 'jwt'
 //    ],
     // 当访问路径为 '' 或 '/' 时，默认访问的链接
-    'default' => '',
-    'defaultApp' => [
+    // 在 src/tao996/Phax/Foundation/Context/RouteMatchContext.php 使用
+    'default' => '', // 默认项目，必须位于 App\Projects 目录下，
+    'defaultApp' => [ // 优先级比 default 低。只有当 default 为空时，才会使用
         // 自定义时只能指向 App\Modules\xxx\Controller 或者 App\Projects\xxx\Controller
-//        'namespace' => 'App\Http\Controllers',
+        // 'namespace' => 'App\Http\Controllers',
         // viewpath 默认会根据 namespace 进行判断
-//        'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
+        // 'viewpath' => PATH_APP . 'Http' . DIRECTORY_SEPARATOR . 'views',
     ],
     // 异常和错误处理的类
     'error' => 'App\Http\AppErrorResponse', // 默认值

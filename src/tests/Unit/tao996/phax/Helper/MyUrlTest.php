@@ -2,7 +2,7 @@
 namespace Tests\Unit\tao996\phax\Helper;
 
 use Phax\Foundation\AppService;
-use Phax\Foundation\Route;
+use Phax\Foundation\Context\RouteMatchContext;
 use Phax\Helper\MyUrlBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -120,15 +120,15 @@ class MyUrlTest extends TestCase
         $di = \Phax\Foundation\Application::di();
 
         // 使用匿名类手动构造 route stub，避免 mock 在 Phalcon DI 中的兼容问题
-        $route = new class('/test', $di) extends Route {
+        $rc = new class('/test') extends RouteMatchContext {
             public function appOrigin(): string
             {
                 return 'http://localhost:8071';
             }
         };
-        AppService::routeContext()->language = 'en';
+        $rc->language = 'en';
 
-        $di->setShared('route', $route);
+        $di->setShared('context', $rc);
     }
 
     public static function urlProvider(): array

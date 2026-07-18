@@ -4,7 +4,7 @@ namespace Tests\Unit\tao996\phax\Helper;
 
 use Phax\Foundation\Application;
 use Phax\Foundation\AppService;
-use Phax\Foundation\Route;
+use Phax\Foundation\Context\RouteMatchContext;
 use PHPUnit\Framework\TestCase;
 
 class MyMvcTest extends TestCase
@@ -14,15 +14,14 @@ class MyMvcTest extends TestCase
     {
         $di = Application::di();
 
-        $route = new class('/test', $di) extends Route {
+        $rc = new class('/test') extends RouteMatchContext {
             public function appOrigin(): string
             {
                 return 'http://localhost:8071';
             }
         };
-        AppService::routeContext()->language = 'en';
-
-        $di->setShared('route', $route);
+        $rc->language = 'en';
+        $di->setShared('context', $rc);
     }
 
     public function testUrlModuleWithApi(): void

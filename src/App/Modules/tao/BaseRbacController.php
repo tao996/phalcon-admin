@@ -129,8 +129,8 @@ class BaseRbacController extends BaseResponseController
         parent::initialize();
         if (AppService::has('router')) {
             $this->action = Router::formatNodeName(AppService::router()->getActionName());
-        } else if (AppService::has('routeContext')) {
-            $this->action = AppService::routeContext()->getActionName();
+        } else if (AppService::has('context')) {
+            $this->action = AppService::context()->getActionName();
         }
     }
 
@@ -198,14 +198,14 @@ class BaseRbacController extends BaseResponseController
             throw new BusinessException('不允许访问的操作列表中', [
                 'action' => $this->action,
                 'disableActions' => $this->disableActions,
-                'route' => $this->routeContext->data()
+                'context' => $this->context->data()
             ]);
         }
         if ($this->enableActions && !in_array($this->action, $this->enableActions)) {
             throw new BusinessException('不在允许访问的操作列表中', [
                 'action' => $this->action,
                 'enableActions' => $this->enableActions,
-                'route' => $this->routeContext->data()
+                'context' => $this->context->data()
             ]);
         }
         // 开放接口
@@ -217,7 +217,7 @@ class BaseRbacController extends BaseResponseController
                 throw new BusinessException('not allow disableUpdateActions in open access', [
                     'action' => $this->action,
                     'updateActions' => $this->updateActions,
-                    'route' => $this->routeContext->data()
+                    'context' => $this->context->data()
                 ]);
             }
             return;
@@ -232,7 +232,7 @@ class BaseRbacController extends BaseResponseController
             throw new BusinessException('not allow disableUpdateActions', [
                 'action' => $this->action,
                 'updateActions' => $this->updateActions,
-                'route' => $this->routeContext->data()
+                'context' => $this->context->data()
             ]);
         }
 
@@ -277,7 +277,7 @@ class BaseRbacController extends BaseResponseController
                 $this->accessDenyResponse('没有访问权限');
             }
         }
-        if (!$user->access(AppService::route()->getNode())) {
+        if (!$user->access(AppService::context()->getNode())) {
             $this->accessDenyResponse('没有访问节点的权限');
         }
     }

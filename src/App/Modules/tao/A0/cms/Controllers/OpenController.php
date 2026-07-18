@@ -23,7 +23,7 @@ class OpenController extends BaseController
         if (empty($name)) {
             throw new BusinessException('page name is empty');
         }
-        $tag = $this->request->getQuery('tag', 'string', $this->routeContext->getProject());
+        $tag = $this->request->getQuery('tag', 'string', $this->context->getProject());
         $page = CmsPageService::findFirst($tag, $name);
         if (empty($page)) {
             throw new BusinessException('page not found for ' . $name);
