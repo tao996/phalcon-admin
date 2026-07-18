@@ -4,7 +4,6 @@
  * @var \Phalcon\Mvc\View\Engine\AbstractEngine $this
  * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
-$console = $vv->get('console', true); // 默认后台模板
 ?>
 <!DOCTYPE html>
 <html lang="zh">
@@ -21,12 +20,9 @@ $console = $vv->get('console', true); // 默认后台模板
     <?php
     $vv->outputHeaders();
     ?>
-    <style><?php
-        include __DIR__ . '/tao.css'; ?></style>
 </head>
 <body>
-<div class="<?php
-echo $console ? 'tao-container' : '' ?>">
+<div class="tao-container">
     <?php
     // Flash 消息（来自 flashSession 的 PRG 消息优先显示，其次是直接 flash 消息）
     echo $this->flashSession->output();
@@ -37,19 +33,6 @@ echo $console ? 'tao-container' : '' ?>">
 
 <?php
 $vv->outputFooters();
-$vv->layui()->footer();
-$vv->appendTemplateJs();
 ?>
-<script>
-    $('.successMessage, .errorMessage, .warningMessage, .noticeMessage').each(function () {
-        var $msg = $(this);
-        $msg.css('position', 'relative').append(
-            '<span class="flash-close" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);cursor:pointer;font-size:18px;line-height:1;opacity:0.5;">&times;</span>'
-        );
-    });
-    $(document).on('click', '.flash-close', function () {
-        $(this).parent().slideUp(200);
-    });
-</script>
 
 </html>

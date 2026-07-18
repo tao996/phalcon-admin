@@ -29,9 +29,21 @@ class HtmlHelper
      * @var View|mixed
      */
     protected View $view;
-
+    /**
+     * 禁用主布局 views/index.phtml
+     */
+    public bool $disabledMainLayout = false;
+    /**
+     * 手动指定布局文件，否则从模块或项目中获取
+     */
+    public string $mainLayoutView = '';
+    /**
+     * @var array 绑定到视图上的数据
+     */
     public array $viewData = [];
-
+    /**
+     * @var bool 是否启用本地资源压缩
+     */
     public bool $min = false;
 
     public function __construct()
@@ -166,30 +178,39 @@ class HtmlHelper
         $view = AppService::view();
         $viewDir = $context->getViewDIR();
         $view->setViewsDir($viewDir); // 设置视图目录
-        // 布局文件
-        $layoutViewPath = $viewDir . DIRECTORY_SEPARATOR . 'index';
-        if (file_exists($layoutViewPath . RouteMatchContext::TEMPLATE_SUFFIX)) {
-            $context->mainView = $layoutViewPath;
-        } elseif (empty($context->mainView)) {
-            // 模块布局文件
-            if (isset($context->isModule)) {
-                $context->mainView = PATH_APP_MODULES . $context->getViewDIRFor(
-                        $context->name,
-                    ) . 'index';
-                // 项目布局文件
-            } elseif (!empty($context->isProject)) {
-                $context->mainView = PATH_APP_PROJECTS . $context->getViewDIRFor(
-                        $context->name
-                    ) . 'index';
-            } elseif ($index = strpos($context->viewpath, DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR)) {
-                $context->mainView = $context->getViewDIRFor(
-                        substr($context->viewpath, 0, $index)
-                    ) . 'index';
+
+        if ($this->disabledMainLayout) {
+            $this->view->disableLevel(\Phalcon\Mvc\View::LEVEL_MAIN_LAYOUT);
+        } else {
+            if ($this->mainLayoutView) {
+                $context->mainView = $this->mainLayoutView;
+            } else {
+                // 布局文件
+                $layoutViewPath = $viewDir . DIRECTORY_SEPARATOR . 'index';
+                if (file_exists($layoutViewPath . RouteMatchContext::TEMPLATE_SUFFIX)) {
+                    $context->mainView = $layoutViewPath;
+                } elseif (empty($context->mainView)) {
+                    // 模块布局文件
+                    if (isset($context->isModule)) {
+                        $context->mainView = PATH_APP_MODULES . $context->getViewDIRFor(
+                                $context->name,
+                            ) . 'index';
+                        // 项目布局文件
+                    } elseif (!empty($context->isProject)) {
+                        $context->mainView = PATH_APP_PROJECTS . $context->getViewDIRFor(
+                                $context->name
+                            ) . 'index';
+                    } elseif ($index = strpos($context->viewpath, DIRECTORY_SEPARATOR . 'A0' . DIRECTORY_SEPARATOR)) {
+                        $context->mainView = $context->getViewDIRFor(
+                                substr($context->viewpath, 0, $index)
+                            ) . 'index';
+                    }
+                }
             }
-        }
-        // 如果存在布局文件
-        if (!empty($context->mainView)) {
-            $view->setMainView($context->mainView);
+            // 如果存在布局文件
+            if (!empty($context->mainView)) {
+                $view->setMainView($context->mainView);
+            }
         }
         // 检查渲染文件
         $pickViewPath = $context->getPathOfRenderViewTemplate();
@@ -294,7 +315,24 @@ class HtmlHelper
         });
     }
 
+    /**
+     * 在 outputHeaders 之前调用
+     * @var array
+     */
     public array $beforeOutputHeaders = [];
+    /**
+     * 在 outputHeaders 之后调用
+     * @var array
+     */
+    public array $afterOutputHeaders = [];
+    /**
+     * @var array 在 outputFooters 之前调用
+     */
+    public array $beforeOutputFooters = [];
+    /**
+     * @var array 在 outputFooters 之后调用
+     */
+    public array $afterOutputFooters = [];
 
     /**
      * 输出头部脚本样式
@@ -302,8 +340,8 @@ class HtmlHelper
      */
     public function outputHeaders(): void
     {
-        foreach ($this->beforeOutputHeaders as $item){
-            if (is_callable($item)){
+        foreach ($this->beforeOutputHeaders as $item) {
+            if (is_callable($item)) {
                 $item();
             }
         }
@@ -318,6 +356,11 @@ class HtmlHelper
                 echo '<script type="text/javascript">', $content[1], '</script>';
             }
         }
+        foreach ($this->afterOutputHeaders as $item) {
+            if (is_callable($item)) {
+                $item();
+            }
+        }
     }
 
     /**
@@ -326,6 +369,11 @@ class HtmlHelper
      */
     public function outputFooters(): void
     {
+        foreach ($this->beforeOutputFooters as $item) {
+            if (is_callable($item)) {
+                $item();
+            }
+        }
         $this->sortByWeight($this->footerFiles);
         foreach ($this->footerFiles as $file) {
             $this->includeAssetsFile($file[0], $file[2], $file[3]);
@@ -339,6 +387,12 @@ class HtmlHelper
                 } else {
                     echo '<script type="text/javascript">', $content[1], '</script>';
                 }
+            }
+        }
+        $this->appendTemplateJs();
+        foreach ($this->afterOutputFooters as $item) {
+            if (is_callable($item)) {
+                $item();
             }
         }
     }

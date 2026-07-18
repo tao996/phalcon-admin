@@ -15,12 +15,11 @@ use Phax\Mvc\Controller;
 use Phax\Support\Exception\BlankException;
 use Phax\Support\Exception\BusinessException;
 
+/**
+ * @property TaoHtmlHelper $html
+ */
 class BaseResponseController extends Controller
 {
-    /**
-     * 禁用主布局 views/index.phtml
-     */
-    protected bool $disabledMainLayout = false;
 
     /**
      * @var bool 小程序之类的请求
@@ -38,19 +37,6 @@ class BaseResponseController extends Controller
      * @var array 示例 `['index'=>'index/index_mobile.phtml']`
      */
     protected array $mobileTemplate = [];
-
-    /**
-     * @var string 設置 HTML 頁面名称
-     */
-    protected string $htmlTitle = '';
-    /**
-     * @var array|string 面包屑导航
-     */
-    protected array|string $breadcrumb = '';
-    /**
-     * @var bool 是否有控制台（后台管理控制器）
-     */
-    protected bool $console = false;
 
     public function initialize(): void
     {
@@ -177,12 +163,7 @@ class BaseResponseController extends Controller
     protected function beforeViewResponse(mixed $data)
     {
         HtmlAssets::initWithCdn();
-        // 渲染视图所需要用到的常量： PATH_TAO 的相关路径
-        require_once __DIR__ . '/Common/common.php';
         $this->context->theme = $this->theme;
-        if ($this->disabledMainLayout) {
-            $this->view->disableLevel(\Phalcon\Mvc\View::LEVEL_MAIN_LAYOUT);
-        }
         // 如果数据是一个 api 格式，需要进行二次处理
         if ($this->isJsonResponseFormat($data)) {
             if (!empty($data['msg'])) {
@@ -200,7 +181,7 @@ class BaseResponseController extends Controller
         }
         // 如果定义了移动版模板
         if (isset($this->mobileTemplate[$action]) && AppService::isMobile()) {
-            AppService::context()->setPickView($this->mobileTemplate[$action]);
+            $this->context->setPickView($this->mobileTemplate[$action]);
         }
         return parent::beforeViewResponse($data);
     }
@@ -210,13 +191,8 @@ class BaseResponseController extends Controller
         AppService::getLazyService('tao.layui', function () {
             return new Layui();
         });
-        $obj = $this;
-        AppService::getLazyService('tao.layuiHtml', function () use ($obj) {
-            $html = new LayuiHtml();
-            if ($obj->breadcrumb) {
-                $html->addBreadcrumbItem($obj->breadcrumb);
-            }
-            return $html;
+        AppService::getLazyService('tao.layuiHtml', function () {
+            return new LayuiHtml();
         });
         AppService::getLazyService('tao.layuiForm', function () {
             $layui = AppService::getShared('tao.layui');
@@ -225,10 +201,6 @@ class BaseResponseController extends Controller
         AppService::getLazyService('tao.layuiSearch', function () {
             return new LayuiSearch();
         });
-        $this->view->setVars([
-            'console' => $this->console,
-        ]);
-        AppService::html()->setHtmlTitle($this->htmlTitle);
     }
 
     /**

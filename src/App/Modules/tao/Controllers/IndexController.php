@@ -15,7 +15,7 @@ class IndexController extends BaseController
 
     public function indexAction(): array
     {
-        $this->disabledMainLayout = true;
+        $this->html->disabledMainLayout = true;
         $data = [
             'menuTree' => TaoAppService::loginUserHelper()->getMenuTree()
         ];

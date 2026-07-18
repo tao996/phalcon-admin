@@ -22,19 +22,31 @@ class Layui
 
     private array $footerJs = [];
     private array $footerCss = [];
-    private bool $min = false;
+    private bool $min;
 
     public function __construct(string $version = '2.13.6')
     {
         $this->version = $version;
         $this->min = AppService::config()->getBoolean('app.assets.min');
+
+        $obj = $this;
+        $html = AppService::html();
+        $html->addHeaderFile(PATH_APP_MODULES . 'tao/views/layui/tao.css', local: true);
+        $html->beforeOutputHeaders[] =
+            function () use ($obj) {
+                $obj->header();
+            };
+        $html->afterOutputFooters[] = function () use ($obj, $html) {
+            $obj->footer();
+            $html->includeAssetsFile(PATH_APP_MODULES . 'tao/views/layui/tao.js', type: 'js', local: true);
+        };
     }
 
     /**
      * 初始化，将 layui 相关的文件添加 headerFile 中，等待 HtmlHelper 输出到页面中
      * @return void
      */
-    public function header(): void
+    private function header(): void
     {
         if ($this->hasImportHeader) {
             return;

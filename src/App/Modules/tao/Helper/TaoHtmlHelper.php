@@ -11,20 +11,12 @@ use Phax\Helper\HtmlHelper;
 
 class TaoHtmlHelper extends HtmlHelper
 {
+    public string $mainLayoutView = PATH_APP_MODULES . 'tao/views/layui/index';
 
-    public function __construct()
-    {
-        parent::__construct();
-        $this->beforeOutputHeaders = [
-            function () {
-                /**
-                 * @var Layui $layui
-                 */
-                $layui = AppService::getShared('tao.layui');
-                $layui->header();
-            }
-        ];
-    }
+    /**
+     * @var array|string 面包屑导航
+     */
+    public array|string $breadcrumb = '';
 
     public function layui(): Layui
     {
@@ -44,6 +36,13 @@ class TaoHtmlHelper extends HtmlHelper
     public function layuiSearch(): LayuiSearch
     {
         return AppService::getShared('tao.layuiSearch');
+    }
 
+    public function doneViewResponse(): void
+    {
+        parent::doneViewResponse();
+        if ($this->breadcrumb) {
+            $this->layuiHtml()->addBreadcrumbItem($this->breadcrumb);
+        }
     }
 }

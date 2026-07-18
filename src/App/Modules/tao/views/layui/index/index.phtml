@@ -6,6 +6,7 @@
 use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 
+// 后台框架文件：左侧菜单栏，顶部工具瘭
 $indexWelcome = AppService::urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = TaoAppService::loginUserHelper()->user();
@@ -24,7 +25,6 @@ $user = TaoAppService::loginUserHelper()->user();
     <![endif]-->
 
     <?php
-    $vv->addViewFile('tao.css');
     $vv->outputHeaders();
     ?>
     <style>
@@ -340,7 +340,6 @@ $user = TaoAppService::loginUserHelper()->user();
 </body>
 <?php
 $vv->outputFooters();
-$vv->layui()->footer();
 ?>
 
 <script><?php
