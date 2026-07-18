@@ -6,7 +6,7 @@
 use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 
-// 后台框架文件：左侧菜单栏，顶部工具瘭
+// 后台框架文件：左侧菜单栏，顶部工具条
 $indexWelcome = AppService::urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = TaoAppService::loginUserHelper()->user();

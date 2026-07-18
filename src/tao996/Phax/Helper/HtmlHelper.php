@@ -483,9 +483,9 @@ class HtmlHelper
 
     /**
      * 如果当前模板下存在着同名 js 文件，则引入它；比如你的模板为 add.phtml，如果存在 add.js 则会引入它
-     * @return bool
+     * @return void
      */
-    public function appendTemplateJs(): bool
+    public function appendTemplateJs(): void
     {
         $theme = AppService::context()->theme;
         $pickName = $this->pickName ?: AppService::context()->getPickView();
@@ -495,7 +495,9 @@ class HtmlHelper
                     ? [AppService::context()->getViewDIR(), $theme, $pickName]
                     : [AppService::context()->getViewDIR(), $pickName]
             ) . '.js';
-        return AppService::html()->includeAssetsFile($jsFile, 'js');
+        if (file_exists($jsFile)) {
+            $this->includeAssetsFile($jsFile, type: 'js', local: true);
+        }
     }
 
 
