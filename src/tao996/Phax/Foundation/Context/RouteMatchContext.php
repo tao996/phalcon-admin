@@ -30,6 +30,7 @@ class RouteMatchContext
     ];
     /**
      * 匹配占位符 :module, :controller, :action, :params
+     * 注意有顺序，因为需要用于权限判断
      * @var array|string[]
      */
     public array $pathsname = [
@@ -198,9 +199,11 @@ class RouteMatchContext
             $this->paths['controller'] = $first_part;
             $this->paths['action'] = $second_part;
 
-            $this->pathsname['module'] = $moduleName;
-            $this->pathsname['controller'] = $first_part;
-            $this->pathsname['action'] = $second_part;
+            $this->pathsname = [
+                'module' => $moduleName,
+                'controller' => $first_part,
+                'action' => $second_part,
+            ];
 
             $this->namespace = 'App\Modules\\' . $moduleName . '\Controllers';
             $this->viewpath = PATH_APP . 'Modules' . DIRECTORY_SEPARATOR . $moduleName . DIRECTORY_SEPARATOR . 'views';
