@@ -9,7 +9,6 @@ use Phax\Foundation\AppService;
 $indexWelcome = AppService::urlWith(\App\Modules\tao\Config\Config::indexWelcome());
 $menuTree = $vv->pick('menuTree', []);
 $user = TaoAppService::loginUserHelper()->user();
-$vv->layui()->header();
 ?>
 <!DOCTYPE html>
 <html>
@@ -25,8 +24,9 @@ $vv->layui()->header();
     <![endif]-->
 
     <?php
+    $vv->addViewFile('tao.css');
     $vv->outputHeaders();
-    $vv->addViewFile('tao.css'); ?>
+    ?>
     <style>
         <?php include __DIR__.'/admin.css'?>
 

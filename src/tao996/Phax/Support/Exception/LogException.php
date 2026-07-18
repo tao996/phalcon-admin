@@ -23,9 +23,9 @@ class LogException extends BusinessException
 {
     /**
      * 同时记录自身堆栈信息
-     * @param string $message  向前端展示的错误消息
-     * @param array  $context  补充上下文（记录到日志）
-     * @param int    $code     错误码
+     * @param string $message 向前端展示的错误消息
+     * @param array $context 补充上下文（记录到日志）
+     * @param int $code 错误码
      * @param \Throwable|null $previous 原始异常链
      */
     public function __construct(
@@ -33,8 +33,9 @@ class LogException extends BusinessException
         private readonly array $context = [],
         int                    $code = 0,
         ?\Throwable            $previous = null
-    ) {
-        parent::__construct($message, $code, $previous);
+    )
+    {
+        parent::__construct($message, $this->context, $code, $previous);
         $this->log();
     }
 

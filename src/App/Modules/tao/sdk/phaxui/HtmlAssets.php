@@ -59,22 +59,4 @@ class HtmlAssets
         return self::$cdnLocate == 'self';
     }
 
-
-    /**
-     * 尝试引用 min 压缩文件
-     * @param string $file
-     * @return string
-     */
-    public static function tryMinFile(string $file): string
-    {
-        if (str_ends_with($file, '.min.js') || str_ends_with($file, '.min.css')) {
-            return $file;
-        }
-        if (HtmlAssets::isLocal() && file_exists($file)) {
-            return $file;
-        }
-        $minFile = str_replace(['.css', '.js'], ['.min.css', '.min.js'], $file);
-        return file_exists($minFile) ? $minFile : $file;
-    }
-
 }

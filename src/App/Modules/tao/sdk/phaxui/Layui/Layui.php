@@ -4,6 +4,7 @@ namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\sdk\phaxui\HtmlAssets;
 use Phax\Foundation\AppService;
+use Phax\Helper\HtmlHelper;
 
 /**
  * @link https://layui.dev/docs/2/
@@ -21,12 +22,18 @@ class Layui
 
     private array $footerJs = [];
     private array $footerCss = [];
+    private bool $min = false;
 
     public function __construct(string $version = '2.13.6')
     {
         $this->version = $version;
+        $this->min = AppService::config()->getBoolean('app.assets.min');
     }
 
+    /**
+     * 初始化，将 layui 相关的文件添加 headerFile 中，等待 HtmlHelper 输出到页面中
+     * @return void
+     */
     public function header(): void
     {
         if ($this->hasImportHeader) {
@@ -46,8 +53,9 @@ class Layui
             $html->addHeaderFile(HtmlAssets::$cdn . 'font-awesome/4.7.0/css/font-awesome.min.css');
         }
         /// 添加自定义的 css/js
-        $html->addHeaderFile(__DIR__ . '/index.css', 0, 'css');
-        $html->addHeaderFile(__DIR__ . '/upload.css', 0, 'css');
+//        ddd($this->min, HtmlHelper::getAssetPath(__DIR__ . '/index.css', $this->min));
+        $html->addHeaderFile(__DIR__ . '/index.css', local: true);
+        $html->addHeaderFile(__DIR__ . '/upload.css', local: true);
     }
 
 
@@ -63,7 +71,7 @@ class Layui
     }
 
     /**
-     * 需要单独输出脚本（还没有找到完美的解决方案）
+     * 需要单独输出 layui 脚本（还没有找到完美的解决方案）
      * @return $this
      */
     public function footer(): static
@@ -79,7 +87,7 @@ class Layui
             echo '<script src="' . HtmlAssets::$cdn . 'layui/' . $this->version . '/layui.min.js"></script>';
         }
         echo '<script type="text/javascript">const $ = layui.jquery,layer = layui.layer, form = layui.form, laydate= layui.laydate,util=layui.util,table=layui.table;';
-
+/// 将配置信息输出为 js 对象
         echo 'window.CONFIG = {';
         foreach ($this->_config as $key => $v) {
             if (is_string($v)) {
@@ -95,45 +103,30 @@ class Layui
             }
         }
         echo '};';
+        if ($filepath = HtmlHelper::getAssetPath(__DIR__ . '/index.js', $this->min)) {
+            require_once $filepath;
+        }
 
-        include HtmlAssets::tryMinFile(__DIR__ . '/index.js');
         echo '</script>';
         echo '<script>' . join('', $this->footerJs) . '</script>' . '<style>' . join('', $this->footerCss) . '</style>';
         return $this;
     }
 
+    /**
+     * 添加 layui js 脚本内容
+     * @param string $content
+     * @return void
+     */
     public function appendFooterJs(string $content): void
     {
         $this->footerJs[] = $content;
     }
 
+    /**
+     * 添加 layui css 样式内容
+     */
     public function appendFooterCss(string $content): void
     {
         $this->footerCss[] = $content;
-    }
-
-
-    public function selectHeader(): void
-    {
-        echo '<style>';
-        echo <<<CSS
-html, body {
-    margin: 0;
-    padding: 0;
-}
-
-.layui-table-tool-temp {
-    padding-right: 0;
-}
-
-.input-keyword {
-    display: inline-block;
-    width: 190px;
-    line-height: 38px;
-    height: 38px;
-    border: 1px solid #C9C9C9;
-}
-CSS;
-        echo '</style>';
     }
 }

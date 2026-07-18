@@ -32,23 +32,26 @@ class HtmlHelper
 
     public array $viewData = [];
 
+    public bool $min = false;
+
     public function __construct()
     {
         if (AppService::has('context') && !AppService::context()->isApiRequest()) {
             $this->view = AppService::view();
             $this->view->setVar('vv', $this);
         }
+        $this->min = AppService::config()->getBoolean('app.assets.min');
     }
 
     /**
-     * 添加当前视图目录下的文件，通常是静态资源文件
+     * 添加当前视图目录下的资源文件，通常是静态资源文件
      * @param $file string 待添加文件名称，如 tao.css
-     * @return bool
+     * @return void
      */
-    public function addViewFile(string $file): bool
+    public function addViewFile(string $file, string $type = 'css'): void
     {
         $pathFile = AppService::view()->getViewsDir() . $file;
-        return $this->includeAssetsFile($pathFile);
+        $this->addHeaderFile($pathFile, type: $type, local: true);
     }
 
     /**
@@ -203,15 +206,27 @@ class HtmlHelper
         }
     }
 
-
+    /**
+     * 用于标识资源是否已经被引用过
+     * @var array
+     */
     private array $hasImports = [];
     /**
-     * header 文件列表
+     * header 头部文件链接列表 [文件链接， 权重， 类型，是否本地]
      * @var array
      */
     private array $headerFiles = [];
+    /**
+     * @var array 底部文件链接列表 [文件链接， 权重， 类型，是否本地]
+     */
     private array $footerFiles = [];
+    /**
+     * @var array 头部内容
+     */
     private array $headerContents = [];
+    /**
+     * @var array 底部内容
+     */
     private array $footerContents = [];
 
     /**
@@ -221,10 +236,10 @@ class HtmlHelper
      * @param string $type 类型，css|js
      * @return self
      */
-    public function addHeaderFile(string $file, int $weight = 0, string $type = ''): static
+    public function addHeaderFile(string $file, int $weight = 0, string $type = 'css', bool $local = false): static
     {
         if (!in_array($file, $this->headerFiles)) {
-            $this->headerFiles[] = [$file, $weight, $type];
+            $this->headerFiles[] = [$file, $weight, $type, $local];
         }
         return $this;
     }
@@ -248,10 +263,10 @@ class HtmlHelper
      * @param string $type css|js
      * @return self
      */
-    public function addFooterFile(string $file, int $weight = 0, string $type = ''): static
+    public function addFooterFile(string $file, int $weight = 0, string $type = 'js', bool $local = false): static
     {
         if (!in_array($file, $this->footerFiles)) {
-            $this->footerFiles[] = [$file, $weight, $type];
+            $this->footerFiles[] = [$file, $weight, $type, $local];
         }
         return $this;
     }
@@ -262,15 +277,9 @@ class HtmlHelper
      * @param string $type 内容类型，css 或者 js
      * @return $this
      */
-    public function addFooterContent(string $content, string $type = 'js', string $name = ''): static
+    public function addFooterContent(string $content, string $type = 'js'): static
     {
-        if ($name) {
-            if (!isset($this->footerContents[$name])) {
-                $this->footerContents[$name] = [$type, $content];
-            }
-        } else {
-            $this->footerContents[] = [$type, $content];
-        }
+        $this->footerContents[] = [$type, $content];
         return $this;
     }
 
@@ -285,15 +294,22 @@ class HtmlHelper
         });
     }
 
+    public array $beforeOutputHeaders = [];
+
     /**
      * 输出头部脚本样式
      * @return void
      */
     public function outputHeaders(): void
     {
+        foreach ($this->beforeOutputHeaders as $item){
+            if (is_callable($item)){
+                $item();
+            }
+        }
         $this->sortByWeight($this->headerFiles);
         foreach ($this->headerFiles as $file) {
-            $this->includeAssetsFile($file[0], $file[2]);
+            $this->includeAssetsFile($file[0], $file[2], $file[3]);
         }
         foreach ($this->headerContents as $content) {
             if ($content[0] === 'css') {
@@ -312,7 +328,7 @@ class HtmlHelper
     {
         $this->sortByWeight($this->footerFiles);
         foreach ($this->footerFiles as $file) {
-            $this->includeAssetsFile($file[0], $file[2]);
+            $this->includeAssetsFile($file[0], $file[2], $file[3]);
         }
         foreach ($this->footerContents as $content) {
             if ($content[0] === 'css') {
@@ -327,8 +343,13 @@ class HtmlHelper
         }
     }
 
-
-    public function includeAssetsFile(string $file, string $type = ''): bool
+    /**
+     * 检查被引用的文件是否为本地文件
+     * @param string $file
+     * @param string $type
+     * @return bool
+     */
+    public function includeAssetsFile(string $file, string $type = '', bool $local = false): bool
     {
         if (in_array($file, $this->hasImports)) {
             return false;
@@ -344,34 +365,28 @@ class HtmlHelper
                 return false;
             }
         }
-        // 是否是 http 地址
-        $http = str_starts_with($file, 'https://') || str_starts_with($file, 'http://');
         // 如果是本地文件，则优先检查是否有 min 文件
-        if (!$http) {
-            if (str_starts_with($file, PATH_ROOT) || $file[1] == ':') { // windows 路径
-                $file = $this->getLocalFilePath($file); // 检查是否存在压缩文件
-                if (!file_exists($file)) {
-                    return false;
-                }
-            } else {
-                $http = true;
+        if ($local) {
+            $file = self::getAssetPath($file, tryMin: $this->min, must: false); // 检查是否存在压缩文件
+            if (empty($file)) {
+                return false;
             }
         }
         if ('css' == $type) {
-            if ($http) {
-                echo '<link rel="stylesheet" type="text/css" href="', $file, '">';
-            } else {
+            if ($local) {
                 echo '<style type="text/css">';
-                include $file;
+                require_once $file;
                 echo '</style>';
+            } else {
+                echo '<link rel="stylesheet" type="text/css" href="', $file, '">';
             }
         } elseif ('js' == $type) {
-            if ($http) {
-                echo '<script src="', $file, '"></script>';
-            } else {
+            if ($local) {
                 echo '<script>';
-                include $file;
+                require_once $file;
                 echo '</script>';
+            } else {
+                echo '<script src="', $file, '"></script>';
             }
         } else {
             Logger::warning('不被支持的资源文件类型', [
@@ -384,28 +399,6 @@ class HtmlHelper
         return true;
     }
 
-    /**
-     * 如果是本地文件，尝试获取 min 压缩文件路径
-     * @param string $file
-     * @return string
-     */
-    public function getLocalFilePath(string $file): string
-    {
-        if (str_ends_with($file, '.min.js') || str_ends_with($file, '.min.css')) {
-            return $file;
-        }
-        // 检查文件是否存在
-        if ($this->checkMinFile($file)) {
-            return $file;
-        }
-        $minFile = str_replace(['.css', '.js'], ['.min.css', '.min.js'], $file);
-        return file_exists($minFile) ? $minFile : $file;
-    }
-
-    protected function checkMinFile(string $file): string
-    {
-        return file_exists($file);
-    }
 
     /**
      * 一个兼容方法，因为 ai 总是生成这个方法
@@ -449,5 +442,32 @@ class HtmlHelper
                     : [AppService::context()->getViewDIR(), $pickName]
             ) . '.js';
         return AppService::html()->includeAssetsFile($jsFile, 'js');
+    }
+
+
+    /**
+     * 检查资源路径
+     * @param string $file 文件路径
+     * @param bool $tryMin 是否尝试使用 .min.js/.min.css
+     * @return string 返回文件路径
+     */
+    public static function getAssetPath(string $file, bool $tryMin = true, bool $must = true): string
+    {
+        if (!file_exists($file)) {
+            if ($must) {
+                throw new BusinessException('资源文件不存在：' . basename($file), [
+                    'file' => $file
+                ]);
+            }
+            return '';
+        }
+        if (str_ends_with($file, '.min.js') || str_ends_with($file, '.min.css')) {
+            return $file;
+        }
+        if ($tryMin) {
+            $minFile = str_replace(['.css', '.js'], ['.min.css', '.min.js'], $file);
+            return file_exists($minFile) ? $minFile : $file;
+        }
+        return $file;
     }
 }

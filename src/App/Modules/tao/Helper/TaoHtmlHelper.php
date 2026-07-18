@@ -12,6 +12,20 @@ use Phax\Helper\HtmlHelper;
 class TaoHtmlHelper extends HtmlHelper
 {
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->beforeOutputHeaders = [
+            function () {
+                /**
+                 * @var Layui $layui
+                 */
+                $layui = AppService::getShared('tao.layui');
+                $layui->header();
+            }
+        ];
+    }
+
     public function layui(): Layui
     {
         return AppService::getShared('tao.layui');

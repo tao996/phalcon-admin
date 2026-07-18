@@ -4,8 +4,6 @@
  */
 
 use Phax\Foundation\AppService;
-
-$vv->layui()->header();
 ?>
 <!doctype html>
 <html lang="en">
@@ -15,8 +13,25 @@ $vv->layui()->header();
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>文件选择</title>
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .layui-table-tool-temp {
+            padding-right: 0;
+        }
+
+        .input-keyword {
+            display: inline-block;
+            width: 190px;
+            line-height: 38px;
+            height: 38px;
+            border: 1px solid #C9C9C9;
+        }
+    </style>
     <?php
-    $vv->layui()->selectHeader();
     $vv->outputHeaders();
     ?>
 </head>
