@@ -38,6 +38,9 @@ src/vendor
 src/phpunit.xml
 
 src/phar-src
+src/tao996/phar/*
+!src/tao996/phar/*.phar
+!src/tao996/phar/package.php
 src/routes/cli.more.php
 src/routes/web.more.php
 src/tests/Helper/cookies/*
