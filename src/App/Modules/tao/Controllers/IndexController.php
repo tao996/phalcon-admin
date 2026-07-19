@@ -4,6 +4,7 @@ namespace App\Modules\tao\Controllers;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\TaoAppService;
+use Phax\Foundation\AppService;
 
 /**
  * 后台框架
@@ -15,7 +16,7 @@ class IndexController extends BaseController
 
     public function indexAction(): array
     {
-        $this->html->disabledMainLayout = true;
+        AppService::html()->disabledMainLayout = true;
         $data = [
             'menuTree' => TaoAppService::loginUserHelper()->getMenuTree()
         ];

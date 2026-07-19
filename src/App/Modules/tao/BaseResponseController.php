@@ -38,6 +38,8 @@ class BaseResponseController extends Controller
      */
     protected array $mobileTemplate = [];
 
+    protected string $htmlTitle = '';
+
     public function initialize(): void
     {
         // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 请求
@@ -201,6 +203,9 @@ class BaseResponseController extends Controller
         AppService::getLazyService('tao.layuiSearch', function () {
             return new LayuiSearch();
         });
+        if ($this->htmlTitle) {
+            AppService::html()->setHtmlTitle($this->htmlTitle);
+        }
     }
 
     /**

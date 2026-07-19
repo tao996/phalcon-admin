@@ -16,11 +16,6 @@ class SystemLog extends BaseTaoModel
     public string $ip = '';
     public string $useragent = '';
 
-    public function user(): \Phalcon\Mvc\Model
-    {
-        return $this->hasOnePhx(SystemUser::class);
-    }
-
     public function tableTitle(): string
     {
         return '日志';

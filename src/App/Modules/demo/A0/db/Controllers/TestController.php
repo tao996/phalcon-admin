@@ -26,9 +26,9 @@ class TestController extends Controller
 
         return [
             'user' => $user->toArray(),
-            'user.articles => hasMany' => $user->articles()->toArray(),
-            'user.profile => hasOne' => $user->profile()->toArray(),
-            'user.roles => hasManyToMany' => $user->roles()->toArray(),
+            'user.articles => hasMany' => $user->articles->toArray(),
+            'user.profile => hasOne' => $user->profile->toArray(),
+            'user.roles => hasManyToMany' => $user->roles->toArray(),
         ];
     }
 

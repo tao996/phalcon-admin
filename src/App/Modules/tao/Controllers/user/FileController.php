@@ -37,7 +37,7 @@ class FileController extends BaseController
                 ->find();
             return $this->successPagination($count, $rows);
         }
-        $this->html->disabledMainLayout = true;
+        AppService::html()->disabledMainLayout = true;
         return [];
     }
 
