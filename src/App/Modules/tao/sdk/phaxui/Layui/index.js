@@ -1108,6 +1108,7 @@ const admin = {
          */
         reloadData: function () {
             this._config.tableInst.reloadData();
+            admin.layer.success('重新加载数据成功');
         },
         /**
          * 表格渲染<pre>
@@ -1286,7 +1287,7 @@ const admin = {
                 // 刷新按钮
                 refresh: function () {
                     // admin.layer.load();
-                    currentTable.reloadData()
+                    admin.table.reloadData()
                 },
             })
             this._config.tableInst = tableInst;

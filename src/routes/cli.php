@@ -81,12 +81,16 @@ CliRouter::add('cc', function ($params) {
     system('php ' . PATH_ROOT . 'vendor/bin/codecept ' . join(' ', $params), $code);
 }, '使用 cc 来代替 vendor/bin/codecept，以方便执行命令');
 
-CliRouter::add('minify', function ($params) {
+CliRouter::add(['minify', 'min', 'mini'], function ($params) {
     $config = \Phax\Foundation\AppService::config();
     $minify = $config->getArray('app.minify');
     if ($minify) {
         require_once PATH_TAO996_PHAR . 'minify.phar';
         foreach ($minify as $key => $files) {
+            if (!in_array($key, ['js', 'css'])){
+                echo Color::colorize('当前只支持 css/js 不支持:' . $key, Color::FG_GREEN, Color::AT_BOLD) . PHP_EOL;
+                exit(1);
+            }
             foreach ($files as $file) {
                 $minifier = $key == 'css' ? new MatthiasMullie\Minify\CSS() : new MatthiasMullie\Minify\JS();
                 if (!file_exists($file)) {
@@ -100,6 +104,7 @@ CliRouter::add('minify', function ($params) {
             }
 
         }
+        echo '压缩成功', PHP_EOL;
     } else {
         echo '没有需要压缩的 js/css 文件', PHP_EOL;
     }

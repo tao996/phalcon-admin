@@ -18,13 +18,19 @@ class CliRouter
 
     /**
      * 添加命令
-     * @param string $name 名称
+     * @param string|array $name 名称
      * @param string|callable $action 所执行的命令或回调函数
      * @param string $desc
      * @return void
      */
-    public static function add(string $name, string|callable $action, string $desc): void
+    public static function add(string|array $name, string|callable $action, string $desc): void
     {
+        if (is_array($name)){
+            foreach ($name as $n) {
+                self::add($n, $action, $desc);
+            }
+            return;
+        }
         if (isset(self::$cmd[$name])) {
             die('repeat CLI:' . $name);
         }
