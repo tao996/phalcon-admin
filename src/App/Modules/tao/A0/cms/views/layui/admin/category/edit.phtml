@@ -39,7 +39,7 @@ $categoryList = $vv->pick('categoryList', []);
                 <?php } ?>
             </select>
         </div>
-        <div class="layui-form-mid layui-text-em">列表：通常用于发表文章；外链：通常用于跳转到指定链接；</div>
+        <div class="layui-form-mid layui-text-em">文章：用于发表文章；外链：用于跳转到指定链接；</div>
     </div>
 
     <div class="layui-form-item">
@@ -124,5 +124,5 @@ CmsHtmlHelper::ImageJs($items);
         console.log(data.value)
     }, 'select')
 </script>
-<?php \App\Modules\tao\sdk\phaxui\Tinymce::tinymce(); ?>
+<?php \App\Modules\tao\views\assets\tinymce\AssetsTinymce::tinymce(); ?>
 

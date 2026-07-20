@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Modules\tao\sdk\phaxui;
+namespace App\Modules\tao\views\assets\vue;
 
-class Vue
+use App\Modules\tao\views\HtmlAssets;
+
+class AssetsVue
 {
     public static string $vue_version = '3.3.9';
 

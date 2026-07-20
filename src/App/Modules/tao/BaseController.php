@@ -283,7 +283,7 @@ class BaseController extends BaseRbacController
     }
 
     /**
-     * 处理保存到模型的数据，在 addAction/editAction 中，`$this->model->assign` 之前被调用;
+     * 处理保存到模型的数据(floatColumns/nullColumns/bool2IntColumns/intColumns)，在 addAction/editAction 中，`$this->model->assign` 之前被调用;
      * 此时 `$this->model` 已经被实例化，但未赋值给模型属性
      * @param array $data 将要保存到模型中的数据
      * @return array 保存到模型中的数据

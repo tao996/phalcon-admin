@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Modules\tao\sdk\phaxui;
+namespace App\Modules\tao\views\assets\tinymce;
 
-class Tinymce
+use App\Modules\tao\views\HtmlAssets;
+
+class AssetsTinymce
 {
     /**
      * @var array 允许图片域名如 a.com
@@ -44,7 +46,7 @@ class Tinymce
         $config = array_merge([
             'selector' => '#content',
 
-            'content_css' => '/mstatic/tao/assets/tinymce.css',
+            'content_css' => '/mstatic/tao/assets/tinymce/tinymce.css',
             // may be you should recover this
             'plugins' => [
                 'advlist',

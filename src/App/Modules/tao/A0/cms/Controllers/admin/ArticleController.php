@@ -78,6 +78,7 @@ class ArticleController extends BaseController
                 'title|标题' => 'required',
                 'content|内容' => 'required'
             ]);
+            $data = $this->beforeModelAssign($data);
             $row = CmsCategoryService::getRecord($data['cate_id'], ['kind']); // 查询栏目类型
 
             $this->model->assign([

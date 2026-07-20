@@ -38,6 +38,15 @@ class CmsArticle extends BaseTaoModel
     public int $top = 0; // 置顶
     public int $hits = 0; // 点击次数
 
+    public array $intColumns = [
+        'cate_id', 'kind', 'status', 'sort',
+        'cstatus', 'content_id',
+        'hot', 'top', 'hits',
+    ];
+    public array $bool2IntColumns = [
+        'hot', 'top', 'status'
+    ];
+
     public static function mapCheckStatus(int $cStatus = 0): array|string
     {
         static $data = [

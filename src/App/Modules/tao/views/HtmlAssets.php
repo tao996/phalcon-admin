@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\tao\sdk\phaxui;
+namespace App\Modules\tao\views;
 
 use Phax\Foundation\AppService;
 

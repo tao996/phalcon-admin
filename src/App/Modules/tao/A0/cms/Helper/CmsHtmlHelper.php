@@ -3,16 +3,17 @@
 namespace App\Modules\tao\A0\cms\Helper;
 
 
-use App\Modules\tao\sdk\phaxui\Vue;
+use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
+use App\Modules\tao\views\assets\vue\AssetsVue;
 
 class CmsHtmlHelper
 {
 
     public static function header(): void
     {
-        Vue::header();
+        AssetsVue::header();
         echo '<script type="text/javascript">';
-        include __DIR__ . '/tpl/app.js';
+        include __DIR__ . '/cms/app.js';
         echo '</script>';
 
         echo '<style type="text/css">';
@@ -73,7 +74,7 @@ CSS;
      */
     public static function ImageHtml(bool $formItem = true): void
     {
-        include __DIR__ . '/tpl/image.phtml';
+        include __DIR__ . '/cms/image.phtml';
     }
 
     /**
@@ -85,6 +86,8 @@ CSS;
     {
         $items = self::jsItems($items);
         $prefix = '/m/tao.cms/user.helper';
+        $imageSaveApi = LayuiForm::IMAGE_SAVE_API;
+        $imageListApi = LayuiForm::IMAGE_LIST_API;
         echo '<script type="text/javascript">';
         echo <<<JS
 const vmImage = vueArray({id:'images',title:'图集',prefix:'{$prefix}',methods:{
@@ -101,8 +104,7 @@ const vmImage = vueArray({id:'images',title:'图集',prefix:'{$prefix}',methods:
         }
     },
     picker:()=> { // 选择图片
-        admin.iframe.open(
-            admin.config.url.imageList+'?type=checkbox&key=true', {
+        admin.iframe.open('{$imageListApi}?type=checkbox&key=true', {
                 title: '图片选择',
                 end: () => {
                    admin.storage.getArray('images', rows =>{
@@ -130,7 +132,7 @@ function vmImages(items){
 
 // 上传事件
 layui.upload.render({
-    elem: '#album-upload', url: admin.config.url.imageSave,
+    elem: '#album-upload', url: '{$imageSaveApi}',
     exts: 'png|jpg|jpeg', acceptMini: 'file',
     before: function (obj) {
         layui.layer.load();

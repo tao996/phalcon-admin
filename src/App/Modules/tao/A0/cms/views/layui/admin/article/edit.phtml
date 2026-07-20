@@ -4,9 +4,9 @@
  * @var \App\Modules\tao\Helper\TaoHtmlHelper $vv
  */
 $form = $vv->layuiForm();
-
-\App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::header();
 $cateId = $vv->pick('row.cate_id', 0);
+\App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::header();
+\App\Modules\tao\views\assets\simpleMDE\AssetsSimpleMDE::render();
 
 ?>
     <form class="layui-form">
@@ -93,18 +93,14 @@ $cateId = $vv->pick('row.cate_id', 0);
     </form>
 <?php
 $vv->layui()->addWindowConfig()->footer();
-
 $items = $vv->pick('row.images', []);
 \App\Modules\tao\A0\cms\Helper\CmsHtmlHelper::ImageJs($items);
+
 ?>
     <script>
         admin.form.submitFirst(() => {
             admin.iframe.close(true);
         }, function (data) {
-            data['image_ids'] = vmImage.data.items.map(d => d.id).join(',')
-            return Object.assign(data, {content: tinymce.activeEditor.getContent()})
+            return Object.assign(data, {content: simplemde.value()})
         })
     </script>
-<?php
-\App\Modules\tao\sdk\phaxui\Tinymce::tinymce();
-?>

@@ -3,12 +3,12 @@
 namespace App\Modules\tao;
 
 use App\Modules\tao\Helper\TaoHtmlHelper;
-use App\Modules\tao\sdk\phaxui\HtmlAssets;
-use App\Modules\tao\sdk\phaxui\Layui\Layui;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiSearch;
 use App\Modules\tao\utils\ResponseUtil;
+use App\Modules\tao\views\assets\layui\AssetsLayui;
+use App\Modules\tao\views\HtmlAssets;
 use Phax\Db\QueryBuilder;
 use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
@@ -191,7 +191,7 @@ class BaseResponseController extends Controller
     protected function beforeDoViewResponse(): void
     {
         AppService::getLazyService('tao.layui', function () {
-            return new Layui();
+            return new AssetsLayui();
         });
         AppService::getLazyService('tao.layuiHtml', function () {
             return new LayuiHtml();

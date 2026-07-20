@@ -2,12 +2,23 @@
 
 namespace App\Modules\tao\Helper;
 
-use App\Modules\tao\sdk\phaxui\Layui\Layui;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
 use App\Modules\tao\sdk\phaxui\Layui\LayuiSearch;
+use App\Modules\tao\views\assets\layui\AssetsLayui;
 use Phax\Foundation\AppService;
 use Phax\Helper\HtmlHelper;
+
+/**
+ * src/App/Modules/tao/sdk 目录路径
+ */
+const PATH_MODULE_TAO_SDK = PATH_APP_MODULES . 'tao' . DIRECTORY_SEPARATOR . 'sdk';
+/**
+ * 静态资源 src/App/Modules/tao/views/assets 目录路径
+ */
+const PATH_MODULE_TAO_ASSETS = PATH_APP_MODULES . 'tao' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR;
+
+const MSTATIC_TAO_ASSETS = '/mstatic/tao/assets/';
 
 class TaoHtmlHelper extends HtmlHelper
 {
@@ -18,7 +29,7 @@ class TaoHtmlHelper extends HtmlHelper
      */
     public array|string $breadcrumb = '';
 
-    public function layui(): Layui
+    public function layui(): AssetsLayui
     {
         return AppService::getShared('tao.layui');
     }

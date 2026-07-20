@@ -3,11 +3,19 @@
 namespace App\Modules\tao\sdk\phaxui\Layui;
 
 use App\Modules\tao\Config\Data;
+use App\Modules\tao\views\assets\layui\AssetsLayui;
 use Phax\Foundation\AppService;
 
 class LayuiForm
 {
-    public function __construct(public Layui $layui)
+    /**
+     * 个人图片上传接口
+     * @var string
+     */
+    const string IMAGE_SAVE_API = '/api/m/tao/user.file/save';
+    const string IMAGE_LIST_API = '/m/tao/user.file/index';
+
+    public function __construct(public AssetsLayui $layui)
     {
     }
 
@@ -432,12 +440,7 @@ JS;
     </div>';
     }
 
-    /**
-     * 个人图片上传接口
-     * @var string
-     */
-    public string $imageSaveApi = '/api/m/tao/user.file/save';
-    public string $imageList = '/m/tao/user.file/index';
+
     private bool $hasAppendJs = false;
 
 
@@ -544,8 +547,8 @@ HTML;
 <a><img src="${v}"></a>
 <small class="uploads-delete-tip bg-red badge" data-upload-delete="${uploadName}" data-upload-url="${v}" data-upload-separator="${uploadSeparator}">×</small>
 </li>';
-        $imageSaveApi = $this->imageSaveApi;
-        $imageListPATH = $this->imageList;
+        $imageSaveApi = self::IMAGE_SAVE_API;
+        $imageListPATH = self::IMAGE_LIST_API;
         return <<<JS1
 <script>
    const userUpload = {

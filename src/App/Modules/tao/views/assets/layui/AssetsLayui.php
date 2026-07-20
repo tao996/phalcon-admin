@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Modules\tao\sdk\phaxui\Layui;
+namespace App\Modules\tao\views\assets\layui;
 
-use App\Modules\tao\sdk\phaxui\HtmlAssets;
+use App\Modules\tao\views\HtmlAssets;
 use Phax\Foundation\AppService;
 use Phax\Helper\HtmlHelper;
+use const App\Modules\tao\Helper\PATH_MODULE_TAO_ASSETS;
 
 /**
  * @link https://layui.dev/docs/2/
  */
-class Layui
+class AssetsLayui
 {
     public string $version = '';
 
