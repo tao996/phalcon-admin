@@ -37,9 +37,7 @@ return [
         'app' => [
             'title' => 'Your app name',
             'origin' => 'https://myapp.example.com/',
-            'jwt.secret' => 'change-this-secret',
-            'https' => true,
-            'demo' => false,
+            'jwt' => ['secret' => 'change-this-secret'],
             'superAdmin' => [1],
             'default' => '',
             'defaultApp' => [
