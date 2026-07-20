@@ -1,5 +1,6 @@
 <?php
 
+use Phalcon\Migrations\Console\Color;
 use \Phax\Foundation\CliRouter;
 
 // load your self cli script
@@ -35,18 +36,22 @@ CliRouter::add('metadata', function () {
  * https://tao996.github.io/phalcon-admin-docs/#/zh-cn/migration
  */
 CliRouter::add('migration', function () {
-    if (file_exists(PATH_PHAR_SRC . 'phalcon-migrations/index.php')) {
-        include_once PATH_PHAR_SRC . 'phalcon-migrations/index.php';
-    } elseif (file_exists(PATH_TAO996_PHAR . 'phalcon-migrations.phar')) {
+    if (file_exists(PATH_TAO996_PHAR . 'phalcon-migrations.phar')) {
         include_once PATH_TAO996_PHAR . 'phalcon-migrations.phar';
     } else {
         throw new \Exception('phalcon-migrations not found');
     }
-    \phalconMigration(function (\Phalcon\Cop\Parser $parser) {
+    print PHP_EOL . Color::colorize('Phalcon Migrations', Color::FG_GREEN, Color::AT_BOLD) . PHP_EOL . PHP_EOL;
+    try {
+        $migration = new \Phax\Helper\MigrationHelper(true);
         $argv = empty($_SERVER['argv']) ? [] : $_SERVER['argv'];
         array_shift($argv);
-        $parser->parse($argv);
-    });
+        $migration->parser($argv);
+    } catch (\Exception $e) {
+        echo Color::fatal($e->getMessage());
+        echo Color::fatal($e->getTraceAsString());
+        exit(1);
+    }
     // src/phalcon-migrations/src/Console/Commands/Migration.php
 }, 'migration db data');
 
