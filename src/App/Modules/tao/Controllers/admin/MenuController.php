@@ -4,17 +4,17 @@ namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
 use App\Modules\tao\Config\Data;
+use App\Modules\tao\Helper\Layui\LayuiData;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemMenu;
 use App\Modules\tao\Models\SystemNode;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use App\Modules\tao\Services\MenuService;
 use App\Modules\tao\TaoAppService;
+use Phax\Db\QueryBuilder;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Router;
 use Phax\Support\Validate;
 use Phax\Utils\MyData;
-use Phax\Db\QueryBuilder;
 
 /**
  * @property SystemMenu $model

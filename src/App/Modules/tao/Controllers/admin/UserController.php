@@ -3,12 +3,11 @@
 namespace App\Modules\tao\Controllers\admin;
 
 use App\Modules\tao\BaseController;
-
+use App\Modules\tao\Helper\Layui\LayuiData;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Models\SystemRole;
 use App\Modules\tao\Models\SystemUser;
 use App\Modules\tao\Models\SystemUserBind;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
 use App\Modules\tao\Services\LogService;
 use App\Modules\tao\Services\RoleService;
 use App\Modules\tao\Services\UserService;

@@ -2,9 +2,9 @@
 
 namespace App\Modules\tao\Helper;
 
-use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiSearch;
+use App\Modules\tao\Helper\Layui\LayuiForm;
+use App\Modules\tao\Helper\Layui\LayuiHtml;
+use App\Modules\tao\Helper\Layui\LayuiSearch;
 use App\Modules\tao\views\assets\layui\AssetsLayui;
 use Phax\Foundation\AppService;
 use Phax\Helper\HtmlHelper;

@@ -4,7 +4,7 @@ namespace App\Modules\tao\A0\cms\Services;
 
 use App\Modules\tao\A0\cms\Models\CmsCategory;
 use App\Modules\tao\Config\Data;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiData;
+use App\Modules\tao\Helper\Layui\LayuiData;
 use Phax\Support\Exception\BusinessException;
 
 class CmsCategoryService

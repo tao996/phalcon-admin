@@ -3,7 +3,7 @@
 namespace App\Modules\tao\A0\cms\Helper;
 
 
-use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
+use App\Modules\tao\Helper\Layui\LayuiForm;
 use App\Modules\tao\views\assets\vue\AssetsVue;
 
 class CmsHtmlHelper

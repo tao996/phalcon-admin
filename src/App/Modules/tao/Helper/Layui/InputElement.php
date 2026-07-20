@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\tao\sdk\phaxui\Layui;
+namespace App\Modules\tao\Helper\Layui;
 
 class InputElement
 {

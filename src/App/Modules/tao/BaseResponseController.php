@@ -2,10 +2,10 @@
 
 namespace App\Modules\tao;
 
+use App\Modules\tao\Helper\Layui\LayuiForm;
+use App\Modules\tao\Helper\Layui\LayuiHtml;
+use App\Modules\tao\Helper\Layui\LayuiSearch;
 use App\Modules\tao\Helper\TaoHtmlHelper;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiForm;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiHtml;
-use App\Modules\tao\sdk\phaxui\Layui\LayuiSearch;
 use App\Modules\tao\utils\ResponseUtil;
 use App\Modules\tao\views\assets\layui\AssetsLayui;
 use App\Modules\tao\views\HtmlAssets;
