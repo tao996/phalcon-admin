@@ -77,3 +77,6 @@ deploysUI/**/__pycache__/
 build/
 deployUI.spec
 dist/
+
+.cache
+.venv

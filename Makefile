@@ -5,7 +5,7 @@ UI_MAIN = deploysUI/main.py
 
 # ─── Docs ───────────────────────────────────────────────
 docs:
-	mkdocs serve --livereload -a 127.0.0.1:8001
+	@. .venv/bin/activate && mkdocs serve --livereload -a 127.0.0.1:8001
 
 # ─── Xdebug ─────────────────────────────────────────────
 

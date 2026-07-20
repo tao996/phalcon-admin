@@ -9,7 +9,21 @@ git clone --depth=1 https://gitee.com/taoooo/phalcon-damin.git
 
 ### 命令
 
-* 文档预览 `mkdocs serve --livereload -a 127.0.0.1:8001`
+* 文档预览
+```
+# 退出当前虚拟环境
+deactivate
+# 删除旧损坏 venv
+rm -rf .venv
+# 新建
+python3 -m venv .venv
+# 激活
+source .venv/bin/activate
+# 安装依赖
+pip install -r requirements.txt
+# 启动文档
+mkdocs serve --livereload -a 127.0.0.1:8001
+```
 
 ### Links
 
