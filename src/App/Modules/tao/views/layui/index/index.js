@@ -209,7 +209,7 @@ const tabs = {
 <span>${this.eschtml(info.title)}</span>
 <i class="layui-icon layui-icon-close layui-unselect layui-tab-close"></i>
 </li>`);
-            admin.layer.load();
+            // admin.layer.load();
             // 添加 iframe
             tabs.iframeElementContainer.append(`<div class="layadmin-tabsbody-item layui-show">
     <iframe src="${info.href}"
