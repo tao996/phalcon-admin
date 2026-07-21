@@ -5,6 +5,10 @@ networks:
   backend:
     driver: bridge
 
+#--- 关于数据库初始化数据的说明 ---
+# 初始化数据存放在 docker/mysql/sql/001-create-tables.sql
+# 建议使用 php artisan migration 命令导入
+#---
 # 建议使用外部的数据库 mysql/redis
 services:
   nginx:
@@ -61,7 +65,7 @@ services:
     volumes:
       - ${DATA_PATH_HOST}/mysql:/var/lib/mysql
       - ./docker/mysql/my.example.cnf:/etc/mysql/conf.d/my.cnf
-      - ./docker/mysql/sql:/docker-entrypoint-initdb.d
+#      - ./docker/mysql/sql:/docker-entrypoint-initdb.d
       - ./docker/log/mysql:/var/log/mysql/:rw
     restart: always
     networks:

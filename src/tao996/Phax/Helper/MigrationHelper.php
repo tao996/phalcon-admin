@@ -4,27 +4,8 @@ namespace Phax\Helper;
 
 use Phalcon\Config\Config;
 use Phalcon\Cop\Parser;
-use Phalcon\Migrations\Console\Color;
 use Phalcon\Migrations\Migrations;
 use Phax\Foundation\AppService;
-/*
-// CLI 方式（不变）
-$helper = new MigrationHelper(true);
-$helper->parser($argv);
-
-// Web 方式（新增）
-$helper = new MigrationHelper();
-$result = $helper->execute([
-    'action'  => 'generate',
-    'project' => 'city',
-    'force'   => true,
-]);
-if ($result['success']) {
-    echo $result['output']; // 或返回给前端
-} else {
-    echo $result['message']; // 错误信息
-}
- */
 class MigrationHelper
 {
     public Parser $parser;
@@ -44,13 +25,13 @@ class MigrationHelper
         $text .= '  Generates/Run a Migration for phalcon-admin' . PHP_EOL . PHP_EOL;
 
         $text .= 'Usage: Generate a Migration' . PHP_EOL;
-        $text .= '  migration generate|g            # generate all tables, default save in storage/data/migration;' . PHP_EOL;
-        $text .= '  examples:' . PHP_EOL;
+        $text .= '  migration generate|g                             # generate all tables, default save in storage/data/migration;' . PHP_EOL;
+        $text .= '  --- examples ---' . PHP_EOL;
         $text .= '  migration g --p=city                             # generate for project city, save in app/Http/Projects/xxx/data/migration' . PHP_EOL;
         $text .= '  migration g --m=demo --datas                     # generate for modules demo, save in app/Modules/xxx/data/migration' . PHP_EOL;
-        $text .= '  migration g --table=demo_,tao_                   # generate tables structure start with demo_ or tao_' . PHP_EOL;
-        $text .= '  migration g --table=demo_,tao_ --datas           # generate tables structure and data start with demo_ and tao_' . PHP_EOL;
-        $text .= '  migration g --table=demo_,tao_ --datas=demo_*    # generate tables structure start with demo_ and tao_, but data only start with demo_' . PHP_EOL . PHP_EOL;
+        $text .= '  migration g --table=demo_*,tao_*                 # generate tables structure start with demo_ or tao_' . PHP_EOL;
+        $text .= '  migration g --table=demo_*,tao_* --datas         # generate tables structure and data start with demo_ and tao_' . PHP_EOL;
+        $text .= '  migration g --table=demo_*,tao_* --datas=demo_*  # generate tables structure start with demo_ and tao_, but data only start with demo_' . PHP_EOL . PHP_EOL;
 
         $text .= 'Usage: Run a Migration' . PHP_EOL;
         $text .= '  migration run|r        # import tables(structure/data) from generated migrations' . PHP_EOL;
@@ -89,98 +70,7 @@ class MigrationHelper
         if (!$this->consoleMessage) {
             return;
         }
-        print Color::head('Help:') . PHP_EOL;
-        print Color::colorize('  Generates/Run a Migration for phalcon-admin') . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage: Generate a Migration') . PHP_EOL;
-        print Color::colorize(
-                '  migration generate|g            # generate all tables, default save in storage/data/migration;',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  examples:',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration g --p=city                             # generate for project city, save in app/Http/Projects/xxx/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration g --m=demo --datas                     # generate for modules demo, save in app/Modules/xxx/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration g --table=demo_,tao_                   # generate tables structure start with demo_ or tao_',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration g --table=demo_,tao_ --datas           # generate tables structure and data start with demo_ and tao_',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration g --table=demo_,tao_ --datas=demo_*    # generate tables structure start with demo_ and tao_, but data only start with demo_',
-                Color::FG_GREEN
-            ) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage: Run a Migration') . PHP_EOL;
-        print Color::colorize(
-                '  migration run|r        # import tables(structure/data) from generated migrations',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  examples:',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration r                # migration from storage/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration r -p=demo        # migration from src/App/Projects/demo/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration r -m=demo        # migration from src/App/Modules/demo/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Usage: List all available migrations') . PHP_EOL;
-        print Color::colorize('  migration list|l', Color::FG_GREEN) . PHP_EOL;
-        print Color::colorize('  examples:', Color::FG_GREEN) . PHP_EOL;
-        print Color::colorize(
-                '  migration l                # list migration from storage/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration -m=demo l        # list migration from src/App/Modules/demo/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL;
-        print Color::colorize(
-                '  migration -p=demo l        # list migration from src/App/Projects/demo/data/migration',
-                Color::FG_GREEN
-            ) . PHP_EOL . PHP_EOL;
-
-        print Color::head('Arguments:') . PHP_EOL;
-        print Color::colorize('  help', Color::FG_GREEN);
-        print Color::colorize("\tShows this help text") . PHP_EOL . PHP_EOL;
-
-        $this->printParameters($this->getPossibleParams());
-    }
-
-    private function printParameters(array $parameters): void
-    {
-        print Color::head('Options:') . PHP_EOL;
-        foreach ($parameters as $parameter => $description) {
-            echo Color::colorize(' --' . sprintf('%-30s', $parameter), Color::FG_GREEN);
-
-            if (is_array($description)) {
-                foreach ($description as $index => $desc) {
-                    echo ($index == 0 ? '' : str_repeat(' ', 33)) . Color::colorize($desc) . PHP_EOL;
-                }
-            } else {
-                echo Color::colorize($description) . PHP_EOL;
-            }
-        }
+        echo $this->getHelpMessage();
     }
 
     private function getPossibleParams(): array
@@ -189,8 +79,8 @@ class MigrationHelper
             'p=ProjectName' => '导出 app/Projects 目录下指定的项目 (save in app/Projects/xxx/data/migration)',
             'm=ModuleName' => '导出 app/Modules  目录下指定的模块 (save in app/Modules/xxx/data/migration)',
             'directory=str' => 'migration 数据所在的目录，默认为 storage/data/migration',
-            'table[=str]' => '导出表结构，默认为 @；如果需要导出多个表，则使用逗号进行分割；支持前缀 xxx_；会被 --p|--m 覆盖;(不需要添加*号)',
-            'datas' => '同时导出表数据，默认为跟随 table 参数；如果需要导出多个表，则使用逗号进行分割；支持前缀 xxx_*;(需要添加*号)',
+            'table[=str]' => '导出表结构，默认为 @；如果需要导出多个表，则使用逗号进行分割；支持前缀 xxx_*；会被 --p|--m 覆盖;',
+            'datas' => '同时导出表数据，默认为跟随 table 参数；如果需要导出多个表，则使用逗号进行分割；支持前缀 xxx_*;',
             'version=str' => '当前版本号，默认为 1.0.0',
             'data=always|oncreate' => 'oncreate(import data if table not exists); how to restore data when `migrate run`',
             'config=str' => 'read to db config file when generate or run action;',
