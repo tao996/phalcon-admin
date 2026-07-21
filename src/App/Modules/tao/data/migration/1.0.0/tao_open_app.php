@@ -318,33 +318,6 @@ class TaoOpenAppMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_open_app', [
-            'id',
-            'created_at',
-            'updated_at',
-            'deleted_at',
-            'sort',
-            'title',
-            'platform',
-            'kind',
-            'appid',
-            'secret',
-            'crop_id',
-            'token',
-            'enc_method',
-            'aes_key',
-            'online',
-            'public_key',
-            'pi0',
-            'rsa_public_key',
-            'pi1',
-            'rsa_private_key',
-            'pi2',
-            'done',
-            'sandbox',
-            'status',
-            'remark',
-        ]);
     }
 
     /**
@@ -354,6 +327,5 @@ class TaoOpenAppMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_open_app');
     }
 }

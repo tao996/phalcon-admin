@@ -166,19 +166,6 @@ class TaoSystemQuickMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_system_quick', [
-            'id',
-            'user_id',
-            'title',
-            'icon',
-            'href',
-            'sort',
-            'status',
-            'remark',
-            'created_at',
-            'updated_at',
-            'deleted_at',
-        ]);
     }
 
     /**
@@ -188,6 +175,5 @@ class TaoSystemQuickMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_system_quick');
     }
 }

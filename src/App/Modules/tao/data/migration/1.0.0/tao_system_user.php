@@ -220,6 +220,17 @@ class TaoSystemUserMigration_100 extends Migration
                         'after' => 'signature'
                     ]
                 ),
+                new Column(
+                    'puid',
+                    [
+                        'type' => Column::TYPE_CHAR,
+                        'default' => "",
+                        'notNull' => true,
+                        'size' => 30,
+                        'comment' => "多平台 UID",
+                        'after' => 'binds'
+                    ]
+                ),
             ],
             'indexes' => [
                 new Index('PRIMARY', ['id'], 'PRIMARY'),
@@ -228,7 +239,7 @@ class TaoSystemUserMigration_100 extends Migration
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '2',
+                'AUTO_INCREMENT' => '10',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],
@@ -261,6 +272,7 @@ class TaoSystemUserMigration_100 extends Migration
             'head_img',
             'signature',
             'binds',
+            'puid',
         ]);
     }
 

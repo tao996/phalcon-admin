@@ -132,6 +132,28 @@ class TaoOpenMchMigration_100 extends Migration
                     ]
                 ),
                 new Column(
+                    'pubkey_id',
+                    [
+                        'type' => Column::TYPE_VARCHAR,
+                        'default' => "",
+                        'notNull' => true,
+                        'size' => 255,
+                        'comment' => "公钥ID",
+                        'after' => 'platform_cert'
+                    ]
+                ),
+                new Column(
+                    'pubkey',
+                    [
+                        'type' => Column::TYPE_VARCHAR,
+                        'default' => "",
+                        'notNull' => true,
+                        'size' => 255,
+                        'comment' => "公钥路径",
+                        'after' => 'pubkey_id'
+                    ]
+                ),
+                new Column(
                     'remark',
                     [
                         'type' => Column::TYPE_VARCHAR,
@@ -139,7 +161,7 @@ class TaoOpenMchMigration_100 extends Migration
                         'notNull' => true,
                         'size' => 255,
                         'comment' => "备注",
-                        'after' => 'platform_cert'
+                        'after' => 'pubkey'
                     ]
                 ),
             ],
@@ -148,7 +170,7 @@ class TaoOpenMchMigration_100 extends Migration
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '1',
+                'AUTO_INCREMENT' => '5',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],
@@ -162,19 +184,6 @@ class TaoOpenMchMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_open_mch', [
-            'id',
-            'created_at',
-            'updated_at',
-            'done',
-            'mchid',
-            'private_key',
-            'certificate',
-            'secret_key',
-            'v2_secret_key',
-            'platform_cert',
-            'remark',
-        ]);
     }
 
     /**
@@ -184,6 +193,5 @@ class TaoOpenMchMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_open_mch');
     }
 }

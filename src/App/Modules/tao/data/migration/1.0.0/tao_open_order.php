@@ -327,33 +327,6 @@ class TaoOpenOrderMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_open_order', [
-            'id',
-            'created_at',
-            'updated_at',
-            'app',
-            'user_id',
-            'channel',
-            'trade_type',
-            'rndcode',
-            'appid',
-            'mchid',
-            'openid',
-            'amount',
-            'currency',
-            'metadata',
-            'response',
-            'status',
-            'message',
-            'transaction_id',
-            'success_time',
-            'refund_at',
-            'refund_amt',
-            'refund_status',
-            'refund_id',
-            'refund_amount',
-            'refund_time',
-        ]);
     }
 
     /**
@@ -363,6 +336,5 @@ class TaoOpenOrderMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_open_order');
     }
 }

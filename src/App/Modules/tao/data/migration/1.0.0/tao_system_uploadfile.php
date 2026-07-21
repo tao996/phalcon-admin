@@ -201,22 +201,6 @@ class TaoSystemUploadfileMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_system_uploadfile', [
-            'id',
-            'user_id',
-            'upload_type',
-            'summary',
-            'url',
-            'width',
-            'height',
-            'frames',
-            'mime_type',
-            'file_size',
-            'file_ext',
-            'sha1',
-            'created_at',
-            'updated_at',
-        ]);
     }
 
     /**
@@ -226,6 +210,5 @@ class TaoSystemUploadfileMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_system_uploadfile');
     }
 }

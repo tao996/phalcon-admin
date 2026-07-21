@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： localhost
--- 生成日期： 2026-07-21 00:51:51
+-- 生成日期： 2026-07-21 05:44:59
 -- 服务器版本： 8.0.30
 -- PHP 版本： 8.3.11
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 数据库： `phalcon-admin`
+-- 数据库： `phalcon-admin-clean`
 --
 
 -- --------------------------------------------------------
@@ -32,44 +32,6 @@ CREATE TABLE `demo_article` (
   `user_id` int UNSIGNED NOT NULL,
   `title` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- 转存表中的数据 `demo_article`
---
-
-INSERT INTO `demo_article` (`id`, `user_id`, `title`) VALUES
-(1, 1, '你好 PHP'),
-(2, 1, '你好 ThinkPHP'),
-(3, 1, 'Bi1'),
-(4, 1, 'Bi2'),
-(5, 2, '你好 laravel'),
-(6, 2, '你好 tailwindcss'),
-(7, 2, '你好 golang'),
-(8, 3, '你好 Net'),
-(9, 3, '你好 ZhiHu'),
-(10, 3, '你好 Miscrsoft'),
-(11, 2, '你好 Google'),
-(12, 2, '你好 Taobao'),
-(13, 2, '你好 layui');
-
--- --------------------------------------------------------
-
---
--- 表的结构 `demo_article_migrate`
---
-
-CREATE TABLE `demo_article_migrate` (
-  `id` int UNSIGNED NOT NULL,
-  `user_id` int UNSIGNED NOT NULL,
-  `title` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- 转存表中的数据 `demo_article_migrate`
---
-
-INSERT INTO `demo_article_migrate` (`id`, `user_id`, `title`) VALUES
-(1, 1, 'test for db.migrate 中文');
 
 -- --------------------------------------------------------
 
@@ -87,38 +49,6 @@ CREATE TABLE `demo_cat` (
   `age` int UNSIGNED NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- 转存表中的数据 `demo_cat`
---
-
-INSERT INTO `demo_cat` (`id`, `created_at`, `updated_at`, `deleted_at`, `name`, `title`, `age`) VALUES
-(1, '2023-10-01 09:54:26', '2026-05-30 09:25:57', NULL, 'gray', '小灰', 364),
-(2, '2023-10-01 09:56:12', '2026-05-30 09:25:57', NULL, 'gray', '小灰', 228),
-(3, '2023-10-01 09:57:35', '2023-10-01 09:59:08', '2023-10-01 09:59:08', 'gray', '小灰', 70),
-(4, '2023-10-18 08:56:45', '2023-10-18 08:56:45', NULL, 'gray', '小灰', 69),
-(5, '2024-10-02 11:36:28', '2024-10-02 11:36:28', NULL, 'gray', '小灰', 8),
-(6, '2024-10-02 11:39:53', '2024-10-02 11:39:53', NULL, 'gray', '小灰', 48),
-(7, '2024-10-02 11:44:21', '2024-10-02 11:44:21', NULL, '', '红K', 0),
-(8, '2024-11-01 01:04:04', '2024-11-01 01:04:04', NULL, 'gray', '小灰', 10),
-(9, '2026-05-25 22:58:07', '2026-05-25 22:58:07', NULL, 'gray', '小灰', 69),
-(10, '2026-05-25 23:22:28', '2026-05-25 23:22:28', NULL, 'gray', '小灰', 42),
-(11, '2026-05-25 23:27:19', '2026-05-25 23:27:19', NULL, 'gray', '小灰', 72),
-(12, '2026-05-25 23:32:41', '2026-05-25 23:32:41', NULL, 'gray', '小灰', 21),
-(13, '2026-05-25 23:33:09', '2026-05-25 23:33:09', NULL, 'gray', '小灰', 32),
-(14, '2026-05-25 23:36:42', '2026-05-25 23:36:42', NULL, 'gray', '小灰', 61),
-(15, '2026-05-25 23:38:20', '2026-05-25 23:38:20', NULL, 'gray', '小灰', 17),
-(16, '2026-05-25 23:39:49', '2026-05-25 23:39:49', NULL, 'gray', '小灰', 31),
-(17, '2026-05-30 09:12:18', '2026-05-30 09:12:18', NULL, 'gray', '小灰', 91),
-(18, '2026-05-30 09:13:25', '2026-05-30 09:13:25', NULL, 'gray', '小灰', 18),
-(19, '2026-05-30 09:16:58', '2026-05-30 09:16:58', NULL, 'gray', '小灰', 70),
-(20, '2026-05-30 09:25:57', '2026-05-30 09:25:57', NULL, 'gray', '小灰', 12),
-(21, '2026-07-14 01:56:28', '2026-07-14 01:56:28', NULL, 'gray', '小灰', 19),
-(22, '2026-07-14 02:12:52', '2026-07-14 02:12:52', NULL, 'gray', '小灰', 38),
-(23, '2026-07-14 07:32:08', '2026-07-14 07:32:08', NULL, 'gray', '小灰', 16),
-(24, '2026-07-15 07:50:08', '2026-07-15 07:50:08', NULL, 'gray', '小灰', 69),
-(25, '2026-07-15 07:52:45', '2026-07-15 07:52:45', NULL, 'gray', '小灰', 77),
-(26, '2026-07-16 00:55:47', '2026-07-16 00:55:47', NULL, 'gray', '小灰', 93);
-
 -- --------------------------------------------------------
 
 --
@@ -132,15 +62,6 @@ CREATE TABLE `demo_profile` (
   `remark` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- 转存表中的数据 `demo_profile`
---
-
-INSERT INTO `demo_profile` (`id`, `user_id`, `age`, `remark`) VALUES
-(1, 1, 15, 'demo test'),
-(2, 2, 35, ''),
-(3, 4, 56, '');
-
 -- --------------------------------------------------------
 
 --
@@ -151,19 +72,6 @@ CREATE TABLE `demo_role` (
   `id` int NOT NULL,
   `title` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- 转存表中的数据 `demo_role`
---
-
-INSERT INTO `demo_role` (`id`, `title`) VALUES
-(1, '测试管理员'),
-(2, '管理员'),
-(3, '会员'),
-(4, '商户'),
-(5, '普通会员'),
-(6, '测试管理员1'),
-(7, '测试管理员2');
 
 -- --------------------------------------------------------
 
@@ -177,15 +85,6 @@ CREATE TABLE `demo_user` (
   `email` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- 转存表中的数据 `demo_user`
---
-
-INSERT INTO `demo_user` (`id`, `title`, `email`) VALUES
-(1, '小高', '123@qq.com'),
-(2, 'a', 'a@dd.com'),
-(3, 'b', 'b@dd.com');
-
 -- --------------------------------------------------------
 
 --
@@ -196,18 +95,6 @@ CREATE TABLE `demo_user_role` (
   `user_id` int UNSIGNED NOT NULL,
   `role_id` int UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- 转存表中的数据 `demo_user_role`
---
-
-INSERT INTO `demo_user_role` (`user_id`, `role_id`) VALUES
-(2, 2),
-(3, 2),
-(1, 1),
-(1, 2),
-(1, 3),
-(1, 4);
 
 -- --------------------------------------------------------
 
@@ -225,18 +112,6 @@ CREATE TABLE `tao_app_info` (
   `status` tinyint UNSIGNED NOT NULL DEFAULT '1',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- 转存表中的数据 `tao_app_info`
---
-
-INSERT INTO `tao_app_info` (`id`, `created_at`, `updated_at`, `deleted_at`, `tag`, `title`, `status`, `remark`) VALUES
-(1, 1733495295, 1733495296, NULL, 'test', 'Test Title', 1, 'Just a test app'),
-(2, 1783990930, 1783990930, NULL, 'test', 'Test Title', 1, 'Just a test app'),
-(3, 1783994189, 1783994189, NULL, 'test', 'Test Title', 1, 'Just a test app'),
-(4, 1783995174, 1783995174, NULL, 'test', 'Test Title', 1, 'Just a test app'),
-(5, 1784101966, 1784101966, NULL, 'test', 'Test Title', 1, 'Just a test app'),
-(6, 1784163349, 1784163349, NULL, 'test', 'Test Title', 1, 'Just a test app');
 
 -- --------------------------------------------------------
 
@@ -267,6 +142,7 @@ CREATE TABLE `tao_cms_ad` (
   `end_at` datetime DEFAULT NULL COMMENT '结束时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='广告';
 
+-- --------------------------------------------------------
 
 --
 -- 表的结构 `tao_cms_album`
@@ -347,13 +223,6 @@ CREATE TABLE `tao_cms_category` (
   `other` varchar(255) NOT NULL DEFAULT '' COMMENT '其它内容'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='栏目分类';
 
---
--- 转存表中的数据 `tao_cms_category`
---
-
-INSERT INTO `tao_cms_category` (`id`, `created_at`, `updated_at`, `deleted_at`, `kind`, `pid`, `pids`, `title`, `name`, `cover`, `summary`, `tpl`, `tag`, `navbar`, `sort`, `status`, `image_ids`, `content_id`, `other`) VALUES
-(1, 1733495305, 1733495307, NULL, 1, 0, '', 'MyTest', 'mytest', 'http://assets.emm365.com//b408d7ed07687c13dfa8d11fe789380f.jpg', 'this is a test article', '', 'test', 0, 0, 0, '', 1, '');
-
 -- --------------------------------------------------------
 
 --
@@ -364,13 +233,6 @@ CREATE TABLE `tao_cms_content` (
   `id` int UNSIGNED NOT NULL,
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- 转存表中的数据 `tao_cms_content`
---
-
-INSERT INTO `tao_cms_content` (`id`, `content`) VALUES
-(1, 'content 1 here');
 
 -- --------------------------------------------------------
 
@@ -572,7 +434,6 @@ CREATE TABLE `tao_open_user_unionid` (
   `unionid` varchar(50) NOT NULL DEFAULT '',
   `user_id` int UNSIGNED NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 -- --------------------------------------------------------
 
@@ -909,7 +770,6 @@ CREATE TABLE `tao_system_quick` (
   `deleted_at` int DEFAULT NULL COMMENT '删除时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统快捷入口表';
 
-
 -- --------------------------------------------------------
 
 --
@@ -927,7 +787,6 @@ CREATE TABLE `tao_system_role` (
   `updated_at` int UNSIGNED NOT NULL DEFAULT '0' COMMENT '更新时间',
   `deleted_at` int DEFAULT NULL COMMENT '删除时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统权限表' ROW_FORMAT=COMPACT;
-
 
 -- --------------------------------------------------------
 
@@ -964,7 +823,6 @@ CREATE TABLE `tao_system_sms_code` (
   `created_at` int UNSIGNED NOT NULL DEFAULT '0',
   `updated_at` int UNSIGNED NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='验证码';
-
 
 -- --------------------------------------------------------
 
@@ -1083,12 +941,6 @@ CREATE TABLE `test_user` (
 -- 表的索引 `demo_article`
 --
 ALTER TABLE `demo_article`
-  ADD PRIMARY KEY (`id`);
-
---
--- 表的索引 `demo_article_migrate`
---
-ALTER TABLE `demo_article_migrate`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1309,43 +1161,37 @@ ALTER TABLE `test_user`
 -- 使用表AUTO_INCREMENT `demo_article`
 --
 ALTER TABLE `demo_article`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
-
---
--- 使用表AUTO_INCREMENT `demo_article_migrate`
---
-ALTER TABLE `demo_article_migrate`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `demo_cat`
 --
 ALTER TABLE `demo_cat`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `demo_profile`
 --
 ALTER TABLE `demo_profile`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `demo_role`
 --
 ALTER TABLE `demo_role`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `demo_user`
 --
 ALTER TABLE `demo_user`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `tao_app_info`
 --
 ALTER TABLE `tao_app_info`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `tao_cms_ad`
@@ -1369,13 +1215,13 @@ ALTER TABLE `tao_cms_article`
 -- 使用表AUTO_INCREMENT `tao_cms_category`
 --
 ALTER TABLE `tao_cms_category`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `tao_cms_content`
 --
 ALTER TABLE `tao_cms_content`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- 使用表AUTO_INCREMENT `tao_cms_link`

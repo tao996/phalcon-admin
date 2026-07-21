@@ -7,9 +7,9 @@ use Phalcon\Db\Reference;
 use Phalcon\Migrations\Mvc\Model\Migration;
 
 /**
- * Class TaoSystemRoleNodeMigration_100
+ * Class DemoUserMigration_100
  */
-class TaoSystemRoleNodeMigration_100 extends Migration
+class DemoUserMigration_100 extends Migration
 {
     /**
      * Define the table structure
@@ -19,13 +19,12 @@ class TaoSystemRoleNodeMigration_100 extends Migration
      */
     public function morph(): void
     {
-        $this->morphTable('tao_system_role_node', [
+        $this->morphTable('demo_user', [
             'columns' => [
                 new Column(
                     'id',
                     [
-                        'type' => Column::TYPE_BIGINTEGER,
-                        'unsigned' => true,
+                        'type' => Column::TYPE_INTEGER,
                         'notNull' => true,
                         'autoIncrement' => true,
                         'size' => 1,
@@ -33,37 +32,30 @@ class TaoSystemRoleNodeMigration_100 extends Migration
                     ]
                 ),
                 new Column(
-                    'role_id',
+                    'title',
                     [
-                        'type' => Column::TYPE_BIGINTEGER,
-                        'default' => "0",
-                        'unsigned' => true,
+                        'type' => Column::TYPE_VARCHAR,
                         'notNull' => true,
-                        'size' => 1,
-                        'comment' => "角色ID",
+                        'size' => 50,
                         'after' => 'id'
                     ]
                 ),
                 new Column(
-                    'node_id',
+                    'email',
                     [
-                        'type' => Column::TYPE_BIGINTEGER,
-                        'default' => "0",
+                        'type' => Column::TYPE_VARCHAR,
                         'notNull' => true,
-                        'size' => 1,
-                        'comment' => "节点ID",
-                        'after' => 'role_id'
+                        'size' => 50,
+                        'after' => 'title'
                     ]
                 ),
             ],
             'indexes' => [
                 new Index('PRIMARY', ['id'], 'PRIMARY'),
-                new Index('index_system_auth_auth', ['role_id'], ''),
-                new Index('index_system_auth_node', ['node_id'], ''),
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '1',
+                'AUTO_INCREMENT' => '4',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],

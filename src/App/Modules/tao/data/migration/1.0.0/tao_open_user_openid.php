@@ -230,26 +230,6 @@ class TaoOpenUserOpenidMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_open_user_openid', [
-            'id',
-            'created_at',
-            'updated_at',
-            'platform',
-            'appid',
-            'user_id',
-            'openid',
-            'unionid',
-            'session_key',
-            'nickname',
-            'avatar_url',
-            'gender',
-            'language',
-            'city',
-            'province',
-            'country',
-            'sub',
-            'sub_at',
-        ]);
     }
 
     /**
@@ -259,6 +239,5 @@ class TaoOpenUserOpenidMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_open_user_openid');
     }
 }

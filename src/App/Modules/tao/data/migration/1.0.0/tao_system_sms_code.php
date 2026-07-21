@@ -212,23 +212,6 @@ class TaoSystemSmsCodeMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_system_sms_code', [
-            'id',
-            'user_id',
-            'kind',
-            'status',
-            'num',
-            'send_engine',
-            'send_status',
-            'send_at',
-            'receiver',
-            'receiver_kind',
-            'code',
-            'data',
-            'ip',
-            'created_at',
-            'updated_at',
-        ]);
     }
 
     /**
@@ -238,6 +221,5 @@ class TaoSystemSmsCodeMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_system_sms_code');
     }
 }

@@ -116,15 +116,6 @@ class TaoOpenUserUnionidMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_open_user_unionid', [
-            'id',
-            'created_at',
-            'updated_at',
-            'platform',
-            'appid',
-            'unionid',
-            'user_id',
-        ]);
     }
 
     /**
@@ -134,6 +125,5 @@ class TaoOpenUserUnionidMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_open_user_unionid');
     }
 }

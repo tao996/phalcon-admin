@@ -96,13 +96,6 @@ class TaoSystemMigrationMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_system_migration', [
-            'id',
-            'created_at',
-            'updated_at',
-            'version',
-            'summary',
-        ]);
     }
 
     /**
@@ -112,6 +105,5 @@ class TaoSystemMigrationMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_system_migration');
     }
 }

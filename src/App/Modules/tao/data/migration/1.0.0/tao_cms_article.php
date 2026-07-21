@@ -303,31 +303,6 @@ class TaoCmsArticleMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_cms_article', [
-            'id',
-            'created_at',
-            'updated_at',
-            'deleted_at',
-            'user_id',
-            'ip',
-            'cate_id',
-            'kind',
-            'title',
-            'cover',
-            'keywords',
-            'summary',
-            'author',
-            'status',
-            'cstatus',
-            'cuser_id',
-            'cmessage',
-            'sort',
-            'image_ids',
-            'content_id',
-            'hot',
-            'top',
-            'hits',
-        ]);
     }
 
     /**
@@ -337,6 +312,5 @@ class TaoCmsArticleMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_cms_article');
     }
 }

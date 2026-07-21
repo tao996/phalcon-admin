@@ -237,7 +237,7 @@ class TaoCmsCategoryMigration_100 extends Migration
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '1',
+                'AUTO_INCREMENT' => '2',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],
@@ -251,27 +251,6 @@ class TaoCmsCategoryMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_cms_category', [
-            'id',
-            'created_at',
-            'updated_at',
-            'deleted_at',
-            'kind',
-            'pid',
-            'pids',
-            'title',
-            'name',
-            'cover',
-            'summary',
-            'tpl',
-            'tag',
-            'navbar',
-            'sort',
-            'status',
-            'image_ids',
-            'content_id',
-            'other',
-        ]);
     }
 
     /**
@@ -281,6 +260,5 @@ class TaoCmsCategoryMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_cms_category');
     }
 }

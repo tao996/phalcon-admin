@@ -7,9 +7,9 @@ use Phalcon\Db\Reference;
 use Phalcon\Migrations\Mvc\Model\Migration;
 
 /**
- * Class TaoWechatMenuMigration_100
+ * Class DemoCatMigration_100
  */
-class TaoWechatMenuMigration_100 extends Migration
+class DemoCatMigration_100 extends Migration
 {
     /**
      * Define the table structure
@@ -19,7 +19,7 @@ class TaoWechatMenuMigration_100 extends Migration
      */
     public function morph(): void
     {
-        $this->morphTable('tao_wechat_menu', [
+        $this->morphTable('demo_cat', [
             'columns' => [
                 new Column(
                     'id',
@@ -35,76 +35,65 @@ class TaoWechatMenuMigration_100 extends Migration
                 new Column(
                     'created_at',
                     [
-                        'type' => Column::TYPE_INTEGER,
-                        'default' => "0",
-                        'unsigned' => true,
+                        'type' => Column::TYPE_TIMESTAMP,
                         'notNull' => true,
-                        'size' => 1,
                         'after' => 'id'
                     ]
                 ),
                 new Column(
                     'updated_at',
                     [
-                        'type' => Column::TYPE_INTEGER,
-                        'default' => "0",
-                        'unsigned' => true,
+                        'type' => Column::TYPE_TIMESTAMP,
                         'notNull' => true,
-                        'size' => 1,
                         'after' => 'created_at'
                     ]
                 ),
                 new Column(
-                    'sync',
+                    'deleted_at',
                     [
-                        'type' => Column::TYPE_TINYINTEGER,
-                        'default' => "1",
-                        'unsigned' => true,
-                        'notNull' => true,
-                        'size' => 1,
-                        'comment' => "是否需要同步",
+                        'type' => Column::TYPE_TIMESTAMP,
+                        'notNull' => false,
                         'after' => 'updated_at'
                     ]
                 ),
                 new Column(
-                    'sync_at',
+                    'name',
+                    [
+                        'type' => Column::TYPE_VARCHAR,
+                        'default' => "",
+                        'notNull' => true,
+                        'size' => 50,
+                        'after' => 'deleted_at'
+                    ]
+                ),
+                new Column(
+                    'title',
+                    [
+                        'type' => Column::TYPE_VARCHAR,
+                        'default' => "",
+                        'notNull' => true,
+                        'size' => 50,
+                        'after' => 'name'
+                    ]
+                ),
+                new Column(
+                    'age',
                     [
                         'type' => Column::TYPE_INTEGER,
                         'default' => "0",
                         'unsigned' => true,
                         'notNull' => true,
                         'size' => 1,
-                        'comment' => "同步时间",
-                        'after' => 'sync'
-                    ]
-                ),
-                new Column(
-                    'appid',
-                    [
-                        'type' => Column::TYPE_VARCHAR,
-                        'notNull' => true,
-                        'size' => 50,
-                        'comment' => "微信 appID",
-                        'after' => 'sync_at'
-                    ]
-                ),
-                new Column(
-                    'content',
-                    [
-                        'type' => Column::TYPE_TEXT,
-                        'notNull' => true,
-                        'comment' => "菜单内容",
-                        'after' => 'appid'
+                        'after' => 'title'
                     ]
                 ),
             ],
             'indexes' => [
                 new Index('PRIMARY', ['id'], 'PRIMARY'),
-                new Index('app_id', ['appid'], 'UNIQUE'),
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '1',
+                'AUTO_INCREMENT' => '27',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],

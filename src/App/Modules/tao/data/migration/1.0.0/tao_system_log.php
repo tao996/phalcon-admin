@@ -141,17 +141,6 @@ class TaoSystemLogMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_system_log', [
-            'id',
-            'user_id',
-            'url',
-            'method',
-            'action',
-            'title',
-            'ip',
-            'useragent',
-            'created_at',
-        ]);
     }
 
     /**
@@ -161,6 +150,5 @@ class TaoSystemLogMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_system_log');
     }
 }

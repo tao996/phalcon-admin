@@ -46,7 +46,7 @@ class TaoCmsContentMigration_100 extends Migration
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '4',
+                'AUTO_INCREMENT' => '2',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],
@@ -60,10 +60,6 @@ class TaoCmsContentMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_cms_content', [
-            'id',
-            'content',
-        ]);
     }
 
     /**
@@ -73,6 +69,5 @@ class TaoCmsContentMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_cms_content');
     }
 }

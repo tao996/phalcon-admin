@@ -35,7 +35,7 @@
 35,sms,aliemail_account,,阿里邮件发送账号,0,0,0
 36,sms,aliemail,0,是否启用阿里云邮件功能,0,0,0
 37,site,site_version,1.0.1,版本信息,0,0,0
-38,site,site_name,博与科技,站点名称,0,0,0
+38,site,site_name,站点名称,站点名称,0,0,0
 39,site,site_maintain_time,,站点维护时间,0,0,0
 40,site,site_maintain,站点维护中，请稍候再试..,站点维护公告信息,0,0,0
 41,site,site_logo,,站点logo图片,0,0,0

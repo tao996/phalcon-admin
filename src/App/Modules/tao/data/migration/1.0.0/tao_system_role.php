@@ -144,17 +144,6 @@ class TaoSystemRoleMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_system_role', [
-            'id',
-            'name',
-            'title',
-            'sort',
-            'status',
-            'remark',
-            'created_at',
-            'updated_at',
-            'deleted_at',
-        ]);
     }
 
     /**
@@ -164,6 +153,5 @@ class TaoSystemRoleMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_system_role');
     }
 }

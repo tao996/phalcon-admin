@@ -111,9 +111,9 @@ class TaoAppInfoMigration_100 extends Migration
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '1',
+                'AUTO_INCREMENT' => '7',
                 'ENGINE' => 'InnoDB',
-                'TABLE_COLLATION' => 'utf8mb4_general_ci',
+                'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],
         ]);
     }
@@ -125,16 +125,6 @@ class TaoAppInfoMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_app_info', [
-            'id',
-            'created_at',
-            'updated_at',
-            'deleted_at',
-            'tag',
-            'title',
-            'status',
-            'remark',
-        ]);
     }
 
     /**
@@ -144,6 +134,5 @@ class TaoAppInfoMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_app_info');
     }
 }

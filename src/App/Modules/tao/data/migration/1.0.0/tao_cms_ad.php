@@ -76,30 +76,6 @@ class TaoCmsAdMigration_100 extends Migration
                     ]
                 ),
                 new Column(
-                    'begin_at',
-                    [
-                        'type' => Column::TYPE_INTEGER,
-                        'default' => "0",
-                        'unsigned' => true,
-                        'notNull' => true,
-                        'size' => 1,
-                        'comment' => "开始时间",
-                        'after' => 'user_id'
-                    ]
-                ),
-                new Column(
-                    'end_at',
-                    [
-                        'type' => Column::TYPE_INTEGER,
-                        'default' => "0",
-                        'unsigned' => true,
-                        'notNull' => true,
-                        'size' => 1,
-                        'comment' => "结束时间",
-                        'after' => 'begin_at'
-                    ]
-                ),
-                new Column(
                     'title',
                     [
                         'type' => Column::TYPE_VARCHAR,
@@ -107,7 +83,7 @@ class TaoCmsAdMigration_100 extends Migration
                         'notNull' => true,
                         'size' => 255,
                         'comment' => "标题",
-                        'after' => 'end_at'
+                        'after' => 'user_id'
                     ]
                 ),
                 new Column(
@@ -246,6 +222,24 @@ class TaoCmsAdMigration_100 extends Migration
                         'after' => 'status'
                     ]
                 ),
+                new Column(
+                    'begin_at',
+                    [
+                        'type' => Column::TYPE_DATETIME,
+                        'notNull' => false,
+                        'comment' => "生效时间",
+                        'after' => 'remark'
+                    ]
+                ),
+                new Column(
+                    'end_at',
+                    [
+                        'type' => Column::TYPE_DATETIME,
+                        'notNull' => false,
+                        'comment' => "结束时间",
+                        'after' => 'begin_at'
+                    ]
+                ),
             ],
             'indexes' => [
                 new Index('PRIMARY', ['id'], 'PRIMARY'),
@@ -254,7 +248,7 @@ class TaoCmsAdMigration_100 extends Migration
                 'TABLE_TYPE' => 'BASE TABLE',
                 'AUTO_INCREMENT' => '1',
                 'ENGINE' => 'InnoDB',
-                'TABLE_COLLATION' => 'utf8mb4_general_ci',
+                'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
             ],
         ]);
     }
@@ -266,28 +260,6 @@ class TaoCmsAdMigration_100 extends Migration
      */
     public function up(): void
     {
-        $this->batchInsert('tao_cms_ad', [
-            'id',
-            'created_at',
-            'updated_at',
-            'deleted_at',
-            'user_id',
-            'begin_at',
-            'end_at',
-            'title',
-            'cover',
-            'link',
-            'kind',
-            'at_banner',
-            'at_index',
-            'at_list',
-            'at_page',
-            'tag',
-            'sort',
-            'gname',
-            'status',
-            'remark',
-        ]);
     }
 
     /**
@@ -297,6 +269,5 @@ class TaoCmsAdMigration_100 extends Migration
      */
     public function down(): void
     {
-        $this->batchDelete('tao_cms_ad');
     }
 }
