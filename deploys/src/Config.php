@@ -63,7 +63,10 @@ class DeployConfig
                 $this->server['env'] ?? [],
                 $this->project['env'] ?? []
             ),
-            'config' => $this->project['config'] ?? [],
+            'config' => array_merge_deep(
+                $this->server['config'] ?? [],
+                $this->project['config'] ?? []
+            ),
             'hooks' => $this->project['hooks'] ?? [],
             'docker' => array_merge_deep(
                 $this->server['docker'] ?? [],

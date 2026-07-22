@@ -39,4 +39,25 @@ return [
         'MYSQL_PASSWORD' => '123456',
         'MYSQL_USER' => 'admin',
     ],
+    'config' => [ // 应用配置覆盖
+        'app' => [
+            'title' => '站点名称',
+            'origin' => 'https://your/',
+            'assets' => [
+                'cdn' => '', 'hosts' => [], 'min' => false,
+            ],
+            'demo' => [
+                'open' => false, 'admin' => ['account' => 'admin', 'password' => '123456'],
+            ],
+            'test' => [
+                'open' => false,
+            ],
+            'superAdmin' => [1],
+            'default' => '',
+            'defaultApp' => [
+                'namespace' => 'App\Modules\yihe\Controllers',
+            ],
+            'welcome' => '/m/yihe/index/welcome'
+        ],
+    ],
 ];
