@@ -41,7 +41,6 @@ class MchController extends BaseController
         Validate::checkData($data, [
             'mchid|商户号ID' => 'required',
             'secret_key|V3 api 秘钥' => 'required',
-            'pubkey_id|微信支付公钥' => 'required'
         ]);
         return $data;
     }

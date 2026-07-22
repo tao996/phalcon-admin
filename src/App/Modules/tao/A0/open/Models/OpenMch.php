@@ -44,7 +44,7 @@ class OpenMch extends BaseTaoModel
     public string $pubkey = '';
 
     /**
-     * @deprecated
+     * @deprecated 已经被 bubkey 取代
      * @var string 平台证书：微信支付 APIv3 平台证书，需要使用工具下载
      * 下载工具：https://github.com/wechatpay-apiv3/CertificateDownloader
      */
@@ -57,7 +57,7 @@ class OpenMch extends BaseTaoModel
     public function beforeSave(): void
     {
         $this->done = empty($this->private_key)
-        || empty($this->pubkey)
-        || empty($this->platform_cert) ? 0 : 1;
+        || empty($this->certificate)
+        || empty($this->pubkey) ? 0 : 1;
     }
 }

@@ -51,10 +51,10 @@ use App\Modules\tao\A0\open\Models\OpenOrder;
             <i class="fa fa-refresh"></i>
         </button>
 
-<!--        <button class="layui-btn layui-btn-normal layui-btn-sm"-->
-<!--                lay-on="create">-->
-<!--            <i class="fa fa-plus"></i>添加-->
-<!--        </button>-->
+        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                lay-on="onTest">
+            <i class="fa fa-plus"></i>订单测试
+        </button>
     </div>
 </script>
 <script type="text/html" id="row-action">
@@ -109,4 +109,9 @@ use App\Modules\tao\A0\open\Models\OpenOrder;
             .addCellEditAction()
             .addToolbarActions()
             .addRowActions();
+        admin.util.layOn({
+            onTest:function(){
+                console.log('TODO:网页支付二维码');
+            }
+        })
 </script>
