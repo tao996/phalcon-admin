@@ -8,16 +8,16 @@
  *   php deploy server:init -y          # 执行初始化（根据环境自动选择模式）
  *   php deploy server:init -y mode=host_nginx  # 强制宿主机 nginx 模式
  *   php deploy nginx:reload           # 验证配置语法并重载 Nginx（全局）
- *   php deploy app:init <project>      # 预览（无 -y）或执行部署（加 -y）
- *   php deploy app:upgrade <project>   # 更新已有项目
- *   php deploy app:restart <project>   # 重启项目 Docker 容器
- *   php deploy app:push <project>      # 推送本地配置到远程
- *   php deploy app:status <project>    # 查看项目容器状态
- *   php deploy app:nginx:add <project> # 为项目添加域名到 Router
- *   php deploy app:nginx:remove <project>  # 从 Router 移除域名
- *   php deploy db:proxy <project>      # SSH 隧道转发
- *   php deploy db:pma <project>        # 部署临时 phpMyAdmin
- *   php deploy db:pma-rm <project>     # 删除临时 phpMyAdmin
+ *   php deploy app:<project> init      # 预览（无 -y）或执行部署（加 -y）
+ *   php deploy app:<project> upgrade   # 更新已有项目
+ *   php deploy app:<project> dc:restart   # 重启项目 Docker 容器
+ *   php deploy app:<project> push      # 推送本地配置到远程
+ *   php deploy app:<project> dc:status    # 查看项目容器状态
+ *   php deploy app:<project> nginx:add # 为项目添加域名到 Router
+ *   php deploy app:<project> nginx:remove  # 从 Router 移除域名
+ *   php deploy app:<project> db:proxy      # SSH 隧道转发
+ *   php deploy app:<project> db:pma        # 部署临时 phpMyAdmin
+ *   php deploy app:<project> db:pma-rm     # 删除临时 phpMyAdmin
  *   php deploy --help                  # 显示帮助
  *
  * 参数:
@@ -85,6 +85,9 @@ function showHelp(): void
 用法:
   php deploy \033[33m<命令>\033[0m [参数...] [-key=value]
 
+\033[33m  通用\033[0m
+  config:export [项目]          导出配置为 JSON（不指定项目时导出全部）
+  
 \033[33m  服务器\033[0m
   server:init [-y] [mode=host_nginx]  检测环境（无 -y 只报告，加 -y 执行安装）
   nginx:reload                        验证语法并重载 Nginx（全局）
@@ -92,34 +95,33 @@ function showHelp(): void
   nginx:log:access [--save]           查看访问日志（加 --save 下载到本地）
 
 \033[33m  项目 — 部署\033[0m
-  app:init <项目> [-y] [mode=...] [port=...]   预览/部署
-  app:upgrade <项目> [-y]                      更新代码（加 -y 同时更新配置）
-  app:push <项目>                               推送本地配置到远程
-  app:script:push <项目>                        推送分析脚本到远程
-  app:run <项目> <脚本> [参数...]               远程执行分析脚本
+  app:<项目> init [-y] [mode=...] [port=...]   预览/部署
+  app:<项目> upgrade [-y]                      更新代码（加 -y 同时更新配置）
+  app:<项目> push                               推送本地配置到远程
+  app:<项目> script:push                        推送分析脚本到远程
+  app:<项目> run <脚本> [参数...]               远程执行分析脚本
     脚本: doctor              一键健康检查
           log-tail <类型> [行数]  查看日志（error/app/sql/nginx/access/mysql-slow）
           log-errors [日期]       错误汇总
           log-slow [阈值] [行数]  慢查询分析
-  app:reset <项目>                              重置代码到最新提交
+  app:<项目> reset                              重置代码到最新提交
 
 \033[33m  项目 — Docker 容器\033[0m
-  app:dc:restart <项目>                         重启容器
-  app:dc:restart:<容器> <项目>                  重启指定容器
-  app:dc:status <项目>                          查看容器状态
-  app:dc:log <项目>                             查看全部容器日志
-  app:dc:log:<容器> <项目>                      查看指定容器日志
+  app:<项目> dc:restart                         重启容器
+  app:<项目> dc:restart:<容器>                  重启指定容器
+  app:<项目> dc:status                          查看容器状态
+  app:<项目> dc:log                             查看全部容器日志
+  app:<项目> dc:log:<容器>                      查看指定容器日志
 
-\033[33m  通用\033[0m
-  config:export [项目]          导出配置为 JSON（不指定项目时导出全部）
-  app:nginx:add <项目>                          添加域名到 Router
-  app:nginx:remove <项目>                       从 Router 移除域名
-  app:nginx:ssl <项目> -email=xx@xx.com         申请 SSL 证书
+\033[33m  项目 - Nginx\033[0m
+  app:<项目> nginx:add                          添加域名到 Router
+  app:<项目> nginx:remove                       从 Router 移除域名
+  app:<项目> nginx:ssl -email=xx@xx.com         申请 SSL 证书
 
 \033[33m  数据库\033[0m
-  db:proxy <项目> [local=13306]                 SSH 隧道转发
-  db:pma <项目> [host=13307]                    部署临时 phpMyAdmin
-  db:pma-rm <项目>                              删除临时 phpMyAdmin
+  app:<项目> db:proxy [local=13306]                 SSH 隧道转发
+  app:<项目> db:pma [host=13307]                    部署临时 phpMyAdmin
+  app:<项目> db:pma-rm                              删除临时 phpMyAdmin
 
 HELP;
 }
@@ -148,20 +150,33 @@ if (!file_exists($serverConfigFile)) {
 
 // ---------- 执行命令 ----------
 
-// 处理 app:dc:log:<容器> 类命令
+// 提取 app:<项目> 前缀，将项目名放回 positionalArgs[1]
+if (str_starts_with($command, 'app:')) {
+    $projectNameFromCmd = substr($command, 4);
+    $subCommand = $positionalArgs[1] ?? '';
+    if (!empty($subCommand)) {
+        array_splice($positionalArgs, 1, 1);
+        $positionalArgs = array_values($positionalArgs);
+    }
+    $command = $subCommand;
+    // 将项目名注入到 positionalArgs[1]，兼容各 handler
+    array_splice($positionalArgs, 1, 0, [$projectNameFromCmd]);
+}
+
+// 处理 dc:log:<容器> 类命令
 $container = '';
-if (str_starts_with($command, 'app:dc:log:')) {
-    $parts = explode(':', $command, 4);
-    $container = $parts[3] ?? '';
-    $command = 'app:dc:log';
+if (str_starts_with($command, 'dc:log:')) {
+    $parts = explode(':', $command, 3);
+    $container = $parts[2] ?? '';
+    $command = 'dc:log';
     $namedParams['container'] = $container;
 }
 
-// 处理 app:dc:restart:<容器> 类命令
-if (str_starts_with($command, 'app:dc:restart:')) {
-    $parts = explode(':', $command, 4);
-    $container = $parts[3] ?? '';
-    $command = 'app:dc:restart';
+// 处理 dc:restart:<容器> 类命令
+if (str_starts_with($command, 'dc:restart:')) {
+    $parts = explode(':', $command, 3);
+    $container = $parts[2] ?? '';
+    $command = 'dc:restart';
     $namedParams['service'] = $container;
 }
 
@@ -189,16 +204,16 @@ try {
             handleNginxLog($serverConfigFile, 'access', $namedParams);
             break;
 
-        case 'app:init':
+        case 'init':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy init <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> init\n");
                 exit(1);
             }
             handleInit($serverConfigFile, $projectName, $namedParams);
             break;
 
-        case 'app:push':
+        case 'push':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
                 fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:push <项目名>\n");
@@ -207,46 +222,46 @@ try {
             handleConfigPush($serverConfigFile, $projectName, $namedParams);
             break;
 
-        case 'app:reset':
+        case 'reset':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:reset <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> reset\n");
                 exit(1);
             }
             handleReset($serverConfigFile, $projectName);
             break;
 
-        case 'app:script:push':
+        case 'script:push':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:script:push <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> script:push\n");
                 exit(1);
             }
             handleScriptPush($serverConfigFile, $projectName);
             break;
 
-        case 'app:run':
+        case 'run':
             $projectName = $positionalArgs[1] ?? '';
             $scriptName = $positionalArgs[2] ?? '';
             if (empty($projectName) || empty($scriptName)) {
-                fwrite(STDERR, "错误: 用法: php deploy app:run <项目名> <脚本名> [参数...]\n");
+                fwrite(STDERR, "错误: 用法: php deploy app:<项目名> run <脚本名> [参数...]\n");
                 exit(1);
             }
             $scriptArgs = array_slice($positionalArgs, 3);
             handleRunScript($serverConfigFile, $projectName, $scriptName, $scriptArgs);
             break;
 
-        case 'app:dc:restart':
+        case 'dc:restart':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:restart[:<容器>] <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> dc:restart[:<容器>]\n");
                 exit(1);
             }
             $service = $namedParams['service'] ?? '';
             handleRestart($serverConfigFile, $projectName, $service);
             break;
 
-        case 'app:dc:status':
+        case 'dc:status':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
                 fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:status <项目名>\n");
@@ -255,59 +270,50 @@ try {
             handleStatus($serverConfigFile, $projectName);
             break;
 
-        case 'app:dc:log':
+        case 'dc:log':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:log[:<容器>] <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> dc:log[:<容器>]\n");
                 exit(1);
             }
             $container = $namedParams['container'] ?? '';
             handleDcLog($serverConfigFile, $projectName, $container);
             break;
 
-        case 'app:upgrade':
+        case 'upgrade':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:upgrade <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> upgrade\n");
                 exit(1);
             }
             handleUpgrade($serverConfigFile, $projectName, $namedParams);
             break;
 
-        case 'app:nginx:add':
+        case 'nginx:add':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:nginx:add <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> nginx:add\n");
                 exit(1);
             }
             handleNginxAdd($serverConfigFile, $projectName, $namedParams);
             break;
 
-        case 'app:nginx:remove':
+        case 'nginx:remove':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:nginx:remove <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> nginx:remove\n");
                 exit(1);
             }
             handleNginxRemove($serverConfigFile, $projectName);
             break;
 
-        case 'app:nginx:ssl':
+        case 'nginx:ssl':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:nginx:ssl <项目名> -email=your@email.com\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> nginx:ssl -email=your@email.com\n");
                 exit(1);
             }
             handleNginxSsl($serverConfigFile, $projectName, $namedParams);
-            break;
-
-        case 'app:dc:status':
-            $projectName = $positionalArgs[1] ?? '';
-            if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:status <项目名>\n");
-                exit(1);
-            }
-            handleStatus($serverConfigFile, $projectName);
             break;
 
         case 'db:proxy':
@@ -452,7 +458,7 @@ PHP;
 
         file_put_contents($projectFile, $content);
         deploy_log("已创建项目配置: {$projectFile}", 'ok');
-        deploy_log("请编辑配置后重新执行: php deploy app:init {$projectName} -y", 'info');
+        deploy_log("请编辑配置后重新执行: php deploy app:{$projectName} init -y", 'info');
         exit(0);
     }
 
