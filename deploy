@@ -426,14 +426,33 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
         if (!is_dir($projectDir)) {
             mkdir($projectDir, 0755, true);
         }
-        $exampleFile = deploy_base_path() . '/projects/.example/server.php';
-        if (file_exists($exampleFile)) {
-            copy($exampleFile, $projectFile);
-            deploy_log("已创建项目配置: {$projectFile}", 'ok');
-            deploy_log("请编辑配置文件后重新执行: php deploy app:init {$projectName} -y", 'info');
-        } else {
-            deploy_log("示例配置文件不存在: {$exampleFile}", 'error');
-        }
+
+        // 从 deploys/server.php 继承配置
+        $serverCfg = require $serverConfigFile;
+        $configCode = var_export($serverCfg['config'] ?? [], true);
+        $projectPath = '/root/projects/' . $projectName;
+        $repo = $serverCfg['project']['repo'] ?? '';
+        $branch = $serverCfg['project']['branch'] ?? 'main';
+
+        $content = <<<PHP
+<?php
+
+/**\n * 项目配置 — 由 deploy 工具自动创建
+ */
+return [
+    'project' => [
+        'name' => '{$projectName}',
+        'path' => '{$projectPath}',
+        'repo' => '{$repo}',
+        'branch' => '{$branch}',
+    ],
+    'config' => {$configCode},
+];
+PHP;
+
+        file_put_contents($projectFile, $content);
+        deploy_log("已创建项目配置: {$projectFile}", 'ok');
+        deploy_log("请编辑配置后重新执行: php deploy app:init {$projectName} -y", 'info');
         exit(0);
     }
 
