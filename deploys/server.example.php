@@ -55,9 +55,9 @@ return [
             'superAdmin' => [1],
             'default' => '',
             'defaultApp' => [
-                'namespace' => 'App\Modules\yihe\Controllers',
+                'namespace' => '',
             ],
-            'welcome' => '/m/yihe/index/welcome'
+            'welcome' => ''
         ],
     ],
 ];
