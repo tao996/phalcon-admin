@@ -418,6 +418,25 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
 {
     $config = new DeployConfig();
     $config->loadServer($serverConfigFile);
+
+    // 自动创建项目配置（首次使用）
+    $projectDir = deploy_base_path() . '/projects/' . $projectName;
+    $projectFile = $projectDir . '/server.php';
+    if (!file_exists($projectFile)) {
+        if (!is_dir($projectDir)) {
+            mkdir($projectDir, 0755, true);
+        }
+        $exampleFile = deploy_base_path() . '/projects/.example/server.php';
+        if (file_exists($exampleFile)) {
+            copy($exampleFile, $projectFile);
+            deploy_log("已创建项目配置: {$projectFile}", 'ok');
+            deploy_log("请编辑配置文件后重新执行: php deploy app:init {$projectName} -y", 'info');
+        } else {
+            deploy_log("示例配置文件不存在: {$exampleFile}", 'error');
+        }
+        exit(0);
+    }
+
     $config->loadProject($projectName);
 
     // 传递模式参数
