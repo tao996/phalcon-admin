@@ -6,6 +6,8 @@
 !.reasonix/skills/
 DirectoryV3.xml
 reasonix.toml
+# ai 可能生成这个文件
+nul
 
 # docker 运行环境配置
 .env
