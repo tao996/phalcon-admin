@@ -2,61 +2,40 @@ FROM php:8.3-fpm-alpine3.24
 
 ENV TZ=America/Los_Angeles \
     PHALCON_VERSION=5.17.0 \
-    ZEPHIR_PARSER_VERSION=2.4.0 \
-    REDIS_VERSION=6.3.0 \
-    MEMCACHED_VERSION=3.4.0 \
-    APCU_VERSION=5.1.28 \
-    IGBINARY_VERSION=3.2.17RC1 \
-    PSR_VERSION=1.2.0 \
-    MSGPACK_VERSION=3.0.1 \
-    XLSWRITER_VERSION=3.0.0 \
-    XDEBUG_VERSION=3.5.3 \
-    EVENT_VERSION=3.1.6
+    ZEPHIR_PARSER_VERSION=2.4.0
 
-WORKDIR /tmp
+# 1. 复制官方的 install-php-extensions 脚本，或者直接用 --mount 从它的镜像里拷
+COPY --from=ghcr.io/mlocati/php-extension-installer:latest /usr/bin/install-php-extensions /usr/local/bin/
 
-COPY scripts/ /usr/bin/
-
-# 在网络不好时对数据进行缓存
-RUN --mount=type=cache,target=/var/cache/apt \
-# 强行更新系统组件消灭漏洞，并分离运行库与编译库
-    apk update && apk upgrade --no-cache && \
-    # 【运行依赖库】—— 这一组包在清理时绝对不能删！
-    apk add --no-cache \
-        bash unzip libzip libmemcached mariadb-connector-c libwebp \
-        freetype libpng libjpeg-turbo icu-libs libpq && \
-    \
-    # 【编译临时库】—— 这一组包后面会被安全清理
-    apk add --no-cache --virtual build-dependencies \
-        build-base tzdata autoconf linux-headers \
-        libzip-dev libmemcached-dev openssl-dev zlib-dev \
-        mariadb-connector-c-dev freetype-dev libpng-dev libjpeg-turbo-dev \
-        libwebp-dev icu-dev libpq-dev libevent-dev && \
-    \
-    # 2. 配置并安装 PHP 核心内置扩展
-    docker-php-ext-configure gd --with-freetype --with-webp --with-jpeg=/usr/include/ --enable-gd && \
-    docker-php-ext-install gd mysqli pdo pdo_mysql pdo_pgsql pcntl sockets bcmath exif intl opcache posix zip sysvmsg sysvsem sysvshm && \
-    \
-    # 3. 通过 PECL 安装第三方扩展
-    pecl install zephir_parser-${ZEPHIR_PARSER_VERSION} && \
-    pecl install igbinary-${IGBINARY_VERSION} && \
-    pecl install psr-${PSR_VERSION} && \
-    pecl install msgpack-${MSGPACK_VERSION} && \
-    pecl install phalcon-${PHALCON_VERSION} && \
-    pecl install redis-${REDIS_VERSION} && \
-    pecl install memcached-${MEMCACHED_VERSION} && \
-    pecl install apcu-${APCU_VERSION} && \
-    pecl install xlswriter-${XLSWRITER_VERSION} && \
-    pecl install xdebug-${XDEBUG_VERSION} && \
-    pecl install event-${EVENT_VERSION} && \
-    docker-php-ext-enable phalcon psr sockets memcached redis apcu zephir_parser msgpack igbinary xlswriter xdebug event && \
-    cp /usr/share/zoneinfo/$TZ /etc/localtime && \
-    echo $TZ > /etc/timezone && \
-    apk del --no-cache build-dependencies && \
-    rm -rf /var/cache/apk/* && \
-    docker-php-source delete && \
-    rm -rf /tmp/*
-
+# 2. 一行命令搞定所有核心、第三方扩展及 Phalcon（它会自动处理依赖、下载最新版、清理垃圾）
+RUN install-php-extensions \
+    gd \
+    mysqli \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    pcntl \
+    sockets \
+    bcmath \
+    exif \
+    intl \
+    opcache \
+    posix \
+    zip \
+    sysvmsg \
+    sysvsem \
+    sysvshm \
+    igbinary \
+    msgpack \
+    redis \
+    memcached \
+    apcu \
+    xlswriter \
+    xdebug \
+    event \
+    psr \
+    zephir_parser-${ZEPHIR_PARSER_VERSION} \
+    phalcon-${PHALCON_VERSION}
 
 LABEL maintainer="authus" \
       php.version="8.3" \
