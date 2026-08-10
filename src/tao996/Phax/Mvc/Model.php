@@ -158,6 +158,7 @@ class Model extends \Phalcon\Mvc\Model
     public array $intColumns = [];
     /**
      * @var array 需要将内容为空时自动转为 NULL 的字段
+     * （注意：字段类型必须添加上 |null 否则会导致 Cannot assign null to property 错误）
      */
     public array $nullColumns = [];
     /**
@@ -170,7 +171,7 @@ class Model extends \Phalcon\Mvc\Model
      * @param array $data
      * @return array
      */
-    public function getAssignWith(array $data):array
+    public function getAssignData(array $data):array
     {
         foreach ($this->floatColumns as $column) {
             if (array_key_exists($column, $data)) {

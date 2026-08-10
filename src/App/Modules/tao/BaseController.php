@@ -443,7 +443,7 @@ class BaseController extends BaseRbacController
             return $this->error('当前模型不存在此属性');
         }
         // 对数据进行处理
-        $data = $this->model->getAssignWith([$post['field'] => $post['value']]);
+        $data = $this->model->getAssignData([$post['field'] => $post['value']]);
         $this->beforeBatchChange($ids, $post['field'], $data[$post['field']]);
         Transaction::db(function (\Phalcon\Db\Adapter\Pdo\AbstractPdo $db) use ($ids, $data, $post) {
             $this->model->getQueryBuilder()
