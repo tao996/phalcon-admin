@@ -773,7 +773,7 @@ const admin = {
          * @param {string} layFilterName 添加在 form 上的 lay-filter 如 `<form class="layui-form" action="" lay-filter="demo-val-filter">`
          * @returns {*}
          */
-        value: function (layFilterName) {
+        value: function (layFilterName = 'form-search') {
             return layui.form.val(layFilterName);
         },
         /**
