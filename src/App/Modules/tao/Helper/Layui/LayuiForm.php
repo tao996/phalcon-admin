@@ -270,10 +270,10 @@ class LayuiForm
 JS
         );
         return $this->wrapFormItem($this->wrapFormLabel($title) . '
-            <div class="layui-input-inline"><input type="text" name="' . $startName . '" class="layui-input" id="' . $startName . '"
+            <div class="layui-input-inline"><input type="text" autocomplete="off" name="' . $startName . '" class="layui-input" id="' . $startName . '"
                    value="' . $startValue . '" placeholder="开始日期"></div>
             <div class="layui-form-mid layui-hide-xs">-</div>
-            <div class="layui-input-inline"><input type="text" name="' . $endName . '" class="layui-input" id="' . $endName . '"
+            <div class="layui-input-inline"><input type="text" autocomplete="off" name="' . $endName . '" class="layui-input" id="' . $endName . '"
                    value="' . $endValue . '" placeholder="结束日期"></div>', formItem: $formItem);
     }
 
@@ -338,7 +338,7 @@ JS;
         $requiredElem = $required ? '  lay-verify="required"' : '';
         $auxText = $this->wrapAux($aux);
         $style = $preNext ? 'style="margin-right: 0px;"' : '';
-        $inputHtml = '<div class="layui-input-inline" ' . $style . '><input type="text" name="' . $name . '" class="layui-input" id="' . $name . '"
+        $inputHtml = '<div class="layui-input-inline" ' . $style . '><input type="text" autocomplete="off" name="' . $name . '" class="layui-input" id="' . $name . '"
                    value="' . $value . '"
                    placeholder="请选择' . $title . '" ' . $requiredElem . '></div>';
         $content = $this->wrapFormLabel($title, $required) . $inputHtml;
