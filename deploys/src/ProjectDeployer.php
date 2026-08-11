@@ -202,7 +202,7 @@ class ProjectDeployer
 
         // 渲染并写入本地文件
         $files = [
-            '.env' => $this->getTemplatePath('.env.example'),
+            '.env' => $this->getTemplatePath('.env.deploy.example'),
             $composeTemplate => deploy_base_path() . '/template/' . $composeTemplate,
             'docker/nginx/sites/default.conf' => $this->getTemplatePath('nginx/default.conf'),
             'docker/php/php.ini' => $this->getTemplatePath('php/php.ini'),
@@ -546,7 +546,7 @@ class ProjectDeployer
         // 渲染并上传各配置文件
         // .env
         $envContent = $this->renderer->render(
-            $this->getTemplatePath('.env.example'),
+            $this->getTemplatePath('.env.deploy.example'),
             $vars
         );
         if (!empty($envContent)) {
