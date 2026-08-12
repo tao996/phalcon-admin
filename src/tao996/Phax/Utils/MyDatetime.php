@@ -145,4 +145,20 @@ class MyDatetime
     {
         return strtotime($date1) >= strtotime($date2);
     }
+
+    public static function toMonth(mixed $currentMonth, string $format = 'Y-m')
+    {
+        if (preg_match('|^\d{6}$|', $currentMonth)) {
+            if ($format == 'Y-m') {
+                return substr($currentMonth, 0, 4) . '-' . substr($currentMonth, 4, 2);
+            }
+            return $currentMonth;
+        } else if (preg_match('|^\d{4}-\d{2}$|', $currentMonth)) {
+            if ($format == 'Y-m') {
+                return $currentMonth;
+            }
+            return substr($currentMonth, 0, 4) . substr($currentMonth, 5, 2);
+        }
+        return date($format, strtotime($currentMonth));
+    }
 }

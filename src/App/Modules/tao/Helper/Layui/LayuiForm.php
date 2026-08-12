@@ -113,15 +113,21 @@ class LayuiForm
                           string $subfix = '',
                           string $aux = '',
                           string $class = '',
+                          array  $attrs = [],
                           bool   $block = false,
                           bool   $formItem = true,
     ): string
     {
         $inputClass = $block ? 'layui-input-block' : 'layui-input-inline';
         $placeholder = $placeholder ?: '请填写' . $title;
+
+        $attrsText = $attrs ? join(' ', array_map(function ($k, $v) {
+            return $k . '="' . $v . '"';
+        }, array_keys($attrs), $attrs)) : '';
+
         $groupPs = $this->wrapPrefixSuffix('<input lay-affix="clear" ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input ' . $class . '"
                    value="' . $value . '"
-                   placeholder="' . $placeholder . '">', $prefix, $subfix);
+                   placeholder="' . $placeholder . '" ' . $attrsText . '>', $prefix, $subfix);
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="' . $inputClass . '">' . $groupPs . '
         </div>' . $this->wrapAux($aux),
             name: $name, formItem: $formItem);
