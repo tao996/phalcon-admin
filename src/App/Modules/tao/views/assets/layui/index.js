@@ -831,7 +831,7 @@ const admin = {
          * @param url {string} 链接
          * @param end {Function} 关闭页面回调函数
          */
-        open: function (title, url, end) {
+        open: function (title, url, end = null) {
             admin.iframe.open(url, {
                 title, end
             });
