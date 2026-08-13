@@ -98,7 +98,7 @@ function showHelp(): void
 
 \033[33m  项目 — 部署\033[0m
   app:<项目> init [-y] [mode=...] [port=...]   预览/部署
-  app:<项目> upgrade [-y]                      更新代码（加 -y 同时更新配置）
+  app:<项目> upgrade [-y]                      更新代码（加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
   app:<项目> push                               推送本地配置到远程
   app:<项目> script:push                        推送分析脚本到远程
   app:<项目> run <脚本> [参数...]               远程执行分析脚本
