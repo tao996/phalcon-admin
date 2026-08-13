@@ -29,24 +29,6 @@ function array_get(array $array, string $key, mixed $default = null): mixed
 }
 
 /**
- * 递归合并数组（与 array_merge_recursive 不同：同名键覆盖而非合并）
- */
-function array_merge_deep(array ...$arrays): array
-{
-    $result = [];
-    foreach ($arrays as $array) {
-        foreach ($array as $key => $value) {
-            if (isset($result[$key]) && is_array($result[$key]) && is_array($value)) {
-                $result[$key] = array_merge_deep($result[$key], $value);
-            } else {
-                $result[$key] = $value;
-            }
-        }
-    }
-    return $result;
-}
-
-/**
  * 生成安全的目录名（用于项目标识）
  */
 function safe_name(string $name): string

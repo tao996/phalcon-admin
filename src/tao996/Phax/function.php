@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * 传统 php-fpm 模式
+ */
+define('IS_PHP_FPM', isset($_SERVER['HTTP_HOST']));
+/**
+ * 命令行任务模式
+ */
+define('IS_TASK', php_sapi_name() === 'cli' && !IS_PHP_FPM); // 命令行任务模式
 
 if (!function_exists('pr')) {
     /**
@@ -11,6 +19,7 @@ if (!function_exists('pr')) {
     function pr($var): void
     {
         echo IS_TASK ? '|<--- ' . PHP_EOL : '<pre>';
+        print_r(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,limit: 1)[0]);
         foreach (func_get_args() as $arg) {
             print_r($arg);
             echo IS_TASK ? PHP_EOL : '<br/>';

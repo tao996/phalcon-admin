@@ -3,15 +3,8 @@
 if (!defined('PATH_ROOT')) {
     die('you should define the PATH_ROOT first.');
 }
+require_once __DIR__ . '/Phax/function.php';
 
-/**
- * 传统 php-fpm 模式
- */
-define('IS_PHP_FPM', isset($_SERVER['HTTP_HOST']));
-/**
- * 命令行任务模式
- */
-define('IS_TASK', php_sapi_name() === 'cli' && !IS_PHP_FPM); // 命令行任务模式
 
 
 // remove after the package publish release
@@ -33,7 +26,7 @@ const PATH_APP_PROJECTS = PATH_ROOT . 'App' . DIRECTORY_SEPARATOR . 'Projects' .
 const PATH_TAO996 = __DIR__ . DIRECTORY_SEPARATOR;
 const PATH_TAO996_PHAX = PATH_TAO996 . 'Phax' . DIRECTORY_SEPARATOR;
 const PATH_TAO996_PHAR = PATH_TAO996 . 'phar' . DIRECTORY_SEPARATOR;
-require_once PATH_TAO996_PHAX . 'function.php';
+
 
 if (file_exists(PATH_ROOT . 'vendor/autoload.php')) {
     require_once PATH_ROOT . 'vendor/autoload.php';

@@ -34,6 +34,8 @@
 define('DEPLOY_BASE', __DIR__);
 define('DEPLOY_SRC', DEPLOY_BASE . '/deploys/src');
 
+include_once DEPLOY_BASE.'/src/tao996/Phax/function.php';
+
 // 加载 phpseclib（用于 SSH 连接）
 $pharPath = DEPLOY_BASE . '/src/tao996/phar/phpseclib.phar';
 if (file_exists($pharPath)) {
@@ -86,10 +88,10 @@ function showHelp(): void
   php deploy \033[33m<命令>\033[0m [参数...] [-key=value]
 
 \033[33m  通用\033[0m
-  config:export [项目]          导出配置为 JSON（不指定项目时导出全部）
+  config:export [项目]          导出配置为 JSON（不指定项目时导出全部，暂时不需要使用到）
   
 \033[33m  服务器\033[0m
-  server:init [-y] [mode=host_nginx]  检测环境（无 -y 只报告，加 -y 执行安装）
+  server:init [-y] [mode=host_nginx]  检测服务器环境（加 -y 执行安装）
   nginx:reload                        验证语法并重载 Nginx（全局）
   nginx:log:error [--save]            查看错误日志（加 --save 下载到本地）
   nginx:log:access [--save]           查看访问日志（加 --save 下载到本地）
@@ -160,6 +162,7 @@ if (str_starts_with($command, 'app:')) {
     }
     $command = $subCommand;
     // 将项目名注入到 positionalArgs[1]，兼容各 handler
+//    print_r([$projectNameFromCmd, $subCommand]);exit;
     array_splice($positionalArgs, 1, 0, [$projectNameFromCmd]);
 }
 
@@ -210,6 +213,7 @@ try {
                 fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> init\n");
                 exit(1);
             }
+//            print_r([$serverConfigFile,$projectName,$namedParams]);exit;
             handleInit($serverConfigFile, $projectName, $namedParams);
             break;
 
@@ -432,31 +436,14 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
         if (!is_dir($projectDir)) {
             mkdir($projectDir, 0755, true);
         }
-
         // 从 deploys/server.php 继承配置
         $serverCfg = require $serverConfigFile;
-        $configCode = var_export($serverCfg['config'] ?? [], true);
-        $projectPath = '/root/projects/' . $projectName;
-        $repo = $serverCfg['project']['repo'] ?? '';
-        $branch = $serverCfg['project']['branch'] ?? 'main';
+        $content = var_export($serverCfg['application'],true);
+        // 替换掉变量
+        $content = str_replace('{name}', $projectName, $content);
+        $content = str_replace(['array (', ')'], ['[', ']'], $content);
 
-        $content = <<<PHP
-<?php
-
-/**\n * 项目配置 — 由 deploy 工具自动创建
- */
-return [
-    'project' => [
-        'name' => '{$projectName}',
-        'path' => '{$projectPath}',
-        'repo' => '{$repo}',
-        'branch' => '{$branch}',
-    ],
-    'config' => {$configCode},
-];
-PHP;
-
-        file_put_contents($projectFile, $content);
+        file_put_contents($projectFile,'<?php return '. $content.';');
         deploy_log("已创建项目配置: {$projectFile}", 'ok');
         deploy_log("请编辑配置后重新执行: php deploy app:{$projectName} init -y", 'info');
         exit(0);
