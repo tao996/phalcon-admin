@@ -222,6 +222,9 @@ class Parameter
         $paramsLen = count($params);
         switch ($paramsLen) {
             case 1:
+                if (empty($params[0])) { // 空
+                    break;
+                }
                 if (is_array($params[0])) {
                     foreach ($params[0] as $key => $value) {
                         if (is_string($key) && is_scalar($value)) { // ['id'=>5]
