@@ -5,6 +5,7 @@ namespace App\Modules\tao;
 use App\Modules\tao\Helper\Libs\RBAC;
 use App\Modules\tao\Services\LogService;
 use Phalcon\Filter\Exception;
+use Phalcon\Mvc\Model\Resultset\Simple;
 use Phax\Db\QueryBuilder;
 use Phax\Db\Transaction;
 use Phax\Foundation\AppService;
@@ -136,9 +137,11 @@ class BaseController extends BaseRbacController
 
     /**
      * 获取全部查询结果，通常用在报表中
-     * @return \Phalcon\Mvc\Model\Resultset\Simple|null
+     * @param callable(QueryBuilder): void|null $queryBuilderCallback
+     * @return Simple|null
+     * @throws \Exception
      */
-    protected function getIndexResultset($queryBuilderCallback = null): \Phalcon\Mvc\Model\Resultset\Simple|null
+    protected function getIndexResultset(callable $queryBuilderCallback = null): \Phalcon\Mvc\Model\Resultset\Simple|null
     {
         $queryBuilder = $this->model->getQueryBuilder($this->getDI());
         $this->beforeIndexQuery($queryBuilder);
