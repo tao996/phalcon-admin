@@ -349,3 +349,19 @@ MigrationService::upgrade('v1_payment', '创建支付与权益表', function (\P
 5. 凭证隔离 `.env`，webhook 验签，稳定错误码，RBAC 分离后台与 API。
 6. 预留 `tenant_id`，对齐全局多租户不变量。
 7. 渠道互斥组机器可读，防止同交易多通道重复处理（上游 §7.1）。
+
+---
+
+## 12. 客户端适配器映射（tao996_payment_phalcon_admin）
+
+对应上游 `packages/tao996/docs/payment-module-design.md` §5/§14 的「后端驱动」渠道分类：
+
+- Flutter 客户端使用统一的后端客户端适配器 **`tao996_payment_phalcon_admin`**，对接本模块（`A0/payment`）的公开 API
+  （offerings / orders / verify / restore / entitlements snapshot / trials）。
+- 微信、支付宝**不是独立适配器包**，而是该客户端内的两个支付方式（渠道）；将来新增的后端驱动支付方式同样追加在包内，
+  后端在本模块新增对应 Verifier / Webhook 即可。
+- 客户端原生 SDK（微信 `fluwx`、支付宝 `tobias` 等）只负责「调起支付 UI」，通过注入接缝由应用提供，
+  `tao996_payment_phalcon_admin` 不硬依赖它们。
+- 与商店驱动渠道（Apple/Google/RevenueCat）的边界不变：它们各自对接商店 SDK，独立适配器包，
+  与本模块的 Apple/Google/RC Verifier 通过 `POST /verify` 交互。
+- 验收：`POST /verify` 对 `wechatPay`/`alipay` 返回统一快照；客户端 SDK 回调不作为权益事实来源（§4.1）。
