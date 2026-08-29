@@ -166,6 +166,9 @@ class Application
      */
     public function routeWith(string $requestURL, Di $di): \Phalcon\Http\ResponseInterface
     {
+        if (isset(RouteMatchContext::$mapRoute[$requestURL])) {
+            $requestURL = RouteMatchContext::$mapRoute[$requestURL];
+        }
         $context = RouteMatchContext::with($requestURL,loadDefault: true);
         $di->setShared('context',$context);
         /**
