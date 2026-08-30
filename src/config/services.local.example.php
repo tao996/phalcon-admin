@@ -1,21 +1,24 @@
 <?php
 // 直接本机运行（不是运行在 docker 中）
 // 注意 redis 和 mysql 的密码
-const redisConfig = [
-    'lifetime' => 7200,
-    'host' => '127.0.0.1',
-    'port' => 6379,
-    'auth' => '123456',
-    'index' => 0,
-    'prefix' => '',
-    'persistent' => false
-];
+
+if (isset($redisConfig)) {
+    $redisConfig = [
+        'lifetime' => 7200,
+        'host' => '127.0.0.1',
+        'port' => 6379,
+        'auth' => '123456',
+        'index' => 0,
+        'prefix' => '',
+        'persistent' => false
+    ];
+}
 return [
     // https://docs.phalcon.io/5.0/en/cache
     'cache' => [
-        'driver' => 'redis', // apcu, memcached, memory, redis, stream
+        'driver' => 'redis', // apcu, memcached, memory, redis, st  `ream
         'stores' => [
-            'redis' => array_merge(redisConfig, [
+            'redis' => array_merge($redisConfig, [
                 'defaultSerializer' => 'Json',
             ]),
         ],
@@ -49,7 +52,7 @@ return [
             'path' => PATH_STORAGE . (IS_DEBUG ? 'logs/sql_{Ym}.log' : 'logs/sql_{Ymd}.log')
         ],
     ],
-    'redis' => redisConfig,
+    'redis' => $redisConfig,
     'crypt' => [
         'key' => 'phalconX', // 建议修改此 key
         'padding' => '',
@@ -72,7 +75,7 @@ return [
         'driver' => 'redis', // stream, memcached, redis, noop(just for test),
         'cookie_lifetime' => 86400, // Cookie Max-Age（秒），必须与 session lifetime 一致
         'stores' => [
-            'redis' => array_merge(redisConfig, [
+            'redis' => array_merge($redisConfig, [
                 'username' => '',
 // https://github.com/phalcon/cphalcon/blob/5.0.x/phalcon/Storage/Adapter/AbstractAdapter.zep
                 'lifetime' => 86400, // 默认 24 小时；可根据需要调整，应与 config.php 中的值保持一致
@@ -90,7 +93,7 @@ return [
     'metadata' => [
         'driver' => 'redis',
         'stores' => [
-            'redis' => array_merge(redisConfig, [
+            'redis' => array_merge($redisConfig, [
                 'lifetime' => 86400,
             ])
         ]

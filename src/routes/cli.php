@@ -80,6 +80,7 @@ CliRouter::add('cc', function ($params) {
 CliRouter::add(['minify', 'min', 'mini'], function ($params) {
     $config = \Phax\Foundation\AppService::config();
     $minify = $config->getArray('app.minify');
+
     if ($minify) {
         require_once PATH_TAO996_PHAR . 'minify.phar';
         foreach ($minify as $key => $files) {

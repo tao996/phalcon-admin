@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * docker 运行环境下服务配置
+ * @var string $backendCryptKey 后台用户邮箱|手机号加密密钥，默认值为 phalconX
+ * @var string $cookieCryptKey 前端 cookie 加密密钥，默认值为 phalconX
+ */
 return [
     // https://docs.phalcon.io/5.0/en/cache
     'cache' => [
@@ -70,18 +74,18 @@ return [
                     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
                 ],
             ],
-            'postgresql' => [
-                'host' => env('POSTGRES_HOST', 'postgres'),
-                'port' => 5432,
-                'dbname' => env('POSTGRES_DB', 'forge'),
-                'username' => env('POSTGRES_USER', 'forge'),
-                'password' => env('POSTGRES_PASSWORD', ''),
-                'schema' => env('POSTGRES_SCHEMA', 'public')
-            ],
-            'sqlite' => [
-                // https://www.php.net/manual/en/ref.pdo-sqlite.connection.php
-                'dbname' => env('DB_DATABASE', PATH_STORAGE_DATA . 'database.db'),
-            ]
+//            'postgresql' => [
+//                'host' => env('POSTGRES_HOST', 'postgres'),
+//                'port' => 5432,
+//                'dbname' => env('POSTGRES_DB', 'forge'),
+//                'username' => env('POSTGRES_USER', 'forge'),
+//                'password' => env('POSTGRES_PASSWORD', ''),
+//                'schema' => env('POSTGRES_SCHEMA', 'public')
+//            ],
+//            'sqlite' => [
+//                // https://www.php.net/manual/en/ref.pdo-sqlite.connection.php
+//                'dbname' => env('DB_DATABASE', PATH_STORAGE_DATA . 'database.db'),
+//            ]
         ],
         // 是否记录 SQL 语句
         'log' => [
@@ -99,7 +103,7 @@ return [
         'persistent' => env('REDIS_PERSISTENT', false),
     ],
     'crypt' => [
-        'key' => env('CRYPT_KEY', 'phalconX'), // 建议修改此 key
+        'key' => env('CRYPT_KEY', $backendCryptKey ?? 'phalconX'),
         'padding' => env('CRYPT_PADDING', ''),
         'cipher' => env('CRYPT_CIPHER', 'aes-256-cfb'),
     ],
@@ -112,12 +116,12 @@ return [
                 'name' => env('LOG_NAME', 'main'),
                 'level' => 'message',
             ],
-            'syslog' => [
-                'ident' => env('SYSLOG_IDENT', 'ident-name'),
-                'level' => env('LOG_LEVEL', 'message'),
-                'name' => env('LOG_NAME', 'main'),
-            ],
-            'noop' => [],
+//            'syslog' => [
+//                'ident' => env('SYSLOG_IDENT', 'ident-name'),
+//                'level' => env('LOG_LEVEL', 'message'),
+//                'name' => env('LOG_NAME', 'main'),
+//            ],
+//            'noop' => [],
         ]
     ],
     // https://docs.phalcon.io/5.0/en/session
@@ -126,19 +130,19 @@ return [
         'driver' => 'redis', // stream, memcached, redis, noop(just for test),
         'cookie_lifetime' => 86400, // Cookie Max-Age（秒），必须与 session lifetime 一致
         'stores' => [
-            'stream' => [
-                'savePath' => PATH_STORAGE . 'cache/session',
-            ],
-            'memcached' => [
-                'client' => [],
-                'servers' => [
-                    [
-                        'host' => env('MEMCACHED_HOST', 'memcached'),
-                        'port' => (int)env('MEMCACHED_PORT', 11211),
-                        'weight' => 0,
-                    ],
-                ],
-            ],
+//            'stream' => [
+//                'savePath' => PATH_STORAGE . 'cache/session',
+//            ],
+//            'memcached' => [
+//                'client' => [],
+//                'servers' => [
+//                    [
+//                        'host' => env('MEMCACHED_HOST', 'memcached'),
+//                        'port' => (int)env('MEMCACHED_PORT', 11211),
+//                        'weight' => 0,
+//                    ],
+//                ],
+//            ],
             'redis' => [
                 'host' => env('REDIS_HOST', 'redis'),
                 'port' => 6379,
@@ -154,7 +158,7 @@ return [
     ],
     // https://docs.phalcon.io/5.0/en/response#cookies
     'cookie' => [
-        'key' => env('CRYPT_KEY', 'phalconX'), // 加密密钥
+        'key' => env('CRYPT_KEY', $cookieCryptKey ?? 'phalconX'), // 加密密钥
         'secret' => false,
         'domain' => null,
     ],
@@ -165,24 +169,24 @@ return [
         // apcu|redis|stream|memory(测试)
         'driver' => env('METADATA_DRIVER', 'redis'),
         'stores' => [
-            'stream' => [
-                'metaDataDir' => PATH_STORAGE . 'cache',
-            ],
-            'apcu' => [
-                'lifetime' => 86400,
-                'prefix' => '',
-            ],
-            'memcached' => [
-                'servers' => [
-                    0 => [
-                        'host' => env('MEMCACHED_HOST', 'memcached'),
-                        'port' => 11211,
-                        'weight' => 1,
-                    ],
-                ],
-                'lifetime' => 86400,
-                'prefix' => '',
-            ],
+//            'stream' => [
+//                'metaDataDir' => PATH_STORAGE . 'cache',
+//            ],
+//            'apcu' => [
+//                'lifetime' => 86400,
+//                'prefix' => '',
+//            ],
+//            'memcached' => [
+//                'servers' => [
+//                    0 => [
+//                        'host' => env('MEMCACHED_HOST', 'memcached'),
+//                        'port' => 11211,
+//                        'weight' => 1,
+//                    ],
+//                ],
+//                'lifetime' => 86400,
+//                'prefix' => '',
+//            ],
             'redis' => [
                 'host' => env('REDIS_HOST', 'redis'),
                 'port' => 6379,
