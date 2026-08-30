@@ -1,9 +1,10 @@
 <?php
 
-namespace tao996;
-
 use Phalcon\Autoload\Loader;
+use Phalcon\Di\Di;
 use Phax\Foundation\Application;
+use Phax\Foundation\DiService;
+use Phax\Support\Env;
 
 class Kernel
 {
@@ -66,14 +67,14 @@ class Kernel
     private function _initEnv(): void
     {
         include_once PATH_TAO996_PHAX . 'Support/Env.php';
-        require_once __DIR__ . DIRECTORY_SEPARATOR . 'function.php';
+        require_once PATH_TAO996 . 'function.php';
 
         if (file_exists(PATH_ROOT . '.env')) {
-            \Phax\Support\Env::load(PATH_ROOT . '.env');
+            Env::load(PATH_ROOT . '.env');
         }
 
         if (!defined('IS_DEBUG')) {
-            define('IS_DEBUG', \Phax\Support\Env::find('IS_DEBUG', '') === 'true');
+            define('IS_DEBUG', Env::find('IS_DEBUG', '') === 'true');
         }
     }
 
@@ -115,9 +116,9 @@ class Kernel
 
     /**
      * 创建一个测试 DI 容器
-     * @return \Phalcon\Di\Di
+     * @return Di
      */
-    public function createTestDi(): \Phalcon\Di\Di
+    public function createTestDi(): Di
     {
         $di = Application::di();
         $di->setShared('request', function () {
@@ -132,7 +133,7 @@ class Kernel
         $di->setShared('context', function () {
             return new \Phax\Foundation\Context\RouteMatchContext();
         });
-        \Phax\Foundation\DiService::with($di)
+        DiService::with($di)
             ->config(function (\Phax\Support\Config $config) {
             })
             ->db()

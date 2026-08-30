@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.3.33-fpm-alpine
 
 ENV TZ=America/Los_Angeles \
     PHALCON_VERSION=5.20.3 \
@@ -8,12 +8,8 @@ ENV TZ=America/Los_Angeles \
     MEMCACHED_VERSION=3.4.0 \
     # https://pecl.php.net/package/apcu
     APCU_VERSION=5.1.28 \
-    # https://pecl.php.net/package/igbinary 序列化 igbinary_serialize/igbinary_serialize
-    IGBINARY_VERSION=3.2.17RC1 \
     # https://pecl.php.net/package/psr
     PSR_VERSION=1.2.0 \
-    # https://pecl.php.net/package/MSGPACK 序列化 msgpack_pack/msgpack_unpack
-    MSGPACK_VERSION=3.0.1 \
     # https://pecl.php.net/package/XLSWRITER
     XLSWRITER_VERSION=3.0.0 \
     # https://pecl.php.net/package/XDEBUG
@@ -43,9 +39,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     docker-php-ext-install gd mysqli pdo pdo_mysql pdo_pgsql pcntl sockets bcmath exif intl opcache posix zip && \
     \
     # 3. 通过 PECL 安装常规第三方扩展
-    pecl install igbinary-${IGBINARY_VERSION} && \
     pecl install psr-${PSR_VERSION} && \
-    pecl install msgpack-${MSGPACK_VERSION} && \
     pecl install redis-${REDIS_VERSION} && \
     pecl install memcached-${MEMCACHED_VERSION} && \
     pecl install APCu-${APCU_VERSION} && \
@@ -59,7 +53,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     cd "$BUILD_DIR" && phpize && ./configure && make -j$(nproc) && make install && \
     \
     # 5. 统一启用扩展
-    docker-php-ext-enable psr sockets memcached redis apcu msgpack igbinary xlswriter xdebug phalcon && \
+    docker-php-ext-enable psr sockets memcached redis apcu xlswriter xdebug phalcon && \
     \
     # 6. 配置时区与清理垃圾
     cp /usr/share/zoneinfo/$TZ /etc/localtime && \

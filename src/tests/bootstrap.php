@@ -7,8 +7,8 @@ define('PATH_ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
  * php -S localhost:9002 -t .\public\ .\public\index.php
  */
 const TEST_ORIGIN = 'http://localhost:8071';
-require_once PATH_ROOT . 'tao996/Kernel.php';
-\tao996\Kernel::with(PATH_ROOT)
+require_once PATH_ROOT . 'Kernel.php';
+Kernel::with(PATH_ROOT)
     ->setupDisplayErrors()
     ->createTestDi();
 

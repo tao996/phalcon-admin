@@ -4,9 +4,9 @@
 
 
 define('PATH_ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
-require_once '../tao996/Kernel.php';
+require_once PATH_ROOT . 'Kernel.php';
 try {
-    \tao996\Kernel::with(PATH_ROOT)
+    Kernel::with(PATH_ROOT)
         ->setupDisplayErrors()
         ->createApplication()
         ->runWeb();

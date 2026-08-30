@@ -1,7 +1,10 @@
-.PHONY: docs xdebug-web-on xdebug-web-off xdebug-cli php ui-install ui-run ui-pack
+.PHONY: docs xdebug-web-on xdebug-web-off xdebug-cli php serve ui-install ui-run ui-pack
 
 UI_VENV = deploysUI/.venv
 UI_MAIN = deploysUI/main.py
+
+# 内置服务器端口
+PORT ?= 9002
 
 # ─── Docs ───────────────────────────────────────────────
 docs:
@@ -33,6 +36,11 @@ xdebug-cli:
 # 用法: make php CMD="artisan test"
 php:
 	@$(DC_PHP) php $(CMD)
+
+# 用 PHP 内置服务器启动本地站点
+# 用法: make serve [PORT=9002]
+serve:
+	@php -S localhost:$(PORT) -t ./src/public ./src/public/index.php
 
 # 导出配置为 JSON
 ui-export:
