@@ -1,16 +1,11 @@
 #!/usr/bin/env php
 
 <?php
-// use `dos2unit artisan` to remove the ^M
-// converting file artisan to Unix format..
-
-// define('PATH_ROOT', '/var/www/'); // if you can copy this file to /usr/bin/artisan
 
 const PATH_ROOT = __DIR__ . DIRECTORY_SEPARATOR;
-/**
- * @var $app \Phax\Foundation\Application
- */
-$app = require_once PATH_ROOT . 'bootstrap'.DIRECTORY_SEPARATOR.'app.php';
-// 部分命令存在 src/routes/cli.php 文件中
-$app->runCLI();
+require_once 'tao996/Kernel.php';
+
+\tao996\Kernel::with(PATH_ROOT)
+        ->setupDisplayErrors()
+        ->createApplication()->runCLI();
 

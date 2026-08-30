@@ -19,7 +19,7 @@ if (!function_exists('pr')) {
     function pr($var): void
     {
         echo IS_TASK ? '|<--- ' . PHP_EOL : '<pre>';
-        print_r(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,limit: 1)[0]);
+        print_r(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, limit: 1)[0]);
         foreach (func_get_args() as $arg) {
             print_r($arg);
             echo IS_TASK ? PHP_EOL : '<br/>';
@@ -140,4 +140,21 @@ if (!function_exists('array_merge_deep')) {
         }
         return $base;
     }
+}
+if (!function_exists('env')) {
+    /**
+     * 读取环境变量
+     * @param $key
+     * @param $default
+     * @return array|false|mixed|string|null
+     */
+    function env($key, $default = null): mixed
+    {
+        return \Phax\Support\Env::find($key, $default);
+    }
+}
+
+function loader(): \Phalcon\Autoload\Loader
+{
+    return \tao996\Kernel::getLoader();
 }
