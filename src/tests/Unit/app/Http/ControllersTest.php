@@ -12,6 +12,6 @@ class ControllersTest extends \PHPUnit\Framework\TestCase
         $http = MyTestHttpHelper::with($this);
         $http->get('/sub.test/abc')->send()
             ->notContainsFailed()
-            ->contains(['404']);
+            ->contains(['DEMO']);
     }
 }

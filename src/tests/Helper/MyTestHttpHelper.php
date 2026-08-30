@@ -2,6 +2,8 @@
 
 namespace Tests\Helper;
 
+use Tests\Helper\utils\MyTestCurl;
+
 class MyTestHttpHelper
 {
     public static string $origin = '';
@@ -23,6 +25,8 @@ class MyTestHttpHelper
                 self::$origin = TEST_ORIGIN;
             } elseif (env('APP_NAME')) {
                 self::$origin = env('APP_NAME') . '-nginx';
+            } else {
+                throw new \Exception('TEST_ORIGIN is not defined');
             }
         }
         $this->myCurl = new MyTestCurl(self::$origin);
@@ -80,7 +84,7 @@ class MyTestHttpHelper
      */
     public function cookie(): static
     {
-        $cookieFile = __DIR__ . '/cookies/' . str_replace('\\', '_', get_class($this->tc)) . '.txt';
+        $cookieFile = PATH_STORAGE_CACHE . '/cookies/' . str_replace('\\', '_', get_class($this->tc)) . '.txt';
         $dir = dirname($cookieFile);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);

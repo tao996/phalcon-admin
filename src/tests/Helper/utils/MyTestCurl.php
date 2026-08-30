@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Helper;
+namespace Tests\Helper\utils;
 
 use Phax\Utils\MyFileSystem;
 

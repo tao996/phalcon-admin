@@ -43,8 +43,9 @@ class Kernel
         define('PATH_STORAGE_CACHE', PATH_STORAGE . 'cache' . DIRECTORY_SEPARATOR);
         define('PATH_APP_MODULES', PATH_ROOT . 'App' . DIRECTORY_SEPARATOR . 'Modules' . DIRECTORY_SEPARATOR);
         define('PATH_APP_PROJECTS', PATH_ROOT . 'App' . DIRECTORY_SEPARATOR . 'Projects' . DIRECTORY_SEPARATOR);
-        define('PATH_TAO996_PHAX', PATH_ROOT . 'tao996' . DIRECTORY_SEPARATOR . 'Phax' . DIRECTORY_SEPARATOR);
-        define('PATH_TAO996_PHAR', PATH_ROOT . 'tao996' . DIRECTORY_SEPARATOR . 'phar' . DIRECTORY_SEPARATOR);
+        define('PATH_TAO996', PATH_ROOT . 'tao996' . DIRECTORY_SEPARATOR);
+        define('PATH_TAO996_PHAX', PATH_TAO996 . 'Phax' . DIRECTORY_SEPARATOR);
+        define('PATH_TAO996_PHAR', PATH_TAO996 . 'phar' . DIRECTORY_SEPARATOR);
     }
 
     private function _loadComposer(): void
@@ -132,7 +133,7 @@ class Kernel
             return new \Phax\Foundation\Context\RouteMatchContext();
         });
         \Phax\Foundation\DiService::with($di)
-            ->config(function (\Phalcon\Config\Config $config) {
+            ->config(function (\Phax\Support\Config $config) {
             })
             ->db()
             ->pdo()->redis()->cache()

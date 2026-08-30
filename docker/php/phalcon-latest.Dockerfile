@@ -1,7 +1,7 @@
 FROM php:8.3-fpm-alpine
 
 ENV TZ=America/Los_Angeles \
-    PHALCON_VERSION=5.20.2 \
+    PHALCON_VERSION=5.20.3 \
     # https://pecl.php.net/package/redis
     REDIS_VERSION=6.3.0 \
     # https://pecl.php.net/package/memcached
