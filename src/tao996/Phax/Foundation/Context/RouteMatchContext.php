@@ -2,9 +2,9 @@
 
 namespace Phax\Foundation\Context;
 
+use Phax\Foundation\Application;
 use Phax\Foundation\AppService;
 use Phax\Support\Router;
-use Phax\Utils\MyData;
 use Phax\Utils\MyUrl;
 
 class RouteMatchContext
@@ -622,48 +622,79 @@ class RouteMatchContext
      */
     public function appOrigin(): string
     {
-        if (empty($this->origin)) {
-            //  app.origin 域名没有配置，示例 https://localhost:8080/
-            $this->origin = AppService::config()->getString('app.origin');
-            if (!empty($this->origin)) {
-                return $this->origin;
-            }
-
-            $request = AppService::request();
-
-            $scheme = $request->hasServer('HTTPS')
-            && (($request->getServer('HTTPS') == 'on') || ($request->getServer('HTTPS') == 1))
-                ? 'https' : 'http';
-            $port = '';
-            $server_port = $request->getServer('SERVER_PORT') ?: MyData::getInt($_SERVER, 'OPEN_PORT', '80');
-            if ($server_port != '80' && $server_port != '443') {
-                $port = ':' . $server_port;
-            }
-
-            $host = '';
-            foreach (
-                [
-                    $request->getHeader('X-Forwarded-Host'),
-                    $request->getServer('HTTP_X_FORWARDED_HOST'),
-                    $request->getHeader('HOST'),
-                    $request->getServer('HTTP_HOST'),
-                    $request->getServer('SERVER_NAME'),
-                ] as $v
-            ) {
-                if ($v) {
-                    $host = $v;
-                    break;
-                }
-            }
-            if (empty($host)) {
-                $host = 'localhost';
-            }
-            if (str_contains($host, ':')) {
-                $host = explode(':', $host)[0];
-            }
-            $this->origin = "{$scheme}://{$host}{$port}/";
+        if (!empty($this->origin)) {
+            return $this->origin;
         }
-//        ddd($this->origin);
-        return $this->origin;
+        //  app.origin 域名没有配置，示例 https://localhost:8080/
+        $configured = AppService::config()->getString('app.origin');
+        if (!empty($configured)) {
+            return $this->origin = rtrim($configured, '/') . '/';
+        }
+
+        // CLI/Task/PHPUnit 下没有 request 服务（FactoryDefault\Cli 未注册），直接报错
+        if (!Application::di()->has('request')) {
+            throw new \Exception('request service not found, get app.origin failed');
+        }
+
+        $request = AppService::request();
+
+        // 反向代理优先（nginx 下发 X-Forwarded-Host/Proto/Port，Host 不带端口）
+        // 多层代理时这些头是逗号分隔的多值，取第一个即可
+        $scheme = self::firstOfHeader($request->getHeader('X-Forwarded-Proto'));
+        $host = self::firstOfHeader($request->getHeader('X-Forwarded-Host'));
+        $port = self::firstOfHeader($request->getHeader('X-Forwarded-Port'));
+
+        if (empty($scheme)) {
+            $https = $request->getServer('HTTPS');
+            $scheme = (!empty($https) && $https !== 'off') ? 'https' : 'http';
+        }
+        if (empty($host)) {
+            $host = $request->getServer('HTTP_HOST') ?: $request->getServer('SERVER_NAME');
+        }
+        if (empty($host)) {
+            $host = 'localhost';
+        }
+
+        // host 可能自带端口，兼容 IPv6: example.com:8071 / [::1]:8080
+        if (preg_match('/^(\[[^\]]+\]|[^:]+)(?::(\d+))?$/', $host, $m)) {
+            $host = $m[1];
+            $port = $m[2] ?? $port;
+        }
+        if ($port === '') {
+            $port = $request->getServer('SERVER_PORT') ?: '';
+        }
+        $port = (int)$port;
+        if ($port > 0) {
+            $isDefaultPort = ($scheme === 'http' && $port === 80) || ($scheme === 'https' && $port === 443);
+            if (!$isDefaultPort) {
+                $host .= ':' . $port;
+            }
+        }
+
+        return $this->origin = "{$scheme}://{$host}/";
+    }
+
+    /**
+     * 取反向代理头中的第一个值（多层代理时格式为 a.com, b.com）
+     * @param string $value
+     * @return string
+     */
+    private static function firstOfHeader(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+        return trim(explode(',', $value)[0]);
+    }
+
+    /**
+     * 手动指定当前访问的域名（返回示例 http://localhost:8071/）
+     * @param string $origin
+     * @return void
+     */
+    public function setOrigin(string $origin): void
+    {
+        $this->origin = $origin;
     }
 }

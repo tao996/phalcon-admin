@@ -119,13 +119,9 @@ class MyUrlTest extends TestCase
     {
         $di = \Phax\Foundation\Application::di();
 
-        // 使用匿名类手动构造 route stub，避免 mock 在 Phalcon DI 中的兼容问题
-        $rc = new class('/test') extends RouteMatchContext {
-            public function appOrigin(): string
-            {
-                return 'http://localhost:8071';
-            }
-        };
+        // 手动构造 route stub，避免 mock 在 Phalcon DI 中的兼容问题
+        $rc = new RouteMatchContext('/test');
+        $rc->setOrigin('http://localhost:8071');
         $rc->language = 'en';
 
         $di->setShared('context', $rc);

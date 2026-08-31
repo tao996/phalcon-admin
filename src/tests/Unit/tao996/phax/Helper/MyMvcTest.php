@@ -14,12 +14,8 @@ class MyMvcTest extends TestCase
     {
         $di = Application::di();
 
-        $rc = new class('/test') extends RouteMatchContext {
-            public function appOrigin(): string
-            {
-                return 'http://localhost:8071';
-            }
-        };
+        $rc = new RouteMatchContext('/test');
+        $rc->setOrigin('http://localhost:8071');
         $rc->language = 'en';
         $di->setShared('context', $rc);
     }

@@ -2,7 +2,7 @@
 // 直接本机运行（不是运行在 docker 中）
 // 注意 redis 和 mysql 的密码
 
-if (isset($redisConfig)) {
+if (!isset($redisConfig)) {
     $redisConfig = [
         'lifetime' => 7200,
         'host' => '127.0.0.1',
