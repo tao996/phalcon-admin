@@ -8,6 +8,7 @@ use App\Modules\tao\A0\open\Helper\OpenUrlHelper;
 use App\Modules\tao\A0\open\Helper\TiktokHelper;
 use App\Modules\tao\A0\open\Helper\WechatHelper;
 use App\Modules\tao\A0\open\Helper\WepayHelper;
+use App\Modules\tao\Helper\Auth\AuthDbData;
 use App\Modules\tao\Helper\Auth\AuthRedisData;
 use App\Modules\tao\Helper\CaptchaHelper;
 use App\Modules\tao\Helper\LoginAuthHelper;

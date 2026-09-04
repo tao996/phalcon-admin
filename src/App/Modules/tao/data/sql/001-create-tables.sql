@@ -1257,6 +1257,31 @@ ALTER TABLE `tao_system_user`
 --
 ALTER TABLE `tao_wechat_menu`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `tao_system_user_login`
+--
+
+CREATE TABLE `tao_system_user_login` (
+  `id` int UNSIGNED NOT NULL,
+  `user_id` int UNSIGNED NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '登录token',
+  `secret` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '签名密钥',
+  `kind` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'app' COMMENT '类型(app/web)',
+  `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '登录IP',
+  `useragent` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '客户端信息',
+  `created_at` int UNSIGNED NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `updated_at` int UNSIGNED NOT NULL DEFAULT '0' COMMENT '更新时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户登录记录';
+
+--
+-- 表的索引 `tao_system_user_login`
+--
+ALTER TABLE `tao_system_user_login`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
