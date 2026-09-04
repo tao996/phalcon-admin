@@ -6,7 +6,7 @@
 
 set -e
 
-# 获取项目根目录（脚本位于 deploys/scripts/）
+# 获取项目根目录（脚本位于 deploy/scripts/）
 PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TYPE="${1:-error}"
 LINES="${2:-50}"

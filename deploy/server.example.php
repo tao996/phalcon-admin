@@ -4,7 +4,7 @@
  * 服务器连接配置模板
  *
  * 拷贝为 server.php 后修改真实值
- * cp deploys/server.example.php deploys/server.php
+ * cp deploy/server.example.php deploy/server.php
  *
  * 如果需要多台服务器，可创建不同文件，部署时指定: php deploy --server=staging
  */

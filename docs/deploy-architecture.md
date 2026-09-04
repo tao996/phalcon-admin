@@ -82,7 +82,7 @@
 项目根目录/
 ├── deploy                          — PHP CLI 入口（12 个命令）
 ├── .env.example                    — 开发环境配置模板（含 {{VAR}} 占位符）
-├── deploys/
+├── deploy/
 │   ├── server.php                  — 服务器连接配置（实际使用）
 │   ├── server.example.php          — 模板
 │   ├── .cache/mode.txt             — Router 模式本地缓存（自动生成）
@@ -235,7 +235,7 @@
 
 ```
 php deploy app:init <项目>           # 预览模式（无 -y）
-  └─ 本地渲染所有配置文件到 deploys/projects/<name>/
+  └─ 本地渲染所有配置文件到 deploy/projects/<name>/
   └─ 不连接远程服务器
   └─ 输出：请检查后执行 php deploy app:init <项目> -y
 
@@ -249,13 +249,13 @@ php deploy app:init <项目> -y        # 执行模式
 
 | 模板源 | 生成为 | 说明 |
 |--------|--------|------|
-| `deploys/template/.env.example` | `<project>/.env` | 生产环境变量（8 个，无 dev 端口变量） |
-| `deploys/template/docker-compose.ports.yaml` | `<project>/docker-compose.ports.yaml` | 宿主机模式（使用 `${VAR}` 原生语法） |
+| `deploy/template/.env.example` | `<project>/.env` | 生产环境变量（8 个，无 dev 端口变量） |
+| `deploy/template/docker-compose.ports.yaml` | `<project>/docker-compose.ports.yaml` | 宿主机模式（使用 `${VAR}` 原生语法） |
 | 项目根 `docker-compose.yaml`（fallback） | `<project>/docker-compose.yaml` | Docker Router 模式（原样上传） |
-| `deploys/template/nginx/default.conf` | `<project>/docker/nginx/sites/default.conf` | 项目内部 nginx 配置 |
-| `deploys/template/php/php.ini` | `<project>/docker/php/php.ini` | PHP 生产配置（同步自 `docker/php/php.prod.ini`） |
-| `deploys/template/mysql/my.cnf` | `<project>/docker/mysql/my.cnf` | MySQL 配置 |
-| `deploys/template/config.php.template` | `<project>/src/config/config.php` | 应用配置（app.title、jwt secret 等） |
+| `deploy/template/nginx/default.conf` | `<project>/docker/nginx/sites/default.conf` | 项目内部 nginx 配置 |
+| `deploy/template/php/php.ini` | `<project>/docker/php/php.ini` | PHP 生产配置（同步自 `docker/php/php.prod.ini`） |
+| `deploy/template/mysql/my.cnf` | `<project>/docker/mysql/my.cnf` | MySQL 配置 |
+| `deploy/template/config.php.template` | `<project>/src/config/config.php` | 应用配置（app.title、jwt secret 等） |
 
 ### 变量来源
 
@@ -318,7 +318,7 @@ compose 模板使用 `${VAR:-默认值}` 语法，不设置时自动回退到默
 
 ## 七、配置文件结构
 
-### 服务器连接配置 `deploys/server.php`
+### 服务器连接配置 `deploy/server.php`
 
 ```php
 <?php
@@ -352,7 +352,7 @@ return [
 ];
 ```
 
-### 项目配置 `deploys/projects/<name>/server.php`
+### 项目配置 `deploy/projects/<name>/server.php`
 
 ```php
 <?php
@@ -414,16 +414,16 @@ return [
 ### 预览模式（无 -y，v2 新增）
 
 ```
-01. 读取 deploys/server.php + projects/<name>/server.php
+01. 读取 deploy/server.php + projects/<name>/server.php
 02. 检测 Router 模式（本地缓存 → 默认 host_nginx，不连远程）
-03. 渲染配置文件到本地 deploys/projects/<name>/
+03. 渲染配置文件到本地 deploy/projects/<name>/
 04. 输出：请检查后执行 php deploy app:init <name> -y
 ```
 
 ### 执行模式（-y）
 
 ```
-01. 读取 deploys/server.php + projects/<name>/server.php
+01. 读取 deploy/server.php + projects/<name>/server.php
 02. 检测 Router 模式（本地缓存 → 远程检测）
 03. SSH 连接远程服务器
 04. mkdir -p <project.path>
@@ -493,7 +493,7 @@ mysql -h127.0.0.1 -P13306
 
 **执行流程：**
 
-1. 读取 `deploys/server.php` 中的 SSH 连接信息（host、user、keyFile）
+1. 读取 `deploy/server.php` 中的 SSH 连接信息（host、user、keyFile）
 2. 查找系统 SSH 二进制（Git Bash → Windows OpenSSH → /usr/bin/ssh）
 3. 执行 `ssh -L 127.0.0.1:13306:yihe-mysql:3306 -N user@host -p 22 -i <key>`
 4. 在前台保持连接，按 Ctrl+C 关闭
@@ -552,7 +552,7 @@ php deploy db:pma-rm yihe
 
 ## 十一、单元测试
 
-运行方式：`php src/vendor/bin/phpunit -c deploys/phpunit.xml`
+运行方式：`php src/vendor/bin/phpunit -c deploy/phpunit.xml`
 
 | 测试文件 | 测试数 | 覆盖内容 |
 |---------|--------|---------|
@@ -570,12 +570,12 @@ php deploy db:pma-rm yihe
 
 ```bash
 # 1. 配置服务器连接
-cp deploys/server.example.php deploys/server.php
-# 编辑 deploys/server.php 填入真实服务器信息
+cp deploy/server.example.php deploy/server.php
+# 编辑 deploy/server.php 填入真实服务器信息
 
 # 2. 配置项目
-cp deploys/projects/.example/server.php deploys/projects/yihe/server.php
-# 编辑 deploys/projects/yihe/server.php 填入项目名、路径、域名
+cp deploy/projects/.example/server.php deploy/projects/yihe/server.php
+# 编辑 deploy/projects/yihe/server.php 填入项目名、路径、域名
 
 # 3. 检测服务器环境
 php deploy server:init
@@ -585,7 +585,7 @@ php deploy server:init -y
 
 # 5. 预览项目配置
 php deploy app:init yihe
-# 检查 deploys/projects/yihe/ 下的配置文件
+# 检查 deploy/projects/yihe/ 下的配置文件
 
 # 6. 确认无误后部署
 php deploy app:init yihe -y
@@ -596,7 +596,7 @@ php deploy app:init yihe -y
 ```bash
 # 修改本地配置后推送
 php deploy app:init yihe                # 重新预览生成
-# 手动编辑 deploys/projects/yihe/* 中的文件
+# 手动编辑 deploy/projects/yihe/* 中的文件
 php deploy app:push yihe         # 仅推送配置到远程
 php deploy app:dc:restart yihe           # 重启容器使配置生效
 ```

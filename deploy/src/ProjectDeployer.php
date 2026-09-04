@@ -393,7 +393,7 @@ class ProjectDeployer
         try {
             $this->ssh->connect();
 
-            $remoteDir = $projectPath . '/deploys/scripts';
+            $remoteDir = $projectPath . '/deploy/scripts';
             $this->ssh->exec("mkdir -p {$remoteDir}", false);
 
             $files = glob($scriptsDir . '/*.sh');
@@ -421,7 +421,7 @@ class ProjectDeployer
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
 
-        $scriptPath = $projectPath . '/deploys/scripts/' . $scriptName . '.sh';
+        $scriptPath = $projectPath . '/deploy/scripts/' . $scriptName . '.sh';
 
         deploy_log("=== 执行脚本: {$scriptName} ===", 'step');
 

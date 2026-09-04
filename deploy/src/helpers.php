@@ -71,7 +71,7 @@ function cache_file_path(): string
  */
 function cache_server_id(): string
 {
-    $path = DEPLOY_BASE . '/deploys/server.php';
+    $path = DEPLOY_BASE . '/deploy/server.php';
     if (!file_exists($path)) {
         return 'unknown';
     }

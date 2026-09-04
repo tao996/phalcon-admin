@@ -4,7 +4,7 @@
  * 配置加载器
  * 
  * 读取并合并服务器配置 + 项目配置
- * 配置层级：deploys/config.php（全局默认）→ deploys/server.php（服务器连接配置）→ deploys/projects/{name}/server.php（项目配置）
+ * 配置层级：deploy/config.php（全局默认）→ deploy/server.php（服务器连接配置）→ deploy/projects/{name}/server.php（项目配置）
  */
 class DeployConfig
 {
@@ -37,7 +37,7 @@ class DeployConfig
         $path = deploy_base_path() . '/projects/' . $this->projectName . '/server.php';
         if (!file_exists($path)) {
             deploy_log("项目配置文件不存在: $path", 'error');
-            deploy_log("请先创建或拷贝: cp deploys/projects/.example/server.php deploys/projects/{$name}/server.php", 'info');
+            deploy_log("请先创建或拷贝: cp deploy/projects/.example/server.php deploy/projects/{$name}/server.php", 'info');
             exit(1);
         }
         $this->project = require $path;

@@ -4,7 +4,7 @@
  * 配置模板渲染器
  * 
  * 读取模板文件，替换 {{KEY}} 占位符，生成正式配置文件。
- * 模板目录结构：deploys/template/{project}/...
+ * 模板目录结构：deploy/template/{project}/...
  * 每个文件中的 {{KEY}} 会替换为对应的变量值。
  */
 class TemplateRenderer

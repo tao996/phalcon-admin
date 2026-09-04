@@ -187,7 +187,7 @@ class ConfigTest extends TestCase
         $config = new DeployConfig();
         $config->loadServer($this->fixturesDir . '/server.php');
 
-        // 注意：这会真实读取 deploys/projects/yihe/server.php
+        // 注意：这会真实读取 deploy/projects/yihe/server.php
         // 所以要求 yihe 配置文件结构有效
         $result = $config->loadProject('yihe');
 

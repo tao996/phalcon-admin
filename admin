@@ -31,10 +31,10 @@
 // ---------- 初始化 ----------
 
 // 定义根路径
-define('DEPLOY_BASE', __DIR__);
-define('DEPLOY_SRC', DEPLOY_BASE . '/deploys/src');
+const DEPLOY_BASE = __DIR__;
+const DEPLOY_SRC = DEPLOY_BASE . '/deploy/src';
 
-include_once DEPLOY_BASE.'/src/tao996/Phax/function.php';
+include_once DEPLOY_BASE.'/src/tao996/function.php';
 
 // 加载 phpseclib（用于 SSH 连接）
 $pharPath = DEPLOY_BASE . '/src/tao996/phar/phpseclib.phar';
@@ -85,7 +85,7 @@ function showHelp(): void
 \033[36mPhalcon Admin 部署工具\033[0m
 
 用法:
-  php deploy \033[33m<命令>\033[0m [参数...] [-key=value]
+  php admin \033[33m<命令>\033[0m [参数...] [-key=value]
 
 \033[33m  通用\033[0m
   config:export [项目]          导出配置为 JSON（不指定项目时导出全部，暂时不需要使用到）
@@ -139,14 +139,14 @@ if ($command === '--help' || $command === '-h' || empty($command)) {
 
 // 确定服务器配置文件
 $envSuffix = $namedParams['env'] ?? '';
-$serverConfigFile = DEPLOY_BASE . '/deploys/server.php';
-if ($envSuffix && file_exists(DEPLOY_BASE . "/deploys/server.{$envSuffix}.php")) {
-    $serverConfigFile = DEPLOY_BASE . "/deploys/server.{$envSuffix}.php";
+$serverConfigFile = DEPLOY_BASE . '/deploy/server.php';
+if ($envSuffix && file_exists(DEPLOY_BASE . "/deploy/server.{$envSuffix}.php")) {
+    $serverConfigFile = DEPLOY_BASE . "/deploy/server.{$envSuffix}.php";
 }
 
 if (!file_exists($serverConfigFile)) {
     fwrite(STDERR, "错误: 服务器配置文件不存在: {$serverConfigFile}\n");
-    fwrite(STDERR, "请先执行: cp deploys/server.example.php deploys/server.php\n");
+    fwrite(STDERR, "请先执行: cp deploy/server.example.php deploy/server.php\n");
     exit(1);
 }
 
@@ -436,7 +436,7 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
         if (!is_dir($projectDir)) {
             mkdir($projectDir, 0755, true);
         }
-        // 从 deploys/server.php 继承配置
+        // 从 deploy/server.php 继承配置
         $serverCfg = require $serverConfigFile;
         $content = var_export($serverCfg['application'],true);
         // 替换掉变量
