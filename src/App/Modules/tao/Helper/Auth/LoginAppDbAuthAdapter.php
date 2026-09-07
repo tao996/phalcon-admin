@@ -34,10 +34,7 @@ class LoginAppDbAuthAdapter extends LoginAuthAdapter
     public static function check(): bool
     {
         $request = AppService::request();
-        if ($request->hasHeader('Authorization')) {
-            return str_starts_with($request->getHeader('Authorization'), 'db:');
-        }
-        return false;
+        return $request->hasHeader('Authorization') && $request->getQuery('kind') === 'app';
 
     }
 
@@ -48,7 +45,7 @@ class LoginAppDbAuthAdapter extends LoginAuthAdapter
     {
         $authData = AppService::request()->getHeader('Authorization');
         if (!empty($authData)) {
-            $this->data = json_decode(substr($authData, 3), true);
+            $this->data = json_decode($authData, true);
             try {
                 MyAssert::mustHasSet($this->data, ['token', 't', 'sign']);
             } catch (\Exception $e) {

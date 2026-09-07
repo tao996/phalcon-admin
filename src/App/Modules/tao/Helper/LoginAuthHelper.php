@@ -45,12 +45,10 @@ class LoginAuthHelper
                 $authAdapter = self::getAppAuthAdapterClass();
             } elseif (LoginDemoTokenAuthAdapter::check()) { // for phpunit test
                 $authAdapter = LoginDemoTokenAuthAdapter::class;
+            } elseif (LoginAppDbAuthAdapter::check()) {
+                $authAdapter = LoginAppDbAuthAdapter::class;
             } elseif (LoginAppAuthAdapter::check()) {
-                if (LoginAppDbAuthAdapter::check()) {
-                    $authAdapter = LoginAppDbAuthAdapter::class;
-                } else {
-                    $authAdapter = self::getAppAuthAdapterClass();
-                }
+                $authAdapter = self::getAppAuthAdapterClass();
             } else {
                 $authAdapter = LoginSessionAuthAdapter::class;
             }

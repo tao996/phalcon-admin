@@ -11,7 +11,6 @@ use App\Modules\tao\sdk\SmsDriverInterface;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Support\Exception\LogException;
-use Phax\Support\Validate;
 use Phax\Utils\MyAssert;
 
 class SmsCodeService
