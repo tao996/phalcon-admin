@@ -48,7 +48,6 @@ trait UserOrder
             $qb->where('id <' . $nextid);
         }
         $rows = $qb->orderBy('id desc')
-            ->limit(15)
             ->findColumn(
                 [
                     'id',

@@ -444,16 +444,15 @@ class Parameter
 
     /**
      * 限制每次查询记录数量
-     * @param int|null $limit 记录数，至少为 1
-     * @param int $max 允许最多的查询数据量
+     * @param int $limit 记录数，默认为 15
      * @return Parameter
      */
-    public function limit(int|null $limit, int $max = 15): static
+    public function limit(int $limit = 15): static
     {
-        if (intval($limit) < 1) {
-            $limit = $max;
+        if ($limit < 1) {
+            $limit = 15;
         }
-        $this->parameter['limit'] = min($limit, $max);
+        $this->parameter['limit'] = $limit;
         return $this;
     }
 

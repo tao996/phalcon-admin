@@ -393,13 +393,12 @@ class QueryBuilder
 
     /**
      * 限制每次查询记录数量
-     * @param int|null $limit 记录数，至少为 1
-     * @param int $max 允许最多的查询数据量
+     * @param int $limit 记录数，默认为 15
      * @return $this
      */
-    public function limit(int|null $limit, int $max = 15): static
+    public function limit(int $limit = 15): static
     {
-        $this->parameter->limit($limit, $max);
+        $this->parameter->limit($limit);
         return $this;
     }
 
