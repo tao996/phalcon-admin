@@ -17,8 +17,8 @@ class ImageCaptcha
     /**
      * @var string 随机字符
      */
-    protected string $characters = '2346789abcdefghjkmnpqrstuvwxyABCDEFGHJKLMNPQRSTUVWXYZ';
-    protected int $charactersLen = 53; // characters 的长度
+    protected string $characters = '2346789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    protected int $charactersLen = 31; // characters 的长度
     protected array $fonts = [
         'actionj',
         'ApothecaryFont',
@@ -41,11 +41,12 @@ class ImageCaptcha
         'drawLine' => true, // 添加干扰线
         'drawNoise' => true,// 背景噪音
         'noiseLevel' => 30,
-        'drawCurve' => true,// 是否启用曲线
+        'drawCurve' => false,// 是否启用曲线
     ];
 
     public function __construct(array $options = [])
     {
+        $this->charactersLen = strlen($this->characters);
         if ($options) {
             $this->options = array_merge($this->options, $options);
         }

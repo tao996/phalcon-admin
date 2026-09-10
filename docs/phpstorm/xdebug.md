@@ -1,4 +1,7 @@
 ## Xdebug 本机配置
+
+有任何问题，随时问 ai，不要浪费太多时间在机器配置上
+
 ```
 [xdebug]
 zend_extension = "D:/apps/laragon/bin/php/php-8.3.11-Win32-vs16-x64/ext/php_xdebug.dll"
@@ -12,6 +15,11 @@ xdebug.client_port = 51712
 ; 这样只有当你开启浏览器插件或传入?XDEBUG_SESSION 时才激活调试，
 ; 不会每个普通请求都去连接调试器，性能会好很多
 xdebug.start_with_request = trigger
+
+; 如果你觉得每次发送 API 请求都要配置参数太麻烦，可以临时改回“无条件触发”模式
+; 将按需触发 trigger 改为 yes（每个请求都会尝试连接 PhpStorm 调试器）
+; xdebug.start_with_request = yes
+
 xdebug.idekey = xdebug
 ; 调试日志（仅在排查连接问题时开启，平时注释掉）
 ;xdebug.log = "D:\apps\laragon\tmp\xdebug\xdebug.log"
@@ -26,26 +34,33 @@ xdebug.idekey = xdebug
 
     `Settings → PHP → Debug`：
     * Xdebug 的 Debug port 填 `51712`（移除旧的 9003 之类的，必须等于 php.ini 里的 `xdebug.client_port`）；
-    * 勾选 "Break at first line in PHP scripts" 可选（建议先不勾，避免断在入口文件）。
+    * 勾选 Can accept external connections（默认通常已勾选）
+    * 在控制器里面打上断点
 
 3. 配置服务器与路径映射
    
     `Settings → PHP → Servers`，新增：
     * Name：`phalcon-admin`（随意），Host `127.0.0.1`，Port `8071`，Debugger `Xdebug`；
     * Path mapping：项目根 `D:\xxx\phalcon-admin` 映射到同路径。你的 docroot 就是本机真实目录，通常不映射也能断，但显式设置可避免断点文件对不上。
+    * 不能 mapping 到 `public` 目录，否则 phpStrom 找不到其它文件
 
-4. 开始调试（两种触发方式，选一）
+4. 开始调试
 
-方式 A：PHP Web Page 运行配置（推荐，最省事）
+因为我们设置了 `xdebug.start_with_request = trigger`，所以有两种方式触发断点调试
 
-1. `Run → Edit Configurations → + → PHP Web Page`，Server 选上一步的 `phalcon-admin`，Start URL 填 /（或某个具体路由）。
-2. 点工具栏的 Debug（小虫子）按钮——PhpStorm 会自动开始监听并在请求 URL 后附加 XDEBUG_SESSION，命中断点后停在 IDE 里。
-3. 之后在浏览器里继续正常点击页面，同一个会话内 Xdebug 会持续连接（PhpStorm 会写 XDEBUG_SESSION cookie）。
+方法一：浏览器自动触发
 
-方式 B：手动监听 + 浏览器触发
+1. 打开 `Start Listening for PHP Debug Connections`（电话图标）。
+2. 装浏览器扩展（Xdebug Helper，Chrome/Edge/Firefox 都有），开启 Debug，然后正常访问即可
 
-1. `Run → Start Listening for PHP Debug Connections`（电话图标）。
-2. 浏览器访问时任意一种方式触发： URL 加参数：http://127.0.0.1:8071/?XDEBUG_SESSION=1（Xdebug 3 不校验值，有这个参数即触发）； 或装浏览器扩展（Xdebug Helper，Chrome/Edge/Firefox 都有），IDE key 随意，点一下开启。
+方法二：客户端调试
+
+适合 `postman, apifox, 移动端/客户端临时调试`，有下面 3 种方式
+
+1. 在 URL 参数中添加 XDEBUG_SESSION（最简单，用于临时请求）
+2. 在 Header 中添加 Cookie；`Key: Cookie, Value:XDEBUG_SESSION=xdebug`
+3. 在 header 中添加专用 Header；`Key: XDEBUG_SESSION, Value: xdebug`
+
 
 ## Xdebug in Docker
 
