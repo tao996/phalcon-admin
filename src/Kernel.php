@@ -36,7 +36,7 @@ class Kernel
     private function _initPaths(): void
     {
         define('PATH_CONFIG', PATH_ROOT . 'config' . DIRECTORY_SEPARATOR);
-        define('PATH_APP', PATH_ROOT . 'app' . DIRECTORY_SEPARATOR);
+        define('PATH_APP', PATH_ROOT . 'App' . DIRECTORY_SEPARATOR);
         define('PATH_PUBLIC', PATH_ROOT . 'public' . DIRECTORY_SEPARATOR);
         define('PATH_PUBLIC_UPLOAD', PATH_PUBLIC . 'upload' . DIRECTORY_SEPARATOR);
         define('PATH_STORAGE', PATH_ROOT . 'storage' . DIRECTORY_SEPARATOR);
