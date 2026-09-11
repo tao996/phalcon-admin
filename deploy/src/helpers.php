@@ -62,7 +62,9 @@ function cache_file_path(): string
     if (!is_dir($dir)) {
         mkdir($dir, 0755, true);
     }
-    return $dir . '/server.json';
+    // 按服务器隔离缓存，避免多台服务器互相覆盖 mode/composeCmd
+    $id = preg_replace('/[^a-zA-Z0-9_.-]/', '_', cache_server_id());
+    return $dir . '/server-' . $id . '.json';
 }
 
 /**
@@ -71,7 +73,13 @@ function cache_file_path(): string
  */
 function cache_server_id(): string
 {
-    $path = DEPLOY_BASE . '/deploy/server.php';
+    // 优先使用实际生效的连接（项目级 ssh 覆盖，由 DeployConfig::loadProject 设置）
+    $id = getenv('DEPLOY_SERVER_ID');
+    if (!empty($id)) {
+        return $id;
+    }
+    // 其次使用当前 env 对应的配置文件（由 CLI 设置），否则用默认 server.php
+    $path = getenv('DEPLOY_SERVER_FILE') ?: (DEPLOY_BASE . '/deploy/server.php');
     if (!file_exists($path)) {
         return 'unknown';
     }

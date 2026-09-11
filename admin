@@ -52,6 +52,7 @@ require DEPLOY_SRC . '/Config.php';
 require DEPLOY_SRC . '/SSH.php';
 require DEPLOY_SRC . '/TemplateRenderer.php';
 require DEPLOY_SRC . '/GitHelper.php';
+require DEPLOY_SRC . '/LocalGitSync.php';
 require DEPLOY_SRC . '/RouterManager.php';
 require DEPLOY_SRC . '/ProjectDeployer.php';
 require DEPLOY_SRC . '/DbManager.php';
@@ -72,6 +73,9 @@ foreach ($args as $arg) {
     } elseif (str_starts_with($arg, '-') && !str_starts_with($arg, '--')) {
         $parts = explode('=', substr($arg, 1), 2);
         $namedParams[$parts[0]] = $parts[1] ?? true;
+    } elseif (preg_match('/^([a-zA-Z][a-zA-Z0-9_-]*)=(.*)$/s', $arg, $m)) {
+        // 兼容文档中的裸 key=value 写法（不带前导 -）
+        $namedParams[$m[1]] = $m[2];
     } else {
         $positionalArgs[] = $arg;
     }
@@ -97,8 +101,8 @@ function showHelp(): void
   nginx:log:access [--save]           查看访问日志（加 --save 下载到本地）
 
 \033[33m  项目 — 部署\033[0m
-  app:<项目> init [-y] [mode=...] [port=...]   预览/部署
-  app:<项目> upgrade [-y]                      更新代码（加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
+  app:<项目> init [-y] [mode=...] [port=...] [sync=local]   预览/部署（sync=local 时本地 bundle 直传，不走 GitHub）
+  app:<项目> upgrade [-y] [sync=local]         更新代码（加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
   app:<项目> push                               推送本地配置到远程
   app:<项目> script:push                        推送分析脚本到远程
   app:<项目> run <脚本> [参数...]               远程执行分析脚本
@@ -149,6 +153,9 @@ if (!file_exists($serverConfigFile)) {
     fwrite(STDERR, "请先执行: cp deploy/server.example.php deploy/server.php\n");
     exit(1);
 }
+
+// 让缓存/指纹按当前服务器配置文件隔离（多服务器场景）
+putenv('DEPLOY_SERVER_FILE=' . $serverConfigFile);
 
 // ---------- 执行命令 ----------
 
@@ -459,12 +466,21 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
     if (isset($params['port'])) {
         $options['nginxPort'] = (int)$params['port'];
     }
+    if (isset($params['sync'])) {
+        $options['sync'] = $params['sync'];
+    }
 
     $deployer = new ProjectDeployer($config);
 
     // 无 -y 时进入预览模式（仅本地生成配置文件供检查）
     if (!isset($params['y'])) {
         $deployer->preview($options);
+        return;
+    }
+
+    // 本地文件系统目标：只同步代码 + 生成配置，不走 SSH/docker
+    if ($deployer->isFilesystemSync()) {
+        $deployer->filesystemSync($options, true);
         return;
     }
 
@@ -568,12 +584,21 @@ function handleUpgrade(string $serverConfigFile, string $projectName, array $par
     if (isset($params['port'])) {
         $options['nginxPort'] = (int)$params['port'];
     }
+    if (isset($params['sync'])) {
+        $options['sync'] = $params['sync'];
+    }
 
     $deployer = new ProjectDeployer($config);
 
+    // 本地文件系统目标：-y 时同步代码 + 生成配置，否则仅同步代码
+    if ($deployer->isFilesystemSync()) {
+        $deployer->filesystemSync($options, isset($params['y']));
+        return;
+    }
+
     // 无 -y 时仅拉取代码，不上传配置不重启
     if (!isset($params['y'])) {
-        $deployer->upgradeCodeOnly();
+        $deployer->upgradeCodeOnly($options);
         return;
     }
 
@@ -683,6 +708,7 @@ function handleDbProxy(string $serverConfigFile, string $projectName, array $par
 {
     $config = new DeployConfig();
     $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
 
     $localPort = isset($params['local']) ? (int)$params['local'] : 13306;
 

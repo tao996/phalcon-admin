@@ -41,6 +41,18 @@ class DeployConfig
             exit(1);
         }
         $this->project = require $path;
+
+        // 缓存指纹按“实际生效的目标”隔离，避免不同项目/服务器共用 mode/compose 缓存
+        $merged = $this->getMerged();
+        if (($merged['sync']['target'] ?? 'remote') === 'filesystem') {
+            putenv('DEPLOY_SERVER_ID=filesystem:' . ($merged['project']['path'] ?? $this->projectName));
+        } else {
+            $ssh = $this->getSshConfig();
+            if (!empty($ssh['host'])) {
+                putenv('DEPLOY_SERVER_ID=' . $ssh['host'] . ':' . ($ssh['port'] ?? 22));
+            }
+        }
+
         return $this->project;
     }
 
@@ -75,6 +87,10 @@ class DeployConfig
             'router' => array_merge_deep(
                 $this->server['router'] ?? [],
                 $this->project['router'] ?? []
+            ),
+            'sync' => array_merge_deep(
+                $this->server['sync'] ?? [],
+                $this->project['sync'] ?? []
             ),
         ];
     }
@@ -129,6 +145,26 @@ class DeployConfig
     {
         $cfg = $this->getMerged();
         return $cfg['project']['modules'] ?? [];
+    }
+
+    /**
+     * 获取代码同步模式：github（远程拉取）| local（本地 bundle 推送）
+     */
+    public function getSyncMode(): string
+    {
+        $cfg = $this->getMerged();
+        $mode = $cfg['sync']['mode'] ?? 'github';
+        return $mode === 'local' ? 'local' : 'github';
+    }
+
+    /**
+     * 获取同步目标：remote（默认，经 SSH/SFTP 到服务器）| filesystem（直接写本地目录）
+     */
+    public function getSyncTarget(): string
+    {
+        $cfg = $this->getMerged();
+        $target = $cfg['sync']['target'] ?? 'remote';
+        return $target === 'filesystem' ? 'filesystem' : 'remote';
     }
 
     /**

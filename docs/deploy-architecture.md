@@ -1,8 +1,8 @@
 # 部署架构设计 — ReverseProxy + DockerNetwork 模式
 
 > 设计日期：2025-07-07
-> 最后更新：2025-07-08
-> 状态：已实现（v2）
+> 最后更新：2026-09-11
+> 状态：已实现（v2，含本地 bundle 同步 `sync=local`、本地文件系统目标 `sync.target=filesystem`）
 
 ---
 
@@ -14,6 +14,7 @@
 - 所有项目容器置于共享 Docker 网络 `phalcon-shared`，通过容器名相互寻址
 - 流量统一经过 Router Nginx，按域名分发到各项目
 - 部署工具通过 `phpseclib` 执行远程操作，本地渲染配置后上传
+- **代码同步双模式**：`github`（远程 `git clone/pull`，默认）/ `local`（本地 `git bundle` 直传，服务器无需 GitHub 凭据，见第十三节）
 - **预览/执行两阶段**：先本地生成配置文件供检查，确认后再推送到远程
 
 ---
@@ -91,7 +92,8 @@
 │   │   ├── Config.php              — 配置加载 + 合并
 │   │   ├── SSH.php                 — SSH 连接（基于 phpseclib v3 SFTP）
 │   │   ├── TemplateRenderer.php    — 模板渲染（{{KEY}} 替换）
-│   │   ├── GitHelper.php           — 远程 git 操作
+│   │   ├── GitHelper.php           — 远程 git 操作（github 模式）
+│   │   ├── LocalGitSync.php        — 本地 bundle 同步（local 模式）
 │   │   ├── RouterManager.php       — Router Nginx 管理（环境检测、双模式）
 │   │   ├── ProjectDeployer.php     — 项目部署编排
 │   │   └── DbManager.php           — 数据库运维（隧道 / phpMyAdmin）
@@ -343,6 +345,10 @@ return [
         'configDir' => '/etc/nginx-router/conf.d',
         'composePath' => '/root/router',
     ],
+    // 代码同步模式（可选，缺省 github）：github=远程拉取 | local=本地 bundle 推送
+    'sync' => [
+        'mode' => 'github',
+    ],
     'env' => [
         'TZ' => 'Asia/Shanghai',
         'REDIS_PASSWORD' => '123456',
@@ -357,6 +363,8 @@ return [
 ```php
 <?php
 return [
+    // 可选：覆盖 deploy/server.php 的连接（项目独立服务器，或本地 bundle 同步时）
+    // 'ssh' => ['host' => '192.168.56.120', 'port' => 22, 'user' => 'root', 'password' => '123456'],
     'project' => [
         'name' => 'myapp',
         'path' => '/root/projects/myapp',
@@ -366,6 +374,8 @@ return [
         // repo/branch 继承自 server.php，可不填
         // 'nginxPort' => 8071,
     ],
+    // 代码同步模式（可选，缺省 github）：
+    //   'sync' => ['mode' => 'local'],  // 本地 bundle 同步，远程无需 GitHub 凭据
     'domains' => [
         'myapp.example.com',
     ],
@@ -449,8 +459,8 @@ return [
 | `php deploy server:init` | 检测服务器环境，打印报告后退出 | v1 |
 | `php deploy server:init -y` | 检测 + 自动选择模式并执行安装 | v1 |
 | `php deploy server:init -y mode=host_nginx` | 强制宿主机 Nginx 模式 | v1 |
-| `php deploy app:init <project>` | 预览（无 -y）或完整部署（加 -y） | v1→v2 增强 |
-| `php deploy app:upgrade <project>` | 更新已有项目（git pull + 重启） | v1 |
+| `php deploy app:init <project>` | 预览（无 -y）或完整部署（加 -y），支持 `sync=local` | v1→v2 增强 |
+| `php deploy app:upgrade <project>` | 更新已有项目（github: git pull / local: bundle 同步 + 重启） | v1 |
 | `php deploy app:dc:restart <project>` | 启动/重启 Docker 容器（首次拉取镜像） | v2 |
 | `php deploy app:dc:status <project>` | 查看项目容器状态 | v2 |
 | `php deploy app:dc:log <project>` | 查看全部容器日志 | v2 |
@@ -472,6 +482,7 @@ return [
 | `-y` | `server:init`, `app:init` | 自动执行；`server:init` 默认只检测，`app:init` 默认预览 |
 | `env=prod` | 所有命令 | 选择服务器配置 `server.{env}.php` |
 | `mode=host_nginx` | `server:init -y`, `app:init` | 强制宿主机模式 |
+| `sync=local` | `app:init`, `app:upgrade` | 本地 bundle 直传（覆盖项目配置的 `sync.mode`） |
 | `port=8071` | `app:init` | 手动指定项目 nginx 端口（宿主机模式） |
 | `local=13306` | `db:proxy` | SSH 隧道本地监听端口 |
 | `host=13307` | `db:pma` | phpMyAdmin 宿主机暴露端口 |
@@ -633,3 +644,138 @@ php deploy db:pma yihe
 # 清理 phpMyAdmin
 php deploy db:pma-rm yihe
 ```
+
+---
+
+## 十三、本地 bundle 同步（sync=local）
+
+> 新增于 v2。用于让远程服务器**不持有 GitHub 凭据**；默认的 `github` 模式保持不变。
+
+### 背景
+
+默认模式下远程服务器需要配置 deploy key 访问 GitHub。若把服务器密钥加到 GitHub **账号级**，一旦服务器被攻破，账号下所有仓库都会暴露。`sync=local` 改为由**本地开发机**（本来就有 GitHub 权限 + 服务器 SSH 权限）做中转，服务器只接收代码、完全不接触 GitHub。改造后账号级密钥可直接撤销。
+
+### 开关
+
+推荐把连接与同步模式都写在项目配置里，项目级 `ssh` 会合并覆盖 `deploy/server.php` 的默认连接，因此无需 `env=` 指定服务器文件：
+
+```php
+// deploy/projects/<name>/server.php
+return [
+    'ssh' => [
+        'host' => '192.168.56.120',
+        'port' => 22,
+        'user' => 'root',
+        'password' => '123456',
+    ],
+    'sync' => ['mode' => 'local'],
+    // ... project / domains / env / config
+];
+```
+
+- 缺省（不配置 `sync`）为 `github`，现有项目行为不变。
+- CLI 也可临时覆盖：`sync=local`。
+
+> 缓存指纹按**实际生效的合并连接**隔离（`DeployConfig::loadProject` 会设置 `DEPLOY_SERVER_ID`），不同项目/服务器不会共用同一份 mode/compose 缓存。
+
+### 流程
+
+```
+本地
+  1. git bundle create <tmp>.bundle <branch>
+  2. SFTP 上传到服务器 /tmp/deploy-*.bundle
+服务器
+  3. 已有仓库: git fetch <bundle> <ref> && git reset --hard FETCH_HEAD
+     空目录:   git init && git fetch <bundle> <ref> && git checkout -b <branch> FETCH_HEAD
+  4. 删除临时 bundle
+之后配置上传 / docker up / router 步骤与 github 模式完全一致
+```
+
+主仓库与 `src/App/Modules/<模块>`（独立仓库，如 `yihe`）都会各打包一次。
+
+### 浅克隆处理
+
+`git bundle` 在浅克隆（存在 `.git/shallow`）下会生成“看似完整、实际缺对象”的坏包，远程 fetch 报 `did not send all necessary objects`。`LocalGitSync` 检测到浅克隆时，改用 HEAD 的 tree 经 `git commit-tree` 造一个无父提交再打包（快照 bundle）：
+
+- 自包含，远程 fresh clone 可直接 fetch；
+- 无需网络、**不改动本地仓库**；
+- 远程历史在浅克隆下为单提交快照，不影响部署与 `reset`（非浅克隆仍打包真实分支历史）。
+
+### 生成文件不受影响
+
+`.env`、`docker-compose.*.yaml`、`docker/nginx|php|mysql/*`、`src/config/config.php` 等均被 `.gitignore` 排除，`git reset --hard` 不会覆盖它们，配置仍走 SFTP 通道上传。
+
+### 命令示例
+
+项目配置已含 `ssh` + `sync.mode=local` 时，直接执行即可，无需 `env=` / `sync=`：
+
+```bash
+# 预览 / 部署
+php admin app:vbox init
+php admin app:vbox init -y
+
+# 更新代码（local 模式自动走 bundle 同步）
+php admin app:vbox upgrade
+```
+
+如需临时改用其他模式，再显式覆盖：`php admin app:vbox init -y sync=local`。
+
+### 安全说明
+
+- 服务器端无需任何 GitHub 凭据，可将账号级/仓库级 deploy key 从服务器移除后撤销。
+- `deploy/server*.php` 含连接凭据，已加入 `.gitignore`（仅保留 `server.example.php`）。
+
+---
+
+## 十四、本地文件系统同步（sync.target=filesystem）
+
+> 新增于 v2。把代码 + 生成配置**镜像到本机目录**，不经 SSH/SFTP、不启动 docker。
+
+### 用途
+
+在 `sync.mode=local` 的基础上，`sync.target=filesystem` 让目标变成一台本地路径（`project.path` 为本地绝对路径），用于本地镜像/离线副本/无服务器环境的代码下发。
+
+### 配置
+
+```php
+// deploy/projects/<name>/server.php
+return [
+    'project' => [
+        'name' => 'phalcon-admin-test',
+        'path' => 'D:/demo/code/phpProjects/phalcon-admin-test', // 本地目标目录
+        'branch' => 'main',
+        'modules' => [],
+        'nginxPort' => 8071,
+    ],
+    'sync' => [
+        'mode' => 'local',
+        'target' => 'filesystem',
+    ],
+    // 无需 ssh；env / config 与其他项目一致
+];
+```
+
+### 流程
+
+```
+1. 本地生成快照 bundle（浅克隆同样安全）
+2. git -C <target> init/fetch/reset（首次自动创建目录）
+3. 生成配置写入 <target>：.env、docker-compose(.ports).yaml、
+   docker/nginx/sites/default.conf、docker/php/php.ini、docker/mysql/my.cnf、src/config/config.php
+（不执行 docker up / router / hooks）
+```
+
+### 命令
+
+```bash
+php admin app:phalcon-admin-test init       # 预览配置
+php admin app:phalcon-admin-test init -y    # 同步代码 + 生成配置
+php admin app:phalcon-admin-test upgrade     # 仅同步代码
+php admin app:phalcon-admin-test upgrade -y  # 同步代码 + 生成配置
+```
+
+### 说明
+
+- 生成文件均被目标仓库的 `.gitignore` 排除，`git status` 保持干净。
+- 目标目录历史与远程一致（浅克隆下为单提交快照）。
+- 缓存指纹按目标路径隔离（`filesystem:<path>`）。

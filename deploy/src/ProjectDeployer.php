@@ -11,18 +11,59 @@ class ProjectDeployer
 {
     protected DeploySSH $ssh;
     protected GitHelper $git;
+    protected LocalGitSync $localSync;
     protected TemplateRenderer $renderer;
     protected DeployConfig $config;
     protected RouterManager $router;
     protected string $routerMode = '';
+    protected string $syncMode = 'github';
 
     public function __construct(DeployConfig $config)
     {
         $this->config = $config;
         $this->ssh = new DeploySSH($config->getSshConfig());
         $this->git = new GitHelper($this->ssh);
+        $this->localSync = new LocalGitSync(
+            $this->ssh,
+            $this->getLocalRepoRoot(),
+            $this->getLocalRepoRoot() . '/src/App/Modules'
+        );
         $this->renderer = new TemplateRenderer(deploy_base_path() . '/template');
         $this->router = new RouterManager($this->ssh, $config->getMerged()['router'] ?? []);
+        $this->syncMode = $config->getSyncMode();
+    }
+
+    /**
+     * 解析本次操作的同步模式（CLI 参数优先于项目配置）
+     */
+    protected function resolveSyncMode(array $options): string
+    {
+        $mode = $options['sync'] ?? $this->config->getSyncMode();
+        return $mode === 'local' ? 'local' : 'github';
+    }
+
+    /**
+     * 是否使用本地 bundle 同步
+     */
+    protected function isLocalSync(): bool
+    {
+        return $this->syncMode === 'local';
+    }
+
+    /**
+     * 同步目标是否为本地文件系统（不经 SSH/SFTP）
+     */
+    public function isFilesystemSync(): bool
+    {
+        return $this->config->getSyncTarget() === 'filesystem';
+    }
+
+    /**
+     * 本地仓库根目录（deploy 目录的上级）
+     */
+    protected function getLocalRepoRoot(): string
+    {
+        return dirname(deploy_base_path());
     }
 
     /**
@@ -72,9 +113,11 @@ class ProjectDeployer
 
         // 检测模式
         $this->routerMode = $options['mode'] ?? $this->detectRouterMode();
+        $this->syncMode = $this->resolveSyncMode($options);
         $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
 
         deploy_log("=== 开始部署项目: {$projectName} ===", 'step');
+        deploy_log("代码同步: {$this->syncMode}", 'info');
         deploy_log("Router 模式: {$this->routerMode}", 'info');
         if ($this->routerMode === RouterManager::MODE_HOST) {
             deploy_log("Nginx 端口: {$nginxPort}", 'info');
@@ -87,20 +130,29 @@ class ProjectDeployer
             deploy_log('步骤 1/7: 准备目录', 'step');
             $this->ssh->ensureDir($projectPath);
 
-            // 2. 克隆主仓库
-            deploy_log('步骤 2/7: 克隆主仓库', 'step');
-            if (!empty($repo)) {
-                $this->git->clone($repo, $projectPath, $branch);
+            // 2. 准备主仓库代码
+            if ($this->isLocalSync()) {
+                deploy_log('步骤 2/7: 本地同步主仓库', 'step');
+                $this->localSync->sync('main', $projectPath, $branch, 'main-' . $projectName);
             } else {
-                deploy_log('未配置 repo，跳过克隆', 'warn');
-                // 创建基本的项目目录结构
-                $this->ssh->exec("mkdir -p {$projectPath}/src/App/Modules {$projectPath}/docker/nginx/sites {$projectPath}/docker/php {$projectPath}/docker/log/nginx {$projectPath}/docker/log/php");
+                deploy_log('步骤 2/7: 克隆主仓库', 'step');
+                if (!empty($repo)) {
+                    $this->git->clone($repo, $projectPath, $branch);
+                } else {
+                    deploy_log('未配置 repo，跳过克隆', 'warn');
+                    // 创建基本的项目目录结构
+                    $this->ssh->exec("mkdir -p {$projectPath}/src/App/Modules {$projectPath}/docker/nginx/sites {$projectPath}/docker/php {$projectPath}/docker/log/nginx {$projectPath}/docker/log/php");
+                }
             }
 
-            // 3. 克隆子模块
+            // 3. 准备子模块
             deploy_log('步骤 3/7: 部署子模块', 'step');
-            $this->git->cloneModules($modules, $projectPath);
-            $this->git->initSubmodules($projectPath);
+            if ($this->isLocalSync()) {
+                $this->localSync->syncModules($modules, $projectPath, $branch);
+            } else {
+                $this->git->cloneModules($modules, $projectPath);
+                $this->git->initSubmodules($projectPath);
+            }
 
             // 4. 生成并上传配置文件
             deploy_log('步骤 4/7: 生成配置文件', 'step');
@@ -139,6 +191,95 @@ class ProjectDeployer
     }
 
     /**
+     * 同步到本地文件系统目录（代码 + 可选生成配置），不经 SSH/SFTP
+     */
+    public function filesystemSync(array $options = [], bool $withConfigs = true): void
+    {
+        $projectName = $this->config->getProjectName();
+        $targetPath = $this->config->getProjectPath();
+        $branch = $this->config->getBranch();
+        $modules = $this->config->getModules();
+        $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
+
+        deploy_log("=== 本地目录同步: {$projectName} → {$targetPath} ===", 'step');
+        deploy_log('代码同步: local (filesystem)', 'info');
+
+        // 1. 代码
+        $this->localSync->syncLocal('main', $targetPath, $branch, 'main-' . $projectName);
+        $this->localSync->syncLocalModules($modules, $targetPath, $branch);
+
+        // 2. 生成配置
+        if ($withConfigs) {
+            $this->writeLocalConfigs($targetPath, $nginxPort);
+        }
+
+        deploy_log("=== 本地目录同步完成: {$targetPath} ===", 'ok');
+    }
+
+    /**
+     * 构建模板变量（预览 / 远程渲染 / 本地写入共用）
+     */
+    protected function buildVars(int $nginxPort): array
+    {
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+        $dockerImages = $this->config->getMerged()['docker']['images'] ?? [];
+
+        $vars = array_merge([
+            'APP_NAME' => $projectName,
+            'PROJECT_NAME' => $projectName,
+            'PROJECT_PATH' => $projectPath,
+            'NETWORKS_NAME' => 'phalcon-shared',
+            'TZ' => 'Asia/Shanghai',
+            'DATA_PATH_HOST' => str_replace('\\', '/', $projectPath . '/docker/storage'),
+            'NGINX_PORT' => $nginxPort,
+            'MYSQL_USER' => $projectName,
+            'NGINX_IMAGE' => $dockerImages['nginx'] ?? '',
+            'PHP_IMAGE' => $dockerImages['php'] ?? '',
+            'MYSQL_IMAGE' => $dockerImages['mysql'] ?? '',
+            'REDIS_IMAGE' => $dockerImages['redis'] ?? '',
+        ], $this->config->getEnvOverrides());
+
+        $vars['CONFIG_OVERRIDES'] = $this->getConfigOverridesArray();
+
+        return $vars;
+    }
+
+    /**
+     * 将生成的配置写入本地目标目录
+     */
+    protected function writeLocalConfigs(string $targetDir, int $nginxPort): void
+    {
+        $vars = $this->buildVars($nginxPort);
+        $composeTemplate = deploy_base_path() . '/template/docker-compose.ports.yaml';
+
+        $files = [
+            '.env' => $this->getTemplatePath('.env.deploy.example'),
+            'docker-compose.ports.yaml' => $composeTemplate,
+            'docker-compose.yaml' => $composeTemplate,
+            'docker/nginx/sites/default.conf' => $this->getTemplatePath('nginx/default.conf'),
+            'docker/php/php.ini' => $this->getTemplatePath('php/php.ini'),
+            'docker/mysql/my.cnf' => $this->getTemplatePath('mysql/my.cnf'),
+            'src/config/config.php' => $this->getTemplatePath('config.php.template'),
+        ];
+
+        foreach ($files as $relativePath => $templatePath) {
+            $content = $this->renderer->render($templatePath, $vars);
+            if ($content === '') {
+                continue;
+            }
+            $targetFile = rtrim($targetDir, '/\\') . DIRECTORY_SEPARATOR
+                . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+            $dirName = dirname($targetFile);
+            if (!is_dir($dirName)) {
+                mkdir($dirName, 0755, true);
+            }
+            file_put_contents($targetFile, $content);
+            deploy_log("  生成: {$relativePath}", 'ok');
+        }
+    }
+
+    /**
      * 预览生成配置文件（不连接远程，仅输出到本地项目目录供检查）
      */
     public function preview(array $options = []): void
@@ -173,28 +314,7 @@ class ProjectDeployer
         $this->ensureLocalDir($localDir);
 
         // 构建模板变量
-        $dockerImages = $this->config->getMerged()['docker']['images'] ?? [];
-        $projectPath = $this->config->getProjectPath();
-        $vars = array_merge([
-            'APP_NAME' => $projectName,
-            'PROJECT_NAME' => $projectName,
-            'PROJECT_PATH' => $projectPath,
-            'NETWORKS_NAME' => 'phalcon-shared',
-            'TZ' => 'Asia/Shanghai',
-            'DATA_PATH_HOST' => $projectPath . '/docker/storage',
-            'NGINX_PORT' => $nginxPort,
-            'MYSQL_USER' => $projectName,
-            // 镜像地址（可从 server.php docker.images 覆盖）
-            'NGINX_IMAGE' => $dockerImages['nginx'] ?? '',
-            'PHP_IMAGE' => $dockerImages['php'] ?? '',
-            'MYSQL_IMAGE' => $dockerImages['mysql'] ?? '',
-            'REDIS_IMAGE' => $dockerImages['redis'] ?? '',
-        ], $this->config->getEnvOverrides());
-
-        // 合并应用配置覆盖（嵌套数组，直接注入 config.php 模板）
-        $vars = array_merge($vars, [
-            'CONFIG_OVERRIDES' => $this->getConfigOverridesArray(),
-        ]);
+        $vars = $this->buildVars($nginxPort);
 
         $composeTemplate = $this->routerMode === RouterManager::MODE_HOST
             ? 'docker-compose.ports.yaml'
@@ -294,13 +414,15 @@ class ProjectDeployer
     /**
      * 仅拉取代码（不更新配置，不重启容器）
      */
-    public function upgradeCodeOnly(): void
+    public function upgradeCodeOnly(array $options = []): void
     {
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
         $modules = $this->config->getModules();
+        $branch = $this->config->getBranch();
+        $this->syncMode = $this->resolveSyncMode($options);
 
-        deploy_log("=== 更新代码: {$projectName} ===", 'step');
+        deploy_log("=== 更新代码: {$projectName} ({$this->syncMode}) ===", 'step');
 
         try {
             $this->ssh->connect();
@@ -313,13 +435,21 @@ class ProjectDeployer
                 exit(1);
             }
 
-            // 1. 拉取主仓库
-            deploy_log('拉取主仓库代码', 'step');
-            $this->git->pull($projectPath);
+            // 1. 更新主仓库
+            deploy_log('更新主仓库代码', 'step');
+            if ($this->isLocalSync()) {
+                $this->localSync->sync('main', $projectPath, $branch, 'main-' . $projectName);
+            } else {
+                $this->git->pull($projectPath);
+            }
 
             // 2. 更新子模块
             deploy_log('更新子模块', 'step');
-            $this->git->cloneModules($modules, $projectPath);
+            if ($this->isLocalSync()) {
+                $this->localSync->syncModules($modules, $projectPath, $branch);
+            } else {
+                $this->git->cloneModules($modules, $projectPath);
+            }
 
             deploy_log("=== 代码更新完成: {$projectName} ===", 'ok');
 
@@ -455,9 +585,10 @@ class ProjectDeployer
 
         // 检测模式
         $this->routerMode = $options['mode'] ?? $this->detectRouterMode();
+        $this->syncMode = $this->resolveSyncMode($options);
         $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
 
-        deploy_log("=== 开始更新项目: {$projectName} ===", 'step');
+        deploy_log("=== 开始更新项目: {$projectName} ({$this->syncMode}) ===", 'step');
 
         try {
             $this->ssh->connect();
@@ -470,13 +601,21 @@ class ProjectDeployer
                 exit(1);
             }
 
-            // 1. 拉取主仓库
-            deploy_log('步骤 1/4: 拉取主仓库代码', 'step');
-            $this->git->pull($projectPath);
+            // 1. 更新主仓库
+            deploy_log('步骤 1/4: 更新主仓库代码', 'step');
+            if ($this->isLocalSync()) {
+                $this->localSync->sync('main', $projectPath, $this->config->getBranch(), 'main-' . $projectName);
+            } else {
+                $this->git->pull($projectPath);
+            }
 
             // 2. 更新子模块
             deploy_log('步骤 2/4: 更新子模块', 'step');
-            $this->git->cloneModules($modules, $projectPath);
+            if ($this->isLocalSync()) {
+                $this->localSync->syncModules($modules, $projectPath, $this->config->getBranch());
+            } else {
+                $this->git->cloneModules($modules, $projectPath);
+            }
 
             // 3. 重新生成配置
             deploy_log('步骤 3/4: 更新配置文件', 'step');
@@ -516,27 +655,7 @@ class ProjectDeployer
         $projectName = $this->config->getProjectName();
 
         // 构建模板变量
-        $dockerImages = $this->config->getMerged()['docker']['images'] ?? [];
-        $vars = array_merge([
-            'APP_NAME' => $projectName,
-            'PROJECT_NAME' => $projectName,
-            'PROJECT_PATH' => $projectPath,
-            'NETWORKS_NAME' => 'phalcon-shared',
-            'TZ' => 'Asia/Shanghai',
-            'DATA_PATH_HOST' => $projectPath . '/docker/storage',
-            'NGINX_PORT' => $nginxPort,
-            'MYSQL_USER' => $projectName,
-            // 镜像地址（可从 server.php docker.images 覆盖）
-            'NGINX_IMAGE' => $dockerImages['nginx'] ?? '',
-            'PHP_IMAGE' => $dockerImages['php'] ?? '',
-            'MYSQL_IMAGE' => $dockerImages['mysql'] ?? '',
-            'REDIS_IMAGE' => $dockerImages['redis'] ?? '',
-        ], $this->config->getEnvOverrides());
-
-        // 合并应用配置覆盖（嵌套数组，直接注入 config.php 模板）
-        $vars = array_merge($vars, [
-            'CONFIG_OVERRIDES' => $this->getConfigOverridesArray(),
-        ]);
+        $vars = $this->buildVars($nginxPort);
 
         // 根据模式选择 docker-compose 模板
         $composeTemplate = $this->routerMode === RouterManager::MODE_HOST

@@ -230,14 +230,14 @@ class RouterManager
 
         $mode = $this->routerConfig['mode'] ?? $report['recommendedMode'];
 
+        // 先创建共享网络：Docker Router 的 compose 声明了 external 网络，必须先存在
+        $this->ssh->exec("docker network create phalcon-shared 2>/dev/null || echo 'network already exists'", false);
+
         if ($mode === self::MODE_DOCKER) {
             $this->setupDockerRouter($report);
         } else {
             $this->setupHostNginx($report);
         }
-
-        // 不论哪种模式，都需要创建共享网络
-        $this->ssh->exec("docker network create phalcon-shared 2>/dev/null || echo 'network already exists'", false);
 
         deploy_log("Router 初始化完成（模式: {$mode}）", 'ok');
 

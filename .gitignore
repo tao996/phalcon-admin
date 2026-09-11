@@ -68,7 +68,9 @@ src/App/Modules/*
 !src/App/Modules/demo
 !src/App/Modules/tao
 
-deploy/server.php
+# 服务器连接配置（含凭据）：忽略 server*.php，仅保留 example 模板
+deploy/server*.php
+!deploy/server.example.php
 deploy/projects/*
 !deploy/projects/.example
 !deploy/projects/.gitkeep
