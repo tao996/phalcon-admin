@@ -16,38 +16,153 @@ class ProjectDeployer
     protected DeployConfig $config;
     protected RouterManager $router;
     protected string $routerMode = '';
-    protected string $syncMode = 'github';
 
     public function __construct(DeployConfig $config)
     {
         $this->config = $config;
         $this->ssh = new DeploySSH($config->getSshConfig());
         $this->git = new GitHelper($this->ssh);
-        $this->localSync = new LocalGitSync(
-            $this->ssh,
-            $this->getLocalRepoRoot(),
-            $this->getLocalRepoRoot() . '/src/App/Modules'
-        );
+        $this->localSync = new LocalGitSync($this->ssh, $this->getLocalRepoRoot());
         $this->renderer = new TemplateRenderer(deploy_base_path() . '/template');
         $this->router = new RouterManager($this->ssh, $config->getMerged()['router'] ?? []);
-        $this->syncMode = $config->getSyncMode();
     }
 
     /**
-     * 解析本次操作的同步模式（CLI 参数优先于项目配置）
+     * 按 sync.items 逐项同步代码/目录（server.php 中 'sync' => ['items' => [...]]）
+     *
+     * 每项根据 method 分发：
+     *   git    — 远程 clone（已存在则 pull）；filesystem 目标不支持
+     *   bundle — 本地打包直传远程 fetch/reset；filesystem 目标直接 fetch/reset 本地目录
+     *   ftp    — SFTP 增量直传（只增改不删除）；filesystem 目标为本地复制（同样只增改）
+     *
+     * path 省略表示主仓库；path 为相对项目根的目录，本地源目录 = 本地仓库根 + path
+     *
+     * @param bool  $filesystem 目标是否为本地文件系统
+     * @param array $options ['method' => 'git|bundle|ftp' 只执行该方式的条目,
+     *                       'full' => true ftp 条目忽略增量清单强制全量]
      */
-    protected function resolveSyncMode(array $options): string
+    protected function runSyncItems(bool $filesystem = false, array $options = []): void
     {
-        $mode = $options['sync'] ?? $this->config->getSyncMode();
-        return $mode === 'local' ? 'local' : 'github';
+        $methodFilter = (string)($options['method'] ?? '');
+        $items = $this->config->getSyncItems();
+
+        if ($methodFilter !== '') {
+            $items = array_values(array_filter(
+                $items,
+                fn (array $item): bool => $item['method'] === $methodFilter
+            ));
+            if (empty($items)) {
+                deploy_log("没有匹配 method={$methodFilter} 的同步项（可用值：git|bundle|ftp）", 'error');
+                exit(1);
+            }
+        }
+
+        if (empty($items)) {
+            deploy_log("未配置 sync.items（server.php 中 'sync' => ['items' => [...]]），跳过代码同步", 'warn');
+            return;
+        }
+
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+        $sftpSync = null;
+        $total = count($items);
+
+        foreach (array_values($items) as $index => $item) {
+            $method = $item['method'];
+            $path = $item['path'];
+            $branch = $item['branch'];
+            $isMain = $path === '';
+            $label = $isMain ? '主仓库' : $path;
+            $step = sprintf('[%d/%d] [%s] %s', $index + 1, $total, $method, $label);
+
+            if ($isMain && $method === 'ftp') {
+                deploy_log("{$step}: ftp 方式不支持主仓库，跳过", 'warn');
+                continue;
+            }
+
+            $remotePath = $isMain ? $projectPath : $projectPath . '/' . $path;
+            $localPath = $isMain ? $this->getLocalRepoRoot() : $this->getLocalRepoRoot() . '/' . $path;
+
+            switch ($method) {
+                case 'git':
+                    if ($filesystem) {
+                        deploy_log("{$step}: filesystem 目标不支持 git 方式，跳过", 'warn');
+                        break;
+                    }
+                    if ($item['repo'] === '') {
+                        deploy_log("{$step}: 未配置 repo，跳过", 'warn');
+                        break;
+                    }
+                    deploy_log("同步 {$step} ← {$item['repo']} [{$branch}]", 'step');
+                    $this->git->clone($item['repo'], $remotePath, $branch);
+                    break;
+
+                case 'bundle':
+                    if (!is_dir($localPath . '/.git')) {
+                        deploy_log("{$step}: 本地仓库不存在，跳过: {$localPath}", 'warn');
+                        break;
+                    }
+                    deploy_log("同步 {$step}（bundle）", 'step');
+                    $tag = 'sync-' . safe_name($projectName . '-' . ($isMain ? 'main' : str_replace('/', '-', $path)));
+                    if ($filesystem) {
+                        $this->localSync->syncLocal($localPath, $remotePath, $branch, $tag);
+                    } else {
+                        $this->localSync->sync($localPath, $remotePath, $branch, $tag);
+                    }
+                    break;
+
+                case 'ftp':
+                    if (!is_dir($localPath)) {
+                        deploy_log("{$step}: 本地目录不存在，跳过: {$localPath}", 'warn');
+                        break;
+                    }
+                    deploy_log("同步 {$step}（ftp）", 'step');
+                    if (!empty($options['full'])) {
+                        deploy_log('full 模式：忽略清单，强制上传全部文件', 'info');
+                    }
+                    if ($filesystem) {
+                        $this->copyDirToTarget($localPath, $remotePath);
+                    } else {
+                        $sftpSync ??= new SftpDirSync($this->ssh, $this->getLocalRepoRoot(), $projectPath, $projectName);
+                        $sftpSync->syncDirs([$path], !empty($options['full']));
+                    }
+                    break;
+
+                default:
+                    deploy_log("{$step}: 未知同步方式 '{$method}'，跳过", 'warn');
+            }
+        }
     }
 
     /**
-     * 是否使用本地 bundle 同步
+     * 本地目录复制（ftp 方式 + filesystem 目标）：目标存在且大小/mtime 未变化时跳过，只增改不删除
      */
-    protected function isLocalSync(): bool
+    protected function copyDirToTarget(string $localDir, string $targetDir): void
     {
-        return $this->syncMode === 'local';
+        $localDir = rtrim($localDir, '/\\');
+        $targetDir = rtrim($targetDir, '/\\');
+        $count = 0;
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($localDir, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $fileInfo) {
+            $rel = str_replace('\\', '/', substr($fileInfo->getPathname(), strlen($localDir) + 1));
+            $to = $targetDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
+            $toParent = dirname($to);
+            if (!is_dir($toParent)) {
+                mkdir($toParent, 0755, true);
+            }
+            if (is_file($to)
+                && filesize($to) === $fileInfo->getSize()
+                && filemtime($to) >= $fileInfo->getMTime()) {
+                continue;
+            }
+            copy($fileInfo->getPathname(), $to);
+            touch($to, $fileInfo->getMTime());
+            $count++;
+        }
+        deploy_log("目录复制完成: {$localDir} → {$targetDir}（更新 {$count} 个文件）", 'ok');
     }
 
     /**
@@ -106,18 +221,13 @@ class ProjectDeployer
     {
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
-        $repo = $this->config->getRepo();
-        $branch = $this->config->getBranch();
-        $modules = $this->config->getModules();
         $domains = $this->config->getDomains();
 
         // 检测模式
         $this->routerMode = $options['mode'] ?? $this->detectRouterMode();
-        $this->syncMode = $this->resolveSyncMode($options);
         $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
 
         deploy_log("=== 开始部署项目: {$projectName} ===", 'step');
-        deploy_log("代码同步: {$this->syncMode}", 'info');
         deploy_log("Router 模式: {$this->routerMode}", 'info');
         if ($this->routerMode === RouterManager::MODE_HOST) {
             deploy_log("Nginx 端口: {$nginxPort}", 'info');
@@ -127,56 +237,37 @@ class ProjectDeployer
             $this->ssh->connect();
 
             // 1. 准备目录
-            deploy_log('步骤 1/7: 准备目录', 'step');
+            deploy_log('步骤 1/6: 准备目录', 'step');
             $this->ssh->ensureDir($projectPath);
 
-            // 2. 准备主仓库代码
-            if ($this->isLocalSync()) {
-                deploy_log('步骤 2/7: 本地同步主仓库', 'step');
-                $this->localSync->sync('main', $projectPath, $branch, 'main-' . $projectName);
-            } else {
-                deploy_log('步骤 2/7: 克隆主仓库', 'step');
-                if (!empty($repo)) {
-                    $this->git->clone($repo, $projectPath, $branch);
-                } else {
-                    deploy_log('未配置 repo，跳过克隆', 'warn');
-                    // 创建基本的项目目录结构
-                    $this->ssh->exec("mkdir -p {$projectPath}/src/App/Modules {$projectPath}/docker/nginx/sites {$projectPath}/docker/php {$projectPath}/docker/log/nginx {$projectPath}/docker/log/php");
-                }
-            }
+            // 2. 按 sync.items 同步代码/目录
+            deploy_log('步骤 2/6: 同步代码（sync.items）', 'step');
+            $this->runSyncItems(false);
+            $this->git->initSubmodules($projectPath);
 
-            // 3. 准备子模块
-            deploy_log('步骤 3/7: 部署子模块', 'step');
-            if ($this->isLocalSync()) {
-                $this->localSync->syncModules($modules, $projectPath, $branch);
-            } else {
-                $this->git->cloneModules($modules, $projectPath);
-                $this->git->initSubmodules($projectPath);
-            }
-
-            // 4. 生成并上传配置文件
-            deploy_log('步骤 4/7: 生成配置文件', 'step');
+            // 3. 生成并上传配置文件
+            deploy_log('步骤 3/6: 生成配置文件', 'step');
             if ($useLocalConfigs) {
                 $this->uploadLocalConfigs($projectPath, $nginxPort);
             } else {
                 $this->renderConfigs($projectPath, $nginxPort);
             }
 
-            // 5. Docker Compose 启动
-            deploy_log('步骤 5/7: 启动 Docker 容器', 'step');
+            // 4. Docker Compose 启动
+            deploy_log('步骤 4/6: 启动 Docker 容器', 'step');
             $composeFile = $this->routerMode === RouterManager::MODE_HOST
                 ? 'docker-compose.ports.yaml'
                 : 'docker-compose.yaml';
             $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} up -d");
 
-            // 6. 更新 Router
-            deploy_log('步骤 6/7: 更新 Router', 'step');
+            // 5. 更新 Router
+            deploy_log('步骤 5/6: 更新 Router', 'step');
             if (!empty($domains)) {
                 $this->router->addDomain($projectName, $domains, false, $this->routerMode, $nginxPort);
             }
 
-            // 7. 执行钩子
-            deploy_log('步骤 7/7: 执行钩子命令', 'step');
+            // 6. 执行钩子
+            deploy_log('步骤 6/6: 执行钩子命令', 'step');
             $this->runHooks('afterInit', $projectPath);
 
             deploy_log("=== 项目 {$projectName} 部署完成 ===", 'ok');
@@ -197,16 +288,13 @@ class ProjectDeployer
     {
         $projectName = $this->config->getProjectName();
         $targetPath = $this->config->getProjectPath();
-        $branch = $this->config->getBranch();
-        $modules = $this->config->getModules();
         $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
 
         deploy_log("=== 本地目录同步: {$projectName} → {$targetPath} ===", 'step');
-        deploy_log('代码同步: local (filesystem)', 'info');
+        deploy_log('代码同步: sync.items (filesystem)', 'info');
 
-        // 1. 代码
-        $this->localSync->syncLocal('main', $targetPath, $branch, 'main-' . $projectName);
-        $this->localSync->syncLocalModules($modules, $targetPath, $branch);
+        // 1. 按 sync.items 同步代码/目录
+        $this->runSyncItems(true);
 
         // 2. 生成配置
         if ($withConfigs) {
@@ -413,16 +501,15 @@ class ProjectDeployer
 
     /**
      * 仅拉取代码（不更新配置，不重启容器）
+     *
+     * 支持 method=git|bundle|ftp 只执行该方式的同步项，full=1 强制 ftp 全量上传
      */
     public function upgradeCodeOnly(array $options = []): void
     {
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
-        $modules = $this->config->getModules();
-        $branch = $this->config->getBranch();
-        $this->syncMode = $this->resolveSyncMode($options);
 
-        deploy_log("=== 更新代码: {$projectName} ({$this->syncMode}) ===", 'step');
+        deploy_log("=== 更新代码: {$projectName} ===", 'step');
 
         try {
             $this->ssh->connect();
@@ -435,21 +522,8 @@ class ProjectDeployer
                 exit(1);
             }
 
-            // 1. 更新主仓库
-            deploy_log('更新主仓库代码', 'step');
-            if ($this->isLocalSync()) {
-                $this->localSync->sync('main', $projectPath, $branch, 'main-' . $projectName);
-            } else {
-                $this->git->pull($projectPath);
-            }
-
-            // 2. 更新子模块
-            deploy_log('更新子模块', 'step');
-            if ($this->isLocalSync()) {
-                $this->localSync->syncModules($modules, $projectPath, $branch);
-            } else {
-                $this->git->cloneModules($modules, $projectPath);
-            }
+            // 按 sync.items 同步代码/目录（支持 method= 过滤）
+            $this->runSyncItems(false, $options);
 
             deploy_log("=== 代码更新完成: {$projectName} ===", 'ok');
 
@@ -463,16 +537,15 @@ class ProjectDeployer
     }
 
     /**
-     * 重置远程代码到最新提交（丢弃主仓库和模块目录的全部修改）
+     * 重置远程代码到最新提交（丢弃主仓库和 git/bundle 同步目录的全部修改）
      */
     public function reset(): void
     {
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
-        $modules = $this->config->getModules();
 
         deploy_log("=== 重置代码: {$projectName} ===", 'step');
-        deploy_log("警告: 将丢弃主仓库和模块目录的已跟踪文件修改（不会删除配置文件）！", 'warn');
+        deploy_log("警告: 将丢弃主仓库和 git/bundle 同步目录的已跟踪文件修改（不会删除配置文件）！", 'warn');
 
         try {
             $this->ssh->connect();
@@ -488,13 +561,17 @@ class ProjectDeployer
             deploy_log('重置主仓库', 'step');
             $this->ssh->exec("cd {$projectPath} && git reset --hard");
 
-            // 2. 重置子模块
-            foreach ($modules as $moduleName => $moduleRepo) {
-                $modulePath = $projectPath . '/src/App/Modules/' . $moduleName;
-                $moduleExists = $this->ssh->exec("[ -d {$modulePath}/.git ] && echo 'YES' || echo 'NO'", false);
-                if (trim($moduleExists) === 'YES') {
-                    deploy_log("重置模块: {$moduleName}", 'step');
-                    $this->ssh->exec("cd {$modulePath} && git reset --hard");
+            // 2. 重置 git/bundle 方式的子目录
+            foreach ($this->config->getSyncItems() as $item) {
+                $path = $item['path'];
+                if ($path === '' || !in_array($item['method'], ['git', 'bundle'], true)) {
+                    continue;
+                }
+                $repoPath = $projectPath . '/' . $path;
+                $repoExists = $this->ssh->exec("[ -d {$repoPath}/.git ] && echo 'YES' || echo 'NO'", false);
+                if (trim($repoExists) === 'YES') {
+                    deploy_log("重置: {$path}", 'step');
+                    $this->ssh->exec("cd {$repoPath} && git reset --hard");
                 }
             }
 
@@ -580,15 +657,13 @@ class ProjectDeployer
     {
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
-        $modules = $this->config->getModules();
         $domains = $this->config->getDomains();
 
         // 检测模式
         $this->routerMode = $options['mode'] ?? $this->detectRouterMode();
-        $this->syncMode = $this->resolveSyncMode($options);
         $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
 
-        deploy_log("=== 开始更新项目: {$projectName} ({$this->syncMode}) ===", 'step');
+        deploy_log("=== 开始更新项目: {$projectName} ===", 'step');
 
         try {
             $this->ssh->connect();
@@ -601,28 +676,16 @@ class ProjectDeployer
                 exit(1);
             }
 
-            // 1. 更新主仓库
-            deploy_log('步骤 1/4: 更新主仓库代码', 'step');
-            if ($this->isLocalSync()) {
-                $this->localSync->sync('main', $projectPath, $this->config->getBranch(), 'main-' . $projectName);
-            } else {
-                $this->git->pull($projectPath);
-            }
+            // 1. 按 sync.items 同步代码/目录（支持 method= 过滤）
+            deploy_log('步骤 1/3: 同步代码（sync.items）', 'step');
+            $this->runSyncItems(false, $options);
 
-            // 2. 更新子模块
-            deploy_log('步骤 2/4: 更新子模块', 'step');
-            if ($this->isLocalSync()) {
-                $this->localSync->syncModules($modules, $projectPath, $this->config->getBranch());
-            } else {
-                $this->git->cloneModules($modules, $projectPath);
-            }
-
-            // 3. 重新生成配置
-            deploy_log('步骤 3/4: 更新配置文件', 'step');
+            // 2. 重新生成配置
+            deploy_log('步骤 2/3: 更新配置文件', 'step');
             $this->renderConfigs($projectPath, $nginxPort);
 
-            // 4. 重启容器
-            deploy_log('步骤 4/4: 重启容器', 'step');
+            // 3. 重启容器
+            deploy_log('步骤 3/3: 重启容器', 'step');
             $composeFile = $this->routerMode === RouterManager::MODE_HOST
                 ? 'docker-compose.ports.yaml'
                 : 'docker-compose.yaml';

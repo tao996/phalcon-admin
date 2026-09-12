@@ -67,6 +67,8 @@ src/public/favicon.ico
 src/App/Modules/*
 !src/App/Modules/demo
 !src/App/Modules/tao
+src/App/Projects/*
+!src/App/Projects/demo
 
 # 服务器连接配置（含凭据）：忽略 server*.php，仅保留 example 模板
 deploy/server*.php

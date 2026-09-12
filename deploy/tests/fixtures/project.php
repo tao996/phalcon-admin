@@ -3,11 +3,12 @@
 return [
     'project' => [
         'name' => 'testproj',
-        'repo' => 'git@example.com:test.git',
-        'branch' => 'main',
         'path' => '/root/projects/testproj',
-        'modules' => [
-            'demo' => 'git@example.com:demo.git',
+    ],
+    'sync' => [
+        'items' => [
+            ['method' => 'git', 'repo' => 'git@example.com:test.git', 'branch' => 'main'],
+            ['method' => 'ftp', 'path' => 'src/App/Projects/boyu'],
         ],
     ],
     'ssh' => [

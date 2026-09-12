@@ -55,7 +55,6 @@ class ConfigTest extends TestCase
 
         // 项目字段
         $this->assertEquals('testproj', $merged['project']['name']);
-        $this->assertEquals('git@example.com:test.git', $merged['project']['repo']);
         $this->assertEquals('/root/projects/testproj', $merged['project']['path']);
 
         // 域名
@@ -109,7 +108,7 @@ class ConfigTest extends TestCase
         $this->assertEquals(['testproj.example.com'], $config->getDomains());
     }
 
-    public function testGetModules(): void
+    public function testGetSyncItems(): void
     {
         $config = new DeployConfig();
         $config->loadServer($this->fixturesDir . '/server.php');
@@ -119,7 +118,20 @@ class ConfigTest extends TestCase
         $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
-        $this->assertEquals(['demo' => 'git@example.com:demo.git'], $config->getModules());
+        $items = $config->getSyncItems();
+
+        $this->assertCount(2, $items);
+
+        // git 方式的主仓库（path 为空）
+        $this->assertEquals('git', $items[0]['method']);
+        $this->assertEquals('', $items[0]['path']);
+        $this->assertEquals('git@example.com:test.git', $items[0]['repo']);
+        $this->assertEquals('main', $items[0]['branch']);
+
+        // ftp 方式（branch 默认 main）
+        $this->assertEquals('ftp', $items[1]['method']);
+        $this->assertEquals('src/App/Projects/boyu', $items[1]['path']);
+        $this->assertEquals('main', $items[1]['branch']);
     }
 
     public function testGetSshConfig(): void
@@ -130,20 +142,6 @@ class ConfigTest extends TestCase
         $ssh = $config->getSshConfig();
         $this->assertEquals('1.2.3.4', $ssh['host']);
         $this->assertEquals('root', $ssh['user']);
-    }
-
-    public function testGetRepoAndBranch(): void
-    {
-        $config = new DeployConfig();
-        $config->loadServer($this->fixturesDir . '/server.php');
-
-        $ref = new ReflectionClass($config);
-        $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
-        $prop->setValue($config, require $this->fixturesDir . '/project.php');
-
-        $this->assertEquals('git@example.com:test.git', $config->getRepo());
-        $this->assertEquals('main', $config->getBranch());
     }
 
     public function testGetEnvOverrides(): void

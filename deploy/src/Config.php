@@ -121,40 +121,35 @@ class DeployConfig
     }
 
     /**
-     * 获取项目仓库地址
+     * 获取同步项列表（sync.items，按声明顺序执行）
+     *
+     * 每项统一归一化为:
+     *   method: git | bundle | ftp
+     *   path:   相对项目根的目标目录，空串 = 主仓库（ftp 不支持主仓库）
+     *   repo:   git 方式的仓库地址
+     *   branch: git/bundle 方式的分支名，默认 main
      */
-    public function getRepo(): string
+    public function getSyncItems(): array
     {
         $cfg = $this->getMerged();
-        return $cfg['project']['repo'] ?? '';
-    }
+        $items = $cfg['sync']['items'] ?? [];
+        if (!is_array($items)) {
+            return [];
+        }
 
-    /**
-     * 获取项目分支
-     */
-    public function getBranch(): string
-    {
-        $cfg = $this->getMerged();
-        return $cfg['project']['branch'] ?? 'main';
-    }
-
-    /**
-     * 获取子模块列表
-     */
-    public function getModules(): array
-    {
-        $cfg = $this->getMerged();
-        return $cfg['project']['modules'] ?? [];
-    }
-
-    /**
-     * 获取代码同步模式：github（远程拉取）| local（本地 bundle 推送）
-     */
-    public function getSyncMode(): string
-    {
-        $cfg = $this->getMerged();
-        $mode = $cfg['sync']['mode'] ?? 'github';
-        return $mode === 'local' ? 'local' : 'github';
+        $normalized = [];
+        foreach ($items as $item) {
+            if (!is_array($item) || empty($item['method'])) {
+                continue;
+            }
+            $normalized[] = [
+                'method' => (string)$item['method'],
+                'path' => rtrim(str_replace('\\', '/', (string)($item['path'] ?? '')), '/'),
+                'repo' => (string)($item['repo'] ?? ''),
+                'branch' => (string)($item['branch'] ?? 'main'),
+            ];
+        }
+        return $normalized;
     }
 
     /**

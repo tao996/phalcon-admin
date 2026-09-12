@@ -56,6 +56,7 @@ require DEPLOY_SRC . '/LocalGitSync.php';
 require DEPLOY_SRC . '/RouterManager.php';
 require DEPLOY_SRC . '/ProjectDeployer.php';
 require DEPLOY_SRC . '/DbManager.php';
+require DEPLOY_SRC . '/SftpDirSync.php';
 
 // ---------- 解析参数 ----------
 
@@ -101,8 +102,10 @@ function showHelp(): void
   nginx:log:access [--save]           查看访问日志（加 --save 下载到本地）
 
 \033[33m  项目 — 部署\033[0m
-  app:<项目> init [-y] [mode=...] [port=...] [sync=local]   预览/部署（sync=local 时本地 bundle 直传，不走 GitHub）
-  app:<项目> upgrade [-y] [sync=local]         更新代码（加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
+  app:<项目> init [-y] [mode=...] [port=...]     预览/部署（代码按 server.php 中 sync.items 声明的方式同步）
+  app:<项目> upgrade [-y] [method=git|bundle|ftp] [full=1]
+                                                更新代码（method= 只执行该方式的同步项；full=1 强制 ftp 全量上传；
+                                                加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
   app:<项目> push                               推送本地配置到远程
   app:<项目> script:push                        推送分析脚本到远程
   app:<项目> run <脚本> [参数...]               远程执行分析脚本
@@ -466,9 +469,6 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
     if (isset($params['port'])) {
         $options['nginxPort'] = (int)$params['port'];
     }
-    if (isset($params['sync'])) {
-        $options['sync'] = $params['sync'];
-    }
 
     $deployer = new ProjectDeployer($config);
 
@@ -584,8 +584,11 @@ function handleUpgrade(string $serverConfigFile, string $projectName, array $par
     if (isset($params['port'])) {
         $options['nginxPort'] = (int)$params['port'];
     }
-    if (isset($params['sync'])) {
-        $options['sync'] = $params['sync'];
+    if (isset($params['method'])) {
+        $options['method'] = $params['method'];
+    }
+    if (isset($params['full'])) {
+        $options['full'] = $params['full'];
     }
 
     $deployer = new ProjectDeployer($config);

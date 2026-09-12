@@ -10,6 +10,9 @@ if (file_exists($pharPath)) {
     require_once $pharPath;
 }
 
+// 加载应用层函数（array_merge_deep 等，Config 合并依赖）
+require_once __DIR__ . '/../../src/tao996/function.php';
+
 // 加载部署引擎源文件
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/Config.php';

@@ -1,8 +1,8 @@
 # 部署架构设计 — ReverseProxy + DockerNetwork 模式
 
 > 设计日期：2025-07-07
-> 最后更新：2026-09-11
-> 状态：已实现（v2，含本地 bundle 同步 `sync=local`、本地文件系统目标 `sync.target=filesystem`）
+> 最后更新：2026-09-12
+> 状态：已实现（v3，代码同步统一为 `sync.items` 条目模型：git / bundle / ftp 三种方式可任意组合）
 
 ---
 
@@ -14,7 +14,10 @@
 - 所有项目容器置于共享 Docker 网络 `phalcon-shared`，通过容器名相互寻址
 - 流量统一经过 Router Nginx，按域名分发到各项目
 - 部署工具通过 `phpseclib` 执行远程操作，本地渲染配置后上传
-- **代码同步双模式**：`github`（远程 `git clone/pull`，默认）/ `local`（本地 `git bundle` 直传，服务器无需 GitHub 凭据，见第十三节）
+- **代码同步统一模型（sync.items）**：每个同步目标独立声明方式，三种方式可任意组合：
+  - `git` — 远程 `git clone/pull`（需要远程能访问仓库）
+  - `bundle` — 本地 `git bundle` 直传（远程无需 GitHub 凭据，见第十三节）
+  - `ftp` — SFTP 增量直传不被 git 跟踪的目录（见第十五节）
 - **预览/执行两阶段**：先本地生成配置文件供检查，确认后再推送到远程
 
 ---
@@ -333,10 +336,6 @@ return [
         // 'keyFile' => '~/.ssh/id_rsa',
         // 'keyPassphrase' => '',
     ],
-    'project' => [              // 所有项目的默认值，各项目可覆盖
-        'repo' => 'git@github.com:user/phalcon-admin.git',
-        'branch' => 'main',
-    ],
     'docker' => [
         'network' => 'phalcon-shared',
     ],
@@ -345,10 +344,7 @@ return [
         'configDir' => '/etc/nginx-router/conf.d',
         'composePath' => '/root/router',
     ],
-    // 代码同步模式（可选，缺省 github）：github=远程拉取 | local=本地 bundle 推送
-    'sync' => [
-        'mode' => 'github',
-    ],
+    // 代码同步方式为项目级配置（sync.items，见下），全局 server.php 不再定义
     'env' => [
         'TZ' => 'Asia/Shanghai',
         'REDIS_PASSWORD' => '123456',
@@ -368,14 +364,20 @@ return [
     'project' => [
         'name' => 'myapp',
         'path' => '/root/projects/myapp',
-        'modules' => [
-            'demo' => 'git@github.com:user/module-demo.git',
-        ],
-        // repo/branch 继承自 server.php，可不填
         // 'nginxPort' => 8071,
     ],
-    // 代码同步模式（可选，缺省 github）：
-    //   'sync' => ['mode' => 'local'],  // 本地 bundle 同步，远程无需 GitHub 凭据
+    // 代码同步方式（按声明顺序逐项执行，三种方式可任意组合）：
+    //   git    — 远程 clone/pull（需要远程能访问仓库），repo 必填
+    //   bundle — 本地仓库打包直传（远程无需 GitHub 凭据），本地源目录 = 本地仓库根 + path
+    //   ftp    — SFTP 增量直传（只增改不删除），适合不被 git 跟踪的目录
+    // path 为相对项目根的目录，省略 path 表示主仓库（ftp 不支持主仓库）
+    'sync' => [
+        // 'target' => 'remote',  // remote（默认，SSH/SFTP 到服务器）| filesystem（写本地目录，见第十四节）
+        'items' => [
+            ['method' => 'git', 'repo' => 'git@github.com:user/phalcon-admin.git', 'branch' => 'main'],
+            ['method' => 'git', 'path' => 'src/App/Modules/yihe', 'repo' => 'git@github.com:user/yihe.git'],
+        ],
+    ],
     'domains' => [
         'myapp.example.com',
     ],
@@ -401,21 +403,10 @@ return [
 
 ### 配置合并规则
 
-`Config::getMerged()` 通过 `array_merge_deep()`（定义在 `src/tao996/Phax/function.php`）合并 `server.php` + 项目 `server.php`。
+`Config::getMerged()` 通过 `array_merge_deep()`（定义在 `src/tao996/Phax/function.php`）合并 `server.php` + 项目 `server.php`。项目配置中定义的同名键会覆盖 `server.php` 的默认值（如项目级 `ssh` 覆盖默认连接）。
 
-```php
-// server.php 配置
-['project' => ['repo' => 'git@...com:main.git', 'branch' => 'main']]
-
-// 项目 server.php 配置（只覆盖 name, path）
-['project' => ['name' => 'myapp', 'path' => '/root/projects/myapp']]
-
-// 合并结果（repo, branch 继承自 server.php）
-['project' => ['name' => 'myapp', 'path' => '/root/projects/myapp',
-               'repo' => 'git@...com:main.git', 'branch' => 'main']]
-```
-
-项目配置中定义的同名键会覆盖 `server.php` 的默认值。
+代码同步完全由项目配置的 `sync.items` 声明，`Config::getSyncItems()` 将每项归一化为
+`['method' => git|bundle|ftp, 'path' => string, 'repo' => string, 'branch' => string（默认 main）]`。
 
 ---
 
@@ -437,14 +428,13 @@ return [
 02. 检测 Router 模式（本地缓存 → 远程检测）
 03. SSH 连接远程服务器
 04. mkdir -p <project.path>
-05. git clone <repo> <path> --branch <branch>
-06. git clone 子模块到 src/App/Modules/<name>
-07. 配置文件上传：
+05. 按 sync.items 逐项同步代码（git / bundle / ftp）
+06. 配置文件上传：
     a) 有本地文件（预览生成）→ 读取并 SFTP 上传
     b) 无本地文件 → 模板渲染后上传
-08. docker-compose -f <模板文件> up -d
-09. 生成 nginx server block → 上传到 Router 配置目录 → reload nginx
-10. 执行 afterInit 钩子（如 php artisan migration）
+07. docker-compose -f <模板文件> up -d
+08. 生成 nginx server block → 上传到 Router 配置目录 → reload nginx
+09. 执行 afterInit 钩子（如 php artisan migration）
 ```
 
 ---
@@ -459,8 +449,8 @@ return [
 | `php deploy server:init` | 检测服务器环境，打印报告后退出 | v1 |
 | `php deploy server:init -y` | 检测 + 自动选择模式并执行安装 | v1 |
 | `php deploy server:init -y mode=host_nginx` | 强制宿主机 Nginx 模式 | v1 |
-| `php deploy app:init <project>` | 预览（无 -y）或完整部署（加 -y），支持 `sync=local` | v1→v2 增强 |
-| `php deploy app:upgrade <project>` | 更新已有项目（github: git pull / local: bundle 同步 + 重启） | v1 |
+| `php deploy app:init <project>` | 预览（无 -y）或完整部署（加 -y） | v1→v2 增强 |
+| `php deploy app:upgrade <project>` | 更新已有项目（按 sync.items 同步代码，`method=` 可只执行某种方式；-y 时同时更新配置并重启） | v1 |
 | `php deploy app:dc:restart <project>` | 启动/重启 Docker 容器（首次拉取镜像） | v2 |
 | `php deploy app:dc:status <project>` | 查看项目容器状态 | v2 |
 | `php deploy app:dc:log <project>` | 查看全部容器日志 | v2 |
@@ -482,7 +472,8 @@ return [
 | `-y` | `server:init`, `app:init` | 自动执行；`server:init` 默认只检测，`app:init` 默认预览 |
 | `env=prod` | 所有命令 | 选择服务器配置 `server.{env}.php` |
 | `mode=host_nginx` | `server:init -y`, `app:init` | 强制宿主机模式 |
-| `sync=local` | `app:init`, `app:upgrade` | 本地 bundle 直传（覆盖项目配置的 `sync.mode`） |
+| `method=git\|bundle\|ftp` | `app:upgrade` | 只执行该方式的同步项（值与 sync.items 的 method 一致，无匹配时报错退出） |
+| `full=1` | `app:upgrade` | ftp 条目忽略增量清单，强制全量上传 |
 | `port=8071` | `app:init` | 手动指定项目 nginx 端口（宿主机模式） |
 | `local=13306` | `db:proxy` | SSH 隧道本地监听端口 |
 | `host=13307` | `db:pma` | phpMyAdmin 宿主机暴露端口 |
@@ -647,36 +638,29 @@ php deploy db:pma-rm yihe
 
 ---
 
-## 十三、本地 bundle 同步（sync=local）
+## 十三、本地 bundle 同步（sync.items 中 method=bundle）
 
-> 新增于 v2。用于让远程服务器**不持有 GitHub 凭据**；默认的 `github` 模式保持不变。
+> v2 引入，v3 改为 `sync.items` 条目。用于让远程服务器**不持有 GitHub 凭据**。
 
 ### 背景
 
-默认模式下远程服务器需要配置 deploy key 访问 GitHub。若把服务器密钥加到 GitHub **账号级**，一旦服务器被攻破，账号下所有仓库都会暴露。`sync=local` 改为由**本地开发机**（本来就有 GitHub 权限 + 服务器 SSH 权限）做中转，服务器只接收代码、完全不接触 GitHub。改造后账号级密钥可直接撤销。
+远程 `git clone/pull`（method=git）需要服务器配置 deploy key 访问 GitHub。若把服务器密钥加到 GitHub **账号级**，一旦服务器被攻破，账号下所有仓库都会暴露。`method=bundle` 改为由**本地开发机**（本来就有 GitHub 权限 + 服务器 SSH 权限）做中转，服务器只接收代码、完全不接触 GitHub。改造后账号级密钥可直接撤销。
 
-### 开关
-
-推荐把连接与同步模式都写在项目配置里，项目级 `ssh` 会合并覆盖 `deploy/server.php` 的默认连接，因此无需 `env=` 指定服务器文件：
+### 配置
 
 ```php
 // deploy/projects/<name>/server.php
-return [
-    'ssh' => [
-        'host' => '192.168.56.120',
-        'port' => 22,
-        'user' => 'root',
-        'password' => '123456',
+'sync' => [
+    'items' => [
+        // 主仓库（省略 path）
+        ['method' => 'bundle', 'branch' => 'main'],
+        // 任意子目录（本地源目录 = 本地仓库根 + path，需为独立 git 仓库）
+        // ['method' => 'bundle', 'path' => 'src/App/Modules/yihe', 'branch' => 'main'],
     ],
-    'sync' => ['mode' => 'local'],
-    // ... project / domains / env / config
-];
+],
 ```
 
-- 缺省（不配置 `sync`）为 `github`，现有项目行为不变。
-- CLI 也可临时覆盖：`sync=local`。
-
-> 缓存指纹按**实际生效的合并连接**隔离（`DeployConfig::loadProject` 会设置 `DEPLOY_SERVER_ID`），不同项目/服务器不会共用同一份 mode/compose 缓存。
+项目级 `ssh` 会合并覆盖 `deploy/server.php` 的默认连接，因此无需 `env=` 指定服务器文件。
 
 ### 流程
 
@@ -688,10 +672,10 @@ return [
   3. 已有仓库: git fetch <bundle> <ref> && git reset --hard FETCH_HEAD
      空目录:   git init && git fetch <bundle> <ref> && git checkout -b <branch> FETCH_HEAD
   4. 删除临时 bundle
-之后配置上传 / docker up / router 步骤与 github 模式完全一致
+之后配置上传 / docker up / router 步骤与 git 方式完全一致
 ```
 
-主仓库与 `src/App/Modules/<模块>`（独立仓库，如 `yihe`）都会各打包一次。
+每个 `method=bundle` 条目各打包一次（主仓库 + 各子目录）。
 
 ### 浅克隆处理
 
@@ -707,18 +691,16 @@ return [
 
 ### 命令示例
 
-项目配置已含 `ssh` + `sync.mode=local` 时，直接执行即可，无需 `env=` / `sync=`：
+项目配置已含 `ssh` + `sync.items` 时，直接执行即可，无需 `env=`：
 
 ```bash
 # 预览 / 部署
 php admin app:vbox init
 php admin app:vbox init -y
 
-# 更新代码（local 模式自动走 bundle 同步）
+# 更新代码（bundle 条目自动走本地打包直传）
 php admin app:vbox upgrade
 ```
-
-如需临时改用其他模式，再显式覆盖：`php admin app:vbox init -y sync=local`。
 
 ### 安全说明
 
@@ -729,11 +711,11 @@ php admin app:vbox upgrade
 
 ## 十四、本地文件系统同步（sync.target=filesystem）
 
-> 新增于 v2。把代码 + 生成配置**镜像到本机目录**，不经 SSH/SFTP、不启动 docker。
+> v2 引入，v3 改为 `sync.items` 条目。把代码 + 生成配置**镜像到本机目录**，不经 SSH/SFTP、不启动 docker。
 
 ### 用途
 
-在 `sync.mode=local` 的基础上，`sync.target=filesystem` 让目标变成一台本地路径（`project.path` 为本地绝对路径），用于本地镜像/离线副本/无服务器环境的代码下发。
+在 bundle 同步的基础上，`sync.target=filesystem` 让目标变成一台本地路径（`project.path` 为本地绝对路径），用于本地镜像/离线副本/无服务器环境的代码下发。
 
 ### 配置
 
@@ -743,13 +725,15 @@ return [
     'project' => [
         'name' => 'phalcon-admin-test',
         'path' => 'D:/demo/code/phpProjects/phalcon-admin-test', // 本地目标目录
-        'branch' => 'main',
-        'modules' => [],
         'nginxPort' => 8071,
     ],
     'sync' => [
-        'mode' => 'local',
         'target' => 'filesystem',
+        'items' => [
+            ['method' => 'bundle', 'branch' => 'main'],
+            // ftp 条目在 filesystem 目标下退化为本地目录复制（只增改不删除）
+            // ['method' => 'ftp', 'path' => 'src/App/Projects/boyu'],
+        ],
     ],
     // 无需 ssh；env / config 与其他项目一致
 ];
@@ -758,11 +742,12 @@ return [
 ### 流程
 
 ```
-1. 本地生成快照 bundle（浅克隆同样安全）
+1. 本地生成快照 bundle（浅克隆同样安全）— 每个 method=bundle 条目各一次
 2. git -C <target> init/fetch/reset（首次自动创建目录）
-3. 生成配置写入 <target>：.env、docker-compose(.ports).yaml、
+3. method=ftp 条目直接复制本地目录到 <target>（mtime+size 比较，只增改不删除）
+4. 生成配置写入 <target>：.env、docker-compose(.ports).yaml、
    docker/nginx/sites/default.conf、docker/php/php.ini、docker/mysql/my.cnf、src/config/config.php
-（不执行 docker up / router / hooks）
+（不执行 docker up / router / hooks；method=git 条目不支持 filesystem 目标）
 ```
 
 ### 命令
@@ -779,3 +764,40 @@ php admin app:phalcon-admin-test upgrade -y  # 同步代码 + 生成配置
 - 生成文件均被目标仓库的 `.gitignore` 排除，`git status` 保持干净。
 - 目标目录历史与远程一致（浅克隆下为单提交快照）。
 - 缓存指纹按目标路径隔离（`filesystem:<path>`）。
+
+---
+
+## 十五、SFTP 目录直传（sync.items 中 method=ftp）
+
+> v2 新增。同步**不被 git 跟踪**的目录（如 `src/App/Projects/*`，被主仓库 `.gitignore` 排除，bundle 同步不会带上）。
+
+### 配置
+
+```php
+// deploy/projects/<name>/server.php — sync.items 中声明
+'sync' => [
+    'items' => [
+        ['method' => 'ftp', 'path' => 'src/App/Projects/boyu'],   // 可配多个
+    ],
+],
+```
+
+### 用法
+
+```bash
+php admin app:<项目> upgrade                     # 同步全部 sync.items（ftp 条目增量，跳过无变化文件）
+php admin app:<项目> upgrade method=ftp          # 只执行 ftp 条目（SFTP 增量直传）
+php admin app:<项目> upgrade method=ftp full=1   # 忽略增量清单，强制全量上传
+php admin app:<项目> upgrade method=bundle       # 只执行 bundle 条目（只拉主仓库代码）
+```
+
+- `method=` 的值与 sync.items 的 `method` 一致（git|bundle|ftp），无匹配条目时报错退出
+- `method=` 只过滤同步代码这一步；带 `-y` 时配置更新 + 容器重启照常执行
+- `init -y` / `upgrade`（不过滤）会自动执行 ftp 条目
+
+### 行为
+
+- 目录上传到 `<project.path>/<相对目录>`，如 `/data/phalcon-test/src/App/Projects/boyu`
+- **只增改不删除**：本地删除的文件不删除远程对应文件
+- 增量清单存于 `deploy/.cache/sftp-<project>-<md5(目录)>.json`，按项目 + 目录隔离
+- 本地目录不存在时跳过并告警，不中断其他目录

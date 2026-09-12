@@ -31,16 +31,22 @@ return [
         'project' => [
             'name' => '{name}',                      // 项目名（同时也是容器名前缀）
             'path' => 'TODO::修改为你的远程部署地址',     // 远程部署路径，如 /data/xxx
-            'modules' => [                            // src/App/Modules/ 下的子模块
-                // '模块名' => '仓库地址',
-                // 'demo' => 'git@github.com:user/module-demo.git',
-                // 'tao'  => 'git@github.com:user/module-tao.git',
-            ],
-            // 默认仓库地址，如 git@github.com:tao996/phalcon-admin.git
-            'repo' => 'https://github.com/tao996/phalcon-admin.git',
-            'branch' => 'main',
             // 宿主机模式时项目的 nginx 端口（可选，默认 8071）
             'nginxPort' => 8071,
+        ],
+        // 代码同步方式（按声明顺序逐项执行）：
+        //   git    — 远程 clone/pull（需要远程能访问仓库），repo 必填
+        //   bundle — 本地仓库打包直传（远程无需 GitHub 凭据），本地源目录 = 本地仓库根 + path
+        //   ftp    — SFTP 增量直传（只增改不删除），适合不被 git 跟踪的目录
+        // path 为相对项目根的目录，省略 path 表示主仓库（ftp 不支持主仓库）
+        'sync' => [
+            // 'target' => 'remote', // remote（默认，SSH/SFTP 到服务器）| filesystem（写本地目录）
+            'items' => [
+                ['method' => 'git', 'repo' => 'https://github.com/tao996/phalcon-admin.git', 'branch' => 'main'],
+                // ['method' => 'git', 'path' => 'src/App/Modules/demo', 'repo' => 'git@github.com:user/module-demo.git'],
+                // ['method' => 'bundle', 'branch' => 'main'],
+                // ['method' => 'ftp', 'path' => 'src/App/Projects/boyu'],
+            ],
         ],
         'domains' => [ // 域名列表（Router 转发用）
             'myapp.example.com',

@@ -15,12 +15,10 @@ class LocalGitSync
     /**
      * @param DeploySSH $ssh 已连接的远程通道
      * @param string $localRepoRoot 本地主仓库根目录
-     * @param string $localModulesRoot 本地模块目录（src/App/Modules）
      */
     public function __construct(
         protected DeploySSH $ssh,
-        protected string $localRepoRoot,
-        protected string $localModulesRoot
+        protected string $localRepoRoot
     ) {
     }
 
@@ -75,33 +73,6 @@ class LocalGitSync
     }
 
     /**
-     * 同步模块列表到远程项目
-     *
-     * @param array $modules ['模块名' => '仓库地址', ...]（仓库地址在本地模式下不使用）
-     * @param string $remoteProjectPath 远程项目根路径
-     * @param string $branch 分支名
-     */
-    public function syncModules(array $modules, string $remoteProjectPath, string $branch): void
-    {
-        if (empty($modules)) {
-            deploy_log('无子模块需要同步', 'info');
-            return;
-        }
-
-        foreach ($modules as $name => $repo) {
-            $module = safe_name($name);
-            $localModule = $this->localModulesRoot . '/' . $module;
-            if (!is_dir($localModule . '/.git')) {
-                deploy_log("本地模块仓库不存在，跳过: {$localModule}", 'warn');
-                continue;
-            }
-            deploy_log("同步模块: {$module}", 'step');
-            $remoteModule = rtrim($remoteProjectPath, '/') . '/src/App/Modules/' . $module;
-            $this->sync($localModule, $remoteModule, $branch, 'mod-' . $module);
-        }
-    }
-
-    /**
      * 同步单仓库到本地目录（不经过 SSH/SFTP）
      */
     public function syncLocal(string $localRepo, string $targetPath, string $branch, string $tag): void
@@ -130,29 +101,6 @@ class LocalGitSync
             if (file_exists($bundleFile)) {
                 @unlink($bundleFile);
             }
-        }
-    }
-
-    /**
-     * 同步模块列表到本地目录
-     */
-    public function syncLocalModules(array $modules, string $targetProjectPath, string $branch): void
-    {
-        if (empty($modules)) {
-            deploy_log('无子模块需要同步', 'info');
-            return;
-        }
-
-        foreach ($modules as $name => $repo) {
-            $module = safe_name($name);
-            $localModule = $this->localModulesRoot . '/' . $module;
-            if (!is_dir($localModule . '/.git')) {
-                deploy_log("本地模块仓库不存在，跳过: {$localModule}", 'warn');
-                continue;
-            }
-            deploy_log("同步模块: {$module}", 'step');
-            $targetModule = rtrim($targetProjectPath, '/\\') . '/src/App/Modules/' . $module;
-            $this->syncLocal($localModule, $targetModule, $branch, 'mod-' . $module);
         }
     }
 
