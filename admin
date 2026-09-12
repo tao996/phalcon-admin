@@ -57,6 +57,7 @@ require DEPLOY_SRC . '/RouterManager.php';
 require DEPLOY_SRC . '/ProjectDeployer.php';
 require DEPLOY_SRC . '/DbManager.php';
 require DEPLOY_SRC . '/SftpDirSync.php';
+require DEPLOY_SRC . '/GitSshManager.php';
 
 // ---------- 解析参数 ----------
 
@@ -114,6 +115,7 @@ function showHelp(): void
           log-errors [日期]       错误汇总
           log-slow [阈值] [行数]  慢查询分析
   app:<项目> reset                              重置代码到最新提交
+  app:<项目> git:ssh [-T]                       为 git@ 开头的 git 同步项生成 deploy key（-T 验证认证）
 
 \033[33m  项目 — Docker 容器\033[0m
   app:<项目> dc:restart                         重启容器
@@ -243,6 +245,15 @@ try {
                 exit(1);
             }
             handleReset($serverConfigFile, $projectName);
+            break;
+
+        case 'git:ssh':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> git:ssh [-T]\n");
+                exit(1);
+            }
+            handleGitSsh($serverConfigFile, $projectName, $namedParams);
             break;
 
         case 'script:push':
@@ -549,6 +560,21 @@ function handleReset(string $serverConfigFile, string $projectName): void
 
     $deployer = new ProjectDeployer($config);
     $deployer->reset();
+}
+
+function handleGitSsh(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $ssh = new DeploySSH($config->getSshConfig());
+    $ssh->connect();
+
+    $manager = new GitSshManager($ssh, $config);
+    $manager->run(!empty($params['T']));
+
+    $ssh->disconnect();
 }
 
 function handleScriptPush(string $serverConfigFile, string $projectName): void

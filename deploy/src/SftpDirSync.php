@@ -4,10 +4,14 @@
  * SFTP 目录直传（增量）
  *
  * 用于同步不被 git 跟踪的目录（如 src/App/Projects/*，被主仓库 .gitignore 排除，
- * bundle 同步不会带上）。按 mtime + size 清单做增量：只上传新增/修改的文件，
- * 本地已删除的文件不删除远程对应文件。
+ * bundle 同步不会带上）。增量策略：记录每个目录最后一次成功同步的开始时间，
+ * 下次只上传 mtime >= lastSync 的文件（只增改不删除）。
  *
- * 清单存于 deploy/.cache/sftp-<project>-<md5(dir)>.json，按目录隔离。
+ * lastSync 存于项目缓存 deploy/.cache/<project>.json 的 sftp.<目录>.lastSync：
+ * - 只有本次目录内全部上传成功才更新（有失败则下次整个目录重传）
+ * - 记录"开始时刻"而非结束时刻：同步期间被修改的文件下次会被重新上传（安全）
+ *
+ * 注意：新拷入但 mtime 早于 lastSync 的文件会被漏传，需要时用 full=1 强制全量。
  */
 class SftpDirSync
 {
@@ -23,10 +27,11 @@ class SftpDirSync
      * 同步多个目录（相对仓库根的路径，如 'src/App/Projects/boyu'）
      *
      * @param array $dirs 目录列表
-     * @param bool  $force true 时忽略清单强制全量上传
+     * @param bool  $force true 时忽略 lastSync 强制全量上传
      */
     public function syncDirs(array $dirs, bool $force = false): void
     {
+        $this->cleanupLegacyManifests();
         foreach ($dirs as $dir) {
             $this->syncDir((string)$dir, $force);
         }
@@ -44,18 +49,26 @@ class SftpDirSync
         $remoteDir = rtrim($this->remoteProjectPath, '/') . '/' . $relDir;
         deploy_log("SFTP 同步目录: {$relDir} → {$remoteDir}", 'step');
 
-        $manifest = $this->loadManifest($relDir);
+        $cache = get_project_cache($this->projectName);
+        $lastSync = $force ? null : ($cache['sftp'][$relDir]['lastSync'] ?? null);
+        $threshold = $lastSync !== null ? strtotime($lastSync) : null;
+        if ($force) {
+            deploy_log('full 模式：忽略 lastSync，强制上传全部文件', 'info');
+        } elseif ($threshold !== null) {
+            deploy_log('增量同步：只上传 mtime >= ' . $lastSync . ' 的文件', 'info');
+        }
+
         $files = [];
         $this->scanFiles($localDir, '', $files);
 
+        $runStart = time();
         $ensuredDirs = [];
         $uploaded = 0;
         $skipped = 0;
+        $failed = 0;
 
         foreach ($files as $rel => $info) {
-            $prev = $manifest['files'][$rel] ?? null;
-            if (!$force && $prev !== null
-                && $prev['mtime'] === $info['mtime'] && $prev['size'] === $info['size']) {
+            if ($threshold !== null && $info['mtime'] < $threshold) {
                 $skipped++;
                 continue;
             }
@@ -66,14 +79,21 @@ class SftpDirSync
                 $this->ssh->ensureDir($parent);
                 $ensuredDirs[$parent] = true;
             }
-            $this->ssh->upload($localDir . '/' . $rel, $remoteFile);
-            $manifest['files'][$rel] = $info;
-            $uploaded++;
+            if ($this->ssh->upload($localDir . '/' . $rel, $remoteFile)) {
+                $uploaded++;
+            } else {
+                $failed++;
+            }
         }
 
-        if ($uploaded > 0) {
-            $this->saveManifest($relDir, $manifest);
+        if ($failed > 0) {
+            deploy_log("目录同步存在 {$failed} 个失败，不更新 lastSync（下次重传整个目录）: {$relDir}", 'warn');
+            return;
         }
+
+        // 记录本次开始时刻：同步期间修改的文件下次会重新上传
+        $cache['sftp'][$relDir] = ['lastSync' => date('c', $runStart)];
+        set_project_cache($this->projectName, $cache);
 
         $total = count($files);
         deploy_log("目录完成: 共 {$total} 个文件，上传 {$uploaded}，跳过 {$skipped}（无变化）", 'ok');
@@ -101,36 +121,13 @@ class SftpDirSync
         }
     }
 
-    protected function manifestPath(string $relDir): string
+    /**
+     * 清理旧版按文件清单（sftp-<project>-<md5>.json），已由项目缓存的 lastSync 取代
+     */
+    protected function cleanupLegacyManifests(): void
     {
-        $cacheDir = deploy_base_path() . '/.cache';
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0755, true);
+        foreach (glob(deploy_base_path() . '/.cache/sftp-' . safe_name($this->projectName) . '-*.json') ?: [] as $file) {
+            @unlink($file);
         }
-        return $cacheDir . '/sftp-' . safe_name($this->projectName) . '-' . md5($relDir) . '.json';
-    }
-
-    protected function loadManifest(string $relDir): array
-    {
-        $file = $this->manifestPath($relDir);
-        if (!file_exists($file)) {
-            return ['dir' => $relDir, 'files' => []];
-        }
-        $data = json_decode(file_get_contents($file), true);
-        // 目录路径变化或清单损坏时全部重传
-        if (!is_array($data) || ($data['dir'] ?? '') !== $relDir || !isset($data['files'])) {
-            return ['dir' => $relDir, 'files' => []];
-        }
-        return $data;
-    }
-
-    protected function saveManifest(string $relDir, array $manifest): void
-    {
-        $manifest['dir'] = $relDir;
-        $manifest['_updatedAt'] = date('c');
-        file_put_contents(
-            $this->manifestPath($relDir),
-            json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-        );
     }
 }

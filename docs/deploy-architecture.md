@@ -456,6 +456,7 @@ return [
 | `php deploy app:dc:log <project>` | 查看全部容器日志 | v2 |
 | `php deploy app:dc:log:php <project>` | 查看 PHP 容器日志 | v2 |
 | `php deploy app:push <project>` | 推送本地配置文件到远程（覆盖已有） | v2 |
+| `php deploy app:<project> git:ssh [-T]` | 为 git@ 开头的 git 同步项生成 deploy key（-T 验证认证） | v3 |
 | `php deploy app:nginx:add <project>` | 将项目域名添加到 Router | v1 |
 | `php deploy app:nginx:remove <project>` | 从 Router 移除项目域名 | v1 |
 | `php deploy nginx:reload` | 验证语法后重载 Nginx（全局） | v2 |
@@ -799,5 +800,26 @@ php admin app:<项目> upgrade method=bundle       # 只执行 bundle 条目（�
 
 - 目录上传到 `<project.path>/<相对目录>`，如 `/data/phalcon-test/src/App/Projects/boyu`
 - **只增改不删除**：本地删除的文件不删除远程对应文件
-- 增量清单存于 `deploy/.cache/sftp-<project>-<md5(目录)>.json`，按项目 + 目录隔离
-- 本地目录不存在时跳过并告警，不中断其他目录
+- 增量策略：记录每个目录**最后一次成功同步的开始时间**（`lastSync`），下次只上传 `mtime >= lastSync` 的文件；某次有上传失败则不更新该目录的 `lastSync`，下次整个目录重传
+- lastSync 存于项目缓存 `deploy/.cache/<project>.json`（含服务器指纹，项目连接目标变更时自动失效）
+- 注意：新拷入但 mtime 早于 lastSync 的文件会被漏传，需要时用 `full=1` 强制全量
+
+---
+
+## 十六、Deploy Key 管理（git:ssh）
+
+> 新增于 v3。为 sync.items 中 `method=git` 且 repo 以 `git@` 开头的条目在服务器上生成 deploy key（远程 clone 私有仓库需要）。`https://` 仓库走匿名拉取，不需要 key。
+
+### 用法
+
+```bash
+php admin app:<项目> git:ssh       # 生成密钥 + 更新 ~/.ssh/config + 输出公钥与添加指引
+php admin app:<项目> git:ssh -T    # 逐仓库验证认证（公钥需已添加到 Deploy keys）
+```
+
+### 行为
+
+- 无符合条件的同步项时提示"没有需要配置"并退出
+- **每仓库一把 ed25519 密钥**：`~/.ssh/deploy/<owner>_<repo>`（已存在则跳过生成，幂等）
+- `~/.ssh/config` 使用 `# BEGIN/END deploy-managed` 托管块，按 host 累积 `IdentityFile`（含 `IdentitiesOnly`、`StrictHostKeyChecking accept-new`），托管块外的用户配置不动；多项目共用服务器时自动合并、不互相覆盖
+- 生成后输出每个仓库的公钥，提示添加到 **Settings → Deploy keys**；添加后用 `-T` 验证（成功输出 `Hi owner/repo!`）

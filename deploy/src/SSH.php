@@ -112,8 +112,9 @@ class DeploySSH
      *
      * @param string $localPath 本地文件路径
      * @param string $remotePath 远程文件路径
+     * @return bool 是否成功
      */
-    public function upload(string $localPath, string $remotePath): void
+    public function upload(string $localPath, string $remotePath): bool
     {
         if (!$this->connected) {
             deploy_log('SSH 未连接', 'error');
@@ -125,7 +126,9 @@ class DeploySSH
         $result = $this->sftp->put($remotePath, $localPath, SFTP::SOURCE_LOCAL_FILE);
         if ($result === false) {
             deploy_log("上传失败: {$localPath}", 'error');
+            return false;
         }
+        return true;
     }
 
     /**

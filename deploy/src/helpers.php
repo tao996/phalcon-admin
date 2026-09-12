@@ -125,6 +125,55 @@ function set_server_cache(array $values): void
 }
 
 /**
+ * 项目缓存文件路径（deploy/.cache/<project>.json）
+ *
+ * 项目级状态：sftp 目录 lastSync 等。带服务器指纹，项目 ssh 目标变更时自动失效。
+ */
+function project_cache_path(string $projectName): string
+{
+    $dir = deploy_base_path() . '/.cache';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    return $dir . '/' . safe_name($projectName) . '.json';
+}
+
+/**
+ * 读取项目缓存
+ */
+function get_project_cache(string $projectName): array
+{
+    $file = project_cache_path($projectName);
+    if (!file_exists($file)) {
+        return [];
+    }
+    $data = json_decode(file_get_contents($file), true);
+    if (!is_array($data)) {
+        return [];
+    }
+    // 项目连接目标变更时清空缓存
+    if (($data['_server'] ?? '') !== cache_server_id()) {
+        unlink($file);
+        return [];
+    }
+    return $data;
+}
+
+/**
+ * 写入项目缓存（合并更新）
+ */
+function set_project_cache(string $projectName, array $values): void
+{
+    $data = get_project_cache($projectName);
+    $data['_server'] = cache_server_id();
+    $data['_updatedAt'] = date('c');
+    foreach ($values as $key => $value) {
+        $data[$key] = $value;
+    }
+    file_put_contents(project_cache_path($projectName), json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+/**
  * 获取缓存的 Docker Compose 命令名
  */
 function get_compose_cmd(): string
