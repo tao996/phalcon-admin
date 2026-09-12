@@ -21,11 +21,6 @@ return [
     'docker' => [
         'network' => 'phalcon-shared', // 共享网络名
     ],
-    'router' => [
-        'containerName' => 'phalcon-router',
-        'configDir' => '/etc/nginx-router/conf.d',
-        'composePath' => '/root/router',
-    ],
     // 用于为项目生成 app/server.php，可根据需要自行修改
     'application' => [
         'project' => [

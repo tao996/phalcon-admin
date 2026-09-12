@@ -15,7 +15,6 @@ class ProjectDeployer
     protected TemplateRenderer $renderer;
     protected DeployConfig $config;
     protected RouterManager $router;
-    protected string $routerMode = '';
 
     public function __construct(DeployConfig $config)
     {
@@ -24,7 +23,7 @@ class ProjectDeployer
         $this->git = new GitHelper($this->ssh);
         $this->localSync = new LocalGitSync($this->ssh, $this->getLocalRepoRoot());
         $this->renderer = new TemplateRenderer(deploy_base_path() . '/template');
-        $this->router = new RouterManager($this->ssh, $config->getMerged()['router'] ?? []);
+        $this->router = new RouterManager($this->ssh);
     }
 
     /**
@@ -182,33 +181,14 @@ class ProjectDeployer
     }
 
     /**
-     * 检测 Router 模式（本地缓存优先，否则远程检测）
+     * 项目 nginx 端口（宿主机模式）：server.php 的 project.nginxPort，默认 8071
      */
-    protected function detectRouterMode(): string
+    protected function assignNginxPort(): int
     {
-        // 优先使用本地缓存（含服务器指纹校验）
-        $cache = get_server_cache();
-        $mode = $cache['mode'] ?? '';
-        if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
-            return $mode;
-        }
-        // 无缓存时默认宿主机模式（不触发远程检测）
-        return RouterManager::MODE_HOST;
-    }
-
-    /**
-     * 宿主机模式下自动分配端口（从 8071 起递增，可被 server.php 中的 nginxPort 覆盖）
-     */
-    protected function assignNginxPort(?int $preferredPort = null): int
-    {
-        if ($preferredPort !== null && $preferredPort > 0) {
-            return $preferredPort;
-        }
-        // 从配置中读取
         $cfg = $this->config->getMerged();
         $assignedPort = $cfg['project']['nginxPort'] ?? 0;
         if ($assignedPort > 0) {
-            return $assignedPort;
+            return (int)$assignedPort;
         }
         // 默认起始端口
         return 8071;
@@ -223,15 +203,10 @@ class ProjectDeployer
         $projectPath = $this->config->getProjectPath();
         $domains = $this->config->getDomains();
 
-        // 检测模式
-        $this->routerMode = $options['mode'] ?? $this->detectRouterMode();
-        $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
+        $nginxPort = $this->assignNginxPort();
 
         deploy_log("=== 开始部署项目: {$projectName} ===", 'step');
-        deploy_log("Router 模式: {$this->routerMode}", 'info');
-        if ($this->routerMode === RouterManager::MODE_HOST) {
-            deploy_log("Nginx 端口: {$nginxPort}", 'info');
-        }
+        deploy_log("Nginx 端口: {$nginxPort}", 'info');
 
         try {
             $this->ssh->connect();
@@ -255,15 +230,13 @@ class ProjectDeployer
 
             // 4. Docker Compose 启动
             deploy_log('步骤 4/6: 启动 Docker 容器', 'step');
-            $composeFile = $this->routerMode === RouterManager::MODE_HOST
-                ? 'docker-compose.ports.yaml'
-                : 'docker-compose.yaml';
+            $composeFile = 'docker-compose.yaml';
             $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} up -d");
 
             // 5. 更新 Router
             deploy_log('步骤 5/6: 更新 Router', 'step');
             if (!empty($domains)) {
-                $this->router->addDomain($projectName, $domains, false, $this->routerMode, $nginxPort);
+                $this->router->addDomain($projectName, $domains, false, $nginxPort);
             }
 
             // 6. 执行钩子
@@ -288,7 +261,7 @@ class ProjectDeployer
     {
         $projectName = $this->config->getProjectName();
         $targetPath = $this->config->getProjectPath();
-        $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
+        $nginxPort = $this->assignNginxPort();
 
         deploy_log("=== 本地目录同步: {$projectName} → {$targetPath} ===", 'step');
         deploy_log('代码同步: sync.items (filesystem)', 'info');
@@ -339,12 +312,9 @@ class ProjectDeployer
     protected function writeLocalConfigs(string $targetDir, int $nginxPort): void
     {
         $vars = $this->buildVars($nginxPort);
-        $composeTemplate = deploy_base_path() . '/template/docker-compose.ports.yaml';
-
         $files = [
             '.env' => $this->getTemplatePath('.env.deploy.example'),
-            'docker-compose.ports.yaml' => $composeTemplate,
-            'docker-compose.yaml' => $composeTemplate,
+            'docker-compose.yaml' => deploy_base_path() . '/template/docker-compose.yaml',
             'docker/nginx/sites/default.conf' => $this->getTemplatePath('nginx/default.conf'),
             'docker/php/php.ini' => $this->getTemplatePath('php/php.ini'),
             'docker/mysql/my.cnf' => $this->getTemplatePath('mysql/my.cnf'),
@@ -374,28 +344,10 @@ class ProjectDeployer
     {
         $projectName = $this->config->getProjectName();
 
-        // 检测模式：参数 > 本地缓存 > 默认 host_nginx（预览模式不连远程检测）
-        if (isset($options['mode'])) {
-            $this->routerMode = $options['mode'];
-        } else {
-            $cache = get_server_cache();
-            $mode = $cache['mode'] ?? '';
-            if ($mode === RouterManager::MODE_DOCKER || $mode === RouterManager::MODE_HOST) {
-                $this->routerMode = $mode;
-            }
-        }
-        if (empty($this->routerMode)) {
-            $this->routerMode = RouterManager::MODE_HOST;
-            deploy_log('未检测到模式缓存，默认使用 host_nginx', 'warn');
-        }
-
-        $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
+        $nginxPort = $this->assignNginxPort();
 
         deploy_log("=== 预览模式: {$projectName} ===", 'step');
-        deploy_log("Router 模式: {$this->routerMode}", 'info');
-        if ($this->routerMode === RouterManager::MODE_HOST) {
-            deploy_log("Nginx 端口: {$nginxPort}", 'info');
-        }
+        deploy_log("Nginx 端口: {$nginxPort}", 'info');
         deploy_log('', '');
 
         $localDir = $this->getLocalProjectDir();
@@ -404,14 +356,10 @@ class ProjectDeployer
         // 构建模板变量
         $vars = $this->buildVars($nginxPort);
 
-        $composeTemplate = $this->routerMode === RouterManager::MODE_HOST
-            ? 'docker-compose.ports.yaml'
-            : 'docker-compose.yaml';
-
         // 渲染并写入本地文件
         $files = [
             '.env' => $this->getTemplatePath('.env.deploy.example'),
-            $composeTemplate => deploy_base_path() . '/template/' . $composeTemplate,
+            'docker-compose.yaml' => deploy_base_path() . '/template/docker-compose.yaml',
             'docker/nginx/sites/default.conf' => $this->getTemplatePath('nginx/default.conf'),
             'docker/php/php.ini' => $this->getTemplatePath('php/php.ini'),
             'docker/mysql/my.cnf' => $this->getTemplatePath('mysql/my.cnf'),
@@ -449,12 +397,7 @@ class ProjectDeployer
 
         try {
             $this->ssh->connect();
-            $this->routerMode = $this->detectRouterMode();
-            deploy_log("Router 模式: {$this->routerMode}", 'info');
-
-            $composeFile = $this->routerMode === RouterManager::MODE_HOST
-                ? 'docker-compose.ports.yaml'
-                : 'docker-compose.yaml';
+            $composeFile = 'docker-compose.yaml';
 
             if ($service) {
                 $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} restart {$service}");
@@ -478,15 +421,9 @@ class ProjectDeployer
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
 
-        // 检测模式（使用本地缓存）
-        $this->routerMode = $this->detectRouterMode();
         $nginxPort = $this->assignNginxPort();
 
         deploy_log("=== 推送配置: {$projectName} ===", 'step');
-        deploy_log("Router 模式: {$this->routerMode}", 'info');
-        if ($this->routerMode === RouterManager::MODE_HOST) {
-            deploy_log("Nginx 端口: {$nginxPort}", 'info');
-        }
 
         try {
             $this->ssh->connect();
@@ -659,9 +596,7 @@ class ProjectDeployer
         $projectPath = $this->config->getProjectPath();
         $domains = $this->config->getDomains();
 
-        // 检测模式
-        $this->routerMode = $options['mode'] ?? $this->detectRouterMode();
-        $nginxPort = $this->assignNginxPort($options['nginxPort'] ?? null);
+        $nginxPort = $this->assignNginxPort();
 
         deploy_log("=== 开始更新项目: {$projectName} ===", 'step');
 
@@ -686,14 +621,12 @@ class ProjectDeployer
 
             // 3. 重启容器
             deploy_log('步骤 3/3: 重启容器', 'step');
-            $composeFile = $this->routerMode === RouterManager::MODE_HOST
-                ? 'docker-compose.ports.yaml'
-                : 'docker-compose.yaml';
+            $composeFile = 'docker-compose.yaml';
             $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} restart");
 
             // 如果域名有调整，同步 Router
             if (!empty($domains)) {
-                $this->router->addDomain($projectName, $domains, false, $this->routerMode, $nginxPort);
+                $this->router->addDomain($projectName, $domains, false, $nginxPort);
             }
 
             // 执行钩子
@@ -721,10 +654,6 @@ class ProjectDeployer
         $vars = $this->buildVars($nginxPort);
 
         // 根据模式选择 docker-compose 模板
-        $composeTemplate = $this->routerMode === RouterManager::MODE_HOST
-            ? 'docker-compose.ports.yaml'
-            : 'docker-compose.yaml';
-
         // 渲染并上传各配置文件
         // .env
         $envContent = $this->renderer->render(
@@ -736,16 +665,14 @@ class ProjectDeployer
             deploy_log('已上传 .env', 'ok');
         }
 
-        // docker-compose.yaml（根据模式选择模板）
+        // docker-compose.yaml（统一模板，含 127.0.0.1 端口映射）
         $composeContent = $this->renderer->render(
-            $this->getTemplatePath($composeTemplate),
+            $this->getTemplatePath('docker-compose.yaml'),
             $vars
         );
         if (!empty($composeContent)) {
-            $this->ssh->uploadContent($composeContent, $projectPath . '/' . $composeTemplate);
-            deploy_log("已上传 {$composeTemplate}", 'ok');
-            // 同时拷贝为 docker-compose.yaml 保持兼容
-            $this->ssh->exec("cd {$projectPath} && cp {$composeTemplate} docker-compose.yaml", false);
+            $this->ssh->uploadContent($composeContent, $projectPath . '/docker-compose.yaml');
+            deploy_log('已上传 docker-compose.yaml', 'ok');
         }
 
         // nginx 站点配置
@@ -862,7 +789,6 @@ class ProjectDeployer
         $fileMap = [
             '.env' => $projectPath . '/.env',
             'docker-compose.yaml' => $projectPath . '/docker-compose.yaml',
-            'docker-compose.ports.yaml' => $projectPath . '/docker-compose.ports.yaml',
             'docker/nginx/sites/default.conf' => $projectPath . '/docker/nginx/sites/default.conf',
             'docker/php/php.ini' => $projectPath . '/docker/php/php.ini',
             'docker/mysql/my.cnf' => $projectPath . '/docker/mysql/my.cnf',
@@ -889,11 +815,6 @@ class ProjectDeployer
             deploy_log('未找到本地配置文件，使用模板生成', 'warn');
             $this->renderConfigs($projectPath, $nginxPort);
         } else {
-            // 确保 docker-compose.yaml 兼容副本
-            $this->ssh->exec(
-                "cd {$projectPath} && [ -f docker-compose.ports.yaml ] && [ ! -f docker-compose.yaml ] && cp docker-compose.ports.yaml docker-compose.yaml || true",
-                false
-            );
             deploy_log('配置文件上传完成', 'ok');
         }
     }
@@ -971,17 +892,13 @@ class ProjectDeployer
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
 
-        $this->routerMode = $this->detectRouterMode();
-
         $label = $service ? "({$service})" : '';
         deploy_log("=== 容器日志: {$projectName} {$label} ===", 'step');
 
         try {
             $this->ssh->connect();
 
-            $composeFile = $this->routerMode === RouterManager::MODE_HOST
-                ? 'docker-compose.ports.yaml'
-                : 'docker-compose.yaml';
+            $composeFile = 'docker-compose.yaml';
 
             $svcArg = $service ? " {$service}" : '';
             $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} logs --tail=50{$svcArg}");

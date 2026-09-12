@@ -1,53 +1,23 @@
 <?php
 
 /**
- * Router Nginx 配置管理
- * 
- * 支持两种模式：
- *   docker_router — Docker 容器 nginx（纯 Docker 环境，默认）
- *   host_nginx    — 宿主机已有 nginx（已有站点 + certbot）
- * 
- * init:router 时自动检测环境，无 -y 则只报告，有 -y 才执行。
+ * 宿主机 Nginx 配置管理
+ *
+ * server:init 时检测服务器环境（nginx/certbot/docker compose），
+ * app:init / nginx:add 时为项目生成 server block 写入 /etc/nginx/conf.d 并重载 nginx。
+ *
+ * 项目容器 nginx 绑定 127.0.0.1:<nginxPort>，由宿主机 nginx 反向代理对外服务。
  */
 class RouterManager
 {
-    protected string $configDir;
-    protected string $containerName;
+    protected string $configDir = '/etc/nginx/conf.d';
 
-    public const MODE_DOCKER = 'docker_router';
-    public const MODE_HOST = 'host_nginx';
-
-    /**
-     * @param DeploySSH $ssh
-     * @param array $routerConfig
-     *  - containerName: Docker Router 容器名
-     *  - configDir: 宿主机 nginx 配置目录（宿主机模式）或 Docker Router 配置目录
-     *  - composePath: Docker Router 的 docker-compose.yaml 所在路径
-     *  - mode: 手动指定模式（不指定则 auto 检测）
-     */
-    public function __construct(
-        protected DeploySSH $ssh,
-        protected array $routerConfig = []
-    ) {
-        $this->containerName = $routerConfig['containerName'] ?? 'phalcon-router';
-        $this->configDir = $routerConfig['configDir'] ?? '/etc/nginx-router/conf.d';
+    public function __construct(protected DeploySSH $ssh)
+    {
     }
 
     /* ---------------- 环境检测 ---------------- */
 
-    /**
-     * 检测服务器环境，返回检测报告
-     *
-     * @return array [
-     *   'os'        => string,
-     *   'nginx'     => ['installed' => bool, 'running' => bool, 'configDir' => string],
-     *   'certbot'   => ['installed' => bool],
-     *   'port80'    => 'free'|'in_use',
-     *   'port443'   => 'free'|'in_use',
-     *   'dockerRouterRunning' => bool,
-     *   'recommendedMode'     => 'docker_router'|'host_nginx',
-     * ]
-     */
     /**
      * 检测操作系统发行版本
      */
@@ -70,11 +40,6 @@ class RouterManager
         // Nginx — 先检查进程，再检查命令
         $nginxRunning = $this->checkProcessRunning('nginx');
         $nginxInstalled = $nginxRunning || $this->checkInstalled('nginx');
-        $nginxConfigDir = '/etc/nginx/conf.d';
-
-        if ($nginxRunning) {
-            $nginxConfigDir = $this->detectNginxConfigDir();
-        }
 
         // Certbot
         $certbotInstalled = $this->checkInstalled('certbot');
@@ -83,45 +48,33 @@ class RouterManager
         $port80 = $this->checkPort(80);
         $port443 = $this->checkPort(443);
 
-        // Docker Router 容器是否已在运行
-        $dockerRouterRunning = $this->checkDockerRouterRunning();
-
         // Docker 环境
         $dockerInstalled = $this->checkInstalled('docker');
         $dockerComposeCmd = $this->detectComposeCommand();
         $dockerComposeInstalled = !empty($dockerComposeCmd);
-        $dockerNetworkExists = $dockerInstalled && $this->checkDockerNetworkExists();
 
         // 缓存 compose 命令名
         if ($dockerComposeInstalled) {
             $this->cacheComposeCommand($dockerComposeCmd);
         }
 
-        // 推荐模式
-        $recommendedMode = $this->determineMode(
-            $nginxRunning || $nginxInstalled, $port80, $dockerRouterRunning
-        );
-
         $report = [
             'os' => $os,
             'nginx' => [
                 'installed' => $nginxInstalled,
                 'running' => $nginxRunning,
-                'configDir' => $nginxConfigDir,
+                'configDir' => $this->configDir,
             ],
             'certbot' => [
                 'installed' => $certbotInstalled,
             ],
             'port80' => $port80,
             'port443' => $port443,
-            'dockerRouterRunning' => $dockerRouterRunning,
             'docker' => [
                 'installed' => $dockerInstalled,
                 'composeInstalled' => $dockerComposeInstalled,
                 'composeCmd' => $dockerComposeCmd,
-                'networkExists' => $dockerNetworkExists,
             ],
-            'recommendedMode' => $recommendedMode,
         ];
 
         $this->printDetectionReport($report);
@@ -144,9 +97,6 @@ class RouterManager
             ),
             'info'
         );
-        if ($report['nginx']['installed']) {
-            deploy_log("Nginx 配置: {$report['nginx']['configDir']}", 'info');
-        }
         deploy_log(
             sprintf("Certbot:    %s",
                 $report['certbot']['installed'] ? "\033[32m已安装\033[0m" : "\033[33m未安装\033[0m"
@@ -166,12 +116,6 @@ class RouterManager
             'info'
         );
         deploy_log(
-            sprintf("Docker Router: %s",
-                $report['dockerRouterRunning'] ? "\033[32m已在运行\033[0m" : "\033[33m未运行\033[0m"
-            ),
-            'info'
-        );
-        deploy_log(
             sprintf("Docker:      %s",
                 $report['docker']['installed'] ? "\033[32m已安装\033[0m" : "\033[33m未安装\033[0m"
             ),
@@ -183,98 +127,27 @@ class RouterManager
             ),
             'info'
         );
-        deploy_log(
-            sprintf("网络 phalcon-shared: %s",
-                $report['docker']['networkExists'] ? "\033[32m已创建\033[0m" : "\033[33m未创建\033[0m"
-            ),
-            'info'
-        );
-        echo "\n";
-        deploy_log(
-            sprintf("推荐模式:   \033[36m%s\033[0m",
-                $report['recommendedMode'] === self::MODE_HOST ? '宿主机 Nginx' : 'Docker Router'
-            ),
-            'step'
-        );
         echo "\n";
     }
 
-    /**
-     * 获取检测结果中的推荐模式
-     */
-    public function getRecommendedMode(?array $detectResult = null): string
-    {
-        if ($detectResult === null) {
-            $detectResult = $this->detect();
-        }
-        return $detectResult['recommendedMode'];
-    }
-
-    /* ---------------- 初始化 Router ---------------- */
+    /* ---------------- 初始化 ---------------- */
 
     /**
-     * 初始化 Router
-     *
-     * @param bool $autoExecute  true=执行安装, false=只检测报告
-     * @return string|null 返回选定的模式，或 null（只检测不执行时）
+     * 服务器初始化：检测环境；-y 时确认 nginx 配置目录可用
      */
-    public function initRouter(bool $autoExecute = false): ?string
+    public function initRouter(bool $autoExecute = false): void
     {
         $report = $this->detect();
 
         if (!$autoExecute) {
-            deploy_log('使用 -y 参数执行安装：php deploy init:router -y', 'warn');
-            deploy_log('或手动指定模式覆盖：php deploy init:router -y mode=host_nginx', 'warn');
-            return null;
+            deploy_log('使用 -y 参数执行安装：php admin server:init -y', 'warn');
+            return;
         }
 
-        $mode = $this->routerConfig['mode'] ?? $report['recommendedMode'];
-
-        // 先创建共享网络：Docker Router 的 compose 声明了 external 网络，必须先存在
-        $this->ssh->exec("docker network create phalcon-shared 2>/dev/null || echo 'network already exists'", false);
-
-        if ($mode === self::MODE_DOCKER) {
-            $this->setupDockerRouter($report);
-        } else {
-            $this->setupHostNginx($report);
-        }
-
-        deploy_log("Router 初始化完成（模式: {$mode}）", 'ok');
-
-        return $mode;
-    }
-
-    /**
-     * 部署 Docker Router 容器
-     */
-    protected function setupDockerRouter(array $report): void
-    {
-        deploy_log('部署 Docker Router 容器...', 'step');
-
-        $composePath = $this->routerConfig['composePath'] ?? '/root/router';
-        $this->ssh->ensureDir($composePath);
-        $this->ssh->ensureDir($this->configDir);
-
-        $composeContent = $this->generateRouterCompose();
-        $this->ssh->uploadContent($composeContent, $composePath . '/docker-compose.yaml');
-
-        $this->ssh->exec("cd {$composePath} && " . get_compose_cmd() . " up -d");
-    }
-
-    /**
-     * 配置宿主机 nginx（已有 nginx，不部署容器）
-     */
-    protected function setupHostNginx(array $report): void
-    {
         deploy_log('配置宿主机 Nginx...', 'step');
 
-        $targetDir = $report['nginx']['configDir'] ?? '/etc/nginx/conf.d';
-
         // 创建存放工具生成配置的目录
-        $this->ssh->exec("mkdir -p {$targetDir}", false);
-
-        // 更新 configDir 指向宿主机 nginx 目录，后续 addDomain 直接写入
-        $this->configDir = $targetDir;
+        $this->ssh->exec("mkdir -p {$this->configDir}", false);
 
         // 如果 certbot 未安装，给出提示
         if (!$report['certbot']['installed']) {
@@ -284,58 +157,32 @@ class RouterManager
 
         // 检查 nginx 配置是否有效
         $this->ssh->exec("nginx -t 2>&1", false);
+
+        deploy_log('服务器初始化完成', 'ok');
     }
 
-    /* ---------------- 域名管理（自动适配模式） ---------------- */
+    /* ---------------- 域名管理 ---------------- */
 
     /**
-     * 为项目添加域名转发规则
-     * 自动根据当前模式决定 target（Docker DNS 或 127.0.0.1:端口）
+     * 为项目添加域名转发规则（写入 /etc/nginx/conf.d/<项目>.conf）
      *
      * @param string $projectName
      * @param array $domains
      * @param bool $ssl
-     * @param string|null $mode  'docker_router' | 'host_nginx'
-     * @param int|null $nginxPort  宿主机模式时项目的 nginx 端口
+     * @param int|null $nginxPort 项目的 nginx 端口（缺省 8071）
      */
-    public function addDomain(string $projectName, array $domains, bool $ssl = false, ?string $mode = null, ?int $nginxPort = null): void
+    public function addDomain(string $projectName, array $domains, bool $ssl = false, ?int $nginxPort = null): void
     {
         if (empty($domains)) {
-            deploy_log('无域名配置，跳过 Router 更新', 'warn');
+            deploy_log('无域名配置，跳过', 'warn');
             return;
         }
 
-        if ($mode === null) {
-            $mode = $this->detectCachedMode();
-        }
-
-        // 根据模式设置配置目录
-        if ($mode === self::MODE_HOST && $this->configDir !== '/etc/nginx/conf.d') {
-            $this->configDir = '/etc/nginx/conf.d';
-        }
-
-        // 决定转发的目标地址
-        if ($mode === self::MODE_DOCKER) {
-            $target = $projectName . '-nginx:80';
-        } else {
-            // 宿主机模式：需要端口，缺省 8071
-            if (empty($nginxPort)) {
-                $nginxPort = 8071;
-            }
-            $target = '127.0.0.1:' . $nginxPort;
-        }
-
-        deploy_log("添加域名: " . implode(', ', $domains) . " → {$target}（模式: {$mode}）", 'step');
+        $target = '127.0.0.1:' . ($nginxPort ?: 8071);
+        deploy_log("添加域名: " . implode(', ', $domains) . " → {$target}", 'step');
 
         $configContent = $this->generateServerBlock($domains, $target, $ssl);
-
-        if ($mode === self::MODE_HOST) {
-            // 宿主机模式：写入宿主机 nginx 目录
-            $remoteFile = $this->configDir . '/' . $projectName . '.conf';
-        } else {
-            // Docker Router 模式：写入 Router 配置目录
-            $remoteFile = $this->configDir . '/' . $projectName . '.conf';
-        }
+        $remoteFile = $this->configDir . '/' . $projectName . '.conf';
 
         $this->ssh->exec("mkdir -p " . dirname($remoteFile), false);
         $this->ssh->uploadContent($configContent, $remoteFile);
@@ -345,7 +192,7 @@ class RouterManager
     }
 
     /**
-     * 从 Router 移除项目的域名配置
+     * 移除项目的域名配置
      */
     public function removeDomain(string $projectName): void
     {
@@ -405,30 +252,6 @@ class RouterManager
     }
 
     /**
-     * 检测 Docker Router 容器是否已在运行
-     */
-    protected function checkDockerRouterRunning(): bool
-    {
-        $result = $this->ssh->exec(
-            "docker inspect -f '{{.State.Running}}' {$this->containerName} 2>/dev/null || echo 'false'",
-            false
-        );
-        return trim($result) === 'true';
-    }
-
-    /**
-     * 检测 phalcon-shared Docker 网络是否已创建
-     */
-    protected function checkDockerNetworkExists(): bool
-    {
-        $result = $this->ssh->exec(
-            "docker network inspect phalcon-shared >/dev/null 2>&1 && echo 'YES' || echo 'NO'",
-            false
-        );
-        return trim($result) === 'YES';
-    }
-
-    /**
      * 检测可用的 Docker Compose 命令（v2 docker compose / v1 docker-compose）
      */
     protected function detectComposeCommand(): string
@@ -461,54 +284,6 @@ class RouterManager
     }
 
     /**
-     * 检测宿主机 nginx 配置目录
-     */
-    protected function detectNginxConfigDir(): string
-    {
-        // nginx 站点配置目录，CentOS/Ubuntu/Debian 均默认为 /etc/nginx/conf.d
-        return '/etc/nginx/conf.d';
-    }
-
-    /**
-     * 决定推荐模式
-     */
-    protected function determineMode(bool $nginxRunning, string $port80, bool $dockerRouterRunning): string
-    {
-        if ($dockerRouterRunning) {
-            return self::MODE_DOCKER;
-        }
-        // 宿主机 nginx 在运行 或 80 端口已被占用 → 推荐宿主机模式
-        if ($nginxRunning || $port80 === 'in_use') {
-            return self::MODE_HOST;
-        }
-        // 全新服务器 → Docker Router
-        return self::MODE_DOCKER;
-    }
-
-    /**
-     * 检测缓存的模式（尝试从服务器上已有的 Router 容器/nginx 配置判断）
-     */
-    protected function detectCachedMode(): string
-    {
-        // 先看是否有 Docker Router 容器在运行
-        if ($this->checkDockerRouterRunning()) {
-            return self::MODE_DOCKER;
-        }
-        // 再看宿主机 nginx 是否有我们生成的配置
-        $result = $this->ssh->exec(
-            "[ -f {$this->configDir}/.deploy-mode ] && cat {$this->configDir}/.deploy-mode || echo ''",
-            false
-        );
-        $mode = trim($result);
-        if ($mode === self::MODE_DOCKER || $mode === self::MODE_HOST) {
-            return $mode;
-        }
-        // 回退：自动检测
-        $report = $this->detect();
-        return $report['recommendedMode'];
-    }
-
-    /**
      * 重载 Nginx
      */
     public function reload(): void
@@ -516,7 +291,6 @@ class RouterManager
         deploy_log("重载 Nginx", 'step');
 
         $output = $this->ssh->exec(
-            "docker exec {$this->containerName} nginx -s reload 2>/dev/null || " .
             "nginx -s reload 2>/dev/null || " .
             "systemctl reload nginx 2>/dev/null || " .
             "echo 'RELOAD_FAILED'",
@@ -537,51 +311,31 @@ class RouterManager
     {
         deploy_log('验证 Nginx 配置语法', 'step');
 
-        $this->ssh->exec(
-            "docker exec {$this->containerName} nginx -t 2>/dev/null || " .
-            "nginx -t",
-            true
-        );
+        $this->ssh->exec("nginx -t", true);
 
         deploy_log('Nginx 配置语法正确', 'ok');
         $this->reload();
     }
 
     /**
-     * 查看/下载 Nginx 日志
+     * 查看/下载 Nginx 日志（宿主机 /var/log/nginx）
      */
     public function nginxLog(string $type, bool $download = false): void
     {
         $label = $type === 'error' ? '错误' : '访问';
         $logFile = "/var/log/nginx/{$type}.log";
 
-        // 先尝试 Docker Router 容器，失败则回退到宿主机路径
-        $isDocker = $this->checkDockerRouterRunning();
-
         if ($download) {
-            // 下载到本地
-            if ($isDocker) {
-                $tmpPath = "/tmp/nginx-{$type}-{$this->containerName}.log";
-                $this->ssh->exec("docker cp {$this->containerName}:{$logFile} {$tmpPath} 2>/dev/null || echo 'CP_FAILED'", false);
-            }
             $localPath = deploy_base_path() . "/logs/nginx-{$type}-" . date('YmdHis') . '.log';
             $logDir = dirname($localPath);
             if (!is_dir($logDir)) {
                 mkdir($logDir, 0755, true);
             }
-            $srcPath = $isDocker ? $tmpPath : $logFile;
-            $this->ssh->download($srcPath, $localPath);
-            if ($isDocker) {
-                $this->ssh->exec("rm -f {$tmpPath}", false);
-            }
+            $this->ssh->download($logFile, $localPath);
             deploy_log("日志已保存: {$localPath}", 'ok');
         } else {
-            // 远程 tail 查看
             deploy_log("=== Nginx {$label}日志 (100行) ===", 'step');
-            $cmd = $isDocker
-                ? "docker exec {$this->containerName} tail -n 100 {$logFile} 2>/dev/null || echo '日志文件不存在'"
-                : "tail -n 100 {$logFile} 2>/dev/null || echo '日志文件不存在'";
-            $this->ssh->exec($cmd);
+            $this->ssh->exec("tail -n 100 {$logFile} 2>/dev/null || echo '日志文件不存在'");
         }
     }
 
@@ -665,8 +419,6 @@ NGINX;
             return;
         }
 
-        $mode = $this->detectCachedMode();
-
         // 检查 certbot 是否安装
         $certbotInstalled = $this->checkInstalled('certbot');
         if (!$certbotInstalled) {
@@ -695,16 +447,8 @@ NGINX;
             "ln -sf /etc/letsencrypt/live/{$primaryDomain}/privkey.pem /etc/nginx/ssl/{$primaryDomain}.key"
         );
 
-        // 4. 按模式设置 configDir
-        if ($mode === self::MODE_HOST) {
-            $this->configDir = '/etc/nginx/conf.d';
-        }
-
-        // 5. 重新生成含 SSL 的 server block
-        $target = $mode === self::MODE_DOCKER
-            ? $projectName . '-nginx:80'
-            : '127.0.0.1:' . ($nginxPort ?: 8071);
-
+        // 4. 重新生成含 SSL 的 server block
+        $target = '127.0.0.1:' . ($nginxPort ?: 8071);
         $configContent = $this->generateServerBlock($domains, $target, true);
         $remoteFile = $this->configDir . '/' . $projectName . '.conf';
         $this->ssh->exec('mkdir -p ' . dirname($remoteFile), false);
@@ -714,33 +458,5 @@ NGINX;
         $this->reload();
 
         deploy_log("=== SSL 配置完成: {$primaryDomain} ===", 'ok');
-    }
-
-    /**
-     * 生成 Docker Router 的 docker-compose.yaml
-     */
-    protected function generateRouterCompose(): string
-    {
-        return <<<YAML
-version: '3.5'
-
-services:
-  router:
-    image: nginx:stable-alpine
-    container_name: {$this->containerName}
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - {$this->configDir}:/etc/nginx/conf.d
-      - /etc/nginx-router/ssl:/etc/nginx/ssl
-    networks:
-      - phalcon-shared
-    restart: always
-
-networks:
-  phalcon-shared:
-    external: true
-YAML;
     }
 }

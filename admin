@@ -97,13 +97,13 @@ function showHelp(): void
   config:export [项目]          导出配置为 JSON（不指定项目时导出全部，暂时不需要使用到）
   
 \033[33m  服务器\033[0m
-  server:init [-y] [mode=host_nginx]  检测服务器环境（加 -y 执行安装）
+  server:init [-y]                    检测服务器环境（加 -y 执行安装）
   nginx:reload                        验证语法并重载 Nginx（全局）
   nginx:log:error [--save]            查看错误日志（加 --save 下载到本地）
   nginx:log:access [--save]           查看访问日志（加 --save 下载到本地）
 
 \033[33m  项目 — 部署\033[0m
-  app:<项目> init [-y] [mode=...] [port=...]     预览/部署（代码按 server.php 中 sync.items 声明的方式同步）
+  app:<项目> init [-y]                           预览/部署（代码按 server.php 中 sync.items 声明的方式同步）
   app:<项目> upgrade [-y] [method=git|bundle|ftp] [full=1]
                                                 更新代码（method= 只执行该方式的同步项；full=1 强制 ftp 全量上传；
                                                 加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
@@ -423,26 +423,14 @@ function handleInitRouter(string $serverConfigFile, array $params): void
     $config->loadServer($serverConfigFile);
 
     $autoExecute = isset($params['y']) && $params['y'] === true;
-    $modeOverride = $params['mode'] ?? '';
 
     $ssh = new DeploySSH($config->getSshConfig());
     $ssh->connect();
 
-    $routerConfig = $config->getMerged()['router'] ?? [];
-    if ($modeOverride) {
-        $routerConfig['mode'] = $modeOverride;
-    }
-
-    $router = new RouterManager($ssh, $routerConfig);
-    $chosenMode = $router->initRouter($autoExecute);
+    $router = new RouterManager($ssh);
+    $router->initRouter($autoExecute);
 
     $ssh->disconnect();
-
-    // 保存模式到本地配置缓存（供后续 init 命令使用）
-    if ($chosenMode !== null) {
-        set_server_cache(['mode' => $chosenMode]);
-        deploy_log("模式已缓存: {$chosenMode}", 'info');
-    }
 }
 
 function handleInit(string $serverConfigFile, string $projectName, array $params): void
@@ -472,14 +460,7 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
 
     $config->loadProject($projectName);
 
-    // 传递模式参数
     $options = [];
-    if (isset($params['mode'])) {
-        $options['mode'] = $params['mode'];
-    }
-    if (isset($params['port'])) {
-        $options['nginxPort'] = (int)$params['port'];
-    }
 
     $deployer = new ProjectDeployer($config);
 
@@ -529,7 +510,7 @@ function handleNginxReload(string $serverConfigFile): void
     $ssh = new DeploySSH($config->getSshConfig());
     $ssh->connect();
 
-    $router = new RouterManager($ssh, $config->getMerged()['router'] ?? []);
+    $router = new RouterManager($ssh);
     $router->validateAndReload();
 
     $ssh->disconnect();
@@ -545,7 +526,7 @@ function handleNginxLog(string $serverConfigFile, string $type, array $params): 
     $ssh = new DeploySSH($config->getSshConfig());
     $ssh->connect();
 
-    $router = new RouterManager($ssh, $config->getMerged()['router'] ?? []);
+    $router = new RouterManager($ssh);
     $download = isset($params['save']);
     $router->nginxLog($type, $download);
 
@@ -604,12 +585,6 @@ function handleUpgrade(string $serverConfigFile, string $projectName, array $par
     $config->loadProject($projectName);
 
     $options = [];
-    if (isset($params['mode'])) {
-        $options['mode'] = $params['mode'];
-    }
-    if (isset($params['port'])) {
-        $options['nginxPort'] = (int)$params['port'];
-    }
     if (isset($params['method'])) {
         $options['method'] = $params['method'];
     }
@@ -649,20 +624,10 @@ function handleNginxAdd(string $serverConfigFile, string $projectName, array $pa
     $ssh = new DeploySSH($config->getSshConfig());
     $ssh->connect();
 
-    $routerConfig = $config->getMerged()['router'] ?? [];
-    if (isset($params['mode'])) {
-        $routerConfig['mode'] = $params['mode'];
-    }
-
-    $router = new RouterManager($ssh, $routerConfig);
-    $mode = $params['mode'] ?? null;
-    $port = isset($params['port']) ? (int)$params['port'] : null;
-    if ($port === null) {
-        // 从项目配置读取 nginxPort
-        $merged = $config->getMerged();
-        $port = $merged['project']['nginxPort'] ?? null;
-    }
-    $router->addDomain($projectName, $domains, false, $mode, $port);
+    $router = new RouterManager($ssh);
+    $merged = $config->getMerged();
+    $port = isset($params['port']) ? (int)$params['port'] : ($merged['project']['nginxPort'] ?? null);
+    $router->addDomain($projectName, $domains, false, $port);
 
     $ssh->disconnect();
 }
@@ -676,7 +641,7 @@ function handleNginxRemove(string $serverConfigFile, string $projectName): void
     $ssh = new DeploySSH($config->getSshConfig());
     $ssh->connect();
 
-    $router = new RouterManager($ssh, $config->getMerged()['router'] ?? []);
+    $router = new RouterManager($ssh);
     $router->removeDomain($projectName);
 
     $ssh->disconnect();
@@ -707,7 +672,7 @@ function handleNginxSsl(string $serverConfigFile, string $projectName, array $pa
     $ssh = new DeploySSH($config->getSshConfig());
     $ssh->connect();
 
-    $router = new RouterManager($ssh, $merged['router'] ?? []);
+    $router = new RouterManager($ssh);
     $router->enableSSL($projectName, $domains, $projectPath, $email, $nginxPort);
 
     $ssh->disconnect();
