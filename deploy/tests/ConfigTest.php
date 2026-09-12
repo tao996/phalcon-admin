@@ -128,10 +128,11 @@ class ConfigTest extends TestCase
         $this->assertEquals('git@example.com:test.git', $items[0]['repo']);
         $this->assertEquals('main', $items[0]['branch']);
 
-        // ftp 方式（branch 默认 main）
+        // ftp 方式（branch 默认 main，excludes 归一化）
         $this->assertEquals('ftp', $items[1]['method']);
         $this->assertEquals('src/App/Projects/boyu', $items[1]['path']);
         $this->assertEquals('main', $items[1]['branch']);
+        $this->assertEquals(['views/assets'], $items[1]['excludes']);
     }
 
     public function testGetSshConfig(): void

@@ -142,11 +142,17 @@ class DeployConfig
             if (!is_array($item) || empty($item['method'])) {
                 continue;
             }
+            $excludes = $item['excludes'] ?? [];
             $normalized[] = [
                 'method' => (string)$item['method'],
                 'path' => rtrim(str_replace('\\', '/', (string)($item['path'] ?? '')), '/'),
                 'repo' => (string)($item['repo'] ?? ''),
                 'branch' => (string)($item['branch'] ?? 'main'),
+                // ftp 方式：不上传的相对路径前缀（目录或文件）
+                'excludes' => is_array($excludes) ? array_values(array_filter(array_map(
+                    fn ($e): string => rtrim(str_replace('\\', '/', trim((string)$e)), '/'),
+                    $excludes
+                ), fn (string $e): bool => $e !== '')) : [],
             ];
         }
         return $normalized;

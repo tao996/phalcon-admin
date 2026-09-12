@@ -174,6 +174,24 @@ function set_project_cache(string $projectName, array $values): void
 }
 
 /**
+ * 相对路径是否命中排除前缀
+ *
+ * 匹配规则（$rel 与前缀均为 / 分隔、无首尾斜杠）：
+ *   rel === 前缀                → 命中
+ *   rel 在前缀目录之下          → 命中（前缀排除整个子树）
+ *   前缀在 rel 目录之下         → 不命中（用于目录级剪枝，需继续向下扫描）
+ */
+function path_matches_excludes(string $rel, array $excludes): bool
+{
+    foreach ($excludes as $prefix) {
+        if ($rel === $prefix || str_starts_with($rel, $prefix . '/')) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * 获取缓存的 Docker Compose 命令名
  */
 function get_compose_cmd(): string

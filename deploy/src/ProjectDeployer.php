@@ -120,10 +120,10 @@ class ProjectDeployer
                         deploy_log('full 模式：忽略清单，强制上传全部文件', 'info');
                     }
                     if ($filesystem) {
-                        $this->copyDirToTarget($localPath, $remotePath);
+                        $this->copyDirToTarget($localPath, $remotePath, $item['excludes']);
                     } else {
                         $sftpSync ??= new SftpDirSync($this->ssh, $this->getLocalRepoRoot(), $projectPath, $projectName);
-                        $sftpSync->syncDirs([$path], !empty($options['full']));
+                        $sftpSync->syncDirs([$path], !empty($options['full']), $item['excludes']);
                     }
                     break;
 
@@ -135,8 +135,10 @@ class ProjectDeployer
 
     /**
      * 本地目录复制（ftp 方式 + filesystem 目标）：目标存在且大小/mtime 未变化时跳过，只增改不删除
+     *
+     * @param array $excludes 不复制的相对路径前缀（目录或文件）
      */
-    protected function copyDirToTarget(string $localDir, string $targetDir): void
+    protected function copyDirToTarget(string $localDir, string $targetDir, array $excludes = []): void
     {
         $localDir = rtrim($localDir, '/\\');
         $targetDir = rtrim($targetDir, '/\\');

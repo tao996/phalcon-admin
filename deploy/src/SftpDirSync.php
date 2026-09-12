@@ -26,18 +26,19 @@ class SftpDirSync
     /**
      * 同步多个目录（相对仓库根的路径，如 'src/App/Projects/boyu'）
      *
-     * @param array $dirs 目录列表
-     * @param bool  $force true 时忽略 lastSync 强制全量上传
+     * @param array  $dirs     目录列表
+     * @param bool   $force    true 时忽略 lastSync 强制全量上传（excludes 仍然生效）
+     * @param array  $excludes 不上传的相对路径前缀（目录或文件），对本调用中的所有目录生效
      */
-    public function syncDirs(array $dirs, bool $force = false): void
+    public function syncDirs(array $dirs, bool $force = false, array $excludes = []): void
     {
         $this->cleanupLegacyManifests();
         foreach ($dirs as $dir) {
-            $this->syncDir((string)$dir, $force);
+            $this->syncDir((string)$dir, $force, $excludes);
         }
     }
 
-    protected function syncDir(string $relDir, bool $force): void
+    protected function syncDir(string $relDir, bool $force, array $excludes): void
     {
         $relDir = rtrim(str_replace('\\', '/', trim($relDir)), '/');
         $localDir = $this->localRepoRoot . '/' . $relDir;
@@ -47,7 +48,8 @@ class SftpDirSync
         }
 
         $remoteDir = rtrim($this->remoteProjectPath, '/') . '/' . $relDir;
-        deploy_log("SFTP 同步目录: {$relDir} → {$remoteDir}", 'step');
+        $excludesSuffix = !empty($excludes) ? '，排除: ' . implode(', ', $excludes) : '';
+        deploy_log("SFTP 同步目录: {$relDir} → {$remoteDir}{$excludesSuffix}", 'step');
 
         $cache = get_project_cache($this->projectName);
         $lastSync = $force ? null : ($cache['sftp'][$relDir]['lastSync'] ?? null);
@@ -59,7 +61,7 @@ class SftpDirSync
         }
 
         $files = [];
-        $this->scanFiles($localDir, '', $files);
+        $this->scanFiles($localDir, '', $excludes, $files);
 
         $runStart = time();
         $ensuredDirs = [];
@@ -101,8 +103,9 @@ class SftpDirSync
 
     /**
      * 递归收集本地文件：rel（相对路径，/ 分隔） => ['mtime' => int, 'size' => int]
+     * 命中排除前缀的文件/目录直接跳过（目录级剪枝，不进入子树）
      */
-    protected function scanFiles(string $dir, string $prefix, array &$files): void
+    protected function scanFiles(string $dir, string $prefix, array $excludes, array &$files): void
     {
         foreach (scandir($dir) as $name) {
             if ($name === '.' || $name === '..') {
@@ -110,8 +113,11 @@ class SftpDirSync
             }
             $path = $dir . '/' . $name;
             $rel = $prefix === '' ? $name : $prefix . '/' . $name;
+            if (path_matches_excludes($rel, $excludes)) {
+                continue;
+            }
             if (is_dir($path)) {
-                $this->scanFiles($path, $rel, $files);
+                $this->scanFiles($path, $rel, $excludes, $files);
             } elseif (is_file($path)) {
                 $files[$rel] = [
                     'mtime' => filemtime($path),

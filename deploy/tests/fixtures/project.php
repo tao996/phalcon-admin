@@ -8,7 +8,7 @@ return [
     'sync' => [
         'items' => [
             ['method' => 'git', 'repo' => 'git@example.com:test.git', 'branch' => 'main'],
-            ['method' => 'ftp', 'path' => 'src/App/Projects/boyu'],
+            ['method' => 'ftp', 'path' => 'src/App/Projects/boyu', 'excludes' => ['views/assets']],
         ],
     ],
     'ssh' => [
