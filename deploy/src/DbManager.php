@@ -4,9 +4,13 @@
  * 数据库运维管理
  *
  * 功能：
- * - db:proxy  — SSH 隧道转发（本地端口 → 远程项目的 MySQL）
- * - db:pma    — 临时部署 phpMyAdmin 容器，用完即删
- * - db:pma-rm — 清理临时 phpMyAdmin
+ * - db:proxy       — SSH 隧道转发（本地端口 → 远程项目的 MySQL）
+ * - db:pma         — 临时部署 phpMyAdmin 容器，用完即删
+ * - db:pma-rm      — 清理临时 phpMyAdmin
+ * - db:backup      — 立即备份数据库（mysqldump | gzip，存服务器，可选下载本地）
+ * - db:backup:list — 查看服务器备份列表
+ * - db:backup:get  — 下载备份到本地
+ * - db:backup:cron — 安装/更新每日定时备份（服务器 crontab，带标记块幂等更新）
  */
 class DbManager
 {
@@ -213,7 +217,284 @@ class DbManager
         $this->ssh->disconnect();
     }
 
+    /* ---------------- 数据库备份 ---------------- */
+
+    /**
+     * 备份上下文：容器名 / 备份目录 / 库名
+     *
+     * 凭据不经过命令行：mysqldump 在容器内通过自身环境变量
+     * （$MYSQL_USER/$MYSQL_PASSWORD/$MYSQL_DATABASE）取值。
+     */
+    protected function backupContext(): array
+    {
+        if ($this->config->getSyncTarget() === 'filesystem') {
+            deploy_log('filesystem 目标项目没有远程 MySQL，不支持备份', 'error');
+            exit(1);
+        }
+
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+        $env = $this->config->getMerged()['env'] ?? [];
+        $dbName = trim((string)($env['MYSQL_DATABASE'] ?? ''));
+        if ($dbName === '') {
+            deploy_log('项目 env 未配置 MYSQL_DATABASE', 'error');
+            exit(1);
+        }
+
+        return [
+            'project' => $projectName,
+            'container' => $projectName . '-mysql',
+            'dir' => rtrim($projectPath, '/') . '/docker/storage/backup/mysql',
+            'db' => $dbName,
+        ];
+    }
+
+    /**
+     * mysqldump 管道命令（stdout → 宿主机 gzip → $redirect）
+     *
+     * @param string $redirect 已按远程 shell 语义构造好的重定向目标；
+     *                         cron 场景文件名含 $(date ...)，需调用方保证引号拼接可展开
+     */
+    protected function dumpCmd(array $ctx, string $redirect): string
+    {
+        $dump = "docker exec {$ctx['container']} sh -c"
+            . " 'exec mysqldump --single-transaction --routines --triggers --events"
+            . " -u\"\$MYSQL_USER\" -p\"\$MYSQL_PASSWORD\" \"\$MYSQL_DATABASE\"'";
+        return "{$dump} | gzip > {$redirect}";
+    }
+
+    /**
+     * 立即备份：生成 <项目>_<库>_<时间>.sql.gz 到服务器备份目录
+     *
+     * @param bool $download 同时下载到本地 deploy/backups/<项目>/
+     */
+    public function backup(bool $download = false): void
+    {
+        $ctx = $this->backupContext();
+        $file = safe_name($ctx['project']) . '_' . safe_name($ctx['db']) . '_' . date('Ymd_Hi') . '.sql.gz';
+        $remoteFile = $ctx['dir'] . '/' . $file;
+
+        deploy_log("=== 数据库备份: {$ctx['project']}（{$ctx['db']}） ===", 'step');
+
+        $this->ssh->connect();
+        try {
+            $this->ssh->exec("mkdir -p " . $this->rq($ctx['dir']), false);
+            $this->ssh->exec($this->dumpCmd($ctx, $this->rq($remoteFile)));
+
+            $size = (int)trim($this->ssh->exec(
+                "[ -s " . $this->rq($remoteFile) . " ] && stat -c %s " . $this->rq($remoteFile) . " || echo 0",
+                false
+            ));
+            if ($size <= 0) {
+                deploy_log("备份失败: 产物为空或不存在（{$remoteFile}）", 'error');
+                exit(1);
+            }
+            deploy_log("备份完成: {$file}（" . round($size / 1024, 1) . " KiB）→ {$ctx['dir']}", 'ok');
+
+            if ($download) {
+                $this->downloadFile($ctx, $file, $remoteFile);
+            }
+        } finally {
+            $this->ssh->disconnect();
+        }
+    }
+
+    /**
+     * 查看服务器备份列表
+     */
+    public function listBackups(): void
+    {
+        $ctx = $this->backupContext();
+
+        $this->ssh->connect();
+        try {
+            deploy_log("=== 备份列表: {$ctx['dir']} ===", 'step');
+            $this->ssh->exec(
+                "ls -lh --time-style=long-iso " . $this->rq($ctx['dir'])
+                . " 2>/dev/null | grep -v '^total' || echo '暂无备份'"
+            );
+        } finally {
+            $this->ssh->disconnect();
+        }
+    }
+
+    /**
+     * 下载备份到本地 deploy/backups/<项目>/（缺省最新一份）
+     */
+    public function downloadBackup(string $file = ''): void
+    {
+        $ctx = $this->backupContext();
+
+        $this->ssh->connect();
+        try {
+            if ($file === '') {
+                $latest = trim($this->ssh->exec(
+                    "ls -t " . $this->rq($ctx['dir']) . "/*.sql.gz 2>/dev/null | head -1",
+                    false
+                ));
+                if ($latest === '') {
+                    deploy_log('服务器上暂无备份', 'warn');
+                    return;
+                }
+                $file = basename($latest);
+                deploy_log("未指定文件，选择最新备份: {$file}", 'info');
+            }
+
+            $remoteFile = $ctx['dir'] . '/' . $file;
+            $exists = trim($this->ssh->exec("[ -f " . $this->rq($remoteFile) . " ] && echo YES || echo NO", false));
+            if ($exists !== 'YES') {
+                deploy_log("备份文件不存在: {$file}（可用 db:backup:list 查看）", 'error');
+                exit(1);
+            }
+
+            $this->downloadFile($ctx, $file, $remoteFile);
+        } finally {
+            $this->ssh->disconnect();
+        }
+    }
+
+    /**
+     * 安装/更新每日定时备份（服务器 crontab，标记块幂等更新）
+     *
+     * @param bool   $autoExecute false 时仅预览生成的 crontab 条目
+     * @param string $time        每日执行时间，如 03:00
+     * @param int    $keepDays    备份保留天数（过期由 cron 内 find 清理）
+     */
+    public function installCron(bool $autoExecute, string $time = '03:00', int $keepDays = 7): void
+    {
+        $ctx = $this->backupContext();
+
+        if (!preg_match('/^(\d{1,2}):(\d{2})$/', $time, $m) || (int)$m[1] > 23 || (int)$m[2] > 59) {
+            deploy_log("time 格式错误: {$time}（应为 HH:MM）", 'error');
+            exit(1);
+        }
+        $keepDays = max(1, $keepDays);
+        $cronTime = sprintf('%02d:%02d', (int)$m[1], (int)$m[2]);
+        [$h, $min] = explode(':', $cronTime);
+
+        $this->ssh->connect();
+        try {
+            if (trim($this->ssh->exec("command -v crontab >/dev/null 2>&1 && echo YES || echo NO", false)) !== 'YES') {
+                deploy_log('服务器未安装 crontab（可执行: apt install cron）', 'error');
+                exit(1);
+            }
+
+            // 备份文件名由 cron 运行时生成（% 需转义为 \%）；
+            // 重定向目标用引号分段拼接，让 $(date ...) 在单引号外可展开
+            $prefix = safe_name($ctx['project']) . '_' . safe_name($ctx['db']) . '_';
+            $redirect = $this->rq($ctx['dir']) . '/' . $this->rq($prefix)
+                . '$(date +\%Y\%m\%d_\%H\%M)' . $this->rq('.sql.gz');
+            $cronLine = "{$min} {$h} * * * " . $this->dumpCmd($ctx, $redirect)
+                . " && find " . $this->rq($ctx['dir']) . " -name '*.sql.gz' -mtime +{$keepDays} -delete";
+
+            $block = "# BEGIN deploy-backup {$ctx['project']}\n{$cronLine}\n# END deploy-backup {$ctx['project']}\n";
+
+            if (!$autoExecute) {
+                echo "\n";
+                deploy_log('将写入以下 crontab 条目（暂未执行，加 -y 生效）:', 'step');
+                echo "\n{$block}\n";
+                deploy_log("php admin app:{$ctx['project']} db:backup:cron -y time={$cronTime} keep={$keepDays}", 'info');
+                return;
+            }
+
+            // 确保 cron 服务在运行（尽力而为）
+            $this->ssh->exec("systemctl enable --now cron 2>/dev/null || service cron start 2>/dev/null || true", false);
+
+            $existing = $this->ssh->exec("crontab -l 2>/dev/null", false);
+            $newCrontab = $this->replaceBackupBlock($existing, $ctx['project'], $block);
+
+            $this->ssh->uploadContent($newCrontab, '/tmp/deploy-crontab');
+            $this->ssh->exec("crontab /tmp/deploy-crontab && rm -f /tmp/deploy-crontab", false);
+
+            if (!str_contains($this->ssh->exec("crontab -l 2>/dev/null", false), "# BEGIN deploy-backup {$ctx['project']}")) {
+                deploy_log('定时备份安装失败', 'error');
+                exit(1);
+            }
+
+            deploy_log("定时备份已安装: 每天 {$cronTime}，保留 {$keepDays} 天", 'ok');
+            deploy_log("备份目录: {$ctx['dir']}", 'info');
+            deploy_log("验证: php admin app:{$ctx['project']} db:backup:list", 'info');
+        } finally {
+            $this->ssh->disconnect();
+        }
+    }
+
+    /**
+     * 移除定时备份（保留服务器上已生成的备份文件）
+     */
+    public function removeCron(): void
+    {
+        $ctx = $this->backupContext();
+
+        $this->ssh->connect();
+        try {
+            $existing = $this->ssh->exec("crontab -l 2>/dev/null", false);
+            if (!str_contains($existing, "# BEGIN deploy-backup {$ctx['project']}")) {
+                deploy_log('未发现该项目的定时备份任务', 'warn');
+                return;
+            }
+
+            $newCrontab = $this->replaceBackupBlock($existing, $ctx['project'], '');
+            if (trim($newCrontab) === '') {
+                $this->ssh->exec("crontab -r 2>/dev/null || true", false);
+            } else {
+                $this->ssh->uploadContent($newCrontab, '/tmp/deploy-crontab');
+                $this->ssh->exec("crontab /tmp/deploy-crontab && rm -f /tmp/deploy-crontab", false);
+            }
+
+            deploy_log('定时备份已移除（已生成的备份文件保留在服务器）', 'ok');
+        } finally {
+            $this->ssh->disconnect();
+        }
+    }
+
+    /**
+     * 替换 crontab 中本项目的备份标记块（不存在时追加）
+     * $block 为空串表示仅移除
+     */
+    protected function replaceBackupBlock(string $crontab, string $project, string $block): string
+    {
+        $begin = '# BEGIN deploy-backup ' . $project;
+        $end = '# END deploy-backup ' . $project;
+        $pattern = '/' . preg_quote($begin, '/') . '\n.*?' . preg_quote($end, '/') . '\n?/s';
+
+        if (preg_match($pattern, $crontab)) {
+            $result = preg_replace($pattern, '', $crontab, 1);
+        } else {
+            $result = $crontab;
+        }
+
+        $result = rtrim($result);
+        if ($block !== '') {
+            $result .= ($result === '' ? '' : "\n\n") . $block;
+        }
+        return $result . ($result === '' ? '' : "\n");
+    }
+
+    /**
+     * 下载单个备份文件到本地 deploy/backups/<项目>/
+     */
+    protected function downloadFile(array $ctx, string $file, string $remoteFile): void
+    {
+        $localDir = deploy_base_path() . '/backups/' . $ctx['project'];
+        if (!is_dir($localDir)) {
+            mkdir($localDir, 0755, true);
+        }
+        $localFile = $localDir . '/' . $file;
+        $this->ssh->download($remoteFile, $localFile);
+        $size = round(filesize($localFile) / 1024, 1);
+        deploy_log("已下载: {$localFile}（{$size} KiB）", 'ok');
+    }
+
     /* ---------------- 内部方法 ---------------- */
+
+    /**
+     * 远程 shell 引用（Linux 单引号转义）
+     */
+    protected function rq(string $value): string
+    {
+        return "'" . str_replace("'", "'\\''", $value) . "'";
+    }
 
     /**
      * 打印 phpMyAdmin 访问地址

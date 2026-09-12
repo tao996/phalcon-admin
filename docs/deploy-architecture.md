@@ -335,7 +335,7 @@ return [
 `Config::getMerged()` 通过 `array_merge_deep()`（定义在 `src/tao996/Phax/function.php`）合并 `server.php` + 项目 `server.php`。项目配置中定义的同名键会覆盖 `server.php` 的默认值（如项目级 `ssh` 覆盖默认连接）。
 
 代码同步完全由项目配置的 `sync.items` 声明，`Config::getSyncItems()` 将每项归一化为
-`['method' => git|bundle|ftp, 'path' => string, 'repo' => string, 'branch' => string（默认 main）]`。
+`['method' => git|bundle|ftp, 'path' => string, 'repo' => string, 'branch' => string（默认 main）, 'excludes' => string[]（ftp 方式：不上传的相对路径前缀）]`。
 
 ---
 
@@ -388,6 +388,11 @@ return [
 | `php deploy nginx:reload` | 验证语法后重载 Nginx（全局） | v2 |
 | `php deploy nginx:log:error` | 查看 Nginx 错误日志（--save 下载） | v2 |
 | `php deploy nginx:log:access` | 查看 Nginx 访问日志（--save 下载） | v2 |
+| `php deploy db:backup <project>` | 立即备份数据库（默认存服务器，`download=1` 同时下载本地） | v3 |
+| `php deploy db:backup:list <project>` | 查看服务器备份列表 | v3 |
+| `php deploy db:backup:get <project> [文件]` | 下载备份到本地（缺省最新） | v3 |
+| `php deploy db:backup:cron <project> -y [time=03:00] [keep=7]` | 安装/更新每日定时备份（服务器 crontab） | v3 |
+| `php deploy db:backup:cron-rm <project>` | 移除定时备份（保留已生成备份） | v3 |
 | `php deploy db:proxy <project>` | SSH 隧道转发：本地 → 远程 MySQL | v1 |
 | `php deploy db:pma <project>` | 部署临时 phpMyAdmin | v1 |
 | `php deploy db:pma-rm <project>` | 删除临时 phpMyAdmin | v1 |
@@ -702,7 +707,9 @@ php admin app:phalcon-admin-test upgrade -y  # 同步代码 + 生成配置
 // deploy/projects/<name>/server.php — sync.items 中声明
 'sync' => [
     'items' => [
-        ['method' => 'ftp', 'path' => 'src/App/Projects/boyu'],   // 可配多个
+        // 可配多个；excludes 为相对 path 的路径前缀，命中的目录/文件不上传
+        ['method' => 'ftp', 'path' => 'src/App/Projects/boyu',
+         'excludes' => ['views/assets', 'storage', '.git']],   // 可省略
     ],
 ],
 ```
@@ -726,7 +733,7 @@ php admin app:<项目> upgrade method=bundle       # 只执行 bundle 条目（�
 - **只增改不删除**：本地删除的文件不删除远程对应文件
 - 增量策略：记录每个目录**最后一次成功同步的开始时间**（`lastSync`），下次只上传 `mtime >= lastSync` 的文件；某次有上传失败则不更新该目录的 `lastSync`，下次整个目录重传
 - lastSync 存于项目缓存 `deploy/.cache/<project>.json`（含服务器指纹，项目连接目标变更时自动失效）
-- 注意：新拷入但 mtime 早于 lastSync 的文件会被漏传，需要时用 `full=1` 强制全量
+- 注意：新拷入但 mtime 早于 lastSync 的文件会被漏传，需要时用 `full=1` 强制全量（excludes 仍然生效）
 
 ---
 
@@ -747,3 +754,56 @@ php admin app:<项目> git:ssh -T    # 逐仓库验证认证（公钥需已添�
 - **每仓库一把 ed25519 密钥**：`~/.ssh/deploy/<owner>_<repo>`（已存在则跳过生成，幂等）
 - `~/.ssh/config` 使用 `# BEGIN/END deploy-managed` 托管块，按 host 累积 `IdentityFile`（含 `IdentitiesOnly`、`StrictHostKeyChecking accept-new`），托管块外的用户配置不动；多项目共用服务器时自动合并、不互相覆盖
 - 生成后输出每个仓库的公钥，提示添加到 **Settings → Deploy keys**；添加后用 `-T` 验证（成功输出 `Hi owner/repo!`）
+
+---
+
+## 十七、数据库备份（db:backup）
+
+> 新增于 v3。备份远程项目的 MySQL（Docker 容器），支持立即备份与服务器 crontab 定时备份。
+
+### 保存目录
+
+| 位置 | 路径 |
+|------|------|
+| 服务器 | `<project.path>/docker/storage/backup/mysql/<项目>_<库>_<时间>.sql.gz` |
+| 本地（下载时） | `deploy/backups/<项目>/`（已加入 .gitignore） |
+
+### 备份方式
+
+```
+docker exec <项目>-mysql sh -c 'mysqldump --single-transaction --routines --triggers --events ...'
+  | gzip > <备份文件>
+```
+
+- 凭据取自容器自身环境变量（`$MYSQL_USER/$MYSQL_PASSWORD/$MYSQL_DATABASE`），不出现在命令行
+- 仅导出项目库（env.MYSQL_DATABASE）
+- 上传前校验产物非空，失败即报错退出
+
+### 命令
+
+```bash
+php admin app:<项目> db:backup                   # 立即备份，存服务器
+php admin app:<项目> db:backup download=1        # 立即备份并下载到本地
+php admin app:<项目> db:backup:list              # 查看服务器备份列表
+php admin app:<项目> db:backup:get               # 下载最新一份到本地
+php admin app:<项目> db:backup:get <文件名>       # 下载指定备份
+php admin app:<项目> db:backup:cron              # 预览将写入的 crontab 条目
+php admin app:<项目> db:backup:cron -y           # 安装定时备份（默认每天 03:00，保留 7 天）
+php admin app:<项目> db:backup:cron -y time=04:30 keep=14   # 自定义时间与保留天数
+php admin app:<项目> db:backup:cron-rm           # 移除定时备份（保留已生成的备份文件）
+```
+
+### 定时备份实现
+
+- 写入服务器 crontab，带标记块幂等更新（多项目互不干扰，其它 crontab 条目不动）：
+
+```
+# BEGIN deploy-backup <项目>
+0 3 * * * <mysqldump | gzip> && find <备份目录> -name '*.sql.gz' -mtime +7 -delete
+# END deploy-backup <项目>
+```
+
+- 过期清理在 cron 内完成（`find -mtime +keep -delete`，按天数保留）
+- 安装时确保 cron 服务在运行；服务器未安装 crontab 命令时提示 `apt install cron`
+- 备份与数据同盘，重要项目建议定期 `db:backup:get` 拉回本地
+- 恢复（手动）：`gunzip < dump.sql.gz | docker exec -i <项目>-mysql mysql -u<user> -p <库名>`

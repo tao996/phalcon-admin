@@ -81,3 +81,6 @@ deploy/.cache/
 .cache
 .venv
 .DS_Store
+
+# 数据库备份本地下载目录
+deploy/backups/

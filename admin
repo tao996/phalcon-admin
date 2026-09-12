@@ -130,6 +130,11 @@ function showHelp(): void
   app:<项目> nginx:ssl -email=xx@xx.com         申请 SSL 证书
 
 \033[33m  数据库\033[0m
+  app:<项目> db:backup [download=1]                 立即备份数据库（默认存服务器，download=1 同时下载本地）
+  app:<项目> db:backup:list                         查看服务器备份列表
+  app:<项目> db:backup:get [文件名]                  下载备份到 deploy/backups/<项目>/（缺省最新一份）
+  app:<项目> db:backup:cron -y [time=03:00] [keep=7]   安装/更新每日定时备份（服务器 crontab）
+  app:<项目> db:backup:cron-rm                      移除定时备份（保留已生成的备份）
   app:<项目> db:proxy [local=13306]                 SSH 隧道转发
   app:<项目> db:pma [host=13307]                    部署临时 phpMyAdmin
   app:<项目> db:pma-rm                              删除临时 phpMyAdmin
@@ -339,6 +344,61 @@ try {
                 exit(1);
             }
             handleNginxSsl($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'db:backup':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名
+用法: php deploy app:<项目名> db:backup [download=1]
+");
+                exit(1);
+            }
+            handleDbBackup($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'db:backup:list':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名
+用法: php deploy app:<项目名> db:backup:list
+");
+                exit(1);
+            }
+            handleDbBackupList($serverConfigFile, $projectName);
+            break;
+
+        case 'db:backup:get':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名
+用法: php deploy app:<项目名> db:backup:get [文件名]
+");
+                exit(1);
+            }
+            handleDbBackupGet($serverConfigFile, $projectName, $positionalArgs[2] ?? '');
+            break;
+
+        case 'db:backup:cron':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名
+用法: php deploy app:<项目名> db:backup:cron [-y] [time=03:00] [keep=7]
+");
+                exit(1);
+            }
+            handleDbBackupCron($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'db:backup:cron-rm':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名
+用法: php deploy app:<项目名> db:backup:cron-rm
+");
+                exit(1);
+            }
+            handleDbBackupCronRm($serverConfigFile, $projectName);
             break;
 
         case 'db:proxy':
@@ -696,6 +756,60 @@ function handleDcLog(string $serverConfigFile, string $projectName, string $serv
 
     $deployer = new ProjectDeployer($config);
     $deployer->dcLog($service);
+}
+
+function handleDbBackup(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $db = new DbManager($config);
+    $db->backup(!empty($params['download']));
+}
+
+function handleDbBackupList(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $db = new DbManager($config);
+    $db->listBackups();
+}
+
+function handleDbBackupGet(string $serverConfigFile, string $projectName, string $file): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $db = new DbManager($config);
+    $db->downloadBackup($file);
+}
+
+function handleDbBackupCron(string $serverConfigFile, string $projectName, array $params): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $db = new DbManager($config);
+    $db->installCron(
+        isset($params['y']),
+        (string)($params['time'] ?? '03:00'),
+        (int)($params['keep'] ?? 7)
+    );
+}
+
+function handleDbBackupCronRm(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $db = new DbManager($config);
+    $db->removeCron();
 }
 
 function handleDbProxy(string $serverConfigFile, string $projectName, array $params): void
