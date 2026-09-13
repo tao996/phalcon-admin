@@ -9,10 +9,10 @@ reasonix.toml
 # ai 可能生成这个文件
 nul
 
-# docker 运行环境配置
-.env
-docker-compose.yaml
-docker-compose.ports.yaml
+# docker 运行环境配置（仅仓库根）
+/.env
+/docker-compose.yaml
+/docker-compose.ports.yaml
 
 docker/log/mysql/*
 docker/log/nginx/*
