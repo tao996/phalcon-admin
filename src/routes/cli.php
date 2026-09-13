@@ -51,6 +51,35 @@ CliRouter::add('migration', function () {
     // src/phalcon-migrations/src/Console/Commands/Migration.php
 }, 'migration db data');
 
+/**
+ * 数据库基础数据（seed）执行：幂等 SQL + seed_history 记账
+ *   php artisan db:seed                  # 执行 Modules/Projects 下 data/seed/*.sql
+ *   php artisan db:seed --dir=xxx        # 追加外部目录（如 deploy 上传的项目差异数据）
+ * seed 文件必须幂等（REPLACE INTO / ON DUPLICATE KEY UPDATE），
+ * 内容变化（hash 不同）的文件会被重新执行
+ */
+CliRouter::add('db:seed', function ($params) {
+    $dir = '';
+    foreach ((array)$params as $p) {
+        if (preg_match('/^--dir=(.+)$/', (string)$p, $m)) {
+            $dir = $m[1];
+        }
+    }
+    try {
+        $result = (new \Phax\Helper\SeedHelper())->run(['dir' => $dir]);
+    } catch (\Exception $e) {
+        echo $e->getMessage(), PHP_EOL;
+        exit(1);
+    }
+    echo 'seed 完成: 执行 ' . count($result['executed']) . ' 个，跳过 ' . count($result['skipped']) . ' 个', PHP_EOL;
+    foreach ($result['executed'] as $f) {
+        echo '  + ', $f, PHP_EOL;
+    }
+    foreach ($result['skipped'] as $f) {
+        echo '  - ', $f, PHP_EOL;
+    }
+}, 'run idempotent db seed files');
+
 // [codeception](https://codeception.com/docs/GettingStarted)
 CliRouter::add('cc', function ($params) {
     if (empty($params)) {

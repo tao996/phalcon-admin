@@ -195,7 +195,7 @@ class MigrationHelper
         $text .= '  l | list                  列出全部 scope 的迁移' . PHP_EOL;
         $text .= '  help | h                  显示此帮助' . PHP_EOL . PHP_EOL;
 
-        $text .= 'Scopes（在 config/migration.php 中定义）：' . PHP_EOL;
+        $text .= 'Scopes（全局 scopes 注册 + 自动发现 Modules/Projects 下的 config/migration.php）：' . PHP_EOL;
         if (!empty($this->scopes)) {
             $maxLen = max(array_map('strlen', array_keys($this->scopes)));
             foreach ($this->scopes as $key => $sc) {
@@ -290,11 +290,63 @@ class MigrationHelper
     }
 
     /**
-     * 读取 scope 列表：仅从配置文件中读取
+     * 读取 scope 列表：
+     *   1. 全局配置 scopes（旧式集中注册，向后兼容，优先级最高）
+     *   2. 自动发现 App/Modules/<名称>/config/migration.php 与
+     *      App/Projects/<名称>/config/migration.php（存在即参与迁移，directory 按约定推导可覆盖）
+     *      （文件存在即参与迁移，directory 按约定推导，可覆盖）
+     *   3. 排序：全局 order 列表（scope 键或模块名，如 ['module:tao'] / ['tao']）排最前，
+     *      其余按 scope 键排序；table_prefix 冲突直接抛错（同一前缀被多个 scope 管理）
      */
     private function loadScopes(): array
     {
-        return $this->config['scopes'] ?? [];
+        $scopes = $this->config['scopes'] ?? [];
+
+        // 自动发现
+        $discovered = [];
+        foreach (['Modules' => 'module', 'Projects' => 'project'] as $dirName => $type) {
+            $base = PATH_ROOT . 'App/' . $dirName;
+            foreach (glob($base . '/*/[cC]onfig/migration.php') ?: [] as $file) {
+                // App/Modules/<名称>/[cC]onfig/migration.php → 取 <名称>（兼容大小写目录）
+                $name = basename(dirname(dirname($file)));
+                $key = $type . ':' . $name;
+                if (isset($scopes[$key]) || isset($discovered[$key])) {
+                    continue; // 全局显式声明优先
+                }
+                $sc = require $file;
+                if (!is_array($sc) || empty($sc)) {
+                    continue;
+                }
+                $sc += ['directory' => 'App/' . $dirName . '/' . $name . '/data/migration'];
+                $discovered[$key] = $sc;
+            }
+        }
+
+        // order 排序
+        $ordered = [];
+        foreach ($this->config['order'] ?? [] as $item) {
+            $key = str_contains((string)$item, ':') ? (string)$item : 'module:' . $item;
+            if (isset($discovered[$key])) {
+                $ordered[$key] = $discovered[$key];
+                unset($discovered[$key]);
+            }
+        }
+        ksort($discovered);
+
+        // table_prefix 冲突检测
+        $result = array_merge($scopes, $ordered, $discovered);
+        $prefixOwner = [];
+        foreach ($result as $key => $sc) {
+            $prefix = $sc['table_prefix'] ?? '';
+            if ($prefix === '') {
+                continue;
+            }
+            if (isset($prefixOwner[$prefix])) {
+                throw new \Exception("table_prefix 冲突：'{$prefix}' 同时被 {$prefixOwner[$prefix]} 与 {$key} 管理，请修正模块配置");
+            }
+            $prefixOwner[$prefix] = $key;
+        }
+        return $result;
     }
 
     /**

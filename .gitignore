@@ -84,3 +84,6 @@ deploy/.cache/
 
 # 数据库备份本地下载目录
 deploy/backups/
+
+# phalcon-migrations 内部跟踪目录
+src/App/Modules/*/data/migration/.phalcon/
