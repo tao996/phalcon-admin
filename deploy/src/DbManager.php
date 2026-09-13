@@ -184,7 +184,7 @@ class DbManager
 
         deploy_log("phpMyAdmin 已启动", 'ok');
         $this->printPmaUrl($projectName, $hostPort, $dbUser, $dbPassword);
-        deploy_log("清理命令: php deploy db:pma-rm {$projectName}", 'info');
+        deploy_log("清理命令: php admin app:{$projectName} db:pma-rm", 'info');
 
         $this->ssh->disconnect();
     }

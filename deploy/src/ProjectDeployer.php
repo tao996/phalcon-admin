@@ -453,7 +453,7 @@ class ProjectDeployer
 
         deploy_log('', '');
         deploy_log("配置文件已生成到: {$localDir}", 'ok');
-        deploy_log("请检查配置文件后执行: php deploy init {$projectName} -y", 'info');
+        deploy_log("请检查配置文件后执行: php admin app:{$projectName} init -y", 'info');
     }
 
     /**
@@ -527,7 +527,7 @@ class ProjectDeployer
             $exists = $this->ssh->exec("[ -d {$projectPath}/.git ] && echo 'YES' || echo 'NO'", false);
             if (trim($exists) !== 'YES') {
                 deploy_log("项目目录不存在或不是 git 仓库: {$projectPath}", 'error');
-                deploy_log("请先执行: php deploy app:init {$projectName} -y", 'info');
+                deploy_log("请先执行: php admin app:{$projectName} init -y", 'info');
                 exit(1);
             }
 
@@ -679,7 +679,7 @@ class ProjectDeployer
             $exists = $this->ssh->exec("[ -d {$projectPath}/.git ] && echo 'YES' || echo 'NO'", false);
             if (trim($exists) !== 'YES') {
                 deploy_log("项目目录不存在或不是 git 仓库: {$projectPath}", 'error');
-                deploy_log("请先执行: php deploy init {$projectName}", 'info');
+                deploy_log("请先执行: php admin app:{$projectName} init", 'info');
                 exit(1);
             }
 
