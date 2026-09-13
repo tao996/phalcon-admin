@@ -241,10 +241,7 @@ class DbManager
      */
     protected function backupContext(): array
     {
-        if ($this->config->getSyncTarget() === 'filesystem') {
-            deploy_log('filesystem 目标项目没有远程 MySQL，不支持备份', 'error');
-            exit(1);
-        }
+        $this->assertRemoteProject();
 
         $projectName = $this->config->getProjectName();
         $projectPath = $this->config->getProjectPath();
@@ -261,6 +258,17 @@ class DbManager
             'dir' => rtrim($projectPath, '/') . '/docker/storage/backup/mysql',
             'db' => $dbName,
         ];
+    }
+
+    /**
+     * filesystem 目标项目没有远程容器，相关命令不可用
+     */
+    protected function assertRemoteProject(): void
+    {
+        if ($this->config->getSyncTarget() === 'filesystem') {
+            deploy_log('filesystem 目标项目没有远程服务器，不支持此命令', 'error');
+            exit(1);
+        }
     }
 
     /**
@@ -498,6 +506,61 @@ class DbManager
         $this->ssh->download($remoteFile, $localFile);
         $size = round(filesize($localFile) / 1024, 1);
         deploy_log("已下载: {$localFile}（{$size} KiB）", 'ok');
+    }
+
+    /* ---------------- 结构迁移与基础数据 ---------------- */
+
+    /**
+     * 在服务器上执行项目结构迁移（docker exec php artisan migration r）
+     */
+    public function dbMigrate(): void
+    {
+        $this->assertRemoteProject();
+        $projectName = $this->config->getProjectName();
+        $container = $projectName . '-php';
+
+        deploy_log("=== 结构迁移: {$projectName} ===", 'step');
+        $this->ssh->connect();
+        try {
+            $this->ssh->exec("docker exec {$container} php artisan migration r");
+        } finally {
+            $this->ssh->disconnect();
+        }
+    }
+
+    /**
+     * 上传项目差异数据（deploy/projects/<项目>/db/*.sql）并在服务器执行 seed：
+     *   1. 上传到 <projectPath>/src/db/（容器内 /var/www/db）
+     *   2. docker exec php artisan db:seed --dir=/var/www/db
+     *      （同时会执行模块/项目 data/seed 下的基础数据，seed_history 记账幂等）
+     */
+    public function dbSeed(): void
+    {
+        $this->assertRemoteProject();
+        $projectName = $this->config->getProjectName();
+        $projectPath = $this->config->getProjectPath();
+        $container = $projectName . '-php';
+
+        $localDir = deploy_base_path() . '/projects/' . $projectName . '/db';
+        $files = glob($localDir . '/*.sql') ?: [];
+        sort($files);
+
+        deploy_log("=== 数据库 seed: {$projectName} ===", 'step');
+        $this->ssh->connect();
+        try {
+            if (empty($files)) {
+                deploy_log("本地无差异数据文件（{$localDir}/*.sql），仅执行模块/项目基础数据", 'info');
+            } else {
+                $remoteDir = $projectPath . '/src/db';
+                $this->ssh->ensureDir($remoteDir);
+                foreach ($files as $file) {
+                    $this->ssh->upload($file, $remoteDir . '/' . basename($file));
+                }
+            }
+            $this->ssh->exec("docker exec {$container} php artisan db:seed --dir=/var/www/db");
+        } finally {
+            $this->ssh->disconnect();
+        }
     }
 
     /* ---------------- 内部方法 ---------------- */

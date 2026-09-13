@@ -202,6 +202,70 @@ class ProjectDeployer
     }
 
     /**
+     * 构建项目迁移全局配置内容（上传到服务器 src/config/migration.php）
+     *
+     * ts_based / order 取自本地开发仓库的 src/config/migration.php（事实源）；
+     * 不含 database 段 —— 服务器上使用项目自身 config.php 的默认连接
+     */
+    protected function buildMigrationConfigContent(): string
+    {
+        $tsBased = 'true';
+        $order = ['module:tao'];
+
+        $localFile = deploy_base_path() . '/../src/config/migration.php';
+        if (file_exists($localFile)) {
+            $cfg = require $localConfig = $localFile;
+            if (is_array($cfg)) {
+                $tsBased = !empty($cfg['ts_based']) ? 'true' : 'false';
+                if (!empty($cfg['order']) && is_array($cfg['order'])) {
+                    $order = array_values($cfg['order']);
+                }
+            }
+        }
+
+        $orderLines = implode("
+", array_map(
+            fn ($item): string => '        ' . var_export((string)$item, true) . ',',
+            $order
+        ));
+
+        return <<<PHP
+<?php
+
+/**
+ * 全局迁移配置 — 由 deploy 工具生成（php admin app:<项目> init）
+ * 数据库连接缺省使用应用默认连接（src/config/config.php），
+ * 如需独立连接请自行添加 database 段；执行顺序修改请在开发仓库的同名配置中调整。
+ */
+
+return [
+    'ts_based' => {$tsBased},
+
+    // 执行顺序：tao 为基础模块排最前；未列出的自动发现 scope 按 scope 键排序
+    'order' => [
+{$orderLines}
+    ],
+];
+
+PHP;
+    }
+
+    /**
+     * 生成本地项目迁移配置（deploy/projects/<项目>/src/config/migration.php）
+     * 每次预览重新生成（内容取自开发仓库配置，非人工编辑对象）
+     */
+    public function writeLocalMigrationConfig(): void
+    {
+        $localFile = $this->getLocalProjectDir() . '/src/config/migration.php';
+        $localDir = dirname($localFile);
+        if (!is_dir($localDir)) {
+            mkdir($localDir, 0755, true);
+        }
+        file_put_contents($localFile, $this->buildMigrationConfigContent());
+        deploy_log("已生成本地迁移配置: {$localFile}", 'ok');
+    }
+
+    /**
      * 本地 nginx server block 文件路径（事实源，与远程 /etc/nginx/conf.d/<项目>.conf 对应）
      */
     protected function getLocalNginxConfFile(): string
@@ -428,6 +492,15 @@ class ProjectDeployer
             file_put_contents($targetFile, $content);
             deploy_log("  生成: {$relativePath}", 'ok');
         }
+
+        // 迁移全局配置（ts_based/order 取自开发仓库）
+        $migrationFile = rtrim($targetDir, '/\\') . '/src/config/migration.php';
+        $migrationDir = dirname($migrationFile);
+        if (!is_dir($migrationDir)) {
+            mkdir($migrationDir, 0755, true);
+        }
+        file_put_contents($migrationFile, $this->buildMigrationConfigContent());
+        deploy_log('  生成: src/config/migration.php', 'ok');
     }
 
     /**
@@ -475,6 +548,9 @@ class ProjectDeployer
                 }
             }
         }
+
+        // 项目迁移全局配置（供线上 db:migrate 使用）
+        $this->writeLocalMigrationConfig();
 
         // 本地 nginx server block（事实源，含 ssl 状态）
         $this->writeLocalNginxConf();
@@ -821,6 +897,11 @@ class ProjectDeployer
             deploy_log('已上传 config.php', 'ok');
         }
 
+        // src/config/migration.php（全局迁移配置，供线上 db:migrate 使用）
+        $this->ssh->exec("mkdir -p {$projectPath}/src/config", false);
+        $this->ssh->uploadContent($this->buildMigrationConfigContent(), $projectPath . '/src/config/migration.php');
+        deploy_log('已上传 config/migration.php', 'ok');
+
         deploy_log('配置文件生成完成', 'ok');
     }
 
@@ -886,6 +967,9 @@ class ProjectDeployer
     {
         $localDir = $this->getLocalProjectDir();
 
+        // 迁移配置总是随配置一起上传（内容取自开发仓库，重新生成）
+        $this->writeLocalMigrationConfig();
+
         // 本地文件路径 => 远程路径的映射
         $fileMap = [
             '.env' => $projectPath . '/.env',
@@ -894,6 +978,7 @@ class ProjectDeployer
             'docker/php/php.ini' => $projectPath . '/docker/php/php.ini',
             'docker/mysql/my.cnf' => $projectPath . '/docker/mysql/my.cnf',
             'src/config/config.php' => $projectPath . '/src/config/config.php',
+            'src/config/migration.php' => $projectPath . '/src/config/migration.php',
         ];
 
         $foundAny = false;

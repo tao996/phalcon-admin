@@ -110,6 +110,8 @@ function showHelp(): void
   app:<项目> nginx:ssl -email=xx@xx.com         申请 SSL 证书
 
 \033[33m  数据库\033[0m
+  app:<项目> db:migrate                            在服务器执行结构迁移（artisan migration r）
+  app:<项目> db:seed                               上传 db/*.sql 并执行 seed（含模块/项目基础数据，幂等记账）
   app:<项目> db:backup [download=1]                 立即备份数据库（默认存服务器，download=1 同时下载本地）
   app:<项目> db:backup:list                         查看服务器备份列表
   app:<项目> db:backup:get [文件名]                  下载备份到 deploy/backups/<项目>/（缺省最新一份）
@@ -324,6 +326,28 @@ try {
                 exit(1);
             }
             handleNginxSsl($serverConfigFile, $projectName, $namedParams);
+            break;
+
+        case 'db:migrate':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名
+用法: php deploy app:<项目名> db:migrate
+");
+                exit(1);
+            }
+            handleDbMigrate($serverConfigFile, $projectName);
+            break;
+
+        case 'db:seed':
+            $projectName = $positionalArgs[1] ?? '';
+            if (empty($projectName)) {
+                fwrite(STDERR, "错误: 请指定项目名
+用法: php deploy app:<项目名> db:seed
+");
+                exit(1);
+            }
+            handleDbSeed($serverConfigFile, $projectName);
             break;
 
         case 'db:backup':
@@ -736,6 +760,26 @@ function handleDcLog(string $serverConfigFile, string $projectName, string $serv
 
     $deployer = new ProjectDeployer($config);
     $deployer->dcLog($service);
+}
+
+function handleDbMigrate(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $db = new DbManager($config);
+    $db->dbMigrate();
+}
+
+function handleDbSeed(string $serverConfigFile, string $projectName): void
+{
+    $config = new DeployConfig();
+    $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
+
+    $db = new DbManager($config);
+    $db->dbSeed();
 }
 
 function handleDbBackup(string $serverConfigFile, string $projectName, array $params): void

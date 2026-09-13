@@ -392,6 +392,8 @@ return [
 | `php deploy nginx:reload` | 验证语法后重载 Nginx（全局） | v2 |
 | `php deploy nginx:log:error` | 查看 Nginx 错误日志（--save 下载） | v2 |
 | `php deploy nginx:log:access` | 查看 Nginx 访问日志（--save 下载） | v2 |
+| `php deploy db:migrate <project>` | 在服务器执行结构迁移（artisan migration r） | v3 |
+| `php deploy db:seed <project>` | 上传 `deploy/projects/<项目>/db/*.sql` 并执行 seed（含模块/项目基础数据） | v3 |
 | `php deploy db:backup <project>` | 立即备份数据库（默认存服务器，`download=1` 同时下载本地） | v3 |
 | `php deploy db:backup:list <project>` | 查看服务器备份列表 | v3 |
 | `php deploy db:backup:get <project> [文件]` | 下载备份到本地（缺省最新） | v3 |
@@ -829,3 +831,47 @@ php admin app:<项目> db:backup:cron-rm           # 移除定时备份（保留
 - 安装时确保 cron 服务在运行；服务器未安装 crontab 命令时提示 `apt install cron`
 - 备份与数据同盘，重要项目建议定期 `db:backup:get` 拉回本地
 - 恢复（手动）：`gunzip < dump.sql.gz | docker exec -i <项目>-mysql mysql -u<user> -p <库名>`
+
+---
+
+## 十八、数据迁移与基础数据
+
+> v3 起，结构迁移的 scope 下放到各模块/项目自治，基础数据由 seed 机制幂等执行，替代手动导 SQL。
+
+### 三类数据、三个载体
+
+| 数据类型 | 性质 | 载体 | 执行方式 |
+|---------|------|------|---------|
+| 表结构 | 版本化增量 | `App/Modules/<名称>/config/migration.php` + `data/migration/`（phalcon-migrations） | `php artisan migration r` / `app:<项目> db:migrate` |
+| 基础数据（跨项目 A/B 共享） | "最新态"幂等 SQL | `App/Modules/<名称>/data/seed/*.sql`（`REPLACE INTO` 等幂等写法） | `php artisan db:seed` / `app:<项目> db:seed` |
+| 项目差异数据 | 仅本项目 | `deploy/projects/<项目>/db/*.sql` | `app:<项目> db:seed`（上传到 `<path>/src/db/` 后一起执行） |
+
+### Scope 自动发现
+
+`artisan migration` 自动发现（文件存在即参与迁移，无配置 = 不参与）：
+
+```
+App/Modules/<名称>/config/migration.php   → scope "module:<名称>"
+App/Projects/<名称>/config/migration.php  → scope "project:<名称>"
+```
+
+模块配置只需 `table_prefix` / `export`，directory 按约定推导；全局 `src/config/migration.php`
+只剩 database / ts_based / `order` 顺序声明（tao 为基础模块务必排最前）。旧式 `scopes`
+集中注册向后兼容，优先级高于自动发现。`table_prefix` 冲突（同一前缀被多个 scope 管理）会直接报错。
+
+### seed 幂等与记账
+
+- 每个文件以 `scope + 文件名 + 内容 hash` 记账于 `seed_history` 表，只执行新增或内容变化的文件
+- seed 文件必须幂等（`REPLACE INTO` / `ON DUPLICATE KEY UPDATE`），文件名带序号保证顺序（001-xxx.sql）
+- 含 DDL 的文件注意：MySQL DDL 隐式提交，中途失败无法回滚，修正后重跑会整体重新执行
+- 模块执行顺序复用迁移配置的 `order`（基础数据可能依赖 tao 等基础模块的表）
+
+### 线上更新流程（替代手动导 SQL）
+
+```bash
+php admin app:<项目> db:migrate     # 结构迁移
+php admin app:<项目> db:seed        # 上传差异数据 + 执行基础数据
+```
+
+也可挂入项目配置的 `hooks.afterUpgrade`（`shell:docker exec <项目>-php php artisan migration r`）。
+`001-create-tables.sql` 手动导入方式逐步退役：首次部署 = `db:migrate` + `db:seed`。
