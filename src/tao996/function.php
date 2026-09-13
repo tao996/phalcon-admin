@@ -127,15 +127,21 @@ return [
 }
 if (!function_exists('array_merge_deep')) {
     /**
-     * 深度合并两个数组（同名标量键覆盖，递归合并数组），注意：不会修改输入参数
+     * 深度合并多个数组（同名标量键后者覆盖，递归合并数组），注意：不会修改输入参数
      */
-    function array_merge_deep(array $base, array $override): array
+    function array_merge_deep(array ...$arrays): array
     {
-        foreach ($override as $key => $value) {
-            if (isset($base[$key]) && is_array($base[$key]) && is_array($value)) {
-                $base[$key] = array_merge_deep($base[$key], $value);
-            } else {
-                $base[$key] = $value;
+        if (empty($arrays)) {
+            return [];
+        }
+        $base = array_shift($arrays);
+        foreach ($arrays as $override) {
+            foreach ($override as $key => $value) {
+                if (isset($base[$key]) && is_array($base[$key]) && is_array($value)) {
+                    $base[$key] = array_merge_deep($base[$key], $value);
+                } else {
+                    $base[$key] = $value;
+                }
             }
         }
         return $base;
