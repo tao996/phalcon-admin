@@ -193,14 +193,23 @@ class ProjectDeployer
 
     /**
      * 生成本地 nginx server block（内容来自 domains + nginxPort + nginx.ssl 配置）
-     * 域名未配置时跳过
+     *
+     * 本地文件是事实源：已存在时不覆盖（保留人工修改），
+     * 需按当前配置重新生成时用 force=true 或删除该文件。
+     * 域名未配置时跳过。
      */
-    public function writeLocalNginxConf(): void
+    public function writeLocalNginxConf(bool $force = false): void
     {
         $projectName = $this->config->getProjectName();
         $domains = $this->config->getDomains();
         if (empty($domains)) {
             deploy_log('项目未配置域名，跳过 nginx 配置生成', 'warn');
+            return;
+        }
+
+        $localFile = $this->getLocalNginxConfFile();
+        if (!$force && file_exists($localFile)) {
+            deploy_log("本地 nginx 配置已存在，保留人工内容: {$localFile}", 'info');
             return;
         }
 
@@ -211,20 +220,20 @@ class ProjectDeployer
             $this->config->getNginxSsl()
         );
 
-        $localFile = $this->getLocalNginxConfFile();
         $localDir = dirname($localFile);
         if (!is_dir($localDir)) {
             mkdir($localDir, 0755, true);
         }
-        $isNew = !file_exists($localFile);
         file_put_contents($localFile, $content);
-        deploy_log(($isNew ? '已生成' : '已更新') . "本地 nginx 配置: {$localFile}", 'ok');
+        deploy_log("已生成本地 nginx 配置: {$localFile}", 'ok');
     }
 
     /**
      * 生成本地 nginx 配置并上传到远程 /etc/nginx/conf.d/（自带连接管理）
+     *
+     * @param bool $force true 时按当前配置重新生成本地文件（覆盖人工修改）
      */
-    public function publishNginxConf(): void
+    public function publishNginxConf(bool $force = false): void
     {
         $projectName = $this->config->getProjectName();
         if (empty($this->config->getDomains())) {
@@ -232,7 +241,7 @@ class ProjectDeployer
             return;
         }
 
-        $this->writeLocalNginxConf();
+        $this->writeLocalNginxConf($force);
         $content = file_get_contents($this->getLocalNginxConfFile());
 
         try {

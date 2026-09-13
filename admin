@@ -2,30 +2,6 @@
 <?php
 /**
  * Phalcon Admin 部署工具
- *
- * 用法:
- *   php admin server:init             # 检测环境并生成报告
- *   php admin server:init -y          # 执行初始化（根据环境自动选择模式）
- *   php admin server:init -y mode=host_nginx  # 强制宿主机 nginx 模式
- *   php admin nginx:reload           # 验证配置语法并重载 Nginx（全局）
- *   php admin app:<project> init      # 预览（无 -y）或执行部署（加 -y）
- *   php admin app:<project> upgrade   # 更新已有项目
- *   php admin app:<project> dc:restart   # 重启项目 Docker 容器
- *   php admin app:<project> push      # 推送本地配置到远程
- *   php admin app:<project> dc:status    # 查看项目容器状态
- *   php admin app:<project> nginx:add # 为项目添加域名到 Router
- *   php admin app:<project> nginx:remove  # 从 Router 移除域名
- *   php admin app:<project> db:proxy      # SSH 隧道转发
- *   php admin app:<project> db:pma        # 部署临时 phpMyAdmin
- *   php admin app:<project> db:pma-rm     # 删除临时 phpMyAdmin
- *   php admin --help                  # 显示帮助
- *
- * 参数:
- *   -y                   自动执行
- *   -key=value           命名参数
- *   env=prod             选择服务器配置文件 (server.{env}.php)
- *   mode=host_nginx      强制宿主机模式
- *   port=8071            手动指定项目 nginx 端口
  */
 
 // ---------- 初始化 ----------
@@ -128,8 +104,8 @@ function showHelp(): void
   app:<项目> dc:log:<容器>                      查看指定容器日志
 
 \033[33m  项目 - Nginx\033[0m
-  app:<项目> nginx:add                          添加域名到 Router
-  app:<项目> nginx:remove                       从 Router 移除域名
+  app:<项目> nginx:add                          上传配置到 /etc/nginx/conf.d/
+  app:<项目> nginx:remove                       移除域名
   app:<项目> nginx:ssl -email=xx@xx.com         申请 SSL 证书
 
 \033[33m  数据库\033[0m
@@ -682,9 +658,9 @@ function handleNginxAdd(string $serverConfigFile, string $projectName, array $pa
         deploy_log('提示: port= 已废弃，nginx 端口由 server.php 的 project.nginxPort 决定', 'warn');
     }
 
-    // 生成本地 nginx 配置（事实源）并上传到远程
+    // 生成本地 nginx 配置（事实源，已存在则保留人工内容）并上传到远程
     $deployer = new ProjectDeployer($config);
-    $deployer->publishNginxConf();
+    $deployer->publishNginxConf(!empty($params['force']));
 }
 
 function handleNginxRemove(string $serverConfigFile, string $projectName): void

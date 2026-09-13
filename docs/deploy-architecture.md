@@ -766,8 +766,10 @@ php admin app:<项目> git:ssh -T    # 逐仓库验证认证（公钥需已添�
 > v3 起，宿主机 nginx server block 以本地文件为事实源：`deploy/projects/<项目>/nginx/<项目>.conf`
 > （与远程 `/etc/nginx/conf.d/<项目>.conf` 同名对应）。
 
-- `app:<项目> init`（预览）即生成该文件（domains + project.nginxPort + nginx.ssl 渲染）
-- `init -y` / `upgrade` / `nginx:add` 统一为"更新本地 → 上传 → reload"，不再远程凭空生成
+- `app:<项目> init`（预览）在文件**不存在时**生成该文件（domains + project.nginxPort + nginx.ssl 渲染）；
+  **已存在则保留人工内容不覆盖**，`init -y` / `upgrade` 直接上传本地现有内容
+- 需按当前配置重新生成时：`php admin app:<项目> nginx:add force=1`（或删除本地文件）
+- `init -y` / `upgrade` / `nginx:add` 统一为"上传本地文件 → reload"，不再远程凭空生成
 - `nginx:ssl` 成功后自动更新本地文件为含 443 的版本，并把项目配置 `nginx.ssl` 置为 true
   （该键由命令维护，人工不要手改；旧项目配置缺少 `'nginx' => ['ssl' => false]` 结构时需手动补）
 - `nginx:remove` 只删远程配置，本地文件保留作为记录
