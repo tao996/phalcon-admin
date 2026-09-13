@@ -869,6 +869,7 @@ function handleDbPmaRm(string $serverConfigFile, string $projectName): void
 {
     $config = new DeployConfig();
     $config->loadServer($serverConfigFile);
+    $config->loadProject($projectName);
 
     $db = new DbManager($config);
     $db->removePhpMyAdmin($projectName);

@@ -160,6 +160,40 @@ class DbManager
         deploy_log("网络: {$networkName}", 'info');
         deploy_log("端口: {$hostPort}", 'info');
 
+        // 镜像未就绪时先后台拉取再轮询：docker pull 中途长时间静默（解压层）
+        // 会触发 SSH 读超时导致通道挂起，不能用单条命令阻塞等待
+        $image = 'phpmyadmin/phpmyadmin';
+        if (trim($this->ssh->exec(
+            sprintf('docker images -q %s 2>/dev/null | head -1', escapeshellarg($image)),
+            false
+        )) === '') {
+            deploy_log('首次运行，后台拉取 phpMyAdmin 镜像...', 'info');
+            $this->ssh->exec(
+                sprintf('nohup docker pull %s >/tmp/pma-pull.log 2>&1 & echo PULL_STARTED', escapeshellarg($image)),
+                false
+            );
+            $ready = false;
+            for ($i = 0; $i < 60; $i++) {
+                sleep(3);
+                if (trim($this->ssh->exec(
+                    sprintf('docker images -q %s 2>/dev/null | head -1', escapeshellarg($image)),
+                    false
+                )) !== '') {
+                    $ready = true;
+                    break;
+                }
+                if ($i > 0 && $i % 10 === 0) {
+                    deploy_log('镜像仍在拉取...（' . ($i * 3) . 's，日志: /tmp/pma-pull.log）', 'info');
+                }
+            }
+            if (!$ready) {
+                deploy_log('phpMyAdmin 镜像拉取超时，请检查服务器网络后重试', 'error');
+                $this->ssh->disconnect();
+                exit(1);
+            }
+            deploy_log('镜像就绪', 'ok');
+        }
+
         // 拉取并启动 phpMyAdmin 容器
         $cmd = sprintf(
             'docker run -d --rm --name %s --network %s -p %d:80 -e PMA_HOST=mysql -e PMA_PORT=3306 phpmyadmin/phpmyadmin',
