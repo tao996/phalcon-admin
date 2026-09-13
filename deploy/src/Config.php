@@ -125,6 +125,7 @@ class DeployConfig
      *
      * 每项统一归一化为:
      *   method: git | bundle | ftp
+     *   name:   条目显式名称（可选），供 upgrade name= 条目级过滤
      *   path:   相对项目根的目标目录，空串 = 主仓库（ftp 不支持主仓库）
      *   repo:   git 方式的仓库地址
      *   branch: git/bundle 方式的分支名，默认 main
@@ -145,6 +146,8 @@ class DeployConfig
             $excludes = $item['excludes'] ?? [];
             $normalized[] = [
                 'method' => (string)$item['method'],
+                // 显式名称，供 upgrade name= 条目级过滤；未设置则为空串（不可被 name= 选中）
+                'name' => trim((string)($item['name'] ?? '')),
                 'path' => rtrim(str_replace('\\', '/', (string)($item['path'] ?? '')), '/'),
                 'repo' => (string)($item['repo'] ?? ''),
                 'branch' => (string)($item['branch'] ?? 'main'),

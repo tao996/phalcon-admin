@@ -38,11 +38,19 @@ class ProjectDeployer
      *
      * @param bool $filesystem 目标是否为本地文件系统
      * @param array $options ['method' => 'git|bundle|ftp' 只执行该方式的条目,
+     *                       'name' => 条目显式名称（sync.items 的 name 字段，与 method= 二选一）,
      *                       'full' => true ftp 条目忽略增量清单强制全量]
      */
     protected function runSyncItems(bool $filesystem = false, array $options = []): void
     {
         $methodFilter = (string)($options['method'] ?? '');
+        $nameFilter = (string)($options['name'] ?? '');
+
+        if ($methodFilter !== '' && $nameFilter !== '') {
+            deploy_log('method= 与 name= 只能二选一', 'error');
+            exit(1);
+        }
+
         $items = $this->config->getSyncItems();
 
         if ($methodFilter !== '') {
@@ -52,6 +60,17 @@ class ProjectDeployer
             ));
             if (empty($items)) {
                 deploy_log("没有匹配 method={$methodFilter} 的同步项（可用值：git|bundle|ftp）", 'error');
+                exit(1);
+            }
+        }
+
+        if ($nameFilter !== '') {
+            $items = array_values(array_filter(
+                $items,
+                fn(array $item): bool => $item['name'] === $nameFilter
+            ));
+            if (empty($items)) {
+                deploy_log("没有匹配 name={$nameFilter} 的同步项（需在 sync.items 条目上显式配置 'name'）", 'error');
                 exit(1);
             }
         }
@@ -448,10 +467,10 @@ class ProjectDeployer
                 if (!is_dir($targetDir)) {
                     mkdir($targetDir, 0755, true);
                 }
+                file_put_contents($targetFile, $content);
                 if (file_exists($targetFile)) {
-                    deploy_log("  跳过: {$relativePath}", 'ok');
+                    deploy_log("  重新生成: {$relativePath}", 'ok');
                 } else {
-                    file_put_contents($targetFile, $content);
                     deploy_log("  生成: {$relativePath}", 'ok');
                 }
             }

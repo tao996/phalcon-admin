@@ -339,7 +339,7 @@ return [
 `Config::getMerged()` 通过 `array_merge_deep()`（定义在 `src/tao996/Phax/function.php`）合并 `server.php` + 项目 `server.php`。项目配置中定义的同名键会覆盖 `server.php` 的默认值（如项目级 `ssh` 覆盖默认连接）。
 
 代码同步完全由项目配置的 `sync.items` 声明，`Config::getSyncItems()` 将每项归一化为
-`['method' => git|bundle|ftp, 'path' => string, 'repo' => string, 'branch' => string（默认 main）, 'excludes' => string[]（ftp 方式：不上传的相对路径前缀）]`。
+`['method' => git|bundle|ftp, 'name' => string（可选，条目显式名称，供 upgrade name= 过滤）, 'path' => string, 'repo' => string, 'branch' => string（默认 main）, 'excludes' => string[]（ftp 方式：不上传的相对路径前缀）]`。
 
 ---
 
@@ -408,6 +408,7 @@ return [
 | `-y` | `server:init`, `app:init` | 自动执行；`server:init` 默认只检测，`app:init` 默认预览 |
 | `env=prod` | 所有命令 | 选择服务器配置 `server.{env}.php` |
 | `method=git\|bundle\|ftp` | `app:upgrade` | 只执行该方式的同步项（值与 sync.items 的 method 一致，无匹配时报错退出） |
+| `name=条目名` | `app:upgrade` | 只执行显式配置了该 name 的同步项（与 method= 二选一，同时给出报错） |
 | `full=1` | `app:upgrade` | ftp 条目忽略增量清单，强制全量上传 |
 | `local=13306` | `db:proxy` | SSH 隧道本地监听端口 |
 | `host=13307` | `db:pma` | phpMyAdmin 宿主机暴露端口 |
@@ -712,8 +713,9 @@ php admin app:phalcon-admin-test upgrade -y  # 同步代码 + 生成配置
 'sync' => [
     'items' => [
         // 可配多个；excludes 为相对 path 的路径前缀，命中的目录/文件不上传
-        ['method' => 'ftp', 'path' => 'src/App/Projects/boyu',
-         'excludes' => ['views/assets', 'storage', '.git']],   // 可省略
+        // name 显式命名条目，可用 upgrade name=xxx 条目级过滤
+        ['method' => 'ftp', 'path' => 'src/App/Projects/boyu', 'name' => 'boyu',
+         'excludes' => ['views/assets', 'storage', '.git']],   // excludes/name 均可省略
     ],
 ],
 ```
@@ -725,6 +727,7 @@ php admin app:<项目> upgrade                     # 同步全部 sync.items（f
 php admin app:<项目> upgrade method=ftp          # 只执行 ftp 条目（SFTP 增量直传）
 php admin app:<项目> upgrade method=ftp full=1   # 忽略增量清单，强制全量上传
 php admin app:<项目> upgrade method=bundle       # 只执行 bundle 条目（只拉主仓库代码）
+php admin app:<项目> upgrade name=boyu           # 只执行 name='boyu' 的条目（条目级过滤）
 ```
 
 - `method=` 的值与 sync.items 的 `method` 一致（git|bundle|ftp），无匹配条目时报错退出

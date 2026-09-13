@@ -133,6 +133,7 @@ class ConfigTest extends TestCase
         $this->assertEquals('src/App/Projects/boyu', $items[1]['path']);
         $this->assertEquals('main', $items[1]['branch']);
         $this->assertEquals(['views/assets'], $items[1]['excludes']);
+        $this->assertEquals('boyu', $items[1]['name']);
     }
 
     public function testGetNginxSsl(): void

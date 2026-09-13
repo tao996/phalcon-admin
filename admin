@@ -83,9 +83,10 @@ function showHelp(): void
                                                 1. 项目不存在，则生成 `项目/server.php`
                                                 2. 根据 server.php 新建对应配置文件（已存在则跳过）
                                                 3. -y 正式部署
-  app:<项目> upgrade [-y] [method=git|bundle|ftp] [full=1]
-                                                更新代码（method= 只执行该方式的同步项；full=1 强制 ftp 全量上传；
-                                                加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
+  app:<项目> upgrade [-y] [method=git|bundle|ftp] [name=条目名] [full=1]
+                                                更新代码（method= 与 name= 二选一，按方式或条目 name 过滤；
+                                                full=1 强制 ftp 全量上传；加 -y 同时更新配置），
+                                                更新代码后需要重启容器 dc:restart:php
   app:<项目> push                               推送本地配置到远程
   app:<项目> script:push                        推送分析脚本到远程
   app:<项目> run <脚本> [参数...]               远程执行分析脚本
@@ -626,6 +627,9 @@ function handleUpgrade(string $serverConfigFile, string $projectName, array $par
     $options = [];
     if (isset($params['method'])) {
         $options['method'] = $params['method'];
+    }
+    if (isset($params['name'])) {
+        $options['name'] = $params['name'];
     }
     if (isset($params['full'])) {
         $options['full'] = $params['full'];
