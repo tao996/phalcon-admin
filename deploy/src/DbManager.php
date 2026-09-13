@@ -141,11 +141,20 @@ class DbManager
             return;
         }
 
-        // 获取项目的 Docker 网络名
-        // docker-compose 创建的网络名为: {compose_dir}_{network_name}
-        // 我们的模板中 network_name = backend
-        // 所以实际网络名通常是 {project_name}_backend
-        $networkName = $projectName . '_backend';
+        // 探测项目的 Docker 网络名：compose 网络名 = 部署目录名_网络键（模板网络键为 backend），
+        // 部署目录 basename 不一定等于项目名（如项目 boyu 部署在 /data/phalcon-admin），
+        // 从 mysql 容器反查实际网络名最可靠，探测不到时回退到 <项目名>_backend 并告警
+        $networkName = trim($this->ssh->exec(
+            sprintf(
+                "docker inspect %s --format '{{range \$k, \$_ := .NetworkSettings.Networks}}{{\$k}}{{end}}' 2>/dev/null",
+                escapeshellarg($projectName . '-mysql')
+            ),
+            false
+        ));
+        if ($networkName === '') {
+            $networkName = $projectName . '_backend';
+            deploy_log("无法从 {$projectName}-mysql 容器反查网络名，回退为 {$networkName}", 'warn');
+        }
 
         deploy_log("部署 phpMyAdmin 容器: {$containerName}", 'step');
         deploy_log("网络: {$networkName}", 'info');
@@ -159,24 +168,29 @@ class DbManager
             $hostPort
         );
 
-        $output = $this->ssh->exec($cmd);
-        $containerId = trim($output);
+        $this->ssh->exec($cmd);
 
-        if (empty($containerId)) {
-            deploy_log('phpMyAdmin 启动失败', 'error');
+        // docker run 的输出混有容器 ID 与错误信息，以实际运行状态为准
+        $running = trim($this->ssh->exec(
+            sprintf(
+                "docker inspect -f '{{.State.Running}}' %s 2>/dev/null || echo 'not_found'",
+                escapeshellarg($containerName)
+            ),
+            false
+        ));
 
-            // 尝试查找可用的网络
-            deploy_log('尝试查找项目的 Docker 网络...', 'info');
+        if ($running !== 'true') {
+            deploy_log('phpMyAdmin 启动失败（容器未在运行，--rm 已自动清理）', 'error');
+
+            deploy_log('服务器上的 Docker 网络:', 'info');
             $networks = $this->ssh->exec(
-                "docker network ls --filter name={$projectName} --format '{{.Name}}' 2>/dev/null",
+                "docker network ls --format '{{.Name}}' 2>/dev/null",
                 false
             );
             if (!empty(trim($networks))) {
-                deploy_log("可用网络: " . str_replace("\n", ', ', trim($networks)), 'info');
-            } else {
-                deploy_log("未找到包含 '{$projectName}' 的 Docker 网络", 'warn');
-                deploy_log("请确认项目已执行过 docker-compose up", 'info');
+                deploy_log('  ' . str_replace("\n", ', ', trim($networks)), 'info');
             }
+            deploy_log("排查: docker ps -a 确认 {$projectName}-mysql 在运行", 'info');
 
             $this->ssh->disconnect();
             exit(1);
