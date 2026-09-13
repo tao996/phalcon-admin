@@ -171,6 +171,19 @@ class Application
             $requestURL = RouteMatchContext::$mapRoute[$requestURL];
         }
         $context = RouteMatchContext::with($requestURL, loadDefault: true);
+        if ($context->isModule) {
+            if ($enableModules = AppService::config()->getArray('app.modules')) {
+                if (!in_array($context->name, $enableModules)) {
+                    die('disable modules:' . $context->name);
+                }
+            }
+        } elseif ($context->isProject) {
+            if ($enableProjects = AppService::config()->getArray('app.projects')) {
+                if (!in_array($context->name, $enableProjects)) {
+                    die('disable projects:' . $context->name);
+                }
+            }
+        }
         $di->setShared('context', $context);
         /**
          * @var \Phalcon\Mvc\Router $router

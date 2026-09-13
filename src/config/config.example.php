@@ -93,6 +93,14 @@ $data['app'] = [
      留空数组 [] 表示不限制
      */
     'ipWhitelist' => [],
+    /**
+     * 启用的 App/Modules，不设置是全部
+     */
+    'modules'=>[],
+    /**
+     * 启用的 App/Projects，不设置则全部
+     */
+    'projects'=>[]
 ];
 
 

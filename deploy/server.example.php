@@ -46,10 +46,10 @@ return [
         'domains' => [ // 域名列表（Router 转发用）
             'myapp.example.com',
         ],
-    // nginx server block 状态（ssl 由 nginx:ssl 命令成功后自动维护）
-    'nginx' => [
-        'ssl' => false,
-    ],
+        // nginx server block 状态（ssl 由 nginx:ssl 命令成功后自动维护）
+        'nginx' => [
+            'ssl' => false,
+        ],
         // 所有项目的默认 env 变量
         'env' => [
             'TZ' => 'Asia/Shanghai',
@@ -78,6 +78,8 @@ return [
                     'namespace' => '',
                 ],
                 'welcome' => '', // 后台首页
+                'modules' => [],
+                'projects' => [],
             ],
         ],
         // 钩子命令：初始化/更新后执行（可选）
