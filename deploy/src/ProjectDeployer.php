@@ -2,7 +2,7 @@
 
 /**
  * 项目部署器
- * 
+ *
  * 编排项目部署的完整生命周期：
  * - init: 首次部署
  * - upgrade: 更新已有项目
@@ -36,7 +36,7 @@ class ProjectDeployer
      *
      * path 省略表示主仓库；path 为相对项目根的目录，本地源目录 = 本地仓库根 + path
      *
-     * @param bool  $filesystem 目标是否为本地文件系统
+     * @param bool $filesystem 目标是否为本地文件系统
      * @param array $options ['method' => 'git|bundle|ftp' 只执行该方式的条目,
      *                       'full' => true ftp 条目忽略增量清单强制全量]
      */
@@ -48,7 +48,7 @@ class ProjectDeployer
         if ($methodFilter !== '') {
             $items = array_values(array_filter(
                 $items,
-                fn (array $item): bool => $item['method'] === $methodFilter
+                fn(array $item): bool => $item['method'] === $methodFilter
             ));
             if (empty($items)) {
                 deploy_log("没有匹配 method={$methodFilter} 的同步项（可用值：git|bundle|ftp）", 'error');
@@ -236,7 +236,7 @@ class ProjectDeployer
             $this->ssh->exec("cd {$projectPath} && " . get_compose_cmd() . " -f {$composeFile} up -d");
 
             // 5. 更新 Router
-            deploy_log('步骤 5/6: 更新 Router', 'step');
+            deploy_log('步骤 5/6: 添加 nginx/conf.d/', 'step');
             if (!empty($domains)) {
                 $this->router->addDomain($projectName, $domains, false, $nginxPort);
             }
@@ -376,8 +376,12 @@ class ProjectDeployer
                 if (!is_dir($targetDir)) {
                     mkdir($targetDir, 0755, true);
                 }
-                file_put_contents($targetFile, $content);
-                deploy_log("  生成: {$relativePath}", 'ok');
+                if (file_exists($targetFile)) {
+                    deploy_log("  跳过: {$relativePath}", 'ok');
+                } else {
+                    file_put_contents($targetFile, $content);
+                    deploy_log("  生成: {$relativePath}", 'ok');
+                }
             }
         }
 

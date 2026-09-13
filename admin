@@ -103,7 +103,10 @@ function showHelp(): void
   nginx:log:access [--save]           查看访问日志（加 --save 下载到本地）
 
 \033[33m  项目 — 部署\033[0m
-  app:<项目> init [-y]                           预览/部署（代码按 server.php 中 sync.items 声明的方式同步）
+  app:<项目> init [-y]                          预览/部署
+                                                1. 项目不存在，则生成 `项目/server.php`
+                                                2. 根据 server.php 新建对应配置文件（已存在则跳过）
+                                                3. -y 正式部署
   app:<项目> upgrade [-y] [method=git|bundle|ftp] [full=1]
                                                 更新代码（method= 只执行该方式的同步项；full=1 强制 ftp 全量上传；
                                                 加 -y 同时更新配置），更新代码后需要重启容器 dc:restart:php
