@@ -192,6 +192,30 @@ function path_matches_excludes(string $rel, array $excludes): bool
 }
 
 /**
+ * 将项目 server.php 中 nginx.ssl 标记置为 true（nginx:ssl 成功后调用）
+ *
+ * 配置文件需包含 'nginx' => ['ssl' => false] 结构（模板已内置，旧项目配置需手动补）；
+ * 返回 false 表示未找到结构，需人工补配置（不影响远程 SSL 已生效）。
+ */
+function set_project_nginx_ssl(string $projectName): bool
+{
+    $file = deploy_base_path() . '/projects/' . $projectName . '/server.php';
+    if (!file_exists($file)) {
+        return false;
+    }
+    $content = file_get_contents($file);
+    if (!preg_match("/'nginx'\s*=>\s*\[/", $content)) {
+        return false;
+    }
+    $updated = preg_replace("/('nginx'\s*=>\s*\[[^]]*'ssl'\s*=>\s*)false/", '$1true', $content, 1, $count);
+    if ($count === 0) {
+        return true; // 已是 true
+    }
+    file_put_contents($file, $updated);
+    return true;
+}
+
+/**
  * 获取缓存的 Docker Compose 命令名
  */
 function get_compose_cmd(): string

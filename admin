@@ -4,21 +4,21 @@
  * Phalcon Admin 部署工具
  *
  * 用法:
- *   php deploy server:init             # 检测环境并生成报告
- *   php deploy server:init -y          # 执行初始化（根据环境自动选择模式）
- *   php deploy server:init -y mode=host_nginx  # 强制宿主机 nginx 模式
- *   php deploy nginx:reload           # 验证配置语法并重载 Nginx（全局）
- *   php deploy app:<project> init      # 预览（无 -y）或执行部署（加 -y）
- *   php deploy app:<project> upgrade   # 更新已有项目
- *   php deploy app:<project> dc:restart   # 重启项目 Docker 容器
- *   php deploy app:<project> push      # 推送本地配置到远程
- *   php deploy app:<project> dc:status    # 查看项目容器状态
- *   php deploy app:<project> nginx:add # 为项目添加域名到 Router
- *   php deploy app:<project> nginx:remove  # 从 Router 移除域名
- *   php deploy app:<project> db:proxy      # SSH 隧道转发
- *   php deploy app:<project> db:pma        # 部署临时 phpMyAdmin
- *   php deploy app:<project> db:pma-rm     # 删除临时 phpMyAdmin
- *   php deploy --help                  # 显示帮助
+ *   php admin server:init             # 检测环境并生成报告
+ *   php admin server:init -y          # 执行初始化（根据环境自动选择模式）
+ *   php admin server:init -y mode=host_nginx  # 强制宿主机 nginx 模式
+ *   php admin nginx:reload           # 验证配置语法并重载 Nginx（全局）
+ *   php admin app:<project> init      # 预览（无 -y）或执行部署（加 -y）
+ *   php admin app:<project> upgrade   # 更新已有项目
+ *   php admin app:<project> dc:restart   # 重启项目 Docker 容器
+ *   php admin app:<project> push      # 推送本地配置到远程
+ *   php admin app:<project> dc:status    # 查看项目容器状态
+ *   php admin app:<project> nginx:add # 为项目添加域名到 Router
+ *   php admin app:<project> nginx:remove  # 从 Router 移除域名
+ *   php admin app:<project> db:proxy      # SSH 隧道转发
+ *   php admin app:<project> db:pma        # 部署临时 phpMyAdmin
+ *   php admin app:<project> db:pma-rm     # 删除临时 phpMyAdmin
+ *   php admin --help                  # 显示帮助
  *
  * 参数:
  *   -y                   自动执行
@@ -230,7 +230,7 @@ try {
         case 'init':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> init\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> init\n");
                 exit(1);
             }
 //            print_r([$serverConfigFile,$projectName,$namedParams]);exit;
@@ -240,7 +240,7 @@ try {
         case 'push':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:push <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:push <项目名>\n");
                 exit(1);
             }
             handleConfigPush($serverConfigFile, $projectName, $namedParams);
@@ -249,7 +249,7 @@ try {
         case 'reset':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> reset\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> reset\n");
                 exit(1);
             }
             handleReset($serverConfigFile, $projectName);
@@ -258,7 +258,7 @@ try {
         case 'git:ssh':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> git:ssh [-T]\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> git:ssh [-T]\n");
                 exit(1);
             }
             handleGitSsh($serverConfigFile, $projectName, $namedParams);
@@ -267,7 +267,7 @@ try {
         case 'script:push':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> script:push\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> script:push\n");
                 exit(1);
             }
             handleScriptPush($serverConfigFile, $projectName);
@@ -277,7 +277,7 @@ try {
             $projectName = $positionalArgs[1] ?? '';
             $scriptName = $positionalArgs[2] ?? '';
             if (empty($projectName) || empty($scriptName)) {
-                fwrite(STDERR, "错误: 用法: php deploy app:<项目名> run <脚本名> [参数...]\n");
+                fwrite(STDERR, "错误: 用法: php admin app:<项目名> run <脚本名> [参数...]\n");
                 exit(1);
             }
             $scriptArgs = array_slice($positionalArgs, 3);
@@ -287,7 +287,7 @@ try {
         case 'dc:restart':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> dc:restart[:<容器>]\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> dc:restart[:<容器>]\n");
                 exit(1);
             }
             $service = $namedParams['service'] ?? '';
@@ -297,7 +297,7 @@ try {
         case 'dc:status':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:dc:status <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:dc:status <项目名>\n");
                 exit(1);
             }
             handleStatus($serverConfigFile, $projectName);
@@ -306,7 +306,7 @@ try {
         case 'dc:log':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> dc:log[:<容器>]\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> dc:log[:<容器>]\n");
                 exit(1);
             }
             $container = $namedParams['container'] ?? '';
@@ -316,7 +316,7 @@ try {
         case 'upgrade':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> upgrade\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> upgrade\n");
                 exit(1);
             }
             handleUpgrade($serverConfigFile, $projectName, $namedParams);
@@ -325,7 +325,7 @@ try {
         case 'nginx:add':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> nginx:add\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> nginx:add\n");
                 exit(1);
             }
             handleNginxAdd($serverConfigFile, $projectName, $namedParams);
@@ -334,7 +334,7 @@ try {
         case 'nginx:remove':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> nginx:remove\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> nginx:remove\n");
                 exit(1);
             }
             handleNginxRemove($serverConfigFile, $projectName);
@@ -343,7 +343,7 @@ try {
         case 'nginx:ssl':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy app:<项目名> nginx:ssl -email=your@email.com\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin app:<项目名> nginx:ssl -email=your@email.com\n");
                 exit(1);
             }
             handleNginxSsl($serverConfigFile, $projectName, $namedParams);
@@ -353,7 +353,7 @@ try {
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
                 fwrite(STDERR, "错误: 请指定项目名
-用法: php deploy app:<项目名> db:backup [download=1]
+用法: php admin app:<项目名> db:backup [download=1]
 ");
                 exit(1);
             }
@@ -364,7 +364,7 @@ try {
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
                 fwrite(STDERR, "错误: 请指定项目名
-用法: php deploy app:<项目名> db:backup:list
+用法: php admin app:<项目名> db:backup:list
 ");
                 exit(1);
             }
@@ -375,7 +375,7 @@ try {
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
                 fwrite(STDERR, "错误: 请指定项目名
-用法: php deploy app:<项目名> db:backup:get [文件名]
+用法: php admin app:<项目名> db:backup:get [文件名]
 ");
                 exit(1);
             }
@@ -386,7 +386,7 @@ try {
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
                 fwrite(STDERR, "错误: 请指定项目名
-用法: php deploy app:<项目名> db:backup:cron [-y] [time=03:00] [keep=7]
+用法: php admin app:<项目名> db:backup:cron [-y] [time=03:00] [keep=7]
 ");
                 exit(1);
             }
@@ -397,7 +397,7 @@ try {
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
                 fwrite(STDERR, "错误: 请指定项目名
-用法: php deploy app:<项目名> db:backup:cron-rm
+用法: php admin app:<项目名> db:backup:cron-rm
 ");
                 exit(1);
             }
@@ -407,7 +407,7 @@ try {
         case 'db:proxy':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy db:proxy <项目名> [local=端口]\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin db:proxy <项目名> [local=端口]\n");
                 exit(1);
             }
             handleDbProxy($serverConfigFile, $projectName, $namedParams);
@@ -416,7 +416,7 @@ try {
         case 'db:pma':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy db:pma <项目名> [host=端口]\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin db:pma <项目名> [host=端口]\n");
                 exit(1);
             }
             handleDbPma($serverConfigFile, $projectName, $namedParams);
@@ -425,7 +425,7 @@ try {
         case 'db:pma-rm':
             $projectName = $positionalArgs[1] ?? '';
             if (empty($projectName)) {
-                fwrite(STDERR, "错误: 请指定项目名\n用法: php deploy db:pma-rm <项目名>\n");
+                fwrite(STDERR, "错误: 请指定项目名\n用法: php admin db:pma-rm <项目名>\n");
                 exit(1);
             }
             handleDbPmaRm($serverConfigFile, $projectName);
@@ -433,7 +433,7 @@ try {
 
         default:
             fwrite(STDERR, "错误: 未知命令 '{$command}'\n");
-            fwrite(STDERR, "用法: php deploy --help\n");
+            fwrite(STDERR, "用法: php admin --help\n");
             exit(1);
     }
 } catch (Throwable $e) {
@@ -517,7 +517,7 @@ function handleInit(string $serverConfigFile, string $projectName, array $params
 
         file_put_contents($projectFile,'<?php return '. $content.';');
         deploy_log("已创建项目配置: {$projectFile}", 'ok');
-        deploy_log("请编辑配置后重新执行: php deploy app:{$projectName} init -y", 'info');
+        deploy_log("请编辑配置后重新执行: php admin app:{$projectName} init -y", 'info');
         exit(0);
     }
 
@@ -678,21 +678,13 @@ function handleNginxAdd(string $serverConfigFile, string $projectName, array $pa
     $config->loadServer($serverConfigFile);
     $config->loadProject($projectName);
 
-    $domains = $config->getDomains();
-    if (empty($domains)) {
-        deploy_log('项目未配置域名，跳过', 'warn');
-        return;
+    if (isset($params['port'])) {
+        deploy_log('提示: port= 已废弃，nginx 端口由 server.php 的 project.nginxPort 决定', 'warn');
     }
 
-    $ssh = new DeploySSH($config->getSshConfig());
-    $ssh->connect();
-
-    $router = new RouterManager($ssh);
-    $merged = $config->getMerged();
-    $port = isset($params['port']) ? (int)$params['port'] : ($merged['project']['nginxPort'] ?? null);
-    $router->addDomain($projectName, $domains, false, $port);
-
-    $ssh->disconnect();
+    // 生成本地 nginx 配置（事实源）并上传到远程
+    $deployer = new ProjectDeployer($config);
+    $deployer->publishNginxConf();
 }
 
 function handleNginxRemove(string $serverConfigFile, string $projectName): void
@@ -736,9 +728,14 @@ function handleNginxSsl(string $serverConfigFile, string $projectName, array $pa
     $ssh->connect();
 
     $router = new RouterManager($ssh);
-    $router->enableSSL($projectName, $domains, $projectPath, $email, $nginxPort);
+    $ok = $router->enableSSL($projectName, $domains, $projectPath, $email, $nginxPort);
 
     $ssh->disconnect();
+
+    // SSL 状态写入项目配置，保证本地预览可离线复现含 443 的配置
+    if ($ok && !set_project_nginx_ssl($projectName)) {
+        deploy_log("请在项目 server.php 中手动添加 'nginx' => ['ssl' => true]，否则下次预览会覆盖为无 SSL 版本", 'warn');
+    }
 }
 
 function handleStatus(string $serverConfigFile, string $projectName): void

@@ -310,6 +310,10 @@ return [
     'domains' => [
         'myapp.example.com',
     ],
+    // nginx server block 状态（ssl 由 nginx:ssl 命令成功后自动维护）
+    'nginx' => [
+        'ssl' => false,
+    ],
     'env' => [
         'APP_NAME' => 'myapp',
         'MYSQL_DATABASE' => 'myapp_db',
@@ -383,7 +387,7 @@ return [
 | `php deploy app:dc:log:php <project>` | 查看 PHP 容器日志 | v2 |
 | `php deploy app:push <project>` | 推送本地配置文件到远程（覆盖已有） | v2 |
 | `php deploy app:<project> git:ssh [-T]` | 为 git@ 开头的 git 同步项生成 deploy key（-T 验证认证） | v3 |
-| `php deploy app:nginx:add <project>` | 将项目域名添加到 Router | v1 |
+| `php deploy app:nginx:add <project>` | 生成本地 nginx 配置（事实源）并上传到 /etc/nginx/conf.d/ | v1→v3 |
 | `php deploy app:nginx:remove <project>` | 从 Router 移除项目域名 | v1 |
 | `php deploy nginx:reload` | 验证语法后重载 Nginx（全局） | v2 |
 | `php deploy nginx:log:error` | 查看 Nginx 错误日志（--save 下载） | v2 |
@@ -542,7 +546,7 @@ php deploy app:upgrade yihe
 ### Nginx 操作
 
 ```bash
-# 添加域名到 Router
+# 生成本地 nginx 配置并上传到远程 /etc/nginx/conf.d/<项目>.conf
 php deploy app:nginx:add yihe
 
 # 全局重载 Nginx（先验证语法）
@@ -754,6 +758,19 @@ php admin app:<项目> git:ssh -T    # 逐仓库验证认证（公钥需已添�
 - **每仓库一把 ed25519 密钥**：`~/.ssh/deploy/<owner>_<repo>`（已存在则跳过生成，幂等）
 - `~/.ssh/config` 使用 `# BEGIN/END deploy-managed` 托管块，按 host 累积 `IdentityFile`（含 `IdentitiesOnly`、`StrictHostKeyChecking accept-new`），托管块外的用户配置不动；多项目共用服务器时自动合并、不互相覆盖
 - 生成后输出每个仓库的公钥，提示添加到 **Settings → Deploy keys**；添加后用 `-T` 验证（成功输出 `Hi owner/repo!`）
+
+---
+
+## 十六点五、nginx 配置本地事实源
+
+> v3 起，宿主机 nginx server block 以本地文件为事实源：`deploy/projects/<项目>/nginx/<项目>.conf`
+> （与远程 `/etc/nginx/conf.d/<项目>.conf` 同名对应）。
+
+- `app:<项目> init`（预览）即生成该文件（domains + project.nginxPort + nginx.ssl 渲染）
+- `init -y` / `upgrade` / `nginx:add` 统一为"更新本地 → 上传 → reload"，不再远程凭空生成
+- `nginx:ssl` 成功后自动更新本地文件为含 443 的版本，并把项目配置 `nginx.ssl` 置为 true
+  （该键由命令维护，人工不要手改；旧项目配置缺少 `'nginx' => ['ssl' => false]` 结构时需手动补）
+- `nginx:remove` 只删远程配置，本地文件保留作为记录
 
 ---
 

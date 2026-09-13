@@ -135,6 +135,20 @@ class ConfigTest extends TestCase
         $this->assertEquals(['views/assets'], $items[1]['excludes']);
     }
 
+    public function testGetNginxSsl(): void
+    {
+        $config = new DeployConfig();
+        $config->loadServer($this->fixturesDir . '/server.php');
+
+        $ref = new ReflectionClass($config);
+        $prop = $ref->getProperty('project');
+        $prop->setAccessible(true);
+        $prop->setValue($config, require $this->fixturesDir . '/project.php');
+
+        // fixture 未配置 nginx 段 → 默认 false
+        $this->assertFalse($config->getNginxSsl());
+    }
+
     public function testGetSshConfig(): void
     {
         $config = new DeployConfig();

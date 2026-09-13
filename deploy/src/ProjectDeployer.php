@@ -183,6 +183,68 @@ class ProjectDeployer
     }
 
     /**
+     * 本地 nginx server block 文件路径（事实源，与远程 /etc/nginx/conf.d/<项目>.conf 对应）
+     */
+    protected function getLocalNginxConfFile(): string
+    {
+        $projectName = $this->config->getProjectName();
+        return deploy_base_path() . '/projects/' . $projectName . '/nginx/' . $projectName . '.conf';
+    }
+
+    /**
+     * 生成本地 nginx server block（内容来自 domains + nginxPort + nginx.ssl 配置）
+     * 域名未配置时跳过
+     */
+    public function writeLocalNginxConf(): void
+    {
+        $projectName = $this->config->getProjectName();
+        $domains = $this->config->getDomains();
+        if (empty($domains)) {
+            deploy_log('项目未配置域名，跳过 nginx 配置生成', 'warn');
+            return;
+        }
+
+        $nginxPort = $this->assignNginxPort();
+        $content = RouterManager::generateServerBlock(
+            $domains,
+            '127.0.0.1:' . $nginxPort,
+            $this->config->getNginxSsl()
+        );
+
+        $localFile = $this->getLocalNginxConfFile();
+        $localDir = dirname($localFile);
+        if (!is_dir($localDir)) {
+            mkdir($localDir, 0755, true);
+        }
+        $isNew = !file_exists($localFile);
+        file_put_contents($localFile, $content);
+        deploy_log(($isNew ? '已生成' : '已更新') . "本地 nginx 配置: {$localFile}", 'ok');
+    }
+
+    /**
+     * 生成本地 nginx 配置并上传到远程 /etc/nginx/conf.d/（自带连接管理）
+     */
+    public function publishNginxConf(): void
+    {
+        $projectName = $this->config->getProjectName();
+        if (empty($this->config->getDomains())) {
+            deploy_log('项目未配置域名，跳过', 'warn');
+            return;
+        }
+
+        $this->writeLocalNginxConf();
+        $content = file_get_contents($this->getLocalNginxConfFile());
+
+        try {
+            $this->ssh->connect();
+            $this->router->uploadConf($projectName, $content);
+        } catch (Exception $e) {
+            deploy_log('nginx 配置发布失败: ' . $e->getMessage(), 'error');
+        }
+        $this->ssh->disconnect();
+    }
+
+    /**
      * 项目 nginx 端口（宿主机模式）：server.php 的 project.nginxPort，默认 8071
      */
     protected function assignNginxPort(): int
@@ -238,7 +300,8 @@ class ProjectDeployer
             // 5. 更新 Router
             deploy_log('步骤 5/6: 添加 nginx/conf.d/', 'step');
             if (!empty($domains)) {
-                $this->router->addDomain($projectName, $domains, false, $nginxPort);
+                $this->writeLocalNginxConf();
+                $this->router->uploadConf($projectName, file_get_contents($this->getLocalNginxConfFile()));
             }
 
             // 6. 执行钩子
@@ -384,6 +447,9 @@ class ProjectDeployer
                 }
             }
         }
+
+        // 本地 nginx server block（事实源，含 ssl 状态）
+        $this->writeLocalNginxConf();
 
         deploy_log('', '');
         deploy_log("配置文件已生成到: {$localDir}", 'ok');
@@ -632,7 +698,8 @@ class ProjectDeployer
 
             // 如果域名有调整，同步 Router
             if (!empty($domains)) {
-                $this->router->addDomain($projectName, $domains, false, $nginxPort);
+                $this->writeLocalNginxConf();
+                $this->router->uploadConf($projectName, file_get_contents($this->getLocalNginxConfFile()));
             }
 
             // 执行钩子

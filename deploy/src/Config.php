@@ -178,6 +178,15 @@ class DeployConfig
     }
 
     /**
+     * nginx server block 是否启用 SSL（由 nginx:ssl 命令成功后自动置 true）
+     */
+    public function getNginxSsl(): bool
+    {
+        $cfg = $this->getMerged();
+        return (bool)($cfg['nginx']['ssl'] ?? false);
+    }
+
+    /**
      * 获取环境变量覆盖
      */
     public function getEnvOverrides(): array

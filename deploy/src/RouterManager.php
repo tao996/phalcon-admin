@@ -164,35 +164,21 @@ class RouterManager
     /* ---------------- 域名管理 ---------------- */
 
     /**
-     * 为项目添加域名转发规则（写入 /etc/nginx/conf.d/<项目>.conf）
+     * 上传项目 server block 到远程 /etc/nginx/conf.d/<项目>.conf 并重载
      *
-     * @param string $projectName
-     * @param array $domains
-     * @param bool $ssl
-     * @param int|null $nginxPort 项目的 nginx 端口（缺省 8071）
+     * 内容由调用方从本地事实源（deploy/projects/<项目>/nginx/<项目>.conf）生成/读取
      */
-    public function addDomain(string $projectName, array $domains, bool $ssl = false, ?int $nginxPort = null): void
+    public function uploadConf(string $projectName, string $content): void
     {
-        if (empty($domains)) {
-            deploy_log('无域名配置，跳过', 'warn');
-            return;
-        }
-
-        $target = '127.0.0.1:' . ($nginxPort ?: 8071);
-        deploy_log("添加域名: " . implode(', ', $domains) . " → {$target}", 'step');
-
-        $configContent = $this->generateServerBlock($domains, $target, $ssl);
         $remoteFile = $this->configDir . '/' . $projectName . '.conf';
-
         $this->ssh->exec("mkdir -p " . dirname($remoteFile), false);
-        $this->ssh->uploadContent($configContent, $remoteFile);
+        $this->ssh->uploadContent($content, $remoteFile);
         deploy_log("配置已上传: {$remoteFile}", 'ok');
-
         $this->reload();
     }
 
     /**
-     * 移除项目的域名配置
+     * 移除项目的域名配置（本地文件保留作为记录）
      */
     public function removeDomain(string $projectName): void
     {
@@ -340,9 +326,9 @@ class RouterManager
     }
 
     /**
-     * 生成 nginx server block 配置
+     * 生成 nginx server block 配置（纯函数，产物先落地本地再上传）
      */
-    protected function generateServerBlock(array $domains, string $target, bool $ssl = false): string
+    public static function generateServerBlock(array $domains, string $target, bool $ssl = false): string
     {
         $serverName = implode(' ', $domains);
         $primaryDomain = $domains[0];
@@ -411,19 +397,19 @@ NGINX;
     /**
      * 为域名申请 SSL 证书并启用 HTTPS
      */
-    public function enableSSL(string $projectName, array $domains, string $projectPath, string $email, ?int $nginxPort = null): void
+    public function enableSSL(string $projectName, array $domains, string $projectPath, string $email, ?int $nginxPort = null): bool
     {
         $primaryDomain = $domains[0] ?? '';
         if (empty($primaryDomain)) {
             deploy_log('未配置域名，跳过 SSL', 'warn');
-            return;
+            return false;
         }
 
         // 检查 certbot 是否安装
         $certbotInstalled = $this->checkInstalled('certbot');
         if (!$certbotInstalled) {
             deploy_log('certbot 未安装，请先安装: apt install certbot', 'error');
-            return;
+            return false;
         }
 
         deploy_log("=== 申请 SSL 证书: {$primaryDomain} ===", 'step');
@@ -447,16 +433,20 @@ NGINX;
             "ln -sf /etc/letsencrypt/live/{$primaryDomain}/privkey.pem /etc/nginx/ssl/{$primaryDomain}.key"
         );
 
-        // 4. 重新生成含 SSL 的 server block
+        // 4. 重新生成含 SSL 的 server block：先更新本地事实源，再上传
         $target = '127.0.0.1:' . ($nginxPort ?: 8071);
-        $configContent = $this->generateServerBlock($domains, $target, true);
-        $remoteFile = $this->configDir . '/' . $projectName . '.conf';
-        $this->ssh->exec('mkdir -p ' . dirname($remoteFile), false);
-        $this->ssh->uploadContent($configContent, $remoteFile);
-        deploy_log("配置已上传: {$remoteFile}", 'ok');
+        $configContent = self::generateServerBlock($domains, $target, true);
+        $localFile = deploy_base_path() . '/projects/' . $projectName . '/nginx/' . $projectName . '.conf';
+        $localDir = dirname($localFile);
+        if (!is_dir($localDir)) {
+            mkdir($localDir, 0755, true);
+        }
+        file_put_contents($localFile, $configContent);
+        deploy_log("本地配置已更新: {$localFile}", 'ok');
 
-        $this->reload();
+        $this->uploadConf($projectName, $configContent);
 
         deploy_log("=== SSL 配置完成: {$primaryDomain} ===", 'ok');
+        return true;
     }
 }
