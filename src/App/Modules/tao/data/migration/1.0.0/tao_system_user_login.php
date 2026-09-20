@@ -7,9 +7,9 @@ use Phalcon\Db\Reference;
 use Phalcon\Migrations\Mvc\Model\Migration;
 
 /**
- * Class TaoSystemQuickMigration_100
+ * Class TaoSystemUserLoginMigration_100
  */
-class TaoSystemQuickMigration_100 extends Migration
+class TaoSystemUserLoginMigration_100 extends Migration
 {
     /**
      * Define the table structure
@@ -19,12 +19,12 @@ class TaoSystemQuickMigration_100 extends Migration
      */
     public function morph(): void
     {
-        $this->morphTable('tao_system_quick', [
+        $this->morphTable('tao_system_user_login', [
             'columns' => [
                 new Column(
                     'id',
                     [
-                        'type' => Column::TYPE_BIGINTEGER,
+                        'type' => Column::TYPE_INTEGER,
                         'unsigned' => true,
                         'notNull' => true,
                         'autoIncrement' => true,
@@ -40,75 +40,62 @@ class TaoSystemQuickMigration_100 extends Migration
                         'unsigned' => true,
                         'notNull' => true,
                         'size' => 1,
+                        'comment' => "用户ID",
                         'after' => 'id'
                     ]
                 ),
                 new Column(
-                    'title',
+                    'token',
                     [
                         'type' => Column::TYPE_VARCHAR,
-                        'default' => "",
                         'notNull' => true,
-                        'size' => 20,
-                        'comment' => "快捷入口名称",
+                        'size' => 100,
+                        'comment' => "登录token",
                         'after' => 'user_id'
                     ]
                 ),
                 new Column(
-                    'icon',
+                    'secret',
                     [
                         'type' => Column::TYPE_VARCHAR,
                         'default' => "",
                         'notNull' => true,
-                        'size' => 100,
-                        'comment' => "图标",
-                        'after' => 'title'
+                        'size' => 50,
+                        'comment' => "签名密钥",
+                        'after' => 'token'
                     ]
                 ),
                 new Column(
-                    'href',
+                    'kind',
+                    [
+                        'type' => Column::TYPE_VARCHAR,
+                        'default' => "app",
+                        'notNull' => true,
+                        'size' => 20,
+                        'comment' => "类型(app/web)",
+                        'after' => 'secret'
+                    ]
+                ),
+                new Column(
+                    'ip',
                     [
                         'type' => Column::TYPE_VARCHAR,
                         'default' => "",
                         'notNull' => true,
-                        'size' => 255,
-                        'comment' => "快捷链接",
-                        'after' => 'icon'
+                        'size' => 50,
+                        'comment' => "登录IP",
+                        'after' => 'kind'
                     ]
                 ),
                 new Column(
-                    'sort',
-                    [
-                        'type' => Column::TYPE_INTEGER,
-                        'default' => "0",
-                        'unsigned' => true,
-                        'notNull' => true,
-                        'size' => 1,
-                        'comment' => "排序",
-                        'after' => 'href'
-                    ]
-                ),
-                new Column(
-                    'status',
-                    [
-                        'type' => Column::TYPE_TINYINTEGER,
-                        'default' => "1",
-                        'unsigned' => true,
-                        'notNull' => true,
-                        'size' => 1,
-                        'comment' => "状态(0禁用,1启用)",
-                        'after' => 'sort'
-                    ]
-                ),
-                new Column(
-                    'remark',
+                    'useragent',
                     [
                         'type' => Column::TYPE_VARCHAR,
                         'default' => "",
                         'notNull' => true,
                         'size' => 255,
-                        'comment' => "备注说明",
-                        'after' => 'status'
+                        'comment' => "客户端信息",
+                        'after' => 'ip'
                     ]
                 ),
                 new Column(
@@ -120,7 +107,7 @@ class TaoSystemQuickMigration_100 extends Migration
                         'notNull' => true,
                         'size' => 1,
                         'comment' => "创建时间",
-                        'after' => 'remark'
+                        'after' => 'useragent'
                     ]
                 ),
                 new Column(
@@ -135,16 +122,6 @@ class TaoSystemQuickMigration_100 extends Migration
                         'after' => 'created_at'
                     ]
                 ),
-                new Column(
-                    'deleted_at',
-                    [
-                        'type' => Column::TYPE_INTEGER,
-                        'notNull' => false,
-                        'size' => 1,
-                        'comment' => "删除时间",
-                        'after' => 'updated_at'
-                    ]
-                ),
             ],
             'indexes' => [
                 new Index('PRIMARY', ['id'], 'PRIMARY'),
@@ -155,7 +132,7 @@ class TaoSystemQuickMigration_100 extends Migration
                 'AUTO_INCREMENT' => '1',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
-                'TABLE_COMMENT' => '系统快捷入口表',
+                'TABLE_COMMENT' => '用户登录记录',
             ],
         ]);
     }

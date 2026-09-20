@@ -76,6 +76,10 @@ class MigrationHelper
 
             $dbConfig = $this->resolveDbConfig($params['config'] ?? null, 'generate', !empty($params['skip']));
 
+            // 重置 phalcon-migrations 的静态存储（self::$storage），否则同一进程内
+            // 处理多个 scope 时，第二个 scope 会沿用第一个 scope 的追踪位置（.phalcon/migration-version
+            // 或 phalcon_migrations 表），导致后续模块被误判为「已执行」而整模块跳过。
+            Migrations::resetStorage();
             ob_start();
             Migrations::generate([
                 'directory' => $migrationsDir,
@@ -83,7 +87,7 @@ class MigrationHelper
                 'tableName' => $tableName,
                 'exportDataFromTables' => $exportDataFromTables,
                 'exportData' => $restoreDataMethod,
-                'version' => $params['version'] ?? null,
+                'version' => $params['version'] ?? $sc['version'] ?? null,
                 'force' => !empty($params['force']),
                 'tsBased' => $tsBased,
                 'noAutoIncrement' => !empty($params['no_auto_increment']),
@@ -118,6 +122,7 @@ class MigrationHelper
             $tsBased       = false;
             $dbConfig      = $this->resolveDbConfig($params['config'] ?? null, 'run', !empty($params['skip']));
 
+            Migrations::resetStorage();
             ob_start();
             Migrations::run([
                 'directory' => $migrationsDir,
@@ -159,6 +164,7 @@ class MigrationHelper
             $tablePrefix   = $sc['table_prefix'] ?? '';
             $tableName     = $params['tables'] ?? ($tablePrefix ? $tablePrefix . '*' : '@');
 
+            Migrations::resetStorage();
             ob_start();
             Migrations::listAll([
                 'directory' => $migrationsDir,
@@ -226,7 +232,10 @@ class MigrationHelper
 
     /**
      * CLI 入口
-     * 支持：g/g --scope=xx / r / r --scope=xx / l / help
+     * 支持：g/g --m=xx / r / r --m=xx / l / help
+     * 以及透传参数：--config= --force --tables= --version= --skip --verbose
+     *   --skip_foreign_checks --log_in_db --datas= --data_method= --no_auto_increment
+     *   --skip_ref_schema --descr= --dry --ts_based
      */
     public function parser(array $argv): void
     {
@@ -248,11 +257,14 @@ class MigrationHelper
             return;
         }
 
+        // 收集透传参数（如 --config=xxx），否则 generate/run 会错误地回退到 migration.php 的 database
+        $options = $this->collectOptions($parser);
+
         // 路由到对应方法
         $handler = match (true) {
-            in_array($action, ['generate', 'g']) => fn(string $s) => $this->generate(['scope' => $s]),
-            in_array($action, ['run', 'r'])      => fn(string $s) => $this->run(['scope' => $s]),
-            in_array($action, ['list', 'l'])     => fn(string $s) => $this->list(['scope' => $s]),
+            in_array($action, ['generate', 'g']) => fn(string $s) => $this->generate(['scope' => $s] + $options),
+            in_array($action, ['run', 'r'])      => fn(string $s) => $this->run(['scope' => $s] + $options),
+            in_array($action, ['list', 'l'])     => fn(string $s) => $this->list(['scope' => $s] + $options),
             default => null,
         };
 
@@ -367,6 +379,29 @@ class MigrationHelper
             }
         }
         return $scope ?: null;
+    }
+
+    /**
+     * 从 Parser 收集需要透传给 generate/run/list 的参数
+     * （否则 --config= 等选项会被静默丢弃，generate 错误回退到 migration.php 的 database）
+     *
+     * @return array
+     */
+    private function collectOptions(Parser $parser): array
+    {
+        $keys = [
+            'config', 'force', 'tables', 'datas', 'data_method', 'version',
+            'skip', 'log_in_db', 'verbose', 'skip_foreign_checks',
+            'no_auto_increment', 'skip_ref_schema', 'descr', 'dry', 'ts_based',
+        ];
+        $options = [];
+        foreach ($keys as $key) {
+            $val = $parser->get($key);
+            if ($val !== null && $val !== false) {
+                $options[$key] = $val;
+            }
+        }
+        return $options;
     }
 
     /**

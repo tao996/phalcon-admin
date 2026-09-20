@@ -10,6 +10,10 @@ return [
     // 以下表的初始数据随迁移一起导出和还原
     'export' => [
         'tao_cms_page' => 'always',
+        // 存在关联关系
+        'tao_cms_content' => 'always',
+
+
         'tao_open_config' => 'always',
         'tao_system_config' => 'always',
         'tao_system_menu' => 'always',

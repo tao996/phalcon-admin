@@ -115,9 +115,10 @@ class TaoSystemConfigMigration_100 extends Migration
             ],
             'options' => [
                 'TABLE_TYPE' => 'BASE TABLE',
-                'AUTO_INCREMENT' => '75',
+                'AUTO_INCREMENT' => '1',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
+                'TABLE_COMMENT' => '系统配置表',
             ],
         ]);
     }

@@ -219,6 +219,7 @@ class TaoOpenUserOpenidMigration_100 extends Migration
                 'AUTO_INCREMENT' => '1',
                 'ENGINE' => 'InnoDB',
                 'TABLE_COLLATION' => 'utf8mb4_0900_ai_ci',
+                'TABLE_COMMENT' => '',
             ],
         ]);
     }
