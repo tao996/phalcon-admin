@@ -40,7 +40,6 @@
  *   ts_based   时间戳版本号（true/false）
  *   order      执行顺序声明（scope 键或模块名），tao 为基础模块务必排最前；
  *              未列出的 scope 按 scope 键排序追加
- *   scopes     （向后兼容）旧式集中注册，优先级高于自动发现，不再推荐
  */
 
 return [

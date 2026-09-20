@@ -185,31 +185,37 @@ class MigrationHelper
     {
         $text = '';
         $text .= 'Migration — 数据库迁移工具' . PHP_EOL;
-        $text .= '  php artisan migration <action> [--scope=xxx]' . PHP_EOL . PHP_EOL;
+        $text .= '  php artisan migration <action> [--m=模块名 | --p=项目名]' . PHP_EOL . PHP_EOL;
 
         $text .= 'Actions:' . PHP_EOL;
-        $text .= '  g | generate              生成全部 scope 的迁移文件' . PHP_EOL;
-        $text .= '  g --scope=xxx             生成指定 scope 的迁移文件' . PHP_EOL;
-        $text .= '  r | run                   运行全部 scope 的迁移' . PHP_EOL;
-        $text .= '  r --scope=xxx             运行指定 scope 的迁移' . PHP_EOL;
-        $text .= '  l | list                  列出全部 scope 的迁移' . PHP_EOL;
+        $text .= '  g                         生成全部 scope 的迁移文件' . PHP_EOL;
+        $text .= '  g --m=xxx                 生成指定模块（ scope=module:xxx）的迁移文件' . PHP_EOL;
+        $text .= '  g --p=xxx                 生成指定项目（ scope=project:xxx）的迁移文件' . PHP_EOL;
+        $text .= '  r                         运行全部 scope 的迁移' . PHP_EOL;
+        $text .= '  r --m=xxx                 运行指定模块的迁移' . PHP_EOL;
+        $text .= '  l                         列出全部 scope 的迁移' . PHP_EOL;
         $text .= '  help | h                  显示此帮助' . PHP_EOL . PHP_EOL;
 
-        $text .= 'Scopes（全局 scopes 注册 + 自动发现 Modules/Projects 下的 config/migration.php）：' . PHP_EOL;
+        $text .= '配置自动发现于各模块/项目的 config/migration.php：' . PHP_EOL;
+        $text .= '  App/Modules/<名称>/config/migration.php  → scope "module:<名称>"' . PHP_EOL;
+        $text .= '  App/Projects/<名称>/config/migration.php → scope "project:<名称>"' . PHP_EOL;
+        $text .= '  （文件存在即参与迁移，directory 默认 App/<类型>/<名称>/data/migration）' . PHP_EOL . PHP_EOL;
+
         if (!empty($this->scopes)) {
+            $text .= '当前已发现的 scope：' . PHP_EOL;
             $maxLen = max(array_map('strlen', array_keys($this->scopes)));
             foreach ($this->scopes as $key => $sc) {
                 $dir = $sc['directory'] ?? '';
                 $text .= '  ' . str_pad($key, $maxLen + 2) . $dir . PHP_EOL;
             }
         } else {
-            $text .= '  （无）' . PHP_EOL;
+            $text .= '  当前未发现任何迁移配置，请在模块/项目的 config/migration.php 中添加（如 App/Modules/<名称>/config/migration.php）。' . PHP_EOL;
         }
         $text .= PHP_EOL;
 
         $text .= 'Examples:' . PHP_EOL;
         $text .= '  php artisan migration g                    # 生成所有 scope' . PHP_EOL;
-        $text .= '  php artisan migration g --scope=module:demo # 仅生成 demo' . PHP_EOL;
+        $text .= '  php artisan migration g --m=demo           # 仅生成 demo 模块（= module:demo）' . PHP_EOL;
         $text .= '  php artisan migration r                    # 运行所有迁移' . PHP_EOL;
         $text .= '  php artisan migration l                    # 列出所有迁移' . PHP_EOL;
 
@@ -238,7 +244,7 @@ class MigrationHelper
         $scopes = $scope ? [$scope] : array_keys($this->scopes);
 
         if (empty($scopes)) {
-            echo "没有配置任何 scope，请在 config/migration.php 中定义。\n";
+            echo "没有发现任何迁移配置（scope），请在模块/项目的 config/migration.php 中定义（如 App/Modules/<名称>/config/migration.php）。\n";
             return;
         }
 
@@ -291,11 +297,9 @@ class MigrationHelper
 
     /**
      * 读取 scope 列表：
-     *   1. 全局配置 scopes（旧式集中注册，向后兼容，优先级最高）
-     *   2. 自动发现 App/Modules/<名称>/config/migration.php 与
+     *   1. 自动发现 App/Modules/<名称>/config/migration.php 与
      *      App/Projects/<名称>/config/migration.php（存在即参与迁移，directory 按约定推导可覆盖）
-     *      （文件存在即参与迁移，directory 按约定推导，可覆盖）
-     *   3. 排序：全局 order 列表（scope 键或模块名，如 ['module:tao'] / ['tao']）排最前，
+     *   2. 排序：全局 order 列表（scope 键或模块名，如 ['module:tao'] / ['tao']）排最前，
      *      其余按 scope 键排序；table_prefix 冲突直接抛错（同一前缀被多个 scope 管理）
      */
     private function loadScopes(): array

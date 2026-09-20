@@ -111,3 +111,7 @@ phalcon-admin/
 |-- toolkit/                        # files for admin
 |-- admin                           # a tool to help manage phalcon-admin project, `php admin` to see the help
 ```
+
+### 相关文档
+
+- [Migration 说明](migration.md) — 数据库结构迁移（scope 模块自治）与基础数据（db:seed）机制
