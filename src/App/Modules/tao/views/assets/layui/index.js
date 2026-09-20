@@ -949,6 +949,7 @@ const admin = {
         // 更新父菜单
         updateParentMenu: function () {
             try {
+                console.log('notify parent update menu');
                 parent.notifyUpdateMenu();
             } catch (err) {
                 console.log('parent iframe not find, update menu failed');

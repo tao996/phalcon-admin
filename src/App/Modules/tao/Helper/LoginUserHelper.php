@@ -177,7 +177,9 @@ class LoginUserHelper
             $menu['href'] = MenuService::href($menu['href'], $menu['type'], $menu['params']);
         }
         if (!empty($menu['child'])) {
-            $menu['child'] = array_map(fn($c) => $this->processMenuHref($c), $menu['child']);
+            // 用 array_values 重排为连续索引数组，确保 json_encode 产出 JSON 数组（而非以菜单 id 为键的对象），
+            // 否则前端 notifyUpdateMenu() 中 child.length / child.map 判断会失效，导致子菜单丢失。
+            $menu['child'] = array_values(array_map(fn($c) => $this->processMenuHref($c), $menu['child']));
         }
         return $menu;
     }

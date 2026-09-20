@@ -101,6 +101,7 @@ $vv->layui()->addWindowConfig([])->footer();
     admin.table.with({
         url: prefix,
         rowAction: function (name, data) {
+            console.log('操作:', name, data)
             if (name == 'modify') {
                 // 修改其它一些属性
             } else {
@@ -161,6 +162,7 @@ $vv->layui()->addWindowConfig([])->footer();
      * 更新父级菜单
      */
     function triggerUpdateMenu() {
+        console.log('刷新父级菜单')
         admin.iframe.updateParentMenu();
     }
 </script>

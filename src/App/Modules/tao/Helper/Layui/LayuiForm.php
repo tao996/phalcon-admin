@@ -125,7 +125,7 @@ class LayuiForm
             return $k . '="' . $v . '"';
         }, array_keys($attrs), $attrs)) : '';
 
-        $groupPs = $this->wrapPrefixSuffix('<input lay-affix="clear" ' . $this->layVerifyRequired($required) . ' type="' . $type . '" name="' . $name . '" class="layui-input ' . $class . '"
+        $groupPs = $this->wrapPrefixSuffix('<input lay-affix="clear" ' . $this->layVerifyRequired($required) . ' type="' . $type . '" id="'.$name.'" name="' . $name . '" class="layui-input ' . $class . '"
                    value="' . $value . '"
                    placeholder="' . $placeholder . '" ' . $attrsText . '>', $prefix, $subfix);
         return $this->wrapFormItem($this->wrapFormLabel($title, $required) . '<div class="' . $inputClass . '">' . $groupPs . '

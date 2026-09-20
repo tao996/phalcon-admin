@@ -435,7 +435,7 @@ function notifyUpdateMenu() {
     // 拼接菜单
     admin.ajax.get({}, function (res) {
         const mTree = res.data.menuTree;
-        const data = tabsCache.read();
+        // const data = tabsCache.read();
         const menuId = tabs.tmpMenuId;
 
         document.getElementById('menuTree').innerHTML = mTree.map(function (m1, index1) {
