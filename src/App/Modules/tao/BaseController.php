@@ -215,7 +215,7 @@ class BaseController extends BaseRbacController
             if ($data) {
                 $this->model->assign($data);
             }
-            $this->beforeModelSave();
+            $this->beforeModelSave(true);
 
             \Phax\Db\Transaction::db(function () use ($data) {
                 if (!$this->model->save()) {
@@ -260,7 +260,7 @@ class BaseController extends BaseRbacController
             if ($data) {
                 $this->model->assign($data);
             }
-            $this->beforeModelSave();
+            $this->beforeModelSave(false);
             \Phax\Db\Transaction::db(function () use ($data) {
                 if (!$this->model->save()) {
                     throw new LogException('更新模型数据失败', [
@@ -342,7 +342,7 @@ class BaseController extends BaseRbacController
      * 在模型保存到数据库之前 `$this->model->save()` 时调用
      * @return void
      */
-    protected function beforeModelSave(): void
+    protected function beforeModelSave(bool $add): void
     {
     }
 

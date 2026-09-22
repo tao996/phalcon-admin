@@ -52,7 +52,7 @@ class AppController extends BaseController
         return $data;
     }
 
-    protected function beforeModelSave(): void
+    protected function beforeModelSave(bool $add): void
     {
         if ($this->model->getQueryBuilder($this->getDI())
             ->where('appid', $this->model->appid)
