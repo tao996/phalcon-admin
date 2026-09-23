@@ -43,7 +43,7 @@ class Car extends BaseYiheModel   // BaseYiheModel extends Phax\Mvc\Model
 - 单价、比例等业务常量放模型（如 `CAR_SILT_PRICE` / `CAR_OTHER_PRICE`），供 `TripService` 之类的服务层引用。
 - **对外标识与内部主键分离**（只对"有外部调用方"的表，如课件发布物）：内部 `id`（int 自增，后台 CRUD 与关联用）＋
   对外 `uuid`（不可猜测，外部接口/下载地址只暴露它）。可让 uuid 内嵌 id 以便 O(1) 解析
-  （范本 `worksheet/Services/AsgId.php`，形如 `asg-20260922-ab12-7`，末段是 id 的 36 进制）；
+  （范本 `worksheet/Services/AsgIdService.php`，形如 `asg-20260922-ab12-7`，末段是 id 的 36 进制）；
   **关联表/流水表存 uuid**（如 `worksheet_assignment_version.assignment_id`），删除前先把 id 映射成 uuid 再级联
   （见 `Controllers/admin/AssignmentController::beforeDeleteQuery()` + `afterBatchDelete()`）。
 
@@ -93,29 +93,71 @@ class CarController extends BaseController
 
 ### 2.1 对外接口（App / 小程序）的基类与鉴权约定
 
-公开 JSON 接口的基类应**继承 tao 的 `BaseResponseController`**（需要会话时用 `BaseRbacController`），
-而不是再写一套 `success/error/body/sessionUserId`（反例：`worksheet/WorksheetBaseController` 早期版本）：
+公开 JSON 接口的基类应**继承 tao 的 `BaseController`**（`→ BaseRbacController` → `BaseResponseController`），
+用**声明式**访问控制，而不是在每个 action 里写 `if (!$this->allowWrite()) { return $this->error('unauthorized', 401); }`：
 
+| 声明 | 含义 |
+|---|---|
+| `$openActions = '*'` 或 `['action1','action2']` | **匿名可访问**（App 读接口） |
+| **不进** `$openActions` + `$userActions = '*'` | **登录即可**（不需后台节点授权）；未登录由 `rbacInitialize()` 统一拒绝：`{code:303,msg:'您还没有登录'}`（`AppService::echoJsonData()` 内 `exit`） |
+| `$disableUpdateActions = true` | `add/edit/modify/delete` 一律不可访问（对外接口没有后台 CRUD） |
+
+- 业务级权限（如"作者被禁用制作权限"）**就近放在真的需要它的控制器的 `afterInitialize()`**，action 内只留数据级校验（记录归属）：
+  ```php
+  protected function afterInitialize(): void   // tao BaseController::initialize() 在 rbacInitialize() 之后调用它
+  {
+      // 本控制器 $userActions='*' ⇒ 登录已保证，可直接取 loginUser()
+      if (!AsgReviewService::authorAllowed((int)$this->loginUser()->id)) {
+          AppService::echoJsonData($this->error('author_disabled', 403));
+      }
+  }
+  ```
+  **不要**为此覆写基类的 `initialize()`：公共基类保持"零权限/零响应覆写"，闸门放控制器
+  （范本：`worksheet/Controllers/AssignmentController.php` 作者侧链路、`Controllers/PublishController.php` 发布）。
+- **权限判断不要写在 `beforeExecuteRoute()`**（重要，踩过）：本框架调用顺序是 `beforeExecuteRoute()` →
+  `initialize()` → `afterInitialize()`，在那里 `$this->action` 还是默认值 `index`（open/闭判定必然错），
+  而且一旦提前 `AppService::echoJsonData()`（内部 `exit`）就会**跳过整个 `initialize()`** —— 连 `rbacInitialize()`
+  的登录校验都不会执行（症状：该返回 303 的接口返回了 403，或校验被绕过）。业务闸门放 `afterInitialize()`。
 - 响应签名全项目统一 `success(string $msg, mixed $data = null)` / `error($msg, $code = 500)`。
   子类改参数顺序（`success($data, $msg)`）与父类**签名不兼容**（PHP fatal，`php -l` 查不出）；
   写在继承 tao 基类的控制器里也会因「array 传给 string」在运行时报 `TypeError`。
 - JSON body / `?data=jsonbody` 解析、`isLogin()` / `loginUser()` 都由基类提供：
   用 `$this->requestData`，不要自己 `json_decode(getRawBody())`。
-- **不要调用 `rbacInitialize()`**（那是后台登录 / RBAC 闸门）；本类接口读操作保持匿名，
-  写操作逐 action 用 `authorizeWrite()` 把关。
-- **写入鉴权只用后台会话，不要自建密钥体系**：外部客户端（工作室）与后台同源，浏览器自动带 cookie，
-  鉴权就是 `$this->userId = $this->sessionUserId(); return $this->userId > 0;`。
+- **写入鉴权只用后台会话，不要自建密钥体系**：外部客户端（工作室）与后台同源，浏览器自动带 cookie。
   worksheet 曾有一套 `worksheet_api_key` 表 + 后台「API Key」页面 + `X-Api-Key`/`WORKSHEET_API_KEY` 兜底，
   已全部删除（表没进建表 SQL、只有测试脚本用，属于纯负担）。
 - **取"当前登录用户"要区分两种语义**：`loginUser()` 内部是 `LoginUserHelper::user()`，**未登录时抛 `BusinessException`**，
-  只能用在已登录分支；"未登录返回 0"必须用 `LoginUserHelper::userId()`，且要先 `tryGetLoginAuth()`
-  初始化适配器（基类有 `$hasCheckLogin` 缓存）。范本见 worksheet 的 `sessionUserId()` 注释。
-- 二进制下载：`$this->autoResponse = false` + `$this->response->setContent(...)`（框架在请求结束时发送），
-  并且**必须**在 `executeRouteResponseData()` 里先判断 `autoResponse`，否则基类会因请求带 JSON `Content-Type`
-  而走 json 分支，在包体前追加一段 JSON（worksheet 的守卫即为此加）。
+  只能用在已登录分支（`$userActions='*'` 的控制器在 `afterInitialize()` / action 内可直接用 `$this->loginUser()->id`）；
+  匿名 action 要"未登录返回 0"就用 `isLogin()` 短路（它内部 `try/catch` 返回 false，且会先 `tryGetLoginAuth()` 初始化适配器）：
+  `$uid = $this->isLogin() ? (int)$this->loginUser()->id : 0;`。
+- 二进制下载：`$this->autoResponse = false` + `$this->jsonResponse = false` + `$this->response->setContent(...)`，
+  由框架在请求结束时统一 `send()`。**两个标志都要设**（`autoResponse` 单独设不够）：`BaseResponseController`
+  先判 `jsonResponse` 再判 `autoResponse`，请求带 JSON `Content-Type`（或 `?data=jsonbody`）时 `jsonResponse=true`，
+  包体会被当普通返回值再 `echo` 一段 JSON 并覆盖 Content-Type。**不要**为此覆写 `executeRouteResponseData()`，
+  在 `stream()` 这类输出方法里声明响应格式即可（范本：worksheet 的 `stream()`）。
 
-范本：`worksheet/WorksheetBaseController.php`（继承 `tao\BaseRbacController`，只留模块专用的会话鉴权、
-包体读取、二进制输出与 CORS；**不调用 `rbacInitialize()`**）。
+范本：`worksheet/WorksheetBaseController.php`（继承 `tao\BaseController`：`$openActions`/`$userActions` 声明矩阵 +
+模块专用的包体读取、二进制输出与 CORS；**不覆写** `initialize()` 与响应方法）。
+
+### 2.2 服务层 `Services/`
+
+- **文件名与类名一律以 `Service` 结尾**（`AsgReviewService` / `WorksheetStoreService` / `GradingService` / `AiGraderService`），
+  一个文件一个服务；不要 `Helper`、不要无后缀。
+- **方法一律 `static`**：服务不是实例状态的容器 —— DB 走 `AppService::getShared('db')`、配置走 `ConfigService`/
+  `getenv()`、路径由 `__DIR__` 推导。控制器里**不要** `new XxxService()`，更不要缓存实例
+  （反例：早期 worksheet 基类那种 `private ?XxxService $s = null; protected function store() { return $this->s ??= new XxxService(); }` 的实例缓存）。
+- **确需注入（可替换实现 / 需要构造参数 / 便于测试）时**用"静态门面 + 惰性 DI"，仿 `tao/TaoAppService`：
+  ```php
+  class WorksheetAppService
+  {
+      public static function store(): WorksheetStoreService
+      {
+          return AppService::getLazyService('worksheet.store', fn() => new WorksheetStoreService(/* 或其它实现 */));
+      }
+  }
+  ```
+  调用处仍是 `WorksheetAppService::store()->xxx()` 这类静态写法，但实例由容器提供、可被替换。
+- 纯函数（判分、字典、标识编解码）都应收在服务里，控制器只做参数校验与响应组装。
 
 > **改基类/覆写方法后必须真正加载一次类**：`php -l` 只查语法，不查继承签名与属性兼容
 > （少一个 `use`、覆写签名不兼容、引用了已删除的属性，都只在类加载时 fatal）。两个便宜的检查：
@@ -276,7 +318,7 @@ include __DIR__ . '/edit.phtml';
 - **控制器**：`indexAction/editAction/deleteAction` 与全部钩子全部回到基类（int 主键天然可用，**无任何 ID 解析覆写**），
   只保留 `actionQuery()`（`title`/`uuid` 搜索、补 `status=0` 草稿）、`beforeDeleteQuery()` + `afterBatchDelete()`
   （把 id 映射成 uuid 后级联删版本表）；`$disableActions = ['add']`，因为发布物由 studio 发布产生。
-- **对外接口**：`AssignmentController::registerAction()` 由后台签发 uuid（`Services\AsgId`：
+- **对外接口**：`AssignmentController::registerAction()` 由后台签发 uuid（`Services\AsgIdService`：
   `asg-<YYYYMMDD>-<rand4>-<id36>`，末段即内部自增主键，服务端可 O(1) 解析）；
   `PublishController` 用解析出的 id 定位并热更新元数据（`WHERE id=? AND uuid=?` 双条件），
   `PackageController` 按 uuid 查询与 join（`v.assignment_id = a.uuid`），返回给 App 的 `assignment_id` / `download_url` 均为 uuid。

@@ -109,7 +109,7 @@ class LoginUserHelper
     }
 
     /**
-     * 是否在指定角色中
+     * 是否在指定角色中 in one
      * @param array $roles 支持字符串（角色名）数组或角色ID
      * @return bool
      */

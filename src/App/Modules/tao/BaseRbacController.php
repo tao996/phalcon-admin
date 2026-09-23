@@ -52,7 +52,8 @@ class BaseRbacController extends BaseResponseController
     protected array|string $openActions = [];
 
     /**
-     * 其它节点所能够访问的角色
+     * 访问其它节点时，用户必须拥有的角色名称列表；
+     * 当用户持有任一角色(in one)时，即可访问
      * @var array
      */
     protected array $otherActionRoles = [];
@@ -68,7 +69,7 @@ class BaseRbacController extends BaseResponseController
     public array $disableActions = [];
 
     /**
-     * 是否禁用 add/edit/modify/delete 操作
+     * 是否禁用 add/edit/modify/delete 操作，即禁用　$updateActions　列表操作
      * @var bool
      */
     public bool $disableUpdateActions = false;
