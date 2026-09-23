@@ -48,11 +48,18 @@ class BaseController extends BaseRbacController
      * @var bool 是否支持批量删除
      */
     protected bool $allowBatchDelete = false;
+    /**
+     * @var string 初始化 model 的类名
+     */
+    protected string $modelClassName = '';
 
     public function initialize(): void
     {
         parent::initialize();
         parent::rbacInitialize();
+        if ($this->modelClassName !== '' && class_exists($this->modelClassName)){
+            $this->model = new $this->modelClassName;
+        }
         $this->afterInitialize();
     }
 

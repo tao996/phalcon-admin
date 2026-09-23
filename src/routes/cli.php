@@ -15,6 +15,9 @@ use \Phax\Foundation\CliRouter;
  *
  * # 在指定文件内，只跑 testPostData 方法
  * ./vendor/bin/phpunit --filter testPostData tests/Helper/MyTestCurlTest.php
+ *
+ * # 测试指定的套件
+ * vendor/bin/phpunit --testsuite worksheet
  */
 CliRouter::add('test', function ($params) {
     system('php ' . PATH_ROOT . 'vendor/bin/phpunit --configuration ' . PATH_ROOT . 'phpunit.xml ' . join(' ', $params));
