@@ -67,6 +67,7 @@ src/public/favicon.ico
 src/App/Modules/*
 !src/App/Modules/demo
 !src/App/Modules/tao
+!src/App/Modules/AGENTS.md
 src/App/Projects/*
 !src/App/Projects/demo
 
