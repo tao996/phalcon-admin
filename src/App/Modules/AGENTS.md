@@ -295,7 +295,7 @@ include __DIR__ . '/edit.phtml';
 | 目录 | `App/Modules/{module}/tests/PHPUnit/**/{Xxx}Test.php`（namespace 与目录一致，PSR-4 `App\` → `App/`） |
 | 助手 | `App\Modules\tao\tests\Helper\MyTestTaoHttpHelper`（继承 `Tests\Helper\MyTestHttpHelper`） |
 | 测试目标 | **真实运行的后台**：`TEST_ORIGIN`（`src/tests/bootstrap.php`，默认 `http://localhost:8071`），不是进程内 mock |
-| 注册 testsuite | 在 `src/phpunit.example.xml` 里加一行 `<testsuite name="{module}"><directory>App/Modules/{module}/tests/PHPUnit</directory></testsuite>` |
+| 注册 testsuite | 加在**本地 `src/phpunit.xml`**（该文件已被 .gitignore，各人自持；`phpunit.example.xml` 只作模板，不加模块条目）：`<testsuite name="{module}"><directory>App/Modules/{module}/tests/PHPUnit</directory></testsuite>`（参照已有的 `test-module` / `worksheet` / 注释掉的 `yihe`） |
 | 运行 | `cd src` → `cp phpunit.example.xml phpunit.xml`（首次；`phpunit.xml` 已被 .gitignore）→ **`php artisan test --testsuite worksheet`**（等价 `vendor/bin/phpunit --testsuite worksheet`；`artisan test` 走 `src/routes/cli.php` 的 `test` 命令转发参数） |
 | 只看用例（不跑） | `vendor/bin/phpunit --bootstrap tests/bootstrap.php --no-configuration --list-tests App/Modules/{module}/tests/PHPUnit` —— 不需要后台在跑，用来验证命名空间 / 自动加载 / `#[Depends]` 链 |
 | 前置 | 后台已启动；`app.test.open = true`（`config.php`），否则 `->login()` 不生效；**表结构迁移已执行**（见模块文档的「迁移」，如 `worksheet/docs/assignment-lifecycle.md` §9），否则会出现 1267 / 1366 那类错 |
