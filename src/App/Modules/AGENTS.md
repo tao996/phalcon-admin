@@ -3,7 +3,7 @@
 本文件约束 `src/App/Modules/{demo,tao,yihe,worksheet}` 下**模型 / 控制器 / 视图**的写法，
 以及**对外接口的基类与鉴权约定（§2.1）**、**接口测试（§6）**。
 **范本：`yihe/Car`**（`Models/Car.php`、`Controllers/CarController.php`、`views/layui/car/{index,edit,add}.phtml`）。
-**反例：`worksheet/Controllers/admin/AssignmentController.php`**（见第 5 节）；**接口测试见第 6 节**。
+**数据访问：ORM 优先（见 §5）**；**接口测试见第 6 节**。
 
 运行命令都在 `src/` 下执行；`src/App/Modules/*` 被 .gitignore 忽略，改动不会出现在 `git status`。
 
@@ -21,31 +21,46 @@
 ## 1. 模型 `Models/`
 
 ```php
-class Car extends BaseYiheModel   // BaseYiheModel extends Phax\Mvc\Model
+use Phax\Mvc\Model;
+
+class BaseYiheModel extends Model
 {
+    protected string $tablePrefix = 'yihe_'; // 表名前缀
+
+    public int $id = 0;
+    public int $created_at = 0; // int(11) default 0 unsigned
+    public int $updated_at = 0;
+    public int|null $deleted_at = null;
+}
+
+class Car extends BaseYiheModel
+{
+    // protected string $table = 'yihe_car'; // 手动指定表名或由系统自行推导
+    
     public string $no = '';        // 强类型 + @var 注释 + 默认值
     public int $type = 0;
     public array $bool2IntColumns = ['status'];
     public array $intColumns = ['type', 'driver_id'];
     public array $floatColumns = ['processing_amount'];
 
-    public const int TYPE_SILT_TRUCK = 1;
     public const array MAP_TYPE = [self::TYPE_SILT_TRUCK => '淤泥车', /* ... */];
+    // 模型使用到的其它常量
+    public const int TYPE_SILT_TRUCK = 1;
     public const float CAR_SILT_PRICE = 160;
 }
 ```
 
-- **继承模块基类模型**（`BaseYiheModel` 提供 `tablePrefix='yihe_'` 与 `id/created_at/updated_at/deleted_at`）；新模型**不要**重复声明这些通用字段，也不要手写表名，`yihe_car` 由前缀 + 类名推导。
+- **继承模块基类模型**（`BaseYiheModel` 提供 `tablePrefix='yihe_'` 与 `id/created_at/updated_at/deleted_at`）；新模型**不要**重复声明这些通用字段，`yihe_car` 可由前缀 + 类名推导。
 - 每个字段都要：PHP 强类型、`@var` 注释（含中文业务含义）、**给默认值**（`= ''` / `= 0` / `= null` 配 `int|null`，否则 `assign` 会抛 `Cannot assign null to property`）。
 - 类型转换**用声明数组**：`intColumns` / `floatColumns` / `bool2IntColumns` / `nullColumns`。
   它们由 `BaseController::beforeModelAssign()` 与 `Model::getAssignData()` 自动消费，**控制器里不要再手写 `(int)`/`(float)`**。
 - 枚举与字典用 `const` + `MAP_*` 数组（`MAP_TYPE`），视图与控制器**共用同一份字典**（视图 `json_encode(Car::MAP_TYPE)`），禁止前端硬编码中文。
 - 单价、比例等业务常量放模型（如 `CAR_SILT_PRICE` / `CAR_OTHER_PRICE`），供 `TripService` 之类的服务层引用。
-- **对外标识与内部主键分离**（只对"有外部调用方"的表，如课件发布物）：内部 `id`（int 自增，后台 CRUD 与关联用）＋
+- **对外标识与内部主键分离**（只对"有外部调用方"的表，如课件工作区）：内部 `id`（int 自增，**关联表与后台 CRUD 都用它**）＋
   对外 `uuid`（不可猜测，外部接口/下载地址只暴露它）。可让 uuid 内嵌 id 以便 O(1) 解析
-  （范本 `worksheet/Services/AsgIdService.php`，形如 `asg-20260922-ab12-7`，末段是 id 的 36 进制）；
-  **关联表/流水表存 uuid**（如 `worksheet_assignment_version.assignment_id`），删除前先把 id 映射成 uuid 再级联
-  （见 `Controllers/admin/AssignmentController::beforeDeleteQuery()` + `afterBatchDelete()`）。
+  （范本 `worksheet/Services/WorksheetAssignmentService.php`，形如 `asg-20260922-ab12-7`，末段是 id 的 36 进制）；
+  **关联表存内部 id**（如 `worksheet_assignment_version.assignment_id` 是 int），`uuid` 只在**接口边界**与
+  **文件目录**里出现（范本 `WorksheetAssignmentService::getWithUuid()` / `uuidsByIds()` / `idToUuid()`）。
 
 ## 2. 控制器 `Controllers/`
 
@@ -69,7 +84,7 @@ class CarController extends BaseController
 }
 ```
 
-- 继承 `App\Modules\tao\BaseController`：`index / add / edit / delete / modify / batchChange` 已实现，含分页、事务、日志、软删除、RBAC 登录检查、`user_id` 归属校验 —— **不要重写这些 action**（例外见第 5 节）。
+- 继承 `App\Modules\tao\BaseController`：`index / add / edit / delete / modify / batchChange` 已实现，含分页、事务、日志、软删除、RBAC 登录检查、`user_id` 归属校验 —— **不要重写这些 action**（确需自建查询时的判断标准见 §5）。
 - 类注释必须写 `@property`，供 IDE 与静态分析推断 `$this->model`。
 - 权限：类级 `#[RBAC(title: '车辆管理')]`；需要独立授权的动作再单独加 `#[RBAC(title: '车辆迁移')]`。访问范围用 `$openActions`（公开）/`$userActions`（登录即可）/`$superAdminActions`（超管），语义见 `BaseRbacController::rbacInitialize()`。
 - **只重写钩子**，不重写 CRUD 流程：
@@ -89,12 +104,14 @@ class CarController extends BaseController
 - **自定义 action** 只做「基类没提供的能力」，如 `searchAction`（远程搜索，`return $this->success('', $items)`）、`selectAction`（`return []` 渲染弹窗页）、`moveAction`（数据迁移）。
   - 需要写多张表时用 `Transaction::db(fn)` 包起来；
   - 纯 JSON 小接口（如 `tripAction`）设 `$this->jsonResponse = true;` 后直接返回数组；
-  - 成功一律 `$this->success($msg, $data)`，失败抛 `BusinessException` 或 `$this->error(...)`。
+  - 成功一律 `$this->success($msg, $data)`，失败抛 `BusinessException` 或 `$this->error(...)`；
+  - **不要在控制器里写 SQL**（`$this->db->execute()/fetchOne()/fetchAll()`、`INSERT/UPDATE/SELECT` 字面量）：
+    读写一律走模型 ORM（`Model::queryBuilder()->…->find()/findFirstModel()/update()`、`new Model()->assign($data)->save()`），
+    聚合/多表用「多次查询 + PHP 组装」，详见 §5。
 
 ### 2.1 对外接口（App / 小程序）的基类与鉴权约定
 
-公开 JSON 接口的基类应**继承 tao 的 `BaseController`**（`→ BaseRbacController` → `BaseResponseController`），
-用**声明式**访问控制，而不是在每个 action 里写 `if (!$this->allowWrite()) { return $this->error('unauthorized', 401); }`：
+公开 JSON 接口的基类应**继承 tao 的 `BaseController`**（`→ BaseRbacController` → `BaseResponseController`）：
 
 | 声明 | 含义 |
 |---|---|
@@ -112,40 +129,32 @@ class CarController extends BaseController
       }
   }
   ```
-  **不要**为此覆写基类的 `initialize()`：公共基类保持"零权限/零响应覆写"，闸门放控制器
-  （范本：`worksheet/Controllers/AssignmentController.php` 作者侧链路、`Controllers/PublishController.php` 发布）。
-- **权限判断不要写在 `beforeExecuteRoute()`**（重要，踩过）：本框架调用顺序是 `beforeExecuteRoute()` →
-  `initialize()` → `afterInitialize()`，在那里 `$this->action` 还是默认值 `index`（open/闭判定必然错），
-  而且一旦提前 `AppService::echoJsonData()`（内部 `exit`）就会**跳过整个 `initialize()`** —— 连 `rbacInitialize()`
-  的登录校验都不会执行（症状：该返回 303 的接口返回了 403，或校验被绕过）。业务闸门放 `afterInitialize()`。
 - 响应签名全项目统一 `success(string $msg, mixed $data = null)` / `error($msg, $code = 500)`。
-  子类改参数顺序（`success($data, $msg)`）与父类**签名不兼容**（PHP fatal，`php -l` 查不出）；
-  写在继承 tao 基类的控制器里也会因「array 传给 string」在运行时报 `TypeError`。
 - JSON body / `?data=jsonbody` 解析、`isLogin()` / `loginUser()` 都由基类提供：
   用 `$this->requestData`，不要自己 `json_decode(getRawBody())`。
-- **写入鉴权只用后台会话，不要自建密钥体系**：外部客户端（工作室）与后台同源，浏览器自动带 cookie。
-  worksheet 曾有一套 `worksheet_api_key` 表 + 后台「API Key」页面 + `X-Api-Key`/`WORKSHEET_API_KEY` 兜底，
-  已全部删除（表没进建表 SQL、只有测试脚本用，属于纯负担）。
 - **取"当前登录用户"要区分两种语义**：`loginUser()` 内部是 `LoginUserHelper::user()`，**未登录时抛 `BusinessException`**，
   只能用在已登录分支（`$userActions='*'` 的控制器在 `afterInitialize()` / action 内可直接用 `$this->loginUser()->id`）；
   匿名 action 要"未登录返回 0"就用 `isLogin()` 短路（它内部 `try/catch` 返回 false，且会先 `tryGetLoginAuth()` 初始化适配器）：
   `$uid = $this->isLogin() ? (int)$this->loginUser()->id : 0;`。
-- 二进制下载：`$this->autoResponse = false` + `$this->jsonResponse = false` + `$this->response->setContent(...)`，
-  由框架在请求结束时统一 `send()`。**两个标志都要设**（`autoResponse` 单独设不够）：`BaseResponseController`
-  先判 `jsonResponse` 再判 `autoResponse`，请求带 JSON `Content-Type`（或 `?data=jsonbody`）时 `jsonResponse=true`，
-  包体会被当普通返回值再 `echo` 一段 JSON 并覆盖 Content-Type。**不要**为此覆写 `executeRouteResponseData()`，
-  在 `stream()` 这类输出方法里声明响应格式即可（范本：worksheet 的 `stream()`）。
+- 二进制下载： `$this->response->setHeader(...)->setContent(...)->send();exit();`。
 
 范本：`worksheet/WorksheetBaseController.php`（继承 `tao\BaseController`：`$openActions`/`$userActions` 声明矩阵 +
 模块专用的包体读取、二进制输出与 CORS；**不覆写** `initialize()` 与响应方法）。
 
 ### 2.2 服务层 `Services/`
 
-- **文件名与类名一律以 `Service` 结尾**（`AsgReviewService` / `WorksheetStoreService` / `GradingService` / `AiGraderService`），
-  一个文件一个服务；不要 `Helper`、不要无后缀。
+- **命名**：文件名与类名一律以 `Service` 结尾，并**尽量用 `{ModelName}Service`**
+  （`WorksheetAssignmentService` / `WorksheetAssignmentReviewService` / `WorksheetStoreService`；
+  `GradingService` / `AiGraderService` 这类纯算法服务不套模型前缀），一个文件一个服务；不要 `Helper`、不要无后缀。
 - **方法一律 `static`**：服务不是实例状态的容器 —— DB 走 `AppService::getShared('db')`、配置走 `ConfigService`/
-  `getenv()`、路径由 `__DIR__` 推导。控制器里**不要** `new XxxService()`，更不要缓存实例
-  （反例：早期 worksheet 基类那种 `private ?XxxService $s = null; protected function store() { return $this->s ??= new XxxService(); }` 的实例缓存）。
+  `getenv()`、路径由 `__DIR__` 推导。控制器里**不要** `new XxxService()`，更不要在控制器里缓存服务实例
+  （直接用静态调用：`WorksheetAssignmentReviewService::xxx()`）。
+- **优先模型 ORM，不写裸 SQL**：数据访问一律 `Model::queryBuilder()->…->find()/findFirstModel()/update()` 与
+  `new Model()->assign($data)->save()`；`$db->execute()/fetchOne()/fetchAll()`、`INSERT/UPDATE/SELECT` 字面量一律不用（见 §5）。
+- **返回模型对象**：单条查询返回 `findFirstModel()` 的模型，批量返回 `findModels()`（**模型数组**，不要 `find()` 的行数组）。
+  **跨表联合数据返回 DTO**（写法仿 `yihe/Console/DTO/CustomerTableDTO`：public 强类型属性 + 构造 + `toArray()`；
+  范本 `worksheet/DTO/WorksheetAssignmentListDTO` / `WorksheetAssignmentStageDTO`），不要返回裸数组；
+  只有视图投影（如 `historyForView()` 附展示文案）才返回数组，且需在方法注释里写明结构。
 - **确需注入（可替换实现 / 需要构造参数 / 便于测试）时**用"静态门面 + 惰性 DI"，仿 `tao/TaoAppService`：
   ```php
   class WorksheetAppService
@@ -229,7 +238,7 @@ admin.table.with({url: prefix})
 - 关联字段（`_driver_name`）由**控制器**在 `buildIndexResult()` 里补好，视图只展示（`d._driver_name || '-'`）。
 - 额外能力放 `#more-action` 列，事件在 `addRowActions({events})` 的 `switch (d.event)` 中处理；打开子页统一 `admin.iframe.open(prefix + '/move?id=' + id, {title, end: () => admin.iframe.hasRefresh(() => admin.table.reloadData())})`。
 - 删除前如需业务检查，调后端接口（如 `car/trip`）返回数量，再决定 `confirm` 或引导去迁移页；**真正的校验仍在后端**（`beforeDeleteQuery`）。
-- 目前 `yihe/car/index.phtml` 的搜索区 `div/fieldset` 闭合不完整；新增页面请以规范的 `yihe/site/index.phtml` 为模板。
+- 新增页面请以规范的 `yihe/site/index.phtml` 为模板。
 
 ### 3.2 `edit.phtml`（表单，增改共用）
 
@@ -254,7 +263,7 @@ $form = $vv->layuiForm();
 </script>
 ```
 
-- 字段值**统一走 `$vv->pick('field')`**（读 action 返回值），不要写 `$_POST` / `$this->model`。
+- 字段值**统一走 `$vv->pick('field')`**（读 action 返回值），尽量不要写 `$_POST` / `$this->model`。
 - 控件全部用 `$form`（`input` / `select` / `radio` / `textarea` / `datesPicker` / `upload` / `status` / `submit`，见 `tao/Helper/Layui/LayuiForm.php`），不要手写 `layui-form-item` 结构。
 - 关联下拉复用 `Helpers/{Module}LayuiFormHelper` 的静态方法（`driverSelect` / `customerSites` / `carDriver` / `carSearchable` ...），不要在各页面重复实现搜索选择器。
 - 提交统一 `admin.form.submitFirst(() => admin.iframe.close(true))`，由 `admin` 框架负责 POST 与错误提示。
@@ -279,51 +288,37 @@ include __DIR__ . '/edit.phtml';
 3. 视图：`views/layui/{controller}/{action}.phtml` 与 action 同名；`add.phtml` include `edit.phtml`；列表页只用 `admin.table` 链式 API。
 4. 关联/派生字段在控制器批量补齐（`findColumn` 回填），不在视图里逐行发请求。
 5. 新权限节点需在后台「系统管理 → 节点管理 → 保存分析节点」后到「角色管理」授权。
-6. 菜单 SQL 参考 `worksheet/data/sql/worksheet_menu.sql` 的写法。
-7. 对外接口模块：写接口只用 `authorizeWrite()`（同源后台会话）鉴权，**不要**再引入 API Key / 密钥表 / 环境变量通道。
-8. 动过基类、钩子或接口后：先按 §2.1 的方式**实际加载类**，再跑 `vendor/bin/phpunit --testsuite {module}`（见 §6）。
-9. 带前端子项目的模块（如 worksheet 的 `studio/`）：前端 dev 代理的 target **协议必须与后端一致**
+6. 开阶段 SQL 语句可保存在对应的模型文件中，由用户手动执行，或者由临时脚本完成。
+7. 动过基类、钩子或接口后：先按 §2.1 的方式**实际加载类**，再跑 `vendor/bin/phpunit --testsuite {module}`（见 §6）。
+8. 带前端子项目的模块（如 worksheet 的 `studio/`）：前端 dev 代理的 target **协议必须与后端一致**
    （`http://` ↔ `https://` 写错会报 `EPROTO ... tls_get_more_records:packet length too long`，与后端代码无关）；
    本地 Laragon / `php -S` 的 8071 是明文 HTTP，排障见模块 README。
+9. 数据访问：服务与控制器都走模型 ORM —— 如无必要不写裸 SQL、不手写时间戳、不用 JOIN（多次查询 + PHP 组装）、
+    单条查询返回模型对象；服务命名 `{ModelName}Service`、方法全静态（见 §2.2 / §5）。
 
-## 5. 反例（历史记录）：`worksheet/Controllers/admin/AssignmentController.php`
+## 5. 数据访问：ORM 优先（服务与控制器）
 
-> 该反例已按本文件重构（只保留字符串主键适配层，见本节末尾），下表用于**识别同类写法**，不要在新代码中重现。
+**原则：能用模型 ORM 解决的，不要写 SQL；能用基类钩子解决的，不要在控制器里重写 CRUD。**
 
-该控制器曾经（误判主键为字符串而）放弃了 `BaseController::$model`，于是把整套 CRUD 手写了一遍。问题清单（**不要模仿**）：
-
-| 手写代码 | 本应复用 | 后果 |
-|---|---|---|
-| `indexAction()` 里 `$where .= ' AND title LIKE ?'` + `SELECT COUNT(*)` + 字符串拼 `LIMIT/OFFSET` | `BaseController::indexAction()` + `beforeIndexQuery()`/`actionQuery()` + `pagination()` | 分页参数、`reset=1`、`status` 默认过滤、`isApiRequest()` 首屏判定全部失效 |
-| `editAction()` 里 `UPDATE ... SET title=?, subject=?, ... WHERE id=?` | `editAction()` + `beforeModelAssign()`（类型转换 + `rules` 校验）+ `beforeModelSave()` + `afterModelChange()` + 事务/日志 | 字段类型转换、校验、事务、`LogService` 记录全部丢失 |
-| `modifyAction()` 自写 `in_array($field, ['status'], true)` 白名单 | `$allowModifyFields` / `$appendModifyFields`（基类 `modifyAction` 已实现） | 白名单与其它控制器不一致，且建议性重写易漏 |
-| `statusAction()` 单独开一个「发布/停用」接口 | 基类 `modifyAction` 已能改 `status`；视图 `addPostSwitch()` 直接 POST `/modify` | 接口语义重复，前端无法复用标准 JS |
-| `deleteAction()` 手写两条 `DELETE` | `deleteAction()` + `beforeDeleteQuery()`（关联检查）+ `Transaction` + 软删除 + 批量删除 | 删版本表与删主表不在同一可保护的事务语义内，批量删除能力丢失 |
-| `"... SET {$field}=? ..."` 直接把字段名插进 SQL | 模型属性白名单 + QueryBuilder | SQL 注入面，且绕过模型事件与 `updated_at` 自动维护 |
-| 全表用 `$this->db->fetchAll/execute` | `Model::queryBuilder()`（`int/like/in/between/findColumn/update`） | 换表名/换库/加软删除都要改 SQL |
-
-**判断标准**：只有在「基类模型约束确实无法满足」时才自建查询（字符串主键、外部库表等），此时也应当：
-1. 在类注释中写明**为什么**不能复用（现有注释已做到这点）；
-2. 尽量只替换**查询层**（覆写 `buildIndexResult` 或提供自定义 `Model`），保留 `beforeModelAssign / beforeModelSave / afterModelChange / beforeDeleteQuery` 钩子语义；
-3. 不要新增与基类同义的 action（`status`/`modify`/`batchChange` 之类）。
-
-**结论：优先「补齐模型 + 复用基类钩子」，而不是在控制器里重写 CRUD。**
-
-### 重构结果（内外双标识的标准做法）
-
-`AssignmentController` 现已改为：
-
-- **模型**：`WorksheetAssignment` 补齐 `id`（int 内部主键）、字段类型声明、`intColumns`、`whiteColumns`
-  与 `MAP_STATUS` / `MAP_LEVEL` 字典常量；对外标识 `uuid` 与内部主键 `id` 在使用上严格区分。
-- **控制器**：`indexAction/editAction/deleteAction` 与全部钩子全部回到基类（int 主键天然可用，**无任何 ID 解析覆写**），
-  只保留 `actionQuery()`（`title`/`uuid` 搜索、补 `status=0` 草稿）、`beforeDeleteQuery()` + `afterBatchDelete()`
-  （把 id 映射成 uuid 后级联删版本表）；`$disableActions = ['add']`，因为发布物由 studio 发布产生。
-- **对外接口**：`AssignmentController::registerAction()` 由后台签发 uuid（`Services\AsgIdService`：
-  `asg-<YYYYMMDD>-<rand4>-<id36>`，末段即内部自增主键，服务端可 O(1) 解析）；
-  `PublishController` 用解析出的 id 定位并热更新元数据（`WHERE id=? AND uuid=?` 双条件），
-  `PackageController` 按 uuid 查询与 join（`v.assignment_id = a.uuid`），返回给 App 的 `assignment_id` / `download_url` 均为 uuid。
-- **视图**：`index.phtml` 改为 `$form` 搜索 + `admin.table` 链式 API（`addPostSwitch` / `addRowActions`，
-  下载用 `obj.data.uuid`），`edit.phtml` 改为 `$form` + `$vv->pick()` + `admin.form.submitFirst`。
+- **服务层**（`Services/`）：数据访问一律 `Model::queryBuilder()->…->findFirstModel()/findModels()/update()` 与
+  `new Model()->assign($data)->save()`；`$db->execute()/fetchOne()/fetchAll()`、`INSERT/UPDATE/SELECT` 字面量一律不用。
+  单条查询**返回模型对象**（`findFirstModel()`），批量用 `findModels()`（模型数组，不用 `find()`）；需要跨表拼装时用
+  「**多次 ORM 查询 + PHP 组装**」并**返回 DTO**（不要写 JOIN、不要返回裸数组）
+  （范本：`worksheet/Services/WorksheetAssignmentReviewService.php` 的 `mineList()` / `stageOf()` → `worksheet/DTO/*`）。
+- **控制器**：**尽量不出现 SQL** —— 增删改查交给 `BaseController` 的 CRUD + 钩子（`beforeIndexQuery` / `actionQuery` /
+  `beforeModelAssign` / `beforeModelSave` / `afterModelChange` / `beforeDeleteQuery` / `afterBatchDelete`）；
+  action 内需要落库时也用模型（`new Model()->assign()->save()`、`queryBuilder()->…->update()`），
+  不要在控制器里手写 `$this->db->execute()/fetchOne()/fetchAll()`。
+- **唯一例外**：外部库表 / 暂时没有模型的表（如按 `user_id` 查会员到期）。此时**也要补一个只读模型**
+  （范本 `worksheet/Models/WorksheetVipUser.php`：只声明用到的列，用 `createdTime/updatedTime/deletedTime = ''` 关掉时间戳与软删），
+  而不是把 SQL 留在控制器里。
+- **时间戳与 upsert**：`created_at` / `updated_at` 由模型事件（`autoWriteTimestamp`）维护，**不要手写**；
+  `ON DUPLICATE KEY UPDATE` 用「查 → 无则 `new` → `assign()` → `save()`」表达；只读/追加型表在模型里关掉对应行为。
+- **判断标准**：只有在「模型约束确实无法满足」时才自建查询（字符串主键、外部库表等），并且要：
+  1. 在类注释写明**为什么**不能复用；
+  2. 尽量只替换**查询层**（自定义 `Model` 或覆写 `buildIndexResult`），保留
+     `beforeModelAssign / beforeModelSave / afterModelChange / beforeDeleteQuery` 钩子语义；
+  3. 不要新增与基类同义的 action（`status` / `modify` / `batchChange` 之类）。
 
 ## 6. 接口测试（PHPUnit）
 
