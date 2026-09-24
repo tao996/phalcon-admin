@@ -226,10 +226,54 @@ class FileUploadHelper
     }
 
     /**
-     * 服务端签名直传
+     * 服务端签名直传：签发**限定前缀**的直传凭证，由客户端直传云存储（不过服务器带宽）。
+     *
+     * 安全四件套（调用方按需收紧）：
+     *  - `$prefix` 限定 scope（`bucket:prefix` + `isPrefixalScope`）→ 只能写这个前缀下的对象，防越权写别人目录；
+     *  - 短时效（默认 600s）；
+     *  - `insertOnly` 默认 1 → 防覆盖（内容寻址 key（sha256）重复上传即同一对象）；
+     *  - 通过 `$policy` 追加 `fsizeLimit` / `mimeLimit` 等 put policy 限制大小与类型。
+     *
+     * 直传完成后**必须**回调后端登记（校验归属 / size / sha256 后再落库），不要盲信客户端。
+     *
+     * @param string $prefix 限定前缀（scope），如 `worksheet/<uuid>/assets/`；空串 = 不限定
+     * @param int $expire 有效期（秒）
+     * @param array $policy 追加的七牛 put policy，如 `['fsizeLimit' => 50 * 1024 * 1024, 'mimeLimit' => 'image/*']`
+     * @return array{driver:string,bucket:string,prefix:string,token:string,expire:int,domain:string,insert_only:bool}
+     * @link https://developer.qiniu.com/kodo/manual/put-policy
      */
-    public function serverToken()
+    public function serverToken(string $prefix = '', int $expire = 600, array $policy = []): array
     {
+        $driver = $this->getUploadType();
+        if ($driver === 'local') {
+            throw new BusinessException('当前为本地存储，无需直传凭证');
+        }
+        if ($driver !== 'qnoss') {
+            throw new BusinessException('暂只支持七牛云的直传凭证', ['driver' => $driver]);
+        }
+        /** @var QiniuDriver $oss */
+        $oss = $this->getOssDriver($driver, $this->_config);
+        $bucket = $oss->getBucket();
+        $insertOnly = array_key_exists('insertOnly', $policy) ? (int)$policy['insertOnly'] : 1;
+        $token = $oss->getAuth()->uploadToken(
+            $prefix === '' ? $bucket : $bucket . ':' . $prefix,
+            null,
+            $expire,
+            array_merge(
+                ['insertOnly' => $insertOnly],
+                $prefix === '' ? [] : ['isPrefixalScope' => 1],
+                $policy
+            )
+        );
+        return [
+            'driver' => $driver,
+            'bucket' => $bucket,
+            'prefix' => $prefix,
+            'token' => $token,
+            'expire' => time() + $expire,
+            'domain' => $oss->getDomain(),
+            'insert_only' => $insertOnly === 1,
+        ];
     }
 
 }

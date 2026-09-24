@@ -94,7 +94,19 @@ $data['app'] = [
      */
     'ipWhitelist' => [],
     /**
-     * 启用的 App/Modules，不设置是全部
+     * 启用的 App/Modules，不设置是全部，如 'tao'=>[]，后面的数组为模块的配置信息
+     *
+     * 例：worksheet（课件）的存储开关 —— 七牛直传、以及"公开/私有"随时切换：
+     * 'modules' => [
+     *     'worksheet' => [
+     *         'storage'    => 'qnoss',          // local（默认，走 upload/ 本地盘）| qnoss（七牛直传）
+     *         'visibility' => 'public',         // public（CDN 直链）| private（后端签名 URL，可后期切换）
+     *         'prefix'     => 'worksheet',      // 对象前缀：worksheet/<uuid>/assets|packages/
+     *         'token_ttl'  => 600,              // 直传凭证有效期（秒）
+     *         'max_asset_bytes'   => 20971520,  // 单个资源上限（20MB）
+     *         'max_package_bytes' => 52428800,  // 单个课件包上限（50MB）
+     *     ],
+     * ],
      */
     'modules'=>[],
     /**

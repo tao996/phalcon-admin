@@ -314,6 +314,14 @@ include __DIR__ . '/edit.phtml';
   而不是把 SQL 留在控制器里。
 - **时间戳与 upsert**：`created_at` / `updated_at` 由模型事件（`autoWriteTimestamp`）维护，**不要手写**；
   `ON DUPLICATE KEY UPDATE` 用「查 → 无则 `new` → `assign()` → `save()`」表达；只读/追加型表在模型里关掉对应行为。
+- **⚠️ `whiteColumns` 会静默吞字段**：`Phax\Mvc\Model::assign()` 是
+  `parent::assign($data, $whiteList ?: $this->whiteColumns)` —— 模型上声明了 `$whiteColumns`（后台**表单**白名单）时，
+  **服务/控制器里所有没显式传白名单的 `assign()` 都会被过滤**，`uuid`/`status`/`review_version`/`latest_version`
+  这类"自己算出来的字段"会被丢掉 ✗（曾表现为 `register_failed: no id`、发布快照写不进版本/状态）。
+  内部写入一律用基类的 **`assignAll($data)`**（= `assign($data, array_keys($data))`），例如
+  `BaseWorksheetModel::assignAll()`；后台表单路径仍用 `assign()` 受白名单约束。
+- **模型 `save()` 不回填自增主键**：需要主键时用 `(int)$this->db->lastInsertId()`（或保存后 `findFirst($id)` 取回模型），
+  不要直接读 `$model->id` 当新记录的主键。
 - **判断标准**：只有在「模型约束确实无法满足」时才自建查询（字符串主键、外部库表等），并且要：
   1. 在类注释写明**为什么**不能复用；
   2. 尽量只替换**查询层**（自定义 `Model` 或覆写 `buildIndexResult`），保留
