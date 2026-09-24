@@ -47,6 +47,7 @@ $vv->layui()->addWindowConfig([])->footer();
 ?>
 <script>
     const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao/admin.menu", false) ?>';
+    const mapType = <?= json_encode(\App\Modules\tao\Models\SystemMenu::MAP_TYPE) ?>;
 
     const inst = admin.treeTable.render({
         tree: {
@@ -73,7 +74,7 @@ $vv->layui()->addWindowConfig([])->footer();
             {
                 field: 'is_home',
                 width: 120,
-                title: '类型',
+                title: '层级',
                 templet: function (d) {
                     if (d.pid == 0) {
                         return '<span class="layui-badge">一级菜单</span>';
@@ -85,11 +86,14 @@ $vv->layui()->addWindowConfig([])->footer();
                         return '<span class="layui-badge layui-bg-green">菜单</span>';
                     }
                     return '<span class="layui-badge-rim">节点</span>';
-
-
                 }
             },
 
+            {
+                field: 'type', title: '类型', width: 80, templet: function (d) {
+                    return mapType[d.type] || '-';
+                }
+            },
             {field: 'roles', title: '角色', edit: 'text', width: 150},
             {field: 'status', title: '状态', width: 95, templet: admin.table.switch},
             {field: 'remark', title: '备注说明', align: 'left', edit: 'text'},

@@ -109,7 +109,8 @@ class HtmlHelper
      */
     public function pick(string $path, mixed $default = ''): mixed
     {
-        return $this->get(self::$prefix . '.' . $path, $default);
+        $data = $this->get(self::$prefix . '.' . $path, $default);
+        return is_string($data) ? htmlspecialchars($data) : $data;
     }
 
 

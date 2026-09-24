@@ -30,4 +30,11 @@ class SystemMenu extends BaseTaoModel
     {
         return '菜单';
     }
+
+
+    public const array MAP_TYPE = [
+        0 => '无',
+        SystemNode::KIND_PROJECT => 'P 项目',
+        SystemNode::KIND_MODULE => 'M 模块'
+    ];
 }
