@@ -100,7 +100,7 @@
 
 ### 2.1 CaptchaController — 验证码
 
-**路由：** `/m/tao/captcha`  
+**路由：** `/m/tao/captcha`
 **权限：** 公开（`openActions = '*'`）
 
 | Action | 方法 | 路径 | 说明 |
@@ -1225,7 +1225,7 @@
 
 ## 10. 小程序/API 端请求约定
 
-小程序端接口通过 `?data=jsonbody` 参数标识 JSON Body 请求：
+小程序端接口通过 `?data=jsonbody` 或 `kind=app` 标识 App JSON 请求；仅设置 `Content-Type: application/json` 不会覆盖 Web Session。
 
 **请求格式：**
 ```http
@@ -1237,7 +1237,7 @@ Content-Type: application/json
 
 **鉴权方式：**
 ```http
-Authorization: {"token":"1.app.1700000000","t":1700000123,"sign":"md5签名"}
+Authorization: {"token":"1.app.1700000000_a1b2c3d4e5f60718","t":1700000123,"sign":"md5签名"}
 ```
 
 > 详细签名机制见 [tao_login.md](tao_login.md) 第 9 节
@@ -1249,8 +1249,8 @@ Authorization: {"token":"1.app.1700000000","t":1700000123,"sign":"md5签名"}
 | code | 说明 |
 |---|---|
 | `0` | 成功 |
-| `401` | 登录凭证格式错误 |
-| `403` | 登录凭证已过期 |
+| `401` | App Token 缺失、过期、被删除或签名无效 |
+| `403` | RBAC 权限不足 |
 | `500` | 一般性业务错误 |
 
 **常见业务错误信息：**

@@ -77,6 +77,7 @@ class AuthController extends BaseController
                     $isEmail ? 'email' : 'phone' => $data['account'],
                     $isEmail ? 'email_valid' : 'phone_valid' => 1
                 ])->findFirstModel()) {
+                UserService::activeStatus($user);
                 $token = $this->getLoginAdapter()->saveUser($user);
             } else {
                 return $this->error('没有找到符合条件的账号');

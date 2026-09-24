@@ -17,7 +17,7 @@ use Phax\Support\Router;
 class BaseRbacController extends BaseResponseController
 {
     /**
-     * 默认为空，则为 cookies 授权
+     * 默认为空，则按请求自动选择；普通 Web 请求回退到 Session
      * @var LoginAuthAdapter|string|null
      */
     private LoginAuthAdapter|string|null $loginAdapter = null;
@@ -94,6 +94,12 @@ class BaseRbacController extends BaseResponseController
     {
         try {
             return $this->tryGetLoginAuth()->isLogin();
+        } catch (BusinessException $e) {
+            // 认证失败必须保留 401/403 语义，不能伪装成未登录的 303。
+            if (in_array($e->getCode(), [401, 403], true)) {
+                throw $e;
+            }
+            return false;
         } catch (\Exception $e) {
             return false;
         }
@@ -108,8 +114,13 @@ class BaseRbacController extends BaseResponseController
     {
         if (!$this->hasCheckLogin) {
             $this->hasCheckLogin = true;
-            TaoAppService::loginAuthHelper()->setAuthAdapter($this->loginAdapter);
-            TaoAppService::loginAuthHelper()->login();
+            try {
+                TaoAppService::loginAuthHelper()->setAuthAdapter($this->loginAdapter);
+                TaoAppService::loginAuthHelper()->login();
+            } catch (\Throwable $e) {
+                $this->hasCheckLogin = false;
+                throw $e;
+            }
         }
         return TaoAppService::loginAuthHelper();
     }

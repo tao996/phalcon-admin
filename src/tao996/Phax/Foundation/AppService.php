@@ -429,7 +429,15 @@ class AppService
 
     public static function isJsonBodyRequest(): bool
     {
-        return self::request()->getQuery('data', 'string') === 'jsonbody';
+        $request = self::request();
+        if ($request->getQuery('data', 'string') === 'jsonbody') {
+            return true;
+        }
+
+        return str_contains(
+            strtolower((string) $request->getContentType()),
+            'application/json'
+        );
     }
 
     public static function crypt(): \Phalcon\Encryption\Crypt

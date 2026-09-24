@@ -189,13 +189,14 @@ class AuthController extends BaseOpenMiniController
      */
     private function authData(array $user): array
     {
+        $systemUser = UserService::mustGetUser(['id' => (int) $user['id']]);
+        UserService::activeStatus($systemUser);
+
         $baseInfo = [
-            'user_id' => $user['id'],
-            'nickname' => $user['nickname'],
-            'avatar_url' => $user['head_img'] ?? $user['avatar'] ?? '',
+            'user_id' => $systemUser->id,
+            'nickname' => $systemUser->nickname,
+            'avatar_url' => $systemUser->head_img,
         ];
-        $systemUser = new SystemUser();
-        $systemUser->assign(['id' => $baseInfo['user_id']]);
         $baseInfo['ts'] = $this->tryGetLoginAuth()
             ->getAdapter()->saveUser($systemUser);
         return $baseInfo;

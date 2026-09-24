@@ -67,6 +67,11 @@ $data['app'] = [
      */
     'superAdmin' => [1, 999, 1000], // 超级管理员账号 ID, 999,1000 for phpunit test
 
+    // App 登录凭证：默认 1 年滑动有效期；0 表示不限制设备数量
+    'app_auth_adapter' => 'redis', // redis | db
+    'auth_token_ttl' => 31536000, // 秒；有效请求达到续期阈值后自动续期
+    'auth_max_login_records' => 0, // 每用户最多记录数，0 表示不自动挤出
+
     // 测试环境配置
     'test' => [
         // 在生产环境下，必须设置为 false

@@ -2,8 +2,10 @@
 
 namespace App\Modules\tao\Helper\Auth;
 
+use App\Modules\tao\Config\Config;
 use App\Modules\tao\Models\SystemUser;
 
+use App\Modules\tao\Services\UserService;
 use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
@@ -16,9 +18,18 @@ use Phax\Utils\MyData;
 class LoginAppAuthAdapter extends LoginAuthAdapter
 {
 
-    public array $options = ['EX' => 604800]; // 默认缓存 7 天
+    /**
+     * Redis 凭证的默认有效期，实际值由 app.auth_token_ttl 配置。
+     */
+    public array $options = [];
 
-    private array $data;
+    public function __construct()
+    {
+        parent::__construct();
+        $this->options = ['EX' => Config::appAuthTokenTtl()];
+    }
+
+    private array $data = [];
 
     public static function check(): bool
     {
@@ -32,13 +43,21 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
     {
         $authData = AppService::request()->getHeader('Authorization');
         if (!empty($authData)) {
-            $this->data = json_decode($authData, true);
+            $decoded = json_decode($authData, true);
+            if (!is_array($decoded)) {
+                throw new BusinessException('登录凭证格式错误', [], 401);
+            }
+            $this->data = $decoded;
+
+            $required = ['token'];
+            if ('logout' != AppService::context()->getActionName()) {
+                $required[] = 't';
+                $required[] = 'sign';
+            }
             try {
-                MyAssert::mustHasSet($this->data, ['token', 't', 'sign']);
+                MyAssert::mustHasSet($this->data, $required);
             } catch (\Exception $e) {
-                throw new BusinessException('登录凭证过期或不存在.', [
-                    'data' => $this->data,
-                ], 401);
+                throw new BusinessException('登录凭证过期或不存在.', [], 401);
             }
         }
     }
@@ -49,39 +68,45 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
      */
     public function getUser(): SystemUser|null
     {
-        if (!empty($this->data['token'])) {
-            $userId = TaoAppService::authRedisData()->getUserId($this->data['token'], 'app');
-            if ('logout' != AppService::context()->getActionName()) {
-                $secret = TaoAppService::authRedisData()->getTokenValue($this->data['token']);
-                if (!$secret) {
-                    throw new BusinessException('登录凭证过期或不存在', [
-                        'data' => $this->data,
-                    ], 403);
-                }; // 用于签名的 secret
-                // 包含了毫秒数的时间戳（时间戳本身也具有验签作用）
+        if (empty($this->data['token'])) {
+            return null;
+        }
 
-                $timestamp = intval($this->data['t']);
-                $sign = md5($secret . $timestamp);
-//                ddd($secret,$timestamp,$sign,MyData::getString($this->data, 'sign'),'aaa');
-                if ($sign !== MyData::getString($this->data, 'sign')) {
-                    throw new BusinessException('签名验证失败', [
-                        'data' => $this->data,
-                        'timestamp' => $timestamp, 'expect' => $sign
-                    ]);
-                }
+        $token = $this->data['token'];
+        $userId = TaoAppService::authRedisData()->getUserId($token, 'app');
+        $verifySignature = 'logout' != AppService::context()->getActionName();
+
+        if ($verifySignature) {
+            $secret = TaoAppService::authRedisData()->getTokenValue($token);
+            if (!$secret) {
+                throw new BusinessException('登录凭证过期或不存在', [], 401);
             }
-            // 刷新 token 时间
-            if ($user = SystemUser::findFirst($userId)) {
-                // 太过频繁刷新
-                if (TaoAppService::authRedisData()->getTtl($this->data['token']) < 3600 * 24 * 2) {
-                    TaoAppService::authRedisData()->setTokenExpire(
-                        $this->data['token'],
-                        $this->options['EX'] ?? 3600 * 24
-                    );
-                }
-                return $user;
+
+            // 客户端使用秒级时间戳；Redis/DB 适配器均按此值验签。
+            $timestamp = intval($this->data['t']);
+            $sign = md5($secret . $timestamp);
+            $clientSign = MyData::getString($this->data, 'sign');
+            if (!hash_equals($sign, $clientSign)) {
+                throw new BusinessException('签名验证失败', [
+                    'timestamp' => $timestamp,
+                ], 401);
             }
         }
+
+        if ($user = SystemUser::findFirst($userId)) {
+            if ($verifySignature) {
+                UserService::activeStatus($user);
+
+                // 只有账号和签名都有效后才续期。
+                $ttl = TaoAppService::authRedisData()->getTtl($token);
+                $lifetime = max(1, (int) ($this->options['EX'] ?? Config::appAuthTokenTtl()));
+                if ($ttl <= 0 || $ttl < intdiv($lifetime, 2)) {
+                    TaoAppService::authRedisData()->setTokenExpire($token, $lifetime);
+                }
+            }
+            return $user;
+        }
+
         return null;
     }
 
@@ -95,10 +120,14 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
     {
         $userId = $user->id;
         $token = $this->getCacheToken($userId);
-        // 随机码，用于生成 sign 签名
-        $sec = md5(join(',', [rand(1, 100), time() + rand(100, 9999)]));
-        $ex = MyData::getInt($info, 'EX', 604800);
-        TaoAppService::authRedisData()->setToken($token, $sec, ['EX' => $ex]); // 24*3600*7 = 7 天
+        // 使用密码学安全随机数生成 128 bit secret，并以 hex 返回。
+        $sec = bin2hex(random_bytes(16));
+        $ex = max(1, MyData::getInt(
+            $info,
+            'EX',
+            $this->options['EX'] ?? Config::appAuthTokenTtl()
+        ));
+        TaoAppService::authRedisData()->setToken($token, $sec, ['EX' => $ex]);
         return join('-', [$token, $sec]);
     }
 

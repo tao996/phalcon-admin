@@ -44,7 +44,20 @@ class LoginUserHelper
             throw new BusinessException('用户数据错误');
         }
         $this->user = $user;
+        // 切换用户时不能复用上一位用户的节点缓存。
+        $this->nodeList = null;
         return $this;
+    }
+
+    /**
+     * 清理当前用户及其权限缓存。
+     *
+     * logout 或认证失败时使用，避免同一请求/长驻进程中残留旧用户。
+     */
+    public function clearUser(): void
+    {
+        $this->user = null;
+        $this->nodeList = null;
     }
 
     public function user(): SystemUser

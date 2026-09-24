@@ -10,7 +10,7 @@ use Phax\Support\Logger;
 
 
 /**
- * 从 cookie 中读取凭证（目前用于 web 端）
+ * 从 cookie 中读取凭证（需要宿主显式注入；普通 Web 默认使用 Session）
  */
 class LoginCookieAuthAdapter extends LoginAuthAdapter
 {
@@ -40,7 +40,7 @@ class LoginCookieAuthAdapter extends LoginAuthAdapter
             if ($data != 1) {
                 if (IS_DEBUG) {
                     Logger::debug('CookieAuth 当前登录凭证不存在或已过期', [
-                        'authValue' => $this->authValue,
+                        'authValue' => '<redacted>',
                         'data' => $data
                     ]);
                 }

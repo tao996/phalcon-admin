@@ -366,7 +366,7 @@ class UserService
     public static function activeStatus(SystemUser $user): void
     {
         if ($user->status == SystemUser::STATUS_DELETE) {
-            throw new BusinessException('当前账号已经被禁止登录');
+            throw new BusinessException('当前账号已经被禁止登录', [], 401);
         }
     }
 

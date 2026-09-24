@@ -1,5 +1,7 @@
 # Tao 模块 - 用户注册登录接入文档
 
+> **实现状态提示（2026-09-24）**：当前 Web 认证仍使用 Session；App Token 默认采用 1 年滑动有效期，主动 logout 立即撤销，DB/Redis 由 `app.app_auth_adapter` 选择。认证状态与 Web/App 协议边界请以 `src/App/Modules/tao/docs/authentication-mechanism.md` 为准；本文中早期的接口/适配器说明可能包含历史约定。
+
 本文档详细说明 tao 模块的用户注册、登录认证体系，包括 Web 端、小程序端、第三方 OAuth 登录及微信小程序登录的完整接入指南。
 
 ## 1. 总体概述
@@ -449,7 +451,7 @@ Content-Type: application/json
     "nickname": "张三",
     "avatar_url": "https://wx.qlogo.cn/xxx",
     "openid": "oXXXX-xxxxxxxxxxxxxxxxx",
-    "ts": "123.app.1700000000-a1b2c3d4e5f6g7h8i9j0"
+    "ts": "123.app.1700000000_a1b2c3d4e5f60718-a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
   }
 }
 ```
@@ -468,9 +470,9 @@ Content-Type: application/json
 
 ```javascript
 // 小程序端示例：解析登录凭证
-const ts = res.data.ts; // 如 "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+const ts = res.data.ts; // 如 "1.app.1700000000_a1b2c3d4e5f60718-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
 const dashIndex = ts.lastIndexOf('-');
-const token = ts.substring(0, dashIndex);  // "1.app.1700000000"
+const token = ts.substring(0, dashIndex);  // "1.app.1700000000_a1b2c3d4e5f60718"
 const secret = ts.substring(dashIndex + 1); // "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
 
 // 存储到本地
@@ -487,7 +489,7 @@ wx.setStorageSync('auth_secret', secret);
 function request(options) {
   const token = wx.getStorageSync('auth_token');
   const secret = wx.getStorageSync('auth_secret');
-  const t = Date.now(); // 当前毫秒时间戳
+  const t = Math.floor(Date.now() / 1000); // 当前秒级时间戳
   const sign = md5(secret + t); // 计算签名: md5(secret + timestamp)
 
   wx.request({
@@ -513,7 +515,7 @@ request({
 });
 ```
 
-> 注意：`md5` 函数需自行引入小程序端 MD5 库。Token 过期时间为 7 天，过期后需重新登录获取。
+> 注意：`md5` 函数需自行引入小程序端 MD5 库。App Token 默认采用 1 年滑动有效期；连续 1 年未活动或主动退出后需重新登录。
 
 **登录流程：**
 
@@ -699,7 +701,7 @@ request({
     "user_id": 1,
     "nickname": "用户昵称",
     "avatar_url": "https://example.com/avatar.jpg",
-    "ts": "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+    "ts": "1.app.1700000000_a1b2c3d4e5f60718-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
   }
 }
 ```
@@ -771,7 +773,7 @@ request({
     "user_id": 1,
     "nickname": "用户昵称",
     "avatar_url": "https://example.com/avatar.jpg",
-    "ts": "1.app.1700000000-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+    "ts": "1.app.1700000000_a1b2c3d4e5f60718-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
   }
 }
 ```
@@ -831,7 +833,7 @@ request({
 
 ## 9. APP Token 签名机制
 
-小程序端/API 端使用 `LoginAppAuthAdapter` 进行认证，基于 Redis Token + 签名验证。
+小程序端/API 端使用 `LoginAppAuthAdapter` 进行认证；凭证可以由 Redis 或数据库 Adapter 保存，协议格式一致。
 
 ### 9.1 获取 Token
 
@@ -843,32 +845,34 @@ ts = "{token}-{secret}"
 
 | 部分 | 格式 | 示例 | 说明 |
 |---|---|---|---|
-| token | `{userId}.app.{timestamp}` | `1.app.1700000000` | 登录标识，存储在 Redis 中 |
-| secret | 32 位 MD5 字符串 | `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6` | 签名密钥 |
+| token | `{userId}.app.{timestamp}_{nonce}` | `1.app.1700000000_a1b2c3d4e5f60718` | 三段式不透明登录标识；nonce 用于降低同秒并发碰撞 |
+| secret | 32 位随机 hex 字符串 | `a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6` | 由密码学安全随机数生成，用作签名密钥 |
 
-> **重要**：`ts` 中的 `-` 分隔符可能出现在 `token` 部分（如 userId 为负数时），因此拆分时必须使用 **最后一个 `-`** 作为分隔符。
+> `ts` 中使用 `-` 分隔 token 与 secret。token 本身不包含 `-`，客户端仍应使用 `lastIndexOf('-')` 拆分。token 第三段是 opaque 值，客户端不要自行解析其中的时间或 nonce。
 
 ### 9.2 请求鉴权
 
 后续 API 请求需在 HTTP Header 中携带 `Authorization`：
 
 ```http
-Authorization: {"token":"1.app.1700000000","t":1700000123,"sign":"b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7"}
+Authorization: {"token":"1.app.1700000000_a1b2c3d4e5f60718","t":1700000123,"sign":"b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7"}
 ```
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `token` | string | 登录时返回的 token 部分 |
-| `t` | int | 当前时间戳（毫秒级） |
+| `t` | int | 当前时间戳（秒级，服务端使用 `intval` 解析） |
 | `sign` | string | 签名，计算方式 `md5(secret + t)` |
 
 **签名计算示例：**
 
 ```
-secret = "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+secret = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
 t = 1700000123
-sign = md5("a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p61700000123")
+sign = md5("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d61700000123")
 ```
+
+`md5` 是当前既有协议的一部分，暂时不能单方面替换；协议升级时应增加签名版本和服务端时间窗口/防重放机制。
 
 ### 9.3 小程序端完整接入示例
 
@@ -897,7 +901,7 @@ function getAuthHeader() {
   const secret = wx.getStorageSync(AUTH_SECRET_KEY);
   if (!token || !secret) return null;
 
-  const t = Date.now();
+  const t = Math.floor(Date.now() / 1000);
   const sign = md5(secret + t);
   return { token, t, sign };
 }
@@ -925,11 +929,17 @@ function request(options) {
     data: options.data,
     header: header,
     success(res) {
-      if (res.statusCode === 401 || res.statusCode === 403) {
-        // Token 过期，清除本地存储并跳转登录
+      const code = res.data && res.data.code;
+      if (code === 401) {
+        // Token 缺失、过期、被删除或签名无效，清除本地存储并跳转登录
         wx.removeStorageSync(AUTH_TOKEN_KEY);
         wx.removeStorageSync(AUTH_SECRET_KEY);
         wx.redirectTo({ url: '/pages/login/login' });
+        return;
+      }
+      if (code === 403) {
+        // RBAC 权限不足，不应清除登录态
+        if (options.forbidden) options.forbidden(res);
         return;
       }
       if (options.success) options.success(res);
@@ -1022,18 +1032,19 @@ auth.request({
 
 | 配置项 | 值 | 说明 |
 |---|---|---|
-| 默认过期时间 | 7 天（604800 秒） | Redis key 的 TTL |
-| 自动续期 | 剩余 TTL < 2 天时 | 请求时自动续期至 7 天 |
+| 默认有效期 | 1 年（31536000 秒） | Redis TTL 或 DB `updated_at` 滑动有效期 |
+| 自动续期 | 达到有效期约一半时 | 有效请求续期；连续 1 年未活动才失效 |
+| 设备记录上限 | 0 | 默认不自动挤出旧设备；可按需配置 |
 
 ### 9.5 Token 错误处理
 
-| 错误信息 | HTTP 状态码 | 说明 |
+| 错误信息 | HTTP 状态码/业务 code | 说明 |
 |---|---|---|
-| 登录凭证过期或不存在. | 401 | Authorization Header 格式错误 |
-| 登录凭证过期或不存在 | 403 | token 已过期或被删除 |
-| 签名验证失败 | 200 | sign 计算不匹配 |
-| 用户登录凭证错误:1 | 200 | token 格式不正确 |
-| 用户登录凭证错误:2 | 200 | token 中的 kind 不匹配 |
+| 登录凭证过期或不存在 | 401 | Token 缺失、过期、被删除或签名无效 |
+| 签名验证失败 | 401 | sign 计算不匹配 |
+| 无访问权限 | 403 | RBAC 权限不足，不代表登录失效 |
+
+> 当前 API 错误出口通常保持 HTTP 200，客户端应以响应 envelope 的 `code` 为准。
 
 ---
 
@@ -1042,8 +1053,8 @@ auth.request({
 | code | 说明 |
 |---|---|
 | `0` | 成功 |
-| `401` | 登录凭证格式错误（Header 解析失败） |
-| `403` | 登录凭证已过期 |
+| `401` | App Token 缺失、过期、被删除或签名无效 |
+| `403` | RBAC 权限不足 |
 | `500` | 一般性业务错误 |
 
 ---

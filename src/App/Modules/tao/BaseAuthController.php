@@ -10,7 +10,7 @@ use Phax\Mvc\Controller;
 class BaseAuthController extends Controller
 {
     /**
-     * 默认为空，则为 cookies 授权
+     * 默认为空，则按请求自动选择；普通 Web 请求回退到 Session
      * @var LoginAuthAdapter|null|string
      */
     protected LoginAuthAdapter|string|null $loginAdapter = null;
@@ -33,8 +33,13 @@ class BaseAuthController extends Controller
     {
         if (!$this->hasCheckLogin) {
             $this->hasCheckLogin = true;
-            TaoAppService::loginAuthHelper()->setAuthAdapter($this->loginAdapter);
-            TaoAppService::loginAuthHelper()->login();
+            try {
+                TaoAppService::loginAuthHelper()->setAuthAdapter($this->loginAdapter);
+                TaoAppService::loginAuthHelper()->login();
+            } catch (\Throwable $e) {
+                $this->hasCheckLogin = false;
+                throw $e;
+            }
         }
         return TaoAppService::loginAuthHelper();
     }

@@ -57,7 +57,8 @@ class AuthRedisData
      */
     public function generateToken(int $userId, string $kind): string
     {
-        return join('.', [$userId, $kind, time()]);
+        $nonce = bin2hex(random_bytes(8));
+        return join('.', [$userId, $kind, time() . '_' . $nonce]);
     }
 
     public function getUserId(string $token, string $kind): int
@@ -66,15 +67,15 @@ class AuthRedisData
 //        dd($kind,$token,$tokenData);
         if (count($tokenData) != 3) {
             throw new BusinessException('用户登录凭证错误', [
-                'error'=>'count($tokenData) != 3',
-                'token' => $token, 'kind' => $kind, 'tokenData' => $tokenData,
-            ]);
+                'error' => 'count($tokenData) != 3',
+                'kind' => $kind,
+            ], 401);
         }
 
         if (intval($tokenData[0]) < 1 || $tokenData[1] != $kind) {
-            throw new BusinessException('用户登录凭证错误',[
-                'token'=>$token,'kind'=>$kind,'tokenData'=>$tokenData,
-            ]);
+            throw new BusinessException('用户登录凭证错误', [
+                'kind' => $kind,
+            ], 401);
         }
 
         return $tokenData[0];

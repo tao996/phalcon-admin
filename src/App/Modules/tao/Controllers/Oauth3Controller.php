@@ -72,11 +72,13 @@ class Oauth3Controller extends BaseController
             $adapter->disconnect();
         } catch (\Exception $e) {
             throw new LogException('授权失败，请稍后再试', [
-                'config' => $config,
+                'provider' => $provider,
+                'driver' => $driver,
             ], previous: $e);
         }
 
         $user = UserService::addUserProfile($userProfile);
+        UserService::activeStatus($user);
         $this->getLoginAdapter()->saveUser($user);
         RedirectUtil::read();
 

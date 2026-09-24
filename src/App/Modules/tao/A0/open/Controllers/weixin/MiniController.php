@@ -5,6 +5,7 @@ namespace App\Modules\tao\A0\open\Controllers\weixin;
 use App\Modules\tao\A0\open\BaseOpenMiniController;
 use App\Modules\tao\A0\open\Service\OpenAppService;
 use App\Modules\tao\A0\open\Service\OpenUserService;
+use App\Modules\tao\Config\Config;
 use App\Modules\tao\Models\SystemUser;
 
 use App\Modules\tao\TaoAppService;
@@ -46,10 +47,11 @@ class MiniController extends BaseOpenMiniController
         // token-secret
         $user = new SystemUser();
         $user->id = $baseInfo['user_id'];
+        $ttl = Config::appAuthTokenTtl();
         $baseInfo['ts'] = $this->tryGetLoginAuth()->getAdapter()->saveUser($user, [
-            'EX' => 604800, // 24*3600*7 = 7 天
+            'EX' => $ttl,
         ]);
-        $baseInfo['expired_at'] = time() + 604800 - 60;  // 过期时间
+        $baseInfo['expired_at'] = time() + $ttl - 60;
         return $baseInfo; // [id, user_id, nickname,avatar_url, openid, ts]
     }
 

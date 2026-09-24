@@ -7,7 +7,7 @@ use App\Modules\tao\BaseTaoModel;
 /**
  * 用户登录记录
  *
- * 用于持久化存储登录凭证，替代 Redis 方案，支持永不过期 + 最多保留 N 条记录。
+ * 用于持久化存储 App 登录凭证。updated_at 用于滑动有效期续期。
  *
  * @property int    $id
  * @property int    $user_id    用户 ID

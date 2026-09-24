@@ -44,7 +44,10 @@ class BaseResponseController extends Controller
     {
         // 小程序/API 请求判断：URL 参数 data=jsonbody 或 Content-Type 为 application/json 的 请求
         $this->jsonBodyRequest = $this->request->getQuery('data', 'string') === 'jsonbody';
-        if ($this->jsonBodyRequest || str_contains($this->request->getContentType() ?? '', 'application/json')) {
+        if ($this->jsonBodyRequest || str_contains(
+            strtolower($this->request->getContentType() ?? ''),
+            'application/json'
+        )) {
             $this->jsonResponse = true;
             $this->requestData = $this->request->getJsonRawBody(true) ?: [];
         } elseif ($this->request->isPost()) {
@@ -320,9 +323,21 @@ class BaseResponseController extends Controller
             'title' => $title,
         ]);
     }
-
+    /**
+     * CORS：Flutter 客户端与后端不同源；JSON 响应由 `echo` 输出，故用原生 `header()`。
+     */
     public function beforeExecuteRoute($dispatcher)
     {
+        $origin = $this->request->getHeader('Origin');
+        header('Access-Control-Allow-Origin: ' . ($origin !== '' ? $origin : '*'));
+        header('Vary: Origin');
+        header('Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, test-token, Authorization');
+        header('Access-Control-Max-Age: 86400');
+        if ($this->request->isOptions()) {
+            http_response_code(204);
+            exit; // 直接返回预检响应
+        }
         if ($this->jsonBodyRequest) { // 小程序之类的，不要将错误显示出来
             // https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html
             // 只要成功接收到服务器返回，无论 statusCode 是多少，都会进入 success 回调。

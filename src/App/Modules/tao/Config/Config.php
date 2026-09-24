@@ -21,6 +21,24 @@ class Config
     public static int $verifyCodeMaxErrorNum = 3;
 
     /**
+     * App 登录凭证滑动有效期：默认 1 年。
+     * 有效请求会在达到续期阈值后刷新有效期，主动 logout 仍然立即撤销凭证。
+     */
+    public static function appAuthTokenTtl(): int
+    {
+        $ttl = AppService::config()->getInt('app.auth_token_ttl', 31536000);
+        return $ttl > 0 ? $ttl : 31536000;
+    }
+
+    /**
+     * 每个用户最多保留的 App 登录记录数；0 表示不自动挤出旧设备。
+     */
+    public static function appAuthMaxLoginRecords(): int
+    {
+        return max(0, AppService::config()->getInt('app.auth_max_login_records', 0));
+    }
+
+    /**
      * 登录后台后默认显示的界面
      * 可以在 config.php 中 app.welcome 中指定
      */
