@@ -10,6 +10,7 @@ use App\Modules\tao\TaoAppService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyAssert;
+use Phax\Utils\MyData;
 
 /**
  * 通常用于小程序 mini 对请求进行加密

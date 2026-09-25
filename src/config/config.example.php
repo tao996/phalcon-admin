@@ -116,6 +116,7 @@ $data['app'] = [
 //            'auth_max_login_records' => 0, // 每用户最多记录数，0 表示不自动挤出
 //            'auth_timestamp_window' => 300, // v2 签名允许的时间窗口（秒）
 //            'auth_replay_ttl' => 600, // v2 nonce 防重放记录保留时间（秒）
+//            'auth_allow_legacy_signature' => true, // 迁移完成后设为 false 关闭 v1 MD5
         ]
     ],
     /**

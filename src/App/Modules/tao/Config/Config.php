@@ -26,13 +26,24 @@ class Config
         static $config = [];
         if (empty($config)) {
             $data = AppService::config()->getArray('app.modules.tao');
+
+            // 先在局部变量中完成归一化；不要在初始化 $config 时调用
+            // authTimestampWindow()/authReplayTtl()，否则会再次进入 authConfig()
+            // 形成无限递归，最终把异常堆栈撑爆并触发 OOM。
+            $tokenTtl = intval($data['auth_token_ttl'] ?? 31536000);
+            $timestampWindow = intval($data['auth_timestamp_window'] ?? 300);
+            $replayTtl = intval($data['auth_replay_ttl'] ?? 600);
+
             $config = [
-                'auth_adapter' => MyData::getString($data,'auth_adapter', 'redis'),
-                'auth_token_ttl' => intval($data['auth_token_ttl'] ?? 31536000),
-                'auth_max_login_records' => intval($data['auth_max_login_records'] ?? 0),
-                'auth_timestamp_window' => intval($data['auth_timestamp_window'] ?? 300),
-                'auth_replay_ttl' => max(intval($data['auth_timestamp_window'] ?? 600), self::authTimestampWindow() * 2),
-                'auth_allow_legacy_signature' => boolval($data['auth_allow_legacy_signature'] ?? false),
+                'auth_adapter' => MyData::getString($data, 'auth_adapter', 'redis'),
+                'auth_token_ttl' => $tokenTtl > 0 ? $tokenTtl : 31536000,
+                'auth_max_login_records' => max(0, intval($data['auth_max_login_records'] ?? 0)),
+                'auth_timestamp_window' => $timestampWindow > 0 ? $timestampWindow : 300,
+                'auth_replay_ttl' => max(
+                    $replayTtl > 0 ? $replayTtl : 600,
+                    ($timestampWindow > 0 ? $timestampWindow : 300) * 2
+                ),
+                'auth_allow_legacy_signature' => boolval($data['auth_allow_legacy_signature'] ?? true),
             ];
         }
         return $config;
