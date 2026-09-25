@@ -67,14 +67,6 @@ $data['app'] = [
      */
     'superAdmin' => [1, 999, 1000], // 超级管理员账号 ID, 999,1000 for phpunit test
 
-    // App 登录凭证：默认 1 年滑动有效期；0 表示不限制设备数量
-    'app_auth_adapter' => 'redis', // redis | db
-    'auth_token_ttl' => 31536000, // 秒；有效请求达到续期阈值后自动续期
-    'auth_max_login_records' => 0, // 每用户最多记录数，0 表示不自动挤出
-    'auth_timestamp_window' => 300, // v2 签名允许的时间窗口（秒）
-    'auth_replay_ttl' => 600, // v2 nonce 防重放记录保留时间（秒）
-    'auth_allow_legacy_signature' => true, // 兼容旧客户端；完成升级后设为 false
-
     // 测试环境配置
     'test' => [
         // 在生产环境下，必须设置为 false
@@ -116,7 +108,16 @@ $data['app'] = [
      *     ],
      * ],
      */
-    'modules'=>[],
+    'modules'=>[
+        'tao'=>[
+            // App 登录凭证：以下为默认值（如果不设置，则使用默认值）
+//            'auth_adapter' => 'redis', // redis | db
+//            'auth_token_ttl' => 31536000, // 秒（ 1 年滑动有效期）；有效请求达到续期阈值后自动续期
+//            'auth_max_login_records' => 0, // 每用户最多记录数，0 表示不自动挤出
+//            'auth_timestamp_window' => 300, // v2 签名允许的时间窗口（秒）
+//            'auth_replay_ttl' => 600, // v2 nonce 防重放记录保留时间（秒）
+        ]
+    ],
     /**
      * 启用的 App/Projects，不设置则全部
      */

@@ -11,7 +11,7 @@ use Phax\Support\Exception\BusinessException;
  *
  * App 凭证默认采用 1 年滑动有效期：有效请求在达到续期阈值后更新
  * updated_at；超过有效期未活动则失效，主动 logout 会删除当前 token。
- * 每用户最大记录数由 app.auth_max_login_records 配置，0 表示不自动挤出。
+ * 每用户最大记录数由 app.modules.tao.auth_max_login_records 配置，0 表示不自动挤出。
  */
 class AuthDbData
 {

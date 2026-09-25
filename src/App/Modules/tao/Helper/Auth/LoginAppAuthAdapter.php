@@ -18,7 +18,7 @@ class LoginAppAuthAdapter extends LoginAuthAdapter
 {
 
     /**
-     * Redis 凭证的默认有效期，实际值由 app.auth_token_ttl 配置。
+     * Redis 凭证的默认有效期，实际值由 app.modules.tao.auth_token_ttl 配置。
      */
     public array $options = [];
 

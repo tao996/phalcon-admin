@@ -2,6 +2,7 @@
 
 namespace App\Modules\tao\Helper;
 
+use App\Modules\tao\Config\Config;
 use App\Modules\tao\Helper\Auth\LoginAppAuthAdapter;
 use App\Modules\tao\Helper\Auth\LoginAppDbAuthAdapter;
 use App\Modules\tao\Helper\Auth\LoginAuthAdapter;
@@ -24,14 +25,12 @@ class LoginAuthHelper
     /**
      * 获取 App 登录适配器类名。
      *
-     * app.app_auth_adapter 只接受 db/redis，错误配置直接失败，避免静默使用
+     * app.modules.tao.auth_adapter 只接受 db/redis，错误配置直接失败，避免静默使用
      * 与预期不同的凭证存储。
      */
     private static function getAppAuthAdapterClass(): string
     {
-        $driver = strtolower(trim(
-            AppService::config()->getString('app.app_auth_adapter', 'redis')
-        ));
+        $driver = strtolower(trim(Config::authAdapter()));
         if ($driver === '') {
             $driver = 'redis';
         }

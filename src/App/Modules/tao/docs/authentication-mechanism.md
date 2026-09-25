@@ -191,7 +191,7 @@ POST /api/m/tao.open/auth/login
 
 1. 显式传入的 Adapter；
 2. 测试环境的 `test-token`；
-3. 明确标记的 App 请求，按 `app.app_auth_adapter` 选择 `db` 或 `redis`；
+3. 明确标记的 App 请求，按 `app.modules.tao.auth_adapter` 选择 `db` 或 `redis`（默认）；
 4. Web Session。
 
 App Token 默认使用 **1 年滑动有效期**：
@@ -199,7 +199,7 @@ App Token 默认使用 **1 年滑动有效期**：
 - 有效请求达到续期阈值后重新计算有效期；
 - 连续 1 年没有有效活动才失效；
 - 主动调用 logout 会立即删除当前 Token；
-- `app.auth_max_login_records` 默认为 `0`，不自动挤出旧设备；需要限制设备数时再配置为正数；
+- `app.modules.tao.auth_max_login_records` 默认为 `0`，不自动挤出旧设备；需要限制设备数时再配置为正数；
 - Token 缺失、过期或签名错误使用 401，RBAC 权限不足仍使用 403。
 
 App Token 的第三段是包含时间和随机 nonce 的不透明值，secret 使用密码学安全随机数生成。Redis 方案通过 TTL 续期，DB 方案通过 `updated_at` 判断和续期。
@@ -210,8 +210,7 @@ App Token 的第三段是包含时间和随机 nonce 的不透明值，secret �
 {"v":2,"alg":"hmac-sha256","token":"...","t":1700000000,"nonce":"...","sign":"..."}
 ```
 
-服务端校验时间窗口、HMAC-SHA256 和一次性 nonce；没有 `v`/`alg` 的旧 MD5 请求仍兼容。完成旧客户端迁移后，将 `app.auth_allow_legacy_signature` 设为 `false` 关闭 v1。v2 防重放依赖 Redis，服务不可用时拒绝请求。
-
+服务端校验时间窗口、HMAC-SHA256 和一次性 nonce；
 
 #### 发送邮件
 
