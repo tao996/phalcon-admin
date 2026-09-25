@@ -27,13 +27,12 @@ class FileUploadHelper
         'hash' => true, // 使用文件 hash 命名
     ];
 
+    /**
+     * @param array $config 配置信息 会合并 ConfigService::uploadConfig()
+     */
     public function __construct(array $config = [])
     {
-        if (!empty($config)) {
-            $this->_config = $config;
-        } else {
-            $this->_config = ConfigService::uploadConfig();
-        }
+        $this->_config = array_merge_deep(ConfigService::uploadConfig(), $config);
     }
 
     /**
@@ -174,11 +173,16 @@ class FileUploadHelper
         }
         return $f;
     }
+    const string DRIVER_ALIOSS = 'alioss';
+    const string DRIVER_QNOSS = 'qnoss';
+    const string DRIVER_TXCOS = 'txcos';
+
+    const string DRIVER_LOCAL = 'local';
 
     private function getOssDriver(string $driver, array $config): OssDriverInterface
     {
         switch ($driver) {
-            case 'alioss':
+            case self::DRIVER_ALIOSS:
                 return new AliyunDriver([
                     'alioss_access_key_id' => $config['alioss_access_key_id'],
                     'alioss_access_key_secret' => $config['alioss_access_key_secret'],
@@ -186,14 +190,14 @@ class FileUploadHelper
                     'alioss_bucket' => $config['alioss_bucket'],
                     'alioss_domain' => $config['alioss_domain'],
                 ]);
-            case 'qnoss': // 七牛云
+            case self::DRIVER_QNOSS: // 七牛云
                 return new QiniuDriver([
                     'qnoss_access_key' => $config['qnoss_access_key'],
                     'qnoss_secret_key' => $config['qnoss_secret_key'],
                     'qnoss_bucket' => $config['qnoss_bucket'],
                     'qnoss_domain' => $config['qnoss_domain'],
                 ]);
-            case 'txcos': // 腾讯云
+            case self::DRIVER_TXCOS: // 腾讯云
                 return new QcloudDriver([
                     'txcos_secret_id' => $config['txcos_secret_id'],
                     'txcos_secret_key' => $config['txcos_secret_key'],
@@ -217,7 +221,7 @@ class FileUploadHelper
             throw new BusinessException('未指定上传存储方式');
         }
         switch ($uploadType) {
-            case 'local':
+            case self::DRIVER_LOCAL:
                 return $this->moveToLocal();
             default:
                 $oss = $this->getOssDriver($uploadType, $this->_config);

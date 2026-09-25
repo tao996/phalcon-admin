@@ -3,7 +3,6 @@
 use App\Modules\tao\Config\Data;
 use App\Modules\tao\Helper\Layui\LayuiData;
 use App\Modules\tao\Models\SystemMenu;
-use App\Modules\tao\Models\SystemNode;
 use Phax\Foundation\AppService;
 
 /**
@@ -66,7 +65,7 @@ $id = $vv->pick('id', 0);
     $form->input('链接地址', 'href', value: $vv->pick('href'), aux: '格式：模块名/控制器/方法，不要省略方法 index');
     ?>
     <?php echo
-    $form->radio('地址前缀', 'type', vtOptions: SystemNode::MAP_TYPE, value: $vv->pick('type', 0), aux: '选择 `M 模块` 自动为链接补充前缀 /m/，选择 `P 项目` 则补充前缀 /p/') ?>
+    $form->radio('地址前缀', 'type', vtOptions: SystemMenu::MAP_TYPE, value: $vv->pick('type', 0), aux: '选择 `M 模块` 自动为链接补充前缀 /m/，选择 `P 项目` 则补充前缀 /p/') ?>
 
 
     <?php echo $vv->layuiHtml()->icon($vv->pick('icon')); ?>

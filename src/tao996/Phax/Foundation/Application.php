@@ -173,13 +173,27 @@ class Application
         $context = RouteMatchContext::with($requestURL, loadDefault: true);
         if ($context->isModule) {
             if ($enableModules = AppService::config()->getArray('app.modules')) {
-                if (!in_array($context->name, $enableModules)) {
+                $success = false;
+                foreach ($enableModules as $key => $value) {
+                    if ($key === $context->name || $value === $context->name) {
+                        $success = true;
+                        break;
+                    }
+                }
+                if (!$success) {
                     die('disable modules:' . $context->name);
                 }
             }
         } elseif ($context->isProject) {
             if ($enableProjects = AppService::config()->getArray('app.projects')) {
-                if (!in_array($context->name, $enableProjects)) {
+                $success = false;
+                foreach ($enableProjects as $key => $value) {
+                    if ($key === $context->name || $value === $context->name) {
+                        $success = true;
+                        break;
+                    }
+                }
+                if (!$success) {
                     die('disable projects:' . $context->name);
                 }
             }
