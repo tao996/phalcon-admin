@@ -204,6 +204,14 @@ App Token 默认使用 **1 年滑动有效期**：
 
 App Token 的第三段是包含时间和随机 nonce 的不透明值，secret 使用密码学安全随机数生成。Redis 方案通过 TTL 续期，DB 方案通过 `updated_at` 判断和续期。
 
+新客户端默认发送 v2 请求头：
+
+```json
+{"v":2,"alg":"hmac-sha256","token":"...","t":1700000000,"nonce":"...","sign":"..."}
+```
+
+服务端校验时间窗口、HMAC-SHA256 和一次性 nonce；没有 `v`/`alg` 的旧 MD5 请求仍兼容。完成旧客户端迁移后，将 `app.auth_allow_legacy_signature` 设为 `false` 关闭 v1。v2 防重放依赖 Redis，服务不可用时拒绝请求。
+
 
 #### 发送邮件
 
@@ -290,7 +298,7 @@ OAuth 路径不提交本地密码；它依赖第三方 Profile 完成身份建�
 
 - 认证控制器：[`AuthController.php`](../Controllers/AuthController.php)、[`Oauth3Controller.php`](../Controllers/Oauth3Controller.php)
 - 认证视图：[`index.phtml`](../views/layui/auth/index.phtml)、[`signin.phtml`](../views/layui/auth/signin.phtml)、[`signup.phtml`](../views/layui/auth/signup.phtml)、[`forgot.phtml`](../views/layui/auth/forgot.phtml)、[`password.phtml`](../views/layui/auth/password.phtml)、[`quickLogin.phtml`](../views/layui/auth/quickLogin.phtml)、[`auth.js`](../views/layui/auth/auth.js)
-- 认证适配器：[`LoginAuthHelper.php`](../Helper/LoginAuthHelper.php)、[`LoginSessionAuthAdapter.php`](../Helper/Auth/LoginSessionAuthAdapter.php)、[`LoginAppAuthAdapter.php`](../Helper/Auth/LoginAppAuthAdapter.php)、[`LoginAppDbAuthAdapter.php`](../Helper/Auth/LoginAppDbAuthAdapter.php)、[`AuthDbData.php`](../Helper/Auth/AuthDbData.php)
+- 认证适配器：[`LoginAuthHelper.php`](../Helper/LoginAuthHelper.php)、[`LoginSessionAuthAdapter.php`](../Helper/Auth/LoginSessionAuthAdapter.php)、[`LoginAppAuthAdapter.php`](../Helper/Auth/LoginAppAuthAdapter.php)、[`LoginAppDbAuthAdapter.php`](../Helper/Auth/LoginAppDbAuthAdapter.php)、[`AuthDbData.php`](../Helper/Auth/AuthDbData.php)、[`AuthSignature.php`](../Helper/Auth/AuthSignature.php)、[`AuthReplayGuard.php`](../Helper/Auth/AuthReplayGuard.php)
 - 用户和验证码服务：[`UserService.php`](../Services/UserService.php)、[`SmsCodeService.php`](../Services/SmsCodeService.php)
 - 授权和跳转：[`BaseRbacController.php`](../BaseRbacController.php)、[`RedirectUtil.php`](../utils/RedirectUtil.php)、[`routes/web.php`](../../../../routes/web.php)
 - OAuth 配置：[`RegisterHelper.php`](../Helper/RegisterHelper.php)、[`SdkHelper.php`](../sdk/SdkHelper.php)

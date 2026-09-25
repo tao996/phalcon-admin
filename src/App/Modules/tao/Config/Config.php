@@ -39,6 +39,32 @@ class Config
     }
 
     /**
+     * 是否允许旧版 v1 MD5 签名；完成客户端升级后可关闭。
+     */
+    public static function authAllowLegacySignature(): bool
+    {
+        return AppService::config()->getBoolean('app.auth_allow_legacy_signature', true);
+    }
+
+    /**
+     * v2 请求签名允许的时间窗口（秒）。
+     */
+    public static function authTimestampWindow(): int
+    {
+        $window = AppService::config()->getInt('app.auth_timestamp_window', 300);
+        return $window > 0 ? $window : 300;
+    }
+
+    /**
+     * v2 nonce 防重放记录的保留时间（秒）。
+     */
+    public static function authReplayTtl(): int
+    {
+        $ttl = AppService::config()->getInt('app.auth_replay_ttl', 600);
+        return max($ttl, self::authTimestampWindow() * 2);
+    }
+
+    /**
      * 登录后台后默认显示的界面
      * 可以在 config.php 中 app.welcome 中指定
      */

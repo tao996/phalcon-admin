@@ -95,8 +95,8 @@ class BaseRbacController extends BaseResponseController
         try {
             return $this->tryGetLoginAuth()->isLogin();
         } catch (BusinessException $e) {
-            // 认证失败必须保留 401/403 语义，不能伪装成未登录的 303。
-            if (in_array($e->getCode(), [401, 403], true)) {
+            // 认证/防重放服务失败必须保留 401/403/503 语义，不能伪装成未登录的 303。
+            if (in_array($e->getCode(), [401, 403, 503], true)) {
                 throw $e;
             }
             return false;

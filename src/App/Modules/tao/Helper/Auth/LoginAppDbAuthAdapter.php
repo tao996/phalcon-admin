@@ -8,7 +8,6 @@ use App\Modules\tao\Services\UserService;
 use Phax\Foundation\AppService;
 use Phax\Support\Exception\BusinessException;
 use Phax\Utils\MyAssert;
-use Phax\Utils\MyData;
 
 /**
  * 基于数据库的 App 登录适配器
@@ -58,6 +57,10 @@ class LoginAppDbAuthAdapter extends LoginAuthAdapter
             if ('logout' != AppService::context()->getActionName()) {
                 $required[] = 't';
                 $required[] = 'sign';
+                if ((int) ($this->data['v'] ?? 1) >= 2) {
+                    $required[] = 'alg';
+                    $required[] = 'nonce';
+                }
             }
             try {
                 MyAssert::mustHasSet($this->data, $required);
@@ -86,14 +89,7 @@ class LoginAppDbAuthAdapter extends LoginAuthAdapter
                 throw new BusinessException('登录凭证过期或不存在', [], 401);
             }
 
-            $timestamp = intval($this->data['t']);
-            $sign = md5($secret . $timestamp);
-            $clientSign = MyData::getString($this->data, 'sign');
-            if (!hash_equals($sign, $clientSign)) {
-                throw new BusinessException('签名验证失败', [
-                    'timestamp' => $timestamp,
-                ], 401);
-            }
+            AuthSignature::verify($this->data, $secret);
         }
 
         if ($user = SystemUser::findFirst($userId)) {

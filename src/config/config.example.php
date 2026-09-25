@@ -71,6 +71,9 @@ $data['app'] = [
     'app_auth_adapter' => 'redis', // redis | db
     'auth_token_ttl' => 31536000, // 秒；有效请求达到续期阈值后自动续期
     'auth_max_login_records' => 0, // 每用户最多记录数，0 表示不自动挤出
+    'auth_timestamp_window' => 300, // v2 签名允许的时间窗口（秒）
+    'auth_replay_ttl' => 600, // v2 nonce 防重放记录保留时间（秒）
+    'auth_allow_legacy_signature' => true, // 兼容旧客户端；完成升级后设为 false
 
     // 测试环境配置
     'test' => [
