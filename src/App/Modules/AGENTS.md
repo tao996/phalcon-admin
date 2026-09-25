@@ -212,7 +212,12 @@ $form = $vv->layuiForm();
         <button class="layui-btn layui-btn-normal layui-btn-sm" lay-on="create"><i class="fa fa-plus"></i>添加</button>
     </div>
 </script>
-
+<!-- 记录的其它操作通常放在 more-action 内 -->
+<script type="text/html" id="more-action">
+    <div class="layui-btn-container">
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="review">审核</a>
+    </div>
+</script>
 <script type="text/html" id="row-action">
     <div class="layui-btn-container">
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
@@ -226,11 +231,33 @@ $form = $vv->layuiForm();
 ```js
 const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("yihe/car", false) ?>';
 admin.table.with({url: prefix})
-    .render({toolbar: '#toolbar', cols: [[ /* ... */ ]]})
+    .render({toolbar: '#toolbar', cols: [[
+        {field: 'id', title: 'ID', width: 60},
+        /* ... */
+        {title: '功能', width: 80, toolbar: '#more-action'},
+        {title: '操作', width: 150, toolbar: '#row-action'}
+      ]]})
     .addCellEditAction()    // 单元格编辑 → POST {prefix}/modify
     .addPostSwitch()        // status 开关 → POST {prefix}/modify
     .addToolbarActions()    // refresh / create（open {prefix}/add 弹窗）
-    .addRowActions({events: function (d) { /* edit / delete / removeWith 之外的 lay-event */ }});
+        .addRowActions({
+          events: function (obj) {
+            let data = obj.data;
+            switch (obj.event) {
+              case 'review':
+                admin.iframe.open(
+                        prefix + '/review?id=' + data.id, {
+                          title: '课件审核',
+                          end: function () {
+                            admin.iframe.hasRefresh(() => { // 只有通常刷新时才需要更新数据
+                              admin.table.reloadData();
+                            })
+                          }
+                        },);
+                break;
+            }
+          }
+        });
 ```
 
 - `url` 一律用 `AppService::urlModule("模块/控制器", false)` 生成，**不要手写 `/m/yihe/car`**。
