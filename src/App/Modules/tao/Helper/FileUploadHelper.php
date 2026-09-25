@@ -280,4 +280,47 @@ class FileUploadHelper
         ];
     }
 
+    /**
+     * 服务端签名直传（**精确 key** 版）：scope 直接写 `bucket:key`，**不带** `isPrefixalScope`。
+     *
+     * 与 `serverToken()`（前缀 scope）的关键差别：**前缀 scope 不允许覆盖上传** ——
+     * `isPrefixalScope=1` 时七牛强制"仅新增"，`insertOnly=0` 也不生效，重写同一个 key 会报
+     * `614 file exists`（对象仍是旧内容）。所以"同一个 key 需要被重写/重试"的场景
+     * （开发版包 `draft.zip` 每次保存都覆盖、冻结版本上次失败要重传）必须用本方法。
+     *
+     * @param string $key 完整对象 key（由服务端拼好，不来自客户端 → 权限更紧：只能写这一个 key）
+     * @param int $expire 有效期（秒）
+     * @param array $policy 追加的七牛 put policy；`insertOnly` 默认 0（允许覆盖）
+     * @return array{driver:string,bucket:string,prefix:string,token:string,expire:int,domain:string,insert_only:bool}
+     */
+    public function serverTokenForKey(string $key, int $expire = 600, array $policy = []): array
+    {
+        $driver = $this->getUploadType();
+        if ($driver === self::DRIVER_LOCAL) {
+            throw new BusinessException('当前为本地存储，无需直传凭证');
+        }
+        if ($driver !== self::DRIVER_QNOSS) {
+            throw new BusinessException('暂只支持七牛云的直传凭证', ['driver' => $driver]);
+        }
+        /** @var QiniuDriver $oss */
+        $oss = $this->getOssDriver($driver, $this->_config);
+        $bucket = $oss->getBucket();
+        $insertOnly = array_key_exists('insertOnly', $policy) ? (int)$policy['insertOnly'] : 0;
+        $token = $oss->getAuth()->uploadToken(
+            $bucket . ':' . $key,
+            null,
+            $expire,
+            array_merge(['insertOnly' => $insertOnly], $policy)
+        );
+        return [
+            'driver' => $driver,
+            'bucket' => $bucket,
+            'prefix' => $key,
+            'token' => $token,
+            'expire' => time() + $expire,
+            'domain' => $oss->getDomain(),
+            'insert_only' => $insertOnly === 1,
+        ];
+    }
+
 }
