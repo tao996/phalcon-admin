@@ -65,7 +65,7 @@ return [
                 'username' => env('MYSQL_USER', 'forge'),
                 'password' => env('MYSQL_PASSWORD', ''),
                 'charset' => 'utf8mb4',
-                'collation' => 'utf8mb4_0900_ai_ci',
+                'collation' => 'utf8mb4_unicode_ci',
                 'prefix' => '',
                 'options' => [
                     \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4'",

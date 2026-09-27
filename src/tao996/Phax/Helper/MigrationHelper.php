@@ -203,8 +203,8 @@ class MigrationHelper
         $text .= '  help | h                  显示此帮助' . PHP_EOL . PHP_EOL;
 
         $text .= '配置自动发现于各模块/项目的 config/migration.php：' . PHP_EOL;
-        $text .= '  App/Modules/<名称>/config/migration.php  → scope "module:<名称>"' . PHP_EOL;
-        $text .= '  App/Projects/<名称>/config/migration.php → scope "project:<名称>"' . PHP_EOL;
+        $text .= '  App/Modules/<名称>/data/migration.php  → scope "module:<名称>"' . PHP_EOL;
+        $text .= '  App/Projects/<名称>/data/migration.php → scope "project:<名称>"' . PHP_EOL;
         $text .= '  （文件存在即参与迁移，directory 默认 App/<类型>/<名称>/data/migration）' . PHP_EOL . PHP_EOL;
 
         if (!empty($this->scopes)) {
@@ -215,7 +215,7 @@ class MigrationHelper
                 $text .= '  ' . str_pad($key, $maxLen + 2) . $dir . PHP_EOL;
             }
         } else {
-            $text .= '  当前未发现任何迁移配置，请在模块/项目的 config/migration.php 中添加（如 App/Modules/<名称>/config/migration.php）。' . PHP_EOL;
+            $text .= '  当前未发现任何迁移配置，请在模块/项目的 config/migration.php 中添加（如 App/Modules/<名称>/data/migration.php）。' . PHP_EOL;
         }
         $text .= PHP_EOL;
 
@@ -253,7 +253,7 @@ class MigrationHelper
         $scopes = $scope ? [$scope] : array_keys($this->scopes);
 
         if (empty($scopes)) {
-            echo "没有发现任何迁移配置（scope），请在模块/项目的 config/migration.php 中定义（如 App/Modules/<名称>/config/migration.php）。\n";
+            echo "没有发现任何迁移配置（scope），请在模块/项目的 data/migration.php 中定义（如 App/Modules/<名称>/data/migration.php）。\n";
             return;
         }
 
@@ -309,8 +309,8 @@ class MigrationHelper
 
     /**
      * 读取 scope 列表：
-     *   1. 自动发现 App/Modules/<名称>/config/migration.php 与
-     *      App/Projects/<名称>/config/migration.php（存在即参与迁移，directory 按约定推导可覆盖）
+     *   1. 自动发现 App/Modules/<名称>/data/migration.php 与
+     *      App/Projects/<名称>/data/migration.php（存在即参与迁移，directory 按约定推导可覆盖）
      *   2. 排序：全局 order 列表（scope 键或模块名，如 ['module:tao'] / ['tao']）排最前，
      *      其余按 scope 键排序；table_prefix 冲突直接抛错（同一前缀被多个 scope 管理）
      */
@@ -322,8 +322,8 @@ class MigrationHelper
         $discovered = [];
         foreach (['Modules' => 'module', 'Projects' => 'project'] as $dirName => $type) {
             $base = PATH_ROOT . 'App/' . $dirName;
-            foreach (glob($base . '/*/[cC]onfig/migration.php') ?: [] as $file) {
-                // App/Modules/<名称>/[cC]onfig/migration.php → 取 <名称>（兼容大小写目录）
+            foreach (glob($base . '/*/data/migration.php') ?: [] as $file) {
+                // App/Modules/<名称>/data/migration.php → 取 <名称>（兼容大小写目录）
                 $name = basename(dirname(dirname($file)));
                 $key = $type . ':' . $name;
                 if (isset($scopes[$key]) || isset($discovered[$key])) {

@@ -12,8 +12,8 @@
  *
  * artisan migration 会自动发现以下配置（文件存在即参与迁移）：
  *
- *   App/Modules/<名称>/config/migration.php   → scope "module:<名称>"
- *   App/Projects/<名称>/config/migration.php  → scope "project:<名称>"
+ *   App/Modules/<名称>/data/migration.php   → scope "module:<名称>"
+ *   App/Projects/<名称>/data/migration.php  → scope "project:<名称>"
  *
  * 模块配置内容（directory 按约定推导为 App/<类型>/<名称>/data/migration）：
  *

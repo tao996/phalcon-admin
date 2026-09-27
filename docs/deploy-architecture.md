@@ -842,7 +842,7 @@ php admin app:<项目> db:backup:cron-rm           # 移除定时备份（保留
 
 | 数据类型 | 性质 | 载体 | 执行方式 |
 |---------|------|------|---------|
-| 表结构 | 版本化增量 | `App/Modules/<名称>/config/migration.php` + `data/migration/`（phalcon-migrations） | `php artisan migration r` / `app:<项目> db:migrate` |
+| 表结构 | 版本化增量 | `App/Modules/<名称>/data/migration.php` + `data/migration/`（phalcon-migrations） | `php artisan migration r` / `app:<项目> db:migrate` |
 | 基础数据（跨项目 A/B 共享） | "最新态"幂等 SQL | `App/Modules/<名称>/data/seed/*.sql`（`REPLACE INTO` 等幂等写法） | `php artisan db:seed` / `app:<项目> db:seed` |
 | 项目差异数据 | 仅本项目 | `deploy/projects/<项目>/db/*.sql` | `app:<项目> db:seed`（上传到 `<path>/src/db/` 后一起执行） |
 
@@ -851,8 +851,8 @@ php admin app:<项目> db:backup:cron-rm           # 移除定时备份（保留
 `artisan migration` 自动发现（文件存在即参与迁移，无配置 = 不参与）：
 
 ```
-App/Modules/<名称>/config/migration.php   → scope "module:<名称>"
-App/Projects/<名称>/config/migration.php  → scope "project:<名称>"
+App/Modules/<名称>/data/migration.php   → scope "module:<名称>"
+App/Projects/<名称>/data/migration.php  → scope "project:<名称>"
 ```
 
 模块配置只需 `table_prefix` / `export`，directory 按约定推导；全局 `src/config/migration.php`

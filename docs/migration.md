@@ -9,7 +9,7 @@
 
 | 项 | 之前 | 现在 |
 | --- | --- | --- |
-| scope 定义 | 集中在 `config/migration.php` | 自动发现 `App/Modules/<名称>/config/migration.php` 与 `App/Projects/<名称>/config/migration.php` |
+| scope 定义 | 集中在 `config/migration.php` | 自动发现 `App/Modules/<名称>/data/migration.php` 与 `App/Projects/<名称>/data/migration.php` |
 | 全局配置 | 大而全 | 瘦身为 `database` / `ts_based` / `order` 三项 |
 | 执行顺序 | 不显式声明 | 通过 `order` 显式声明，未列出的按 scope 键排序 |
 | 前缀冲突 | 无检测 | 同一 `table_prefix` 被多个 scope 管理时直接抛错 |
@@ -18,7 +18,7 @@
 对应文件改动：
 
 - `src/config/migration.example.php` — 全局配置示例瘦身并补充说明
-- `src/App/Modules/tao/Config/migration.php` / `src/App/Modules/demo/config/migration.php` — 模块迁移配置落地
+- `src/App/Modules/tao/data/migration.php` / `src/App/Modules/demo/data/migration.php` — 模块迁移配置落地
 - `src/tao996/Phax/Helper/MigrationHelper.php` — `loadScopes()` 支持自动发现 + order 排序 + 前缀冲突检测
 - `src/tao996/Phax/Helper/SeedHelper.php` — 新增基础数据执行器
 - `src/routes/cli.php` — 新增 `db:seed` 子命令
@@ -35,8 +35,8 @@
 `php artisan migration` 不再要求把所有 scope 写进全局配置，而是**自动扫描**：
 
 ```
-App/Modules/<名称>/config/migration.php   → scope "module:<名称>"
-App/Projects/<名称>/config/migration.php  → scope "project:<名称>"
+App/Modules/<名称>/data/migration.php   → scope "module:<名称>"
+App/Projects/<名称>/data/migration.php  → scope "project:<名称>"
 ```
 
 - 文件**存在即参与迁移**；不存在则该模块/项目不参与。
@@ -46,7 +46,7 @@ App/Projects/<名称>/config/migration.php  → scope "project:<名称>"
 
 ### 2.2 模块/项目配置写法
 
-以 `src/App/Modules/tao/Config/migration.php` 为例：
+以 `src/App/Modules/tao/data/migration.php` 为例：
 
 ```php
 <?php
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS seed_history (
 
 ## 4. 典型工作流
 
-1. **新增模块**：在 `App/Modules/<名称>/Config/migration.php` 声明 `table_prefix`、可选的 `export`、`directory`。
+1. **新增模块**：在 `App/Modules/<名称>/data/migration.php` 声明 `table_prefix`、可选的 `export`、`directory`。
 2. **生成结构迁移**：`php artisan migration g --m=<名称>`。
 3. **导出基础数据**：把初始数据写成幂等 SQL 放到 `App/Modules/<名称>/data/seed/*.sql`。
 4. **一键部署**：
