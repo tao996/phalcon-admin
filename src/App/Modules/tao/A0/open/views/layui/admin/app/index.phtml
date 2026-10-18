@@ -185,7 +185,7 @@ lay-on='discardBtn' data-info='{"id":${d.id},"name":"rsa_private_key"}'>取消</
                     })
                 },
             })
-            .addPostSwitch(['online', 'status', 'sandbox'])
+            .addPostSwitch({fields: ['online', 'status', 'sandbox']})
             .addCellEditAction()
             .addToolbarActions()
             .addRowActions();

@@ -1552,13 +1552,13 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
         },
         /**
          * 提交 switch
-         * @param {Array} fields 字段名称，默认为 ['status']
-         * @param {{url:string}} [config] 配置信息
+         * @param {{fields?:Array, url?:string, key?:string, callback?:Function}} [config] 配置信息, 默认 `key=id`, fields 字段名称，默认为 ['status']
          * @return this
          */
-        addPostSwitch: function (fields = ['status'], config = {}) {
+        addPostSwitch: function (config = {}) {
             const url = this.getConfig(config, 'url');
             const key = this.getConfig(config, 'key', 'id');
+            const fields = this.getConfig(config, 'fields', ['status']);
 
             fields.forEach(field => {
                 if (admin.util.isEmpty(field)) {
@@ -1574,6 +1574,10 @@ lay-skin="switch" lay-text="${option.tips}" lay-filter="${option.filter}" ${chec
                         data: postData,
                     }, function () {
                         admin.table._config.rowAction('modify', postData);
+                        if (config && typeof config.callback === "function") {
+                            console.log('callback function');
+                            config.callback(postData);
+                        }
                     })
                 })
             })

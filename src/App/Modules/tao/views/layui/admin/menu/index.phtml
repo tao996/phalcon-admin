@@ -113,7 +113,11 @@ $vv->layui()->addWindowConfig([])->footer();
             }
         }
     })
-        .addPostSwitch()
+        .addPostSwitch({
+            callback: function () {
+                triggerUpdateMenu();
+            }
+        })
         .addCellEditAction()
         .addToolbarActions()
 

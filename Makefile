@@ -4,7 +4,9 @@
 ServerPort ?= 9002
 
 # 本地 Xdebug 客户端端口（IDE 监听端口，与本机 php.ini 保持一致）
-XdebugPort ?= 51712
+# 注意：不能落在 Windows 保留段（netsh int ipv4 show excludedportrange protocol=tcp），
+#       也不能用 9003/9004（Laragon 自身的 php-cgi FastCGI 端口）
+XdebugPort ?= 19003
 
 # ─── Docs ───────────────────────────────────────────────
 docs:

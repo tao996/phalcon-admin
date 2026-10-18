@@ -4,12 +4,12 @@
 
 ```
 [xdebug]
-zend_extension = "D:/apps/laragon/bin/php/php-8.3.11-Win32-vs16-x64/ext/php_xdebug.dll"
+zend_extension = "D:/apps/laragon/bin/php/php-8.3.33-Win32-vs16-x64/ext/php_xdebug.dll"
 xdebug.mode = debug
 xdebug.client_host = 127.0.0.1
 
-; 1. 修改为推荐的空闲端口
-xdebug.client_port = 51712
+; 1. 本机(非 docker)与 docker 统一使用 19003，PhpStorm 只需监听这一个端口
+xdebug.client_port = 19003
 
 ; 2. 强烈建议改为 trigger（按需触发）
 ; 这样只有当你开启浏览器插件或传入?XDEBUG_SESSION 时才激活调试，
@@ -28,12 +28,14 @@ xdebug.idekey = xdebug
 
 1. 确认 PHP 解释器（一次性）
     
-    `Settings → PHP`，CLI Interpreter 选择当前服务的 PHP（`D:\apps\laragon\bin\php\php-8.3.33-Win32-vs16-x64\php.exe`）。PhpStorm 会读取同一个 php.ini，右侧应能看到 Xdebug 模块和 51712 端口。
+    `Settings → PHP`，CLI Interpreter 选择当前服务的 PHP（`D:\apps\laragon\bin\php\php-8.3.33-Win32-vs16-x64\php.exe`）。PhpStorm 会读取同一个 php.ini，右侧应能看到 Xdebug 模块和 19003 端口。
 
 2. 配置 Debug 端口
 
     `Settings → PHP → Debug`：
-    * Xdebug 的 Debug port 填 `51712`（移除旧的 9003 之类的，必须等于 php.ini 里的 `xdebug.client_port`）；
+    * Xdebug 的 Debug port 只填 `19003`（**必须删掉 9003 / 51712 之类的旧端口**；必须等于 php.ini 里的 `xdebug.client_port`）；
+      * `9003` 是 Laragon 自己的 `php-cgi` FastCGI 端口（见 `D:\apps\laragon\etc\nginx\php_upstream.conf`），填了必然 “all ports are busy”；
+      * `51712` 落在 Windows 保留端口段（见常见问题最后一条），IDE 绑不上；
     * 勾选 Can accept external connections（默认通常已勾选）
     * 在控制器里面打上断点
 
@@ -82,15 +84,17 @@ xdebug.start_with_request=trigger
 xdebug.log_level = 0
 ```
 
-如果你本地机器已经安装了 `xdebug` 那么就不能继续使用 `9003` 端口了
+本机（非 docker）与容器**统一使用 `19003`**：容器里 `xdebug.client_host=host.docker.internal` 连的就是宿主机同一个端口，所以 PhpStorm 的 Debug port 只需要填 `19003`，本地和 docker 可以来回切，不用改 IDE 设置。
+
+不要再用 `9003`：它是 Laragon 自己 `php-cgi` 的 FastCGI 端口（`D:\apps\laragon\etc\nginx\php_upstream.conf`）。
 
 修改 `docker-compose.yaml` 中 `php` 服务的配置（可参考 `docker-compose.example.yaml` 文件）
 
 记住以下信息
 
-* `xdebug.client_port` 修改为 `19003`
+* `xdebug.client_port` 统一为 `19003`
 * `xdebug.idekey` 修改为 `docker` 
-* `serverName` 修改为 `phalcon-admin`,
+* `serverName` 修改为 `phalcon-admin`（`docker-compose.yaml` 里已经是这个值，PhpStorm `PHP > Servers` 的名字必须与它一致，当前项目里配的是 `php-admin`，两者不一致会导致 docker 下断点不生效）
 
 下面的 `PHPStorm Setting` 将使用到这些信息
 
@@ -143,7 +147,7 @@ File/Director       Absolute path on the server
 
 * `9003` is busy，`Server name` 显示为空，`port` 总是 80
 
-移除 xdebug 配置中的 9003，可能被本地 php 环境占用了
+`9003` 是 Laragon 自己 `php-cgi` 的 FastCGI 端口（`D:\apps\laragon\etc\nginx\php_upstream.conf` 里的 `127.0.0.1:9003/9004`），从 Xdebug 的端口列表里删掉，改用 `19003`
 
 * 点击 debug 后自动打开链接 `http://localhost:8071` 但是断点没有中断
 
@@ -163,3 +167,23 @@ IDE 配置 `PHP > Servers` 中的 `Name`与 `docker-compose.yaml` 中 php 服务
 src\App\Modules\tao\Controllers\AuthController.php:129
 File path is not mapped to any file path on server. Edit path mappings to fix the problem.
 ```
+
+* phpstorm 提示
+   ```
+   All ports specified in settings are busy. Port 57,506 is free and can be used by Xdebug. Please update php.ini with xdebug.client_port=57506
+   ```
+
+  这是 `Settings → PHP → Debug` 里配的端口**一个都绑不上**。逐个排查：
+
+  1. 端口是否被 Windows 保留（Hyper-V / WSL / Docker Desktop 会预留成段，且重启后会变）：
+     ```powershell
+     netsh int ipv4 show excludedportrange protocol=tcp
+     ```
+     例如 `51672 - 51771` 就吃掉了 `51712` —— 这种端口 IDE 永远绑不上，只能换端口。
+  2. 端口是否被别的进程占用：
+     ```powershell
+     netstat -ano | Select-String ":19003"
+     ```
+     `9003/9004` 一定是 `php-cgi.exe`（Laragon 的 FastCGI），不能填进 Debug port。
+  3. PhpStorm 提示的 “建议端口”（如 `57,506`）是**系统动态端口段（49152-65535）里的随机空闲口**，它可能已经自己监听了，但 php.ini 还停在旧端口，于是断点永远不中断。不要照抄这个值，改用固定的 `19003`。
+  4. 结论：php.ini 的 `xdebug.client_port` 与 PhpStorm 的 Debug port 必须是**同一个、非保留、非 Laragon FastCGI** 的端口，本机与 docker 统一为 `19003`。改完 php.ini 记得重启 php-cgi（Laragon → Reload / Restart）。 

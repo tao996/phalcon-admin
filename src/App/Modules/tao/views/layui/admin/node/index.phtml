@@ -32,7 +32,7 @@
 $vv->layui()->addWindowConfig([])->footer();
 ?>
 <script>
-    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao/admin.node",false) ?>';
+    const prefix = '<?php echo \Phax\Foundation\AppService::urlModule("tao/admin.node", false) ?>';
     const inst = admin.treeTable.render({
         tree: {
             customName: {
@@ -77,7 +77,7 @@ $vv->layui()->addWindowConfig([])->footer();
         ]]
     })
     admin.table.with({url: prefix})
-        .addPostSwitch(['is_auth'])
+        .addPostSwitch({fields: ['is_auth']})
         .addCellEditAction()
 
 

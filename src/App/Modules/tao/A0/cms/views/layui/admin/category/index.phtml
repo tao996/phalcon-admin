@@ -87,7 +87,7 @@ $vv->layui()->addWindowConfig([])->footer(); ?>
     admin.table.with({
         url: prefix
     })
-        .addPostSwitch(['status', 'navbar'])
+        .addPostSwitch({fields: ['status', 'navbar']})
         .addCellEditAction()
         .addToolbarActions()
 

@@ -7,7 +7,7 @@
 
 #### Appearance & Behavior | Scopes
 
-创建一个新的 `Scopes`，我们将其名称设置为 `phalcon-admin-tao`，`Pattern` 内容为 `file[phalcon-admin]:src/App/Modules/tao/sdk/phaxui/Layui/*&&!file:*.min.*&&!file:*.php`
+创建一个新的 `Scopes`，我们将其名称设置为 `phalcon-admin-tao`，`Pattern` 内容为 `file[phalcon-admin]:src/App/Modules/tao/views/assets/layui/*&&!file:*.min.*&&!file:*.php`
 
 为了避免出现 `min.min`，我们在后面添加上 `&&!file:*.min.*&&!file:*.php`
 

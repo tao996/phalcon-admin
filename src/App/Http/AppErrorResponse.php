@@ -4,6 +4,7 @@ namespace App\Http;
 
 use Phax\Foundation\AppService;
 use Phax\Mvc\Controller;
+use Phax\Support\Exception\BusinessException;
 
 /**
  * 注意：这个类不是正经初始化的
@@ -22,7 +23,7 @@ class AppErrorResponse extends Controller
         // 日志已由 handleException() 统一处理，此处只负责渲染响应
         if ($this->isApiRequest()) {
             $code = $e->getCode() ?: 500;
-            $msg = IS_DEBUG ? $e->getMessage() : '系统繁忙，请稍后再试';
+            $msg = IS_DEBUG || $e instanceof BusinessException ? $e->getMessage() : '系统繁忙，请稍后再试';
             $data = IS_DEBUG ? [
                 'type' => get_class($e),
                 'file' => $e->getFile(),

@@ -114,7 +114,7 @@ ${admin.table.image(d.cover, true)}
             ]],
             lineStyle: '60px'
         })
-        .addPostSwitch(['status', 'at_index', 'at_list', 'at_page'])
+        .addPostSwitch({fields:['status', 'at_index', 'at_list', 'at_page']})
         .addCellEditAction()
         .addToolbarActions()
         .addRowActions();
