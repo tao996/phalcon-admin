@@ -1,7 +1,7 @@
-FROM php:8.3.33-fpm-alpine
+FROM php:8.5.12-fpm-alpine
 
 ENV TZ=America/Los_Angeles \
-    PHALCON_VERSION=5.21.0 \
+    PHALCON_VERSION=5.23.0 \
     # https://pecl.php.net/package/redis
     REDIS_VERSION=6.3.0 \
     # https://pecl.php.net/package/memcached
@@ -35,8 +35,11 @@ RUN --mount=type=cache,target=/var/cache/apt \
     libwebp-dev icu-dev libpq-dev && \
     \
     # 2. 配置并安装 PHP 核心内置扩展
+    # 注意：PHP 8.5 起 opcache 已静态编译进 PHP 二进制(官方镜像自带且总是加载)，
+    # 源码包里不再产出 opcache.so，因此这里绝不能再写 opcache，否则 make install 会报
+    # cp: can't stat 'modules/*'  /  make: *** [Makefile:89: install-modules] Error 1
     docker-php-ext-configure gd --with-freetype --with-webp --with-jpeg=/usr/include/ --enable-gd && \
-    docker-php-ext-install gd mysqli pdo pdo_mysql pdo_pgsql pcntl sockets bcmath exif intl opcache posix zip && \
+    docker-php-ext-install gd mysqli pdo pdo_mysql pdo_pgsql pcntl sockets bcmath exif intl posix zip && \
     \
     # 3. 通过 PECL 安装常规第三方扩展
     pecl install psr-${PSR_VERSION} && \
@@ -64,8 +67,9 @@ RUN --mount=type=cache,target=/var/cache/apt \
     rm -rf /tmp/*
 
 LABEL maintainer="authus" \
-    php.version="8.3" \
+    php.version="8.5" \
     description="PHP-FPM with Phalcon latest version"
 
 # 构建命令：
 # docker build -f phalcon-latest.Dockerfile -t authus/phalcon:latest .
+# docker build -f phalcon-latest.Dockerfile -t authus/phalcon:5.23 .
