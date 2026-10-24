@@ -1,12 +1,12 @@
 # AGENTS.md — Phalcon Admin
 
-基于 **Phalcon 5.13（C 扩展）** 的多模块后台管理系统（demo / tao / yihe 三个业务模块 + 自定义框架层）。
+基于 **Phalcon 5.23.0（C 扩展）** 的多模块后台管理系统（demo / tao / yihe 三个业务模块 + 自定义框架层）。
 
 ## Project
 
 - **真实代码根在 `src/`**：`composer.json`、`vendor/`、`phpunit.xml`、`public/index.php`、`artisan` 全部在 `src/` 下；仓库根目录没有 composer 文件。
 - 入口：Web = `src/public/index.php`，CLI = `src/artisan` → `src/bootstrap/app.php`，子命令注册在 `src/routes/cli.php`。
-- 栈：PHP 8.3+（ext-curl/redis/pdo/gd/intl/bcmath/xlswriter，见 `src/composer.json`）、Phalcon 5.13（docker 镜像 `authus/phalcon:5.13.0`）、PHPUnit 11.2 + Mockery。
+- 栈：PHP 8.5+（ext-curl/redis/pdo/gd/intl/bcmath/xlswriter，见 `src/composer.json`）、Phalcon 5.23.0（docker 镜像 `authus/phalcon:5.23.0`）、PHPUnit 11.5 + Mockery。
 - 金额计算统一走 `Phax\Utils\MyBc`（`bcadd` 返回 string，注意转 `(float)`）。
 
 ## Commands（在 `src/` 目录下执行）

@@ -72,4 +72,4 @@ LABEL maintainer="authus" \
 
 # 构建命令：
 # docker build -f phalcon-latest.Dockerfile -t authus/phalcon:latest .
-# docker build -f phalcon-latest.Dockerfile -t authus/phalcon:5.23 .
+# docker build -f phalcon-latest.Dockerfile -t authus/phalcon:5.23.0 .

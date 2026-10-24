@@ -79,7 +79,8 @@ function cache_server_id(): string
         return $id;
     }
     // 其次使用当前 env 对应的配置文件（由 CLI 设置），否则用默认 server.php
-    $path = getenv('DEPLOY_SERVER_FILE') ?: (DEPLOY_BASE . '/deploy/server.php');
+    // 不依赖外部常量 DEPLOY_BASE，避免独立调用 helpers.php 时未定义
+    $path = getenv('DEPLOY_SERVER_FILE') ?: (dirname(deploy_base_path()) . '/deploy/server.php');
     if (!file_exists($path)) {
         return 'unknown';
     }

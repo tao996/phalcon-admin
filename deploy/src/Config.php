@@ -88,6 +88,10 @@ class DeployConfig
                 $this->server['router'] ?? [],
                 $this->project['router'] ?? []
             ),
+            'nginx' => array_merge_deep(
+                $this->server['nginx'] ?? [],
+                $this->project['nginx'] ?? []
+            ),
             'sync' => array_merge_deep(
                 $this->server['sync'] ?? [],
                 $this->project['sync'] ?? []

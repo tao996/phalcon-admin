@@ -22,7 +22,7 @@ services:
       - php
 
   php:
-    image: ${PHP_IMAGE:-authus/phalcon:5.23}
+    image: ${PHP_IMAGE:-authus/phalcon:5.23.0}
     # registry.cn-shenzhen.aliyuncs.com/authus/phalcon:5.23.0
     container_name: ${APP_NAME}-php
     working_dir: /var/www

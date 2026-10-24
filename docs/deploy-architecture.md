@@ -248,7 +248,7 @@ return $data;
 ```php
 'docker' => [
     'images' => [
-        'php' => 'registry.example.com/phalcon:5.13.0',
+        'php' => 'registry.example.com/phalcon:5.23.0',
         'nginx' => 'registry.example.com/nginx:stable-alpine',
     ],
 ],

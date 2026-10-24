@@ -95,7 +95,7 @@ return [
         // Docker 镜像覆盖（可选，缺省使用 compose 模板中的默认值）
         'docker' => [
             'images' => [
-                // 'php' => 'registry.example.com/phalcon:5.13.0',
+                // 'php' => 'registry.example.com/phalcon:5.23.0',
                 // 'nginx' => 'registry.example.com/nginx:stable-alpine',
                 // 'mysql' => 'registry.example.com/mysql:8.1.0',
                 // 'redis' => 'registry.example.com/redis:7.2-alpine',

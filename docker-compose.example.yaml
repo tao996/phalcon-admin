@@ -28,7 +28,7 @@ services:
 
   php:
     container_name: ${APP_NAME}-php
-    image: authus/phalcon:5.23
+    image: authus/phalcon:5.23.0
     working_dir: /var/www
     restart: on-failure
     volumes:

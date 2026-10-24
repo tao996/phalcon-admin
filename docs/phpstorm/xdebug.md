@@ -72,7 +72,7 @@ xdebug.idekey = xdebug
 
 ```ini
 [xdebug]
-; 在 authus/phalcon:5.13.0 中不需要开启
+; 在 authus/phalcon:5.23.0 中不需要开启
 ;zend_extension=xdebug.so
 xdebug.mode=debug,develop
 xdebug.discover_client_host=0

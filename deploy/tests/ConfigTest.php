@@ -42,7 +42,6 @@ class ConfigTest extends TestCase
         // 手动设置 project（模拟 loadProject 的结果）
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
         $merged = $config->getMerged();
@@ -76,7 +75,6 @@ class ConfigTest extends TestCase
 
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
         $this->assertEquals('/root/projects/testproj', $config->getProjectPath());
@@ -89,7 +87,6 @@ class ConfigTest extends TestCase
 
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('projectName');
-        $prop->setAccessible(true);
         $prop->setValue($config, 'testproj');
 
         $this->assertEquals('testproj', $config->getProjectName());
@@ -102,7 +99,6 @@ class ConfigTest extends TestCase
 
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
         $this->assertEquals(['testproj.example.com'], $config->getDomains());
@@ -115,7 +111,6 @@ class ConfigTest extends TestCase
 
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
         $items = $config->getSyncItems();
@@ -143,11 +138,14 @@ class ConfigTest extends TestCase
 
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
         // fixture 未配置 nginx 段 → 默认 false
         $this->assertFalse($config->getNginxSsl());
+
+        // 项目配置 nginx.ssl=true 时合并生效
+        $prop->setValue($config, ['nginx' => ['ssl' => true]]);
+        $this->assertTrue($config->getNginxSsl());
     }
 
     public function testGetSshConfig(): void
@@ -167,7 +165,6 @@ class ConfigTest extends TestCase
 
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
         $env = $config->getEnvOverrides();
@@ -182,7 +179,6 @@ class ConfigTest extends TestCase
 
         $ref = new ReflectionClass($config);
         $prop = $ref->getProperty('project');
-        $prop->setAccessible(true);
         $prop->setValue($config, require $this->fixturesDir . '/project.php');
 
         $hooks = $config->getHooks();
