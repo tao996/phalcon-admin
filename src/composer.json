@@ -2,28 +2,29 @@
   "name": "tao996/phalconx",
   "type": "project",
   "description": "This application make the Phalcon framework write easy.",
-  "version": "dev-0.0.1",
   "keywords": [
     "phalcon",
     "php"
   ],
   "license": "MIT",
   "require": {
+    "php": "^8.5",
+    "ext-phalcon": "^5.23",
+    "ext-bcmath": "*",
     "ext-curl": "*",
-    "ext-redis": "*",
-    "ext-pdo": "*",
     "ext-gd": "*",
     "ext-intl": "*",
-    "ext-xlswriter": "*",
-    "ext-bcmath": "*"
+    "ext-mbstring": "*",
+    "ext-pdo": "*",
+    "ext-redis": "*",
+    "ext-xlswriter": "*"
   },
   "require-dev": {
-    "php": "^8.3",
-    "phpunit/phpunit": "^11.2",
     "mockery/mockery": "^1.6",
+    "phalcon/ide-stubs": "^5.23",
     "phpstan/phpstan": "^2.1",
-    "viest/php-ext-xlswriter-ide-helper": "^2.0",
-    "phalcon/ide-stubs": "^5.13"
+    "phpunit/phpunit": "^11.5",
+    "viest/php-ext-xlswriter-ide-helper": "^2.0"
   },
   "autoload": {
     "psr-4": {
@@ -34,6 +35,9 @@
     "psr-4": {
       "Tests\\": "tests"
     }
+  },
+  "config": {
+    "sort-packages": true
   },
   "extra": [],
   "minimum-stability": "stable",

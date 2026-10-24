@@ -62,6 +62,11 @@ if (!function_exists('prettyError')) {
         if (!(error_reporting() & $errno)) {
             return false;
         }
+        // 第三方 phar（phalcon-migrations/minify 等）尚未适配 PHP 8.4+ 的隐式 nullable 等废弃提示，
+        // 其源码无法直接修改，这里仅忽略 phar 内部的 Deprecated，其它错误仍转为异常
+        if (($errno === E_DEPRECATED || $errno === E_USER_DEPRECATED) && str_starts_with($errfile, 'phar://')) {
+            return true;
+        }
         throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
     }
 
@@ -162,5 +167,5 @@ if (!function_exists('env')) {
 
 function loader(): \Phalcon\Autoload\Loader
 {
-    return \tao996\Kernel::getLoader();
+    return \Kernel::getLoader();
 }

@@ -50,7 +50,7 @@ class FileUploadHelper
         return $this;
     }
 
-    private function mustGetFile(File $file = null)
+    private function mustGetFile(?File $file = null)
     {
         if (is_null($file)) {
             if (empty($this->_file)) {
@@ -82,7 +82,7 @@ class FileUploadHelper
      * @return FileUploadHelper
      * @throws \Exception
      */
-    public function validate(File $file = null): self
+    public function validate(?File $file = null): self
     {
         $file = $this->mustGetFile($file);
         if (!in_array($file->getExtension(), explode(',', $this->_config['upload_allow_ext']))) {
@@ -213,7 +213,7 @@ class FileUploadHelper
     /**
      * @throws OssException
      */
-    public function save(File $file = null): SystemUploadfile
+    public function save(?File $file = null): SystemUploadfile
     {
         $this->mustGetFile($file);
         $uploadType = $this->getUploadType();

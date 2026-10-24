@@ -20,7 +20,7 @@ class Notify extends AbstractWepay
      * @param callable{OpenOrder}|null $success 订单成功修改为已支付的回调
      * @return void
      */
-    public function handlePaid(array $data, callable $success = null): void
+    public function handlePaid(array $data, ?callable $success = null): void
     {
         $order = OpenOrderService::fromOutTradeNo($data['out_trade_no']);
         $logic = WepayOrderLogic::createWithOrder($order);
@@ -47,7 +47,7 @@ class Notify extends AbstractWepay
      * @param callable{OpenOrder}|null $success 在支持成功后接收订单数据
      * @return mixed 响应结果不需要再次处理直接返回给微信即可
      */
-    public function response(callable $success = null): mixed
+    public function response(?callable $success = null): mixed
     {
         return $this->getWechatServer()->notify(function ($data) use ($success) {
             // 验证通过，其它业务

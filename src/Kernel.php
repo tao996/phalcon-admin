@@ -96,7 +96,7 @@ class Kernel
             // 4. 安全红线：万一生产环境 php.ini 漏配，代码层做兜底，绝对不向外网暴露任何报错
             ini_set('display_errors', '0');
             ini_set('display_startup_errors', '0');
-            error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE);
+            error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
         }
 // CLI（PHPUnit）下禁用 xdebug 的 HTML 错误输出
         if (!IS_PHP_FPM && extension_loaded('xdebug')) {

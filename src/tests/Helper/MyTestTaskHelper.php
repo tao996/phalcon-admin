@@ -12,8 +12,9 @@ class MyTestTaskHelper
     public static function cmd(string $cmd): string
     {
         $cmd = join(' ', [
-            'php',
-            PATH_ROOT . 'artisan',
+            // 使用当前 PHP 可执行文件，避免 PATH 中的 php 与项目要求（8.5）不一致
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg(PATH_ROOT . 'artisan'),
             $cmd,
         ]);
         exec($cmd, $output);

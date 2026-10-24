@@ -52,7 +52,7 @@ class Request implements \Phalcon\Http\RequestInterface
     ];
 
     public function get(
-        string $name = null,
+        ?string $name = null,
         $filters = null,
         $defaultValue = null,
         bool $notAllowEmpty = false,
@@ -156,7 +156,7 @@ class Request implements \Phalcon\Http\RequestInterface
     }
 
     public function getPost(
-        string $name = null,
+        ?string $name = null,
         $filters = null,
         $defaultValue = null,
         bool $notAllowEmpty = false,
@@ -170,7 +170,7 @@ class Request implements \Phalcon\Http\RequestInterface
     }
 
     public function getPut(
-        string $name = null,
+        ?string $name = null,
         $filters = null,
         $defaultValue = null,
         bool $notAllowEmpty = false,
@@ -184,7 +184,7 @@ class Request implements \Phalcon\Http\RequestInterface
     }
 
     public function getQuery(
-        string $name = null,
+        ?string $name = null,
         $filters = null,
         $defaultValue = null,
         bool $notAllowEmpty = false,

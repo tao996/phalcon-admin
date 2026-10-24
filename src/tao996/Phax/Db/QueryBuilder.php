@@ -17,7 +17,7 @@ class QueryBuilder
     private \Phax\Mvc\Model $model;
     private Parameter $parameter;
 
-    public function __construct(\Phax\Mvc\Model $model = null)
+    public function __construct(?\Phax\Mvc\Model $model = null)
     {
         $this->parameter = new Parameter();
         if (!is_null($model)) {
@@ -437,7 +437,7 @@ class QueryBuilder
      * @param DiInterface|null $di
      * @return $this
      */
-    public function setContainer(DiInterface $di = null): static
+    public function setContainer(?DiInterface $di = null): static
     {
         if (!is_null($di)) {
             $this->parameter->parameter['container'] = $di;
@@ -534,7 +534,7 @@ class QueryBuilder
      * @param string|null $key 如果设置，则会将此字段的值提升为查询记录的 key
      * @throws \Exception
      */
-    public function findColumn(array|string $fields = [], string $key = null): array
+    public function findColumn(array|string $fields = [], ?string $key = null): array
     {
         if (!empty($fields)) {
             $this->columns($fields);

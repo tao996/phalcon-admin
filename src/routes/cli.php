@@ -20,12 +20,18 @@ use \Phax\Foundation\CliRouter;
  * vendor/bin/phpunit --testsuite worksheet
  */
 CliRouter::add('test', function ($params) {
-    system('php ' . PATH_ROOT . 'vendor/bin/phpunit --configuration ' . PATH_ROOT . 'phpunit.xml ' . join(' ', $params));
+    // 使用当前 PHP 可执行文件，避免 PATH 中默认 php 与项目升级后的版本不一致
+    system(
+        escapeshellarg(PHP_BINARY)
+        . ' ' . escapeshellarg(PATH_ROOT . 'vendor/bin/phpunit')
+        . ' --configuration ' . escapeshellarg(PATH_ROOT . 'phpunit.xml')
+        . ' ' . join(' ', $params)
+    );
 }, 'run phpunit test');
 
 // refresh meta-data when you update the model
 CliRouter::add('metadata', function () {
-    \Phax\Foundation\Application::di()->get('metadata')->reset();
+    \Phax\Foundation\Application::di()->get('modelsMetadata')->reset();
     echo "refresh metadata success", PHP_EOL;
 }, 'refresh all Model metadata');
 
@@ -106,7 +112,7 @@ CliRouter::add('cc', function ($params) {
     } elseif ('rc' == $params[0]) {
         $params[0] = 'run Acceptance';
     }
-    system('php ' . PATH_ROOT . 'vendor/bin/codecept ' . join(' ', $params), $code);
+    system(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(PATH_ROOT . 'vendor/bin/codecept') . ' ' . join(' ', $params), $code);
 }, '使用 cc 来代替 vendor/bin/codecept，以方便执行命令');
 
 CliRouter::add(['minify', 'min', 'mini'], function ($params) {

@@ -68,9 +68,9 @@ class OpenApp extends BaseTaoModel
             throw new BusinessException('不支持的抖音应用类型');
         }
         switch ($this->platform) {
-            case UserBindPlatform::PlatformTiktok;
+            case UserBindPlatform::PlatformTiktok:
                 break;
-            case UserBindPlatform::PlatformWechat;
+            case UserBindPlatform::PlatformWechat:
                 if ('work' == $this->kind && empty($this->crop_id)) {
                     throw new BusinessException('企业微信必须填写 cropId');
                 }

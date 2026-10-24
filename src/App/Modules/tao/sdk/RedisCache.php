@@ -25,7 +25,7 @@ class RedisCache implements CacheInterface
      * @param \DateInterval|int|null $ttl
      * @throws InvalidArgumentException
      */
-    public function set(string $key, mixed $value, \DateInterval|int $ttl = null): bool
+    public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool
     {
         return AppService::cache()->set($key, $value, $ttl);
     }
@@ -59,7 +59,7 @@ class RedisCache implements CacheInterface
      * @param \DateInterval|int|null $ttl
      * @return bool
      */
-    public function setMultiple(iterable $values, \DateInterval|int $ttl = null): bool
+    public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
     {
         return AppService::cache()->setMultiple($values, $ttl);
     }

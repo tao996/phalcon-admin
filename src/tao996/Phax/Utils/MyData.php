@@ -84,6 +84,10 @@ class MyData
      */
     public static function get(array &$data, string|int|null $key, mixed $defValue = null): mixed
     {
+        // PHP 8.5 起 array_key_exists(null, ...) 已废弃
+        if (null === $key) {
+            return $defValue;
+        }
         return key_exists($key, $data) ? $data[$key] : $defValue;
     }
 

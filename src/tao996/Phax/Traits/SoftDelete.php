@@ -65,7 +65,7 @@ trait SoftDelete
      * @throws \Exception
      * @return \Phalcon\Mvc\Model\Row|\Phalcon\Mvc\Model|self|null
      */
-    public static function findFirst($parameters = null, callable $queryBuilder = null): mixed
+    public static function findFirst($parameters = null, ?callable $queryBuilder = null): mixed
     {
         /**
          * @var $obj \Phax\Mvc\Model
@@ -180,7 +180,7 @@ trait SoftDelete
         return parent::find(self::mergeParameters($parameters, 1));
     }
 
-    public static function query(\Phalcon\Di\DiInterface $container = null): \Phalcon\Mvc\Model\CriteriaInterface
+    public static function query(?\Phalcon\Di\DiInterface $container = null): \Phalcon\Mvc\Model\CriteriaInterface
     {
         /**
          * @var $obj \Phax\Mvc\Model

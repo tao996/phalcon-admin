@@ -461,7 +461,7 @@ class MyJSON
                     // good about returning integers where appropriate:
                     // return (float)$str;
                     // Return float or int, as appropriate
-                    return ((float)$str == (integer)$str) ? (integer)$str : (float)$str;
+                    return ((float)$str == (int)$str) ? (int)$str : (float)$str;
                 }
                 if (preg_match('/^(["\']).*(\1)$/s', $str, $m) && $m[1] == $m[2]) {
                     // STRINGS RETURNED IN UTF-8 FORMAT

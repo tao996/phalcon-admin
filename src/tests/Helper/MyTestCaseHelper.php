@@ -28,8 +28,12 @@ class MyTestCaseHelper extends TestCase
     protected function tearDown(): void
     {
         // 3. 测试结束，直接回滚，保证不污染测试数据库
+        // Phalcon 5.21+ 在没有活动事务时 rollback() 会抛 NoActiveTransaction
         if ($this->di && $this->di->has('db')) {
-            $this->di->get('db')->rollback();
+            $db = $this->di->get('db');
+            if ($db->isUnderTransaction()) {
+                $db->rollback();
+            }
         }
 
         parent::tearDown();

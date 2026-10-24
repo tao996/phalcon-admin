@@ -107,7 +107,7 @@ class MyColor
     /**
      * Colorizes the string using provided colors.
      */
-    public static function colorize(string $string, int $fg = null, int $at = null, int $bg = null): string
+    public static function colorize(string $string, ?int $fg = null, ?int $at = null, ?int $bg = null): string
     {
         // Shell not supported, exit early
         if (!static::isSupportedShell()) {

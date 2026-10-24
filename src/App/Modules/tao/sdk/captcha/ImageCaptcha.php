@@ -127,7 +127,8 @@ class ImageCaptcha
 
     public function destroy(): void
     {
-        @imagedestroy($this->image);
+        // PHP 8.0+ 的 GD 对象由 GC 自动释放，imagedestroy() 在 8.5 起已废弃
+        $this->image = null;
     }
 
     public function __destruct()

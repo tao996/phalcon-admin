@@ -24,9 +24,15 @@ class Transaction
         $db->begin();
         try {
             $handle($db);
-            $db->commit();
+            // Phalcon 5.21+ 在没有活动事务时（如 MySQL DDL 隐式提交）调用 commit/rollback
+            // 会抛出 NoActiveTransaction，这里先判断，避免掩盖原始异常
+            if ($db->isUnderTransaction()) {
+                $db->commit();
+            }
         } catch (\Throwable $e) {
-            $db->rollback();
+            if ($db->isUnderTransaction()) {
+                $db->rollback();
+            }
             throw $e;
         }
     }
@@ -47,9 +53,14 @@ class Transaction
         $pdo->beginTransaction();
         try {
             $handle($pdo);
-            $pdo->commit();
+            if ($pdo->inTransaction()) {
+                $pdo->commit();
+            }
         } catch (\Throwable $e) {
-            $pdo->rollBack();
+            // DDL 会隐式提交事务，此时再 rollBack() 会抛 "There is no active transaction"
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             throw $e;
         }
     }

@@ -91,7 +91,7 @@ class SignatureHelper {
             // 所以这里触发的是E_USER_ERROR，会终止脚本执行，无法被try...catch捕获，需要用户排查环境、网络等故障
             trigger_error("[CURL_" . curl_errno($ch) . "]: " . curl_error($ch), E_USER_ERROR);
         }
-        curl_close($ch);
+        // PHP 8.0+ curl_close() 已无实际作用，8.5 起废弃
 
         return $rtn;
     }

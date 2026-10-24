@@ -148,7 +148,7 @@ class BaseController extends BaseRbacController
      * @return Simple|null
      * @throws \Exception
      */
-    protected function getIndexResultset(callable $queryBuilderCallback = null): \Phalcon\Mvc\Model\Resultset\Simple|null
+    protected function getIndexResultset(?callable $queryBuilderCallback = null): \Phalcon\Mvc\Model\Resultset\Simple|null
     {
         $queryBuilder = $this->model->getQueryBuilder($this->getDI());
         $this->beforeIndexQuery($queryBuilder);

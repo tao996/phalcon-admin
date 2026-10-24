@@ -163,7 +163,7 @@ class MyTestCurl
             && ++$attempt <= $maxRetries
         ) {
             usleep(200_000); // 200ms
-            curl_close($this->ch); // 关闭旧句柄
+            // PHP 8.0+ curl_close() 已无实际作用，PHP 8.5 起废弃，直接替换句柄即可
             $this->ch = curl_init();
             curl_setopt_array($this->ch, $this->setting);
             $this->beforeSend();
@@ -174,8 +174,7 @@ class MyTestCurl
         }
 
         $this->afterClose();
-        curl_close($this->ch);
-        $this->ch = null; // 销毁句柄
+        $this->ch = null; // 销毁句柄（PHP 8.0+ 无需 curl_close）
 
         if ($ddd) {
             ddd(['url' => $url, 'responseContent' => $content, 'httpCode' => $httpCode]);

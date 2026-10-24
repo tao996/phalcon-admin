@@ -17,7 +17,6 @@ class ConfigTest extends TestCase
         // 保存原始 config 以便恢复
         $ref = new \ReflectionClass(Config::class);
         $prop = $ref->getProperty('config');
-        $prop->setAccessible(true);
         self::$originalConfig = $prop->getValue(null);
         $prop->setValue(null, new PhalconConfig([
             'app' => [
@@ -54,7 +53,6 @@ class ConfigTest extends TestCase
                 ],
             ],
         ]));
-        $prop->setAccessible(false);
 
         self::$config = new Config(\Phax\Foundation\Application::di());
     }
@@ -64,9 +62,7 @@ class ConfigTest extends TestCase
         // 恢复原始静态 config，避免影响后续测试
         $ref = new \ReflectionClass(Config::class);
         $prop = $ref->getProperty('config');
-        $prop->setAccessible(true);
         $prop->setValue(null, self::$originalConfig);
-        $prop->setAccessible(false);
         self::$originalConfig = null;
     }
 

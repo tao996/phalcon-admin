@@ -73,7 +73,9 @@ class AppService
      */
     public static function console(string $path, bool $filter = true): array
     {
-        $cmd = 'php ' . PATH_ROOT . 'artisan ' . $path;
+        // CLI 模式下使用当前 PHP 可执行文件；FPM 下 PHP_BINARY 是 php-fpm，不能执行 artisan
+        $php = IS_TASK ? escapeshellarg(PHP_BINARY) : 'php';
+        $cmd = $php . ' ' . escapeshellarg(PATH_ROOT . 'artisan') . ' ' . $path;
 
         exec($cmd, $output, $result_code);
         if ($result_code === 0) {
@@ -107,7 +109,7 @@ class AppService
 //        }
 //        $lang = $this->di->get('request')->getBestLanguage(); // zh-CN
         // 路由中有语言请求参数，配置设置
-        if ($language = self::dispatcher()->getParam('language')) {
+        if ($language = self::dispatcher()->getParameter('language')) {
             return $language;
         }
         return self::config()->getString('app.locale', 'cn');

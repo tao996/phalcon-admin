@@ -45,7 +45,7 @@ class RefundNotify
      * @param callable{OpenOrder}|null $success 订单成功修改为已退款的回调
      * @return void
      */
-    public function handleRefund(array $data, callable $success = null): void
+    public function handleRefund(array $data, ?callable $success = null): void
     {
         $logic = WepayOrderLogic::createWithOrder($this->order);
         if ($logic->refundResponse($data)) {
@@ -71,7 +71,7 @@ class RefundNotify
      * @return mixed
      * @throws \Exception
      */
-    public function response(callable $callback = null): mixed
+    public function response(?callable $callback = null): mixed
     {
         return $this->getWechatServer()->refundNotify(function ($data) use ($callback) {
             $this->handleRefund($data, $callback);

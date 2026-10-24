@@ -46,7 +46,7 @@ class MyTestControllerHelper
     /**
      * @throws \Exception
      */
-    public function __construct(\Phax\Mvc\Controller|string $controller = null)
+    public function __construct(\Phax\Mvc\Controller|string|null $controller = null)
     {
         $di = Application::di();
         $this->request = new Request();

@@ -36,7 +36,7 @@ class Application
     }
 
 
-    public function autoloadServices(Di $di = null): void
+    public function autoloadServices(?Di $di = null): void
     {
         if (empty($di)) {
             $di = self::di();
@@ -110,7 +110,7 @@ class Application
         return null;
     }
 
-    public function handleException(\Throwable $e, Di $di = null): string
+    public function handleException(\Throwable $e, ?Di $di = null): string
     {
         // BusinessException 为普通业务异常（如验证失败、业务规则冲突），
         // 属于预期行为，不记录错误日志，减少日志噪音

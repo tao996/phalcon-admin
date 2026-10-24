@@ -11,7 +11,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AccessToken extends \EasyWeChat\OfficialAccount\AccessToken
 {
-    public function __construct(string $appId, string $secret, ?string $key = null, CacheInterface $cache = null, HttpClientInterface $httpClient = null, ?bool $stable = false)
+    public function __construct(string $appId, string $secret, ?string $key = null, ?CacheInterface $cache = null, ?HttpClientInterface $httpClient = null, ?bool $stable = false)
     {
         $cache = $cache ?? new Psr16Cache(new FilesystemAdapter('easytiktok', 1500));
         parent::__construct($appId, $secret, $key, $cache,

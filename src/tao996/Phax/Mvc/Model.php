@@ -286,7 +286,7 @@ class Model extends \Phalcon\Mvc\Model
      * 返回的是原型对象的副本，修改返回对象的属性不会影响后续调用
      * @return static
      */
-    public static function getObject(): \Phax\Mvc\Model|self
+    public static function getObject(): static
     {
         static $obj = [];
         $called = get_called_class();
@@ -340,7 +340,7 @@ class Model extends \Phalcon\Mvc\Model
      * @return QueryBuilder
      * @throws \Exception
      */
-    public static function queryBuilder(DiInterface $di = null): QueryBuilder
+    public static function queryBuilder(?DiInterface $di = null): QueryBuilder
     {
         return QueryBuilder::with(static::getObject())
             ->setContainer($di);
@@ -351,7 +351,7 @@ class Model extends \Phalcon\Mvc\Model
      * @return QueryBuilder
      * @throws \Exception
      */
-    public function getQueryBuilder(DiInterface $di = null): QueryBuilder
+    public function getQueryBuilder(?DiInterface $di = null): QueryBuilder
     {
         return QueryBuilder::with($this)
             ->setContainer($di);

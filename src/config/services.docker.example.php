@@ -4,6 +4,10 @@
  * @var string $backendCryptKey 后台用户邮箱|手机号加密密钥，默认值为 phalconX
  * @var string $cookieCryptKey 前端 cookie 加密密钥，默认值为 phalconX
  */
+// PHP 8.5 起 PDO::MYSQL_ATTR_INIT_COMMAND 已废弃；8.4+ 使用 Pdo\Mysql::ATTR_INIT_COMMAND
+$pdoInitCommand = defined('Pdo\Mysql::ATTR_INIT_COMMAND')
+    ? \Pdo\Mysql::ATTR_INIT_COMMAND
+    : \PDO::MYSQL_ATTR_INIT_COMMAND;
 return [
     // https://docs.phalcon.io/5.0/en/cache
     'cache' => [
@@ -68,7 +72,7 @@ return [
                 'collation' => 'utf8mb4_unicode_ci',
                 'prefix' => '',
                 'options' => [
-                    \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4'",
+                    $pdoInitCommand => "SET NAMES 'utf8mb4'",
                     \PDO::ATTR_EMULATE_PREPARES => false,
                     \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC

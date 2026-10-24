@@ -42,7 +42,7 @@ class NodeController extends BaseController
         return NodeService::nodeTree($rows);
     }
 
-    private function getSystemNodes(QueryBuilder $queryBuilder = null): array
+    private function getSystemNodes(?QueryBuilder $queryBuilder = null): array
     {
         if (is_null($queryBuilder)) {
             $queryBuilder = SystemNode::queryBuilder($this->getDI());
