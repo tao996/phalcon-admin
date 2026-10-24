@@ -136,6 +136,7 @@ class Kernel
         DiService::with($di)
             ->config(function (\Phax\Support\Config $config) {
             })
+            ->logger()
             ->db()
             ->pdo()->redis()->cache()
             ->application();

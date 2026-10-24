@@ -55,7 +55,6 @@ class OrderControllerTest extends \PHPUnit\Framework\TestCase
 
         // 通过反射检查 model 初始为 null
         $modelRef = (new \ReflectionClass($cc))->getProperty('model');
-        $modelRef->setAccessible(true);
         $this->assertNull($modelRef->getValue($cc), '初始化前 model 应为 null');
 
         // 调用 afterInitialize
@@ -77,7 +76,6 @@ class OrderControllerTest extends \PHPUnit\Framework\TestCase
         list($tc, $cc) = MyTestControllerHelper::with(OrderController::class);
 
         $htmlTitleRef = (new \ReflectionClass($cc))->getProperty('htmlTitle');
-        $htmlTitleRef->setAccessible(true);
         $this->assertEquals('订单管理', $htmlTitleRef->getValue($cc));
     }
 }

@@ -16,11 +16,9 @@ class ConfigControllerTest extends \PHPUnit\Framework\TestCase
         list($tc, $cc) = MyTestControllerHelper::with(ConfigController::class);
 
         $afterInitRef = new \ReflectionMethod($cc, 'afterInitialize');
-        $afterInitRef->setAccessible(true);
         $afterInitRef->invoke($cc);
 
         $modelRef = (new \ReflectionClass($cc))->getProperty('model');
-        $modelRef->setAccessible(true);
         $this->assertInstanceOf(OpenConfig::class, $modelRef->getValue($cc));
     }
 
@@ -35,7 +33,6 @@ class ConfigControllerTest extends \PHPUnit\Framework\TestCase
         list($tc, $cc) = MyTestControllerHelper::with(ConfigController::class);
 
         $afterInitRef = new \ReflectionMethod($cc, 'afterInitialize');
-        $afterInitRef->setAccessible(true);
         $afterInitRef->invoke($cc);
 
         $tc->setGetMethod();

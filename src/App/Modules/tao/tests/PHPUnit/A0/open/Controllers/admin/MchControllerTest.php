@@ -18,7 +18,6 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
         $cc->afterInitialize();
 
         $modelRef = (new \ReflectionClass($cc))->getProperty('model');
-        $modelRef->setAccessible(true);
         $this->assertInstanceOf(OpenMch::class, $modelRef->getValue($cc));
     }
 
@@ -30,7 +29,6 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
         list($tc, $cc) = MyTestControllerHelper::with(MchController::class);
 
         $ref = (new \ReflectionClass($cc))->getProperty('htmlTitle');
-        $ref->setAccessible(true);
         $this->assertEquals('商户', $ref->getValue($cc));
     }
 
@@ -42,7 +40,6 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
         list($tc, $cc) = MyTestControllerHelper::with(MchController::class);
 
         $ref = (new \ReflectionClass($cc))->getProperty('modelHiddenColumns');
-        $ref->setAccessible(true);
         $this->assertEquals(['secret_key'], $ref->getValue($cc));
     }
 
@@ -54,7 +51,6 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
         list($tc, $cc) = MyTestControllerHelper::with(MchController::class);
 
         $ref = (new \ReflectionClass($cc))->getProperty('superAdminActions');
-        $ref->setAccessible(true);
         $this->assertEquals('*', $ref->getValue($cc));
     }
 
@@ -69,7 +65,6 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
         $cc->afterInitialize();
 
         $method = new \ReflectionMethod($cc, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('商户号ID');
@@ -89,7 +84,6 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
         $cc->afterInitialize();
 
         $method = new \ReflectionMethod($cc, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('秘钥');
@@ -109,7 +103,6 @@ class MchControllerTest extends \PHPUnit\Framework\TestCase
         $cc->afterInitialize();
 
         $method = new \ReflectionMethod($cc, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('微信支付公钥');

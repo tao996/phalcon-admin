@@ -282,6 +282,30 @@ class Model extends \Phalcon\Mvc\Model
 
 
     /**
+     * 保存记录；成功后回填自增主键
+     *
+     * Phalcon 在模型主键属性已有默认值（如 public int $id = 0）时不会回填
+     * lastInsertId，导致 save() 后 $model->id 仍为 0。这里统一从连接回填，
+     * 保证 add 后的响应、afterModelChange 钩子以及关联写入能拿到真实主键。
+     */
+    public function save(): bool
+    {
+        $saved = parent::save();
+        if (!$saved) {
+            return false;
+        }
+        $identityField = $this->getModelsMetaData()->getIdentityField($this);
+        if ($identityField && empty($this->{$identityField})) {
+            $lastInsertId = $this->getWriteConnection()->lastInsertId();
+            if (!empty($lastInsertId)) {
+                $this->{$identityField} = (int)$lastInsertId;
+            }
+        }
+        return true;
+    }
+
+
+    /**
      * 获取当前实例(用于获取实例的各种原始信息)
      * 返回的是原型对象的副本，修改返回对象的属性不会影响后续调用
      * @return static

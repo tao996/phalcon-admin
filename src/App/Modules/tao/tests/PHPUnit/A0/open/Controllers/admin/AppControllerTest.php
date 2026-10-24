@@ -25,35 +25,30 @@ class AppControllerTest extends \PHPUnit\Framework\TestCase
     public function testAfterInitializeSetsModel()
     {
         $modelRef = (new \ReflectionClass($this->controller))->getProperty('model');
-        $modelRef->setAccessible(true);
         $this->assertInstanceOf(OpenApp::class, $modelRef->getValue($this->controller));
     }
 
     public function testHtmlTitle()
     {
         $ref = (new \ReflectionClass($this->controller))->getProperty('htmlTitle');
-        $ref->setAccessible(true);
         $this->assertEquals('应用', $ref->getValue($this->controller));
     }
 
     public function testModelHiddenColumns()
     {
         $ref = (new \ReflectionClass($this->controller))->getProperty('modelHiddenColumns');
-        $ref->setAccessible(true);
         $this->assertEquals(['secret'], $ref->getValue($this->controller));
     }
 
     public function testModelOrderBy()
     {
         $ref = (new \ReflectionClass($this->controller))->getProperty('modelOrderBy');
-        $ref->setAccessible(true);
         $this->assertEquals('sort desc,id desc', $ref->getValue($this->controller));
     }
 
     public function testAllowModifyFields()
     {
         $ref = (new \ReflectionClass($this->controller))->getProperty('allowModifyFields');
-        $ref->setAccessible(true);
         $this->assertEquals(['status', 'sort', 'online', 'sandbox'], $ref->getValue($this->controller));
     }
 
@@ -62,7 +57,6 @@ class AppControllerTest extends \PHPUnit\Framework\TestCase
     public function testBeforeModelAssignRequiresAppid()
     {
         $method = new \ReflectionMethod($this->controller, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('appid');
@@ -78,7 +72,6 @@ class AppControllerTest extends \PHPUnit\Framework\TestCase
     public function testBeforeModelAssignRequiresPlatform()
     {
         $method = new \ReflectionMethod($this->controller, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('平台');
@@ -94,7 +87,6 @@ class AppControllerTest extends \PHPUnit\Framework\TestCase
     public function testBeforeModelAssignRequiresTitle()
     {
         $method = new \ReflectionMethod($this->controller, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('应用名称');
@@ -110,7 +102,6 @@ class AppControllerTest extends \PHPUnit\Framework\TestCase
     public function testBeforeModelAssignRequiresKind()
     {
         $method = new \ReflectionMethod($this->controller, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('应用类型');
@@ -126,7 +117,6 @@ class AppControllerTest extends \PHPUnit\Framework\TestCase
     public function testBeforeModelAssignRequiresSecret()
     {
         $method = new \ReflectionMethod($this->controller, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('secret');
@@ -142,7 +132,6 @@ class AppControllerTest extends \PHPUnit\Framework\TestCase
     public function testBeforeModelAssignCastsSandbox()
     {
         $method = new \ReflectionMethod($this->controller, 'beforeModelAssign');
-        $method->setAccessible(true);
 
         // sandbox 存在时转为 int
         $result = $method->invoke($this->controller, [
